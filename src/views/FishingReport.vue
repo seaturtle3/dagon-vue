@@ -1,7 +1,7 @@
 <script>
 import api from '@/lib/axios.js'
 
-api.get('/fishing-report/get-all')
+api.get('/api/fishing-report/get-all')
     .then(res => {
       console.log(res.data)
     })

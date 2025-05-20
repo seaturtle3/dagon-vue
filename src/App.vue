@@ -1,6 +1,4 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
 import Home from './views/Home.vue'
 import FishingReport from './views/FishingReport.vue'
 </script>
