@@ -1,12 +1,16 @@
 <script lang="ts">
-import {defineComponent} from 'vue'
+import api from '@/lib/axios.js'
 
-export default defineComponent({
-  name: "product"
-})
+api.get('/api/product/get-all')
+    .then(res => {
+      console.log(res.data)
+    })
+
 </script>
 
 <template>
+
+
 
 </template>
 

@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/Home.vue'
 import FishingReport from '@/views/FishingReport.vue'
-// import ProductList from '@/views/ProductList.vue'
+import Product from '@/views/Product.vue'
 
 const routes = [
     { path: '/', component: Home },
     { path: '/fishing-report', component: FishingReport },
-    // { path: '/products', component: ProductList }
+    { path: '/products', component: Product }
 ]
 
 const router = createRouter({
