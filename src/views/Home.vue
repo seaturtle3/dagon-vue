@@ -4,7 +4,7 @@
 </script>
 
 <template>
-안녕? 테스트좀 할게
+  홈 테스트
 
 </template>
 
