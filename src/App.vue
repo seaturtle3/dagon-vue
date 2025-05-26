@@ -1,5 +1,5 @@
 <template>
-  <div class="container py-4">
+  <div class="container-fluid py-4">
     <HeaderNav />
     <div class="row mb-4">
       <div class="col-md-4">
