@@ -1,11 +1,28 @@
-<script lang="ts">
+<script>
 import api from '@/lib/axios.js'
 
-api.get('/api/product/get-all')
-    .then(res => {
-      console.log(res.data)
-    })
-
+export default {
+  name: 'ProductPage',
+  data() {
+    return {
+      products: []
+    }
+  },
+  mounted() {
+    this.fetchProducts()
+  },
+  methods: {
+    async fetchProducts() {
+      try {
+        const res = await api.get('/api/product/get-all')
+        this.products = res.data
+        console.log(this.products)
+      } catch (err) {
+        console.error('상품 목록 불러오기 실패', err)
+      }
+    }
+  }
+}
 </script>
 
 <template>

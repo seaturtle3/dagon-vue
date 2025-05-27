@@ -1,19 +1,3 @@
-<template>
-  <div class="home">
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <ReservationBox />
-      </div>
-      <div class="col-md-8">
-        <NoticeBox />
-      </div>
-    </div>
-    <SideButtons />
-    <RecommendationList />
-    <PopularList />
-  </div>
-</template>
-
 <script>
 import ReservationBox from '@/components/home/ReservationBox.vue'
 import NoticeBox from '@/components/home/NoticeBox.vue'
@@ -32,6 +16,22 @@ export default {
   }
 }
 </script>
+
+<template>
+  <div class="home">
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <ReservationBox />
+      </div>
+      <div class="col-md-8">
+        <NoticeBox />
+      </div>
+    </div>
+    <SideButtons />
+    <RecommendationList />
+    <PopularList />
+  </div>
+</template>
 
 <style>
 .home {

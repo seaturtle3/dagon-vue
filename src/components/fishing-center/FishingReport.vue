@@ -10,6 +10,7 @@ export default {
   },
   mounted() {
     this.fetchReports();
+    console.log('조황정보 api 호출')
   },
   methods: {
     async fetchReports() {
@@ -24,18 +25,13 @@ export default {
   }
 }
 
-console.log('조황정보 api')
 </script>
 
 <template>
   <div class="fishing-report">
-    <h1>조황센터 테스트</h1>
+    <h1>조황정보 테스트</h1>
   </div>
 </template>
 
 <style scoped>
-.fishing-report {
-  width: 80%;
-  margin: auto;
-}
 </style>

@@ -6,7 +6,7 @@
         <router-link to="/" class="navbar-brand fs-3">🐡</router-link>
 
         <ul class="navbar-nav d-flex flex-row gap-4 position-absolute start-50 translate-middle-x">
-          <li class="nav-item"><router-link class="nav-link" to="/fishing-report">조황센터</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/fishing-center">조황센터</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/sea-fishing">바다낚시</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/freshwater-fishing">민물낚시</router-link></li>
           <li class="nav-item"><router-link class="nav-link" to="/community">커뮤니티</router-link></li>
