@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="home">
     <div class="row mb-4">
       <div class="col-md-4">
         <ReservationBox />
@@ -15,11 +15,11 @@
 </template>
 
 <script>
-import ReservationBox from '@/components/ReservationBox.vue'
-import NoticeBox from '@/components/NoticeBox.vue'
-import SideButtons from '@/components/SideButtons.vue'
-import RecommendationList from '@/components/RecommendationList.vue'
-import PopularList from '@/components/PopularList.vue'
+import ReservationBox from '@/components/home/ReservationBox.vue'
+import NoticeBox from '@/components/home/NoticeBox.vue'
+import SideButtons from '@/components/home/SideButtons.vue'
+import RecommendationList from '@/components/home/RecommendationList.vue'
+import PopularList from '@/components/home/PopularList.vue'
 
 export default {
   name: 'HomePage',
@@ -32,3 +32,10 @@ export default {
   }
 }
 </script>
+
+<style>
+.home {
+  width: 80%;
+  margin: 0 auto;
+}
+</style>

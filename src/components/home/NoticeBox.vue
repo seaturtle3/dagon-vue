@@ -28,7 +28,7 @@
   </div>
 </template>
 <script>
-import { getNotices } from '@/api/api';
+import { getNotices } from '@/api/api.js';
 
 export default {
   name: 'NoticeBox',

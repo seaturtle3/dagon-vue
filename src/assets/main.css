@@ -2,9 +2,8 @@
 
 #app {
   max-width: none;
-  width: 80%;
+  width: 100%;
   margin: 0 auto;
-  padding: 2rem;
   font-weight: normal;
 }
 
@@ -28,8 +27,4 @@ a,
     place-items: center;
   }
 
-  #app {
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
 }
