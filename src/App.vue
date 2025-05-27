@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex flex-column min-vh-100">
     <HeaderNav />
-    <div class="main-container flex-grow-1">
+    <div class="flex-grow-1" style="padding-top: 10%;">
       <router-view />
     </div>
     <Footer />
@@ -22,10 +22,5 @@ export default {
 </script>
 
 <style scoped>
-.main-container {
-  padding-top: 10%;
-}
-footer {
-  margin-top: 10%;
-}
+
 </style>

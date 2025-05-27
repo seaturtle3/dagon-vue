@@ -43,6 +43,7 @@
 .fishing-footer {
   background-color: #1a3c5e; /* 낚시 테마에 어울리는 깊은 바다 색상 */
   color: #ffffff;
+  margin-top: 10%;
 }
 
 .fishing-footer a:hover {
