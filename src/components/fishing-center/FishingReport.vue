@@ -10,7 +10,7 @@ export default {
   },
   mounted() {
     this.fetchReports();
-    console.log('조황정보 api 호출')
+    console.log('API 조황정보 호출')
   },
   methods: {
     async fetchReports() {

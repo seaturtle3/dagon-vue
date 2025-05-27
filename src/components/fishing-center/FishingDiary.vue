@@ -10,7 +10,7 @@ export default {
   },
   mounted() {
     this.fetchDiaries();
-    console.log('조행기 api')
+    console.log('API 조행기 호출')
   },
   methods: {
     async fetchDiaries() {

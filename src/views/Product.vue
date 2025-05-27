@@ -10,6 +10,7 @@ export default {
   },
   mounted() {
     this.fetchProducts()
+    console.log("API 상품 호출");
   },
   methods: {
     async fetchProducts() {
