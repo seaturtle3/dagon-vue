@@ -6,9 +6,11 @@ api.get('/api/fishing-report/get-all')
       console.log(res.data)
     })
 
+console.log('라우터 확인')
 </script>
 
 <template>
+<h1>조황센터 테스트</h1>
 
 </template>
 
