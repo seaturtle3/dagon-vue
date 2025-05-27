@@ -6,7 +6,7 @@
         <div class="col-md-4 text-center text-md-start">
           <h3 class="fw-bold fs-4 mb-3">Fishing Haven</h3>
           <p class="text-light">
-            낚시의 모든 것! 최신 낚시 팁, 그리고 최고의 낚시터 정보를 제공합니다.
+            낚시의 모든 것!
           </p>
         </div>
 
@@ -16,7 +16,6 @@
           <ul class="list-unstyled">
             <li><a href="/about" class="text-light text-decoration-none">소개</a></li>
             <li><a href="/tips" class="text-light text-decoration-none">낚시 팁</a></li>
-            <li><a href="/shop" class="text-light text-decoration-none">장비 쇼핑</a></li>
             <li><a href="/spots" class="text-light text-decoration-none">낚시터 찾기</a></li>
           </ul>
         </div>

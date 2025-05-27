@@ -1,9 +1,11 @@
 <template>
-  <HeaderNav />
-  <div class="main-container">
-    <router-view />
+  <div class="d-flex flex-column min-vh-100">
+    <HeaderNav />
+    <div class="main-container flex-grow-1">
+      <router-view />
+    </div>
+    <Footer />
   </div>
-  <Footer />
 </template>
 
 <script>
@@ -24,6 +26,6 @@ export default {
   padding-top: 10%;
 }
 footer {
-  margin-top: 10%; /* 상단 마진 추가 */
+  margin-top: 10%;
 }
 </style>
