@@ -1,47 +1,41 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+  <div class="container py-4">
+    <HeaderNav />
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <ReservationBox />
+      </div>
+      <div class="col-md-8">
+        <NoticeBox />
+      </div>
     </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+    <SideButtons />
+    <RecommendationList />
+    <PopularList />
+  </div>
 </template>
 
+<script>
+import HeaderNav from './components/HeaderNav.vue';
+import ReservationBox from './components/ReservationBox.vue';
+import NoticeBox from './components/NoticeBox.vue';
+import SideButtons from './components/SideButtons.vue';
+import RecommendationList from './components/RecommendationList.vue';
+import PopularList from './components/PopularList.vue';
+
+export default {
+  name: 'FishingReservationPage',
+  components: {
+    HeaderNav,
+    ReservationBox,
+    NoticeBox,
+    SideButtons,
+    RecommendationList,
+    PopularList
+  }
+};
+</script>
+
 <style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
+/* 추가적인 커스텀 스타일 필요 시 여기에 작성 */
 </style>
