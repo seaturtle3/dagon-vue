@@ -1,9 +1,9 @@
 <template>
   <nav class="navbar navbar-light bg-light fixed-top border-bottom px-3">
-    <div class="container-fluid" style="max-width: 80%;">
+    <div class="container-fluid ps-0" style="max-width: 80%;">
       <div class="d-flex justify-content-between align-items-center w-100">
 
-        <router-link to="/" class="navbar-brand fs-3">🐡</router-link>
+        <router-link to="/" class="navbar-brand fs-3">DΛGON</router-link>
 
         <ul class="navbar-nav d-flex flex-row gap-4 position-absolute start-50 translate-middle-x">
           <li class="nav-item"><router-link class="nav-link" to="/fishing-center">조황센터</router-link></li>
@@ -23,3 +23,9 @@
     </div>
   </nav>
 </template>
+
+<style>
+.nav-link:hover {
+  font-weight: bold;
+}
+</style>
