@@ -1,6 +1,6 @@
 <template>
+  <h2 class="font-bold mb-3">실시간 선상낚시 예약</h2>
   <div class="border p-4 rounded">
-    <h2 class="font-bold mb-2">실시간 선상낚시 예약</h2>
     <p>장소: 바다</p>
     <p>세부 장소: 전체</p>
     <p>날짜: 2025-05-21</p>

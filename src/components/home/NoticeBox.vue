@@ -1,7 +1,7 @@
 <template>
-  <div class="card p-3">
-    <h5 class="card-title mb-3">공지사항</h5>
+  <h2 class="card-title mb-3">공지사항</h2>
 
+  <div class="card p-3">
     <!-- 검색 조건 입력 -->
     <div class="row mb-3">
       <div class="col-md-4">

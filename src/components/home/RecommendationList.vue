@@ -6,7 +6,7 @@
           v-for="n in 8"
           :key="n"
           class="border p-4 text-center d-flex flex-column justify-content-center align-items-center"
-          style="min-height: 180px;"
+          style="min-height: 400px;"
       >
         <div class="fw-semibold">추천 조항{{ n }}</div>
         <div class="text-secondary small mt-2">추천 조항 이미지.jpg</div>

@@ -1,37 +1,37 @@
 <script>
-import api from '@/lib/axios.js'
+import ProductList from '@/components/product/ProductList.vue'
+import ProductForm from '@/components/product/ProductForm.vue'
 
 export default {
   name: 'ProductPage',
+  components: {
+    ProductList,
+    ProductForm,
+  },
   data() {
     return {
-      products: []
+      showForm: false, // 등록 폼 표시 여부
     }
   },
-  mounted() {
-    this.fetchProducts()
-    console.log("API 상품 호출");
-  },
   methods: {
-    async fetchProducts() {
-      try {
-        const res = await api.get('/api/product/get-all')
-        this.products = res.data
-        console.log(this.products)
-      } catch (err) {
-        console.error('상품 목록 불러오기 실패', err)
-      }
+    toggleForm() {
+      this.showForm = !this.showForm;
+    },
+    onFormSubmit() {
+      this.showForm = false;
+      // 등록 후 로직 (예: 리스트 다시 불러오기)
     }
   }
 }
 </script>
 
 <template>
+  <div>
+    <ProductList v-if="!showForm" />
+    <ProductForm v-if="showForm" @submitted="onFormSubmit" />
 
-
-
+    <button @click="toggleForm">
+      {{ showForm ? '뒤로가기' : '배 등록하기' }}
+    </button>
+  </div>
 </template>
-
-<style scoped>
-
-</style>
