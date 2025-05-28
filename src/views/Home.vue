@@ -34,8 +34,5 @@ export default {
 </template>
 
 <style>
-.home {
-  width: 80%;
-  margin: 0 auto;
-}
+
 </style>
