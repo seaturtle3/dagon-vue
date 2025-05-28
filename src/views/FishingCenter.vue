@@ -1,14 +1,14 @@
 <script>
 import FishingReport from '@/components/fishing-center/FishingReport.vue'
 import FishingDiary from '@/components/fishing-center/FishingDiary.vue'
-import Product from "@/views/Product.vue";
+import ProductGrid from '@/components/fishing-center/ProductGrid.vue'
 
 export default {
   name: 'FishingCenter',
   components: {
     FishingReport,
     FishingDiary,
-    Product,
+    ProductGrid
   }
 }
 
@@ -16,7 +16,6 @@ export default {
 
 <template>
   <div class="fishing-center">
-    <FishingReport />
-    <FishingDiary />
+    <ProductGrid />
   </div>
 </template>
