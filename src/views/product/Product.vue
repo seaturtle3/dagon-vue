@@ -1,6 +1,6 @@
 <script>
-import ProductList from '@/components/product/ProductList.vue'
-import ProductForm from '@/components/product/ProductForm.vue'
+import ProductList from '@/views/product/components/ProductList.vue'
+import ProductForm from '@/views/product/components/ProductForm.vue'
 
 export default {
   name: 'ProductPage',

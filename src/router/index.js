@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '@/views/Home.vue'
-import Product from '@/views/Product.vue'
-import SeaFishing from '@/views/SeaFishing.vue'
-import FreshwaterFishing from '@/views/FreshwaterFishing.vue'
-import Community from '@/views/Community.vue'
-import CustomerService from '@/views/CustomerService.vue'
-import FishingCenter from "@/views/FishingCenter.vue";
+import Home from '@/views/home/Home.vue'
+import Product from '@/views/product/Product.vue'
+import SeaFishing from '@/views/fishing-center/SeaFishing.vue'
+import FreshwaterFishing from '@/views/fishing-center/FreshwaterFishing.vue'
+import Community from '@/views/community/Community.vue'
+import CustomerService from '@/views/customer-service/CustomerService.vue'
+import FishingCenter from "@/views/fishing-center/FishingCenter.vue";
 
 const routes = [
     { path: '/', component: Home },

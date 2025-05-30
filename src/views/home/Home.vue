@@ -1,9 +1,9 @@
 <script>
-import ReservationBox from '@/components/home/ReservationBox.vue'
-import NoticeBox from '@/components/home/NoticeBox.vue'
-import SideButtons from '@/components/home/SideButtons.vue'
-import RecommendationList from '@/components/home/RecommendationList.vue'
-import PopularList from '@/components/home/PopularList.vue'
+import ReservationBox from '@/views/home/components/ReservationBox.vue'
+import NoticeBox from '@/views/home/components/NoticeBox.vue'
+import SideButtons from '@/views/home/components/SideButtons.vue'
+import RecommendationList from '@/views/home/components/RecommendationList.vue'
+import PopularList from '@/views/home/components/PopularList.vue'
 
 export default {
   name: 'HomePage',
