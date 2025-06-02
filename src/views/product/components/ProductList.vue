@@ -1,27 +1,10 @@
-<script>
-import api from '@/lib/axios.js'
+<script setup>
+defineProps(['products'])
 
-export default {
-  name: 'ProductList',
-  data() {
-    return {
-      products: []
-    }
-  },
-  mounted() {
-    this.fetchProducts()
-  },
-  methods: {
-    async fetchProducts() {
-      try {
-        const res = await api.get('/api/product/get-all')
-        this.products = res.data.content // Page 객체니까 content 필요
-      } catch (err) {
-        console.error('상품 목록 불러오기 실패', err)
-      }
-    }
-  }
-}
+import { useProductStore } from '@/store/product/productStore.js'
+
+const productStore = useProductStore()
+
 </script>
 
 <template>
@@ -60,14 +43,43 @@ export default {
         <td>{{ product.prodEvent }}</td>
         <td>{{ product.prodNotice }}</td>
         <td>{{ product.createdAt }}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-primary">예약</button>
-        </td>
+        <td><button class="btn btn-sm btn-primary">예약</button></td>
       </tr>
       </tbody>
     </table>
-  </div>
-</template>
 
-<style scoped>
-</style>
+    <!-- 페이지 버튼 -->
+    <div class="d-flex justify-content-center mt-3">
+      <!-- 이전 버튼 -->
+      <button
+          class="btn btn-outline-secondary mx-1"
+          :disabled="productStore.page === 0"
+          @click="productStore.goToPage(productStore.page - 1)"
+      >
+        이전
+      </button>
+
+      <!-- 페이지 번호 -->
+      <button
+          v-for="pageNum in productStore.totalPages"
+          :key="pageNum"
+          class="btn mx-1"
+          :class="productStore.page === (pageNum - 1) ? 'btn-primary' : 'btn-outline-primary'"
+          @click="productStore.goToPage(pageNum - 1)"
+      >
+        {{ pageNum }}
+      </button>
+
+      <!-- 다음 버튼 -->
+      <button
+          class="btn btn-outline-secondary mx-1"
+          :disabled="productStore.page >= productStore.totalPages - 1"
+          @click="productStore.goToPage(productStore.page + 1)"
+      >
+        다음
+      </button>
+    </div>
+
+  </div>
+
+</template>

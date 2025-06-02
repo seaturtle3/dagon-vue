@@ -1,74 +1,20 @@
-<script>
-import api from '@/lib/axios.js'
+<script setup>
+import { onMounted } from 'vue'
+import { useProductStore } from '@/store/product/productStore'
 
-export default {
-  name: 'ProductForm',
-  data() {
-    return {
-      form: {
-        prodName: '',
-        prodRegion: '',
-        mainType: '',
-        subType: '',
-        maxPerson: null,
-        minPerson: null,
-        weight: null,
-        prodAddress: '',
-        prodDescription: '',
-        prodEvent: '',
-        prodNotice: '',
-      },
-      regions: [],   // [{ name: 'SEOUL', korean: '서울' }, ...]
-      mainTypes: [], // [{ name: 'SEA', korean: '바다' }, ...]
-      subTypes: [],  // [{ name: 'SUB1', korean: '서브1' }, ...]
-    }
-  },
-  created() {
-    this.loadEnums()
-  },
-  methods: {
-    async loadEnums() {
-      // enum 데이터 백엔드에서 API로 받아오는 경우가 많음
-      // 임시 하드코딩 예시
-      this.regions = [
-        { name: 'SEOUL', korean: '서울' },
-        { name: 'BUSAN', korean: '부산' },
-      ]
-      this.mainTypes = [
-        { name: 'SEA', korean: '바다' },
-        { name: 'FRESHWATER', korean: '민물' },
-      ]
-      this.subTypes = [
-        { name: 'TYPE1', korean: '유형1' },
-        { name: 'TYPE2', korean: '유형2' },
-      ]
-    },
-    async submitForm() {
-      try {
-        const res = await api.post('/api/product/create', this.form)
-        alert('등록 성공: ID ' + res.data)
-        this.resetForm()
-      } catch (err) {
-        console.error('등록 실패', err)
-        alert('등록 실패')
-      }
-    },
-    resetForm() {
-      this.form = {
-        prodName: '',
-        prodRegion: '',
-        mainType: '',
-        subType: '',
-        maxPerson: null,
-        minPerson: null,
-        weight: null,
-        prodAddress: '',
-        prodDescription: '',
-        prodEvent: '',
-        prodNotice: '',
-      }
-    }
-  }
+const store = useProductStore()
+
+const form = store.form
+const regions = store.enums.regions
+const mainTypes = store.enums.mainTypes
+const subTypes = store.enums.subTypes
+
+onMounted(() => {
+  store.loadEnums()
+})
+
+function submit() {
+  store.submitForm()
 }
 </script>
 
