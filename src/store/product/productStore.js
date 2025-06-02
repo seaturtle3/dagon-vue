@@ -1,4 +1,3 @@
-// store/product/productStore.js
 import { defineStore } from 'pinia'
 import api from '@/lib/axios'
 
@@ -45,19 +44,24 @@ export const useProductStore = defineStore('product', {
         },
 
         async loadEnums() {
-            // 백엔드에서 불러오거나 하드코딩
-            this.enums.regions = [
-                { name: 'SEOUL', korean: '서울' },
-                { name: 'BUSAN', korean: '부산' }
-            ]
-            this.enums.mainTypes = [
-                { name: 'SEA', korean: '바다' },
-                { name: 'FRESHWATER', korean: '민물' }
-            ]
-            this.enums.subTypes = [
-                { name: 'TYPE1', korean: '유형1' },
-                { name: 'TYPE2', korean: '유형2' }
-            ]
+            try {
+                const res = await api.get('/api/enums/prod-regions')
+                this.enums.regions = res.data
+            } catch (err) {
+                console.error('지역 enum 불러오기 실패', err)
+            }
+            try {
+                const res = await api.get('/api/enums/main-types')
+                this.enums.mainTypes = res.data
+            } catch (err) {
+                console.error('메인타입 enum 불러오기 실패', err)
+            }
+            try {
+                const res = await api.get('/api/enums/sub-types')
+                this.enums.subTypes = res.data
+            } catch (err) {
+                console.error('서브타입 enum 불러오기 실패', err)
+            }
         },
 
         async submitForm() {

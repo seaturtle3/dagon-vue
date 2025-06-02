@@ -1,25 +1,24 @@
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useProductStore } from '@/store/product/productStore'
 
-const store = useProductStore()
+const productStore = useProductStore()
 
-const form = store.form
-const regions = store.enums.regions
-const mainTypes = store.enums.mainTypes
-const subTypes = store.enums.subTypes
+const regions = computed(() => productStore.enums.regions)
+const mainTypes = computed(() => productStore.enums.mainTypes)
+const subTypes = computed(() => productStore.enums.subTypes)
 
 onMounted(() => {
-  store.loadEnums()
+  productStore.loadEnums()
 })
 
 function submit() {
-  store.submitForm()
+  productStore.submitForm()
 }
 </script>
 
 <template>
-  <form @submit.prevent="submitForm" enctype="multipart/form-data" class="container mt-5">
+  <form @submit.prevent="submit" enctype="multipart/form-data" class="container mt-5">
     <div class="mb-3">
       <label for="prodName" class="form-label">배 이름</label>
       <input v-model="form.prodName" type="text" class="form-control" id="prodName" required />
