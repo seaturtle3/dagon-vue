@@ -57,9 +57,9 @@ function nextPage() {
                 :src="`http://localhost:8095/uploads/${product.prodThumbnail}`"
                 class="card-img-top"
                 alt="썸네일"
-                style="height: 50%; object-fit: cover;"
+                style="height: 60%; object-fit: cover;"
             />
-            <div class="card-body p-2 mt-4">
+            <div class="card-body p-2 mt-2">
               <h6 class="card-title mb-1">
                 {{ product.prodName }}
               </h6>
