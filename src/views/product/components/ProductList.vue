@@ -1,14 +1,19 @@
 <script setup>
-defineProps(['products'])
+defineProps({
+  products: Array,
+  page: Number,
+  totalPages: Number,
+})
 
-import { useProductStore } from '@/store/product/productStore.js'
+const emit = defineEmits(['page-change'])
 
-const productStore = useProductStore()
-
+function goToPage(num) {
+  emit('page-change', num)
+}
 </script>
 
 <template>
-  <div class="container mt-5">
+  <div class="container">
     <h2>등록된 배 리스트</h2>
 
     <table class="table table-striped table-hover">
@@ -42,7 +47,7 @@ const productStore = useProductStore()
         <td>{{ product.prodDescription }}</td>
         <td>{{ product.prodEvent }}</td>
         <td>{{ product.prodNotice }}</td>
-        <td>{{ product.createdAt }}</td>
+        <td>{{ new Date(product.createdAt).toLocaleDateString() }}</td>
         <td><button class="btn btn-sm btn-primary">예약</button></td>
       </tr>
       </tbody>
@@ -50,36 +55,31 @@ const productStore = useProductStore()
 
     <!-- 페이지 버튼 -->
     <div class="d-flex justify-content-center mt-3">
-      <!-- 이전 버튼 -->
       <button
           class="btn btn-outline-secondary mx-1"
-          :disabled="productStore.page === 0"
-          @click="productStore.goToPage(productStore.page - 1)"
+          :disabled="page === 0"
+          @click="goToPage(page - 1)"
       >
         이전
       </button>
 
-      <!-- 페이지 번호 -->
       <button
-          v-for="pageNum in productStore.totalPages"
+          v-for="pageNum in totalPages"
           :key="pageNum"
           class="btn mx-1"
-          :class="productStore.page === (pageNum - 1) ? 'btn-primary' : 'btn-outline-primary'"
-          @click="productStore.goToPage(pageNum - 1)"
+          :class="page === (pageNum - 1) ? 'btn-primary' : 'btn-outline-primary'"
+          @click="goToPage(pageNum - 1)"
       >
         {{ pageNum }}
       </button>
 
-      <!-- 다음 버튼 -->
       <button
           class="btn btn-outline-secondary mx-1"
-          :disabled="productStore.page >= productStore.totalPages - 1"
-          @click="productStore.goToPage(productStore.page + 1)"
+          :disabled="page >= totalPages - 1"
+          @click="goToPage(page + 1)"
       >
         다음
       </button>
     </div>
-
   </div>
-
 </template>
