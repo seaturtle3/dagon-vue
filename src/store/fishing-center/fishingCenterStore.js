@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from '@/lib/axios'
 
-export const useFishingCenterProducts = defineStore('fishingCenter', {
+export const useFishingCenterStore = defineStore('fishingCenter', {
     state: () => ({
         products: [],
         page: 0,
