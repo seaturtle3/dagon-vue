@@ -1,7 +1,8 @@
-// router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
-import InquiryForm from '@/components/inquiry/InquiryForm.vue';
-import InquiryList from '@/views/inquiry/InquiryList.vue';
+import InquiryForm from '@/views/inquiry/InquiryForm.vue';
+import Reservation from '@/views/inquiry/ReservationForm.vue';
+import Payments from '@/views/Payments/Payments.vue'
+
 
 const routes = [
     {
@@ -10,9 +11,8 @@ const routes = [
         component: InquiryForm
     },
     {
-        path: '/inquiry/list',
-        name: 'InquiryList',
-        component: InquiryList
+        path: '/Payments',
+        component: () => import("@/views/payments/Payments.vue")
     }
 ];
 

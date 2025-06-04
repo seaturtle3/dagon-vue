@@ -1,10 +1,12 @@
 <script setup>
-import InquiryForm from './components/inquiry/InquiryForm.vue'
-import InquiryList from "./views/inquiry/InquiryList.vue";
+import Payments from "./views/payments/Payments.vue";
+import Reservation from "./views/reservation/Reservation.vue"
+import InquiryForm from './views/inquiry/InquiryForm.vue'
 </script>
 
 <template>
-  <InquiryList />
+  <Payments />
+  <Reservation />
   <InquiryForm />
 </template>
 
