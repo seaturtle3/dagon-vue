@@ -28,8 +28,8 @@ export default {
       </div>
     </div>
     <SideButtons />
-    <RecommendationList />
     <PopularList />
+    <RecommendationList />
   </div>
 </template>
 
