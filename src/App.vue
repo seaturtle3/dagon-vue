@@ -1,7 +1,7 @@
 <script setup>
 import Payments from "./views/payments/Payments.vue";
-import Reservation from "./views/reservation/Reservation.vue"
-import InquiryForm from './views/inquiry/InquiryForm.vue'
+import Reservation from "./views/reservation/ReservationForm.vue";
+import InquiryForm from './views/inquiry/InquiryForm.vue';
 </script>
 
 <template>

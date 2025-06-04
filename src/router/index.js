@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import InquiryForm from '@/views/inquiry/InquiryForm.vue';
-import Reservation from '@/views/inquiry/ReservationForm.vue';
-import Payments from '@/views/Payments/Payments.vue'
+import Payments from '@/views/Payments/PaymentsForm.vue';
+import ReservationForm from "@/views/reservation/ReservationForm.vue";
 
 
 const routes = [
@@ -11,8 +11,14 @@ const routes = [
         component: InquiryForm
     },
     {
-        path: '/Payments',
+        path: '/payments/from',
+        name: 'PaymentsForm',
         component: () => import("@/views/payments/Payments.vue")
+    },
+    {
+        path: '/reservation/form',
+        name: 'ReservationForm',
+        component: ReservationForm
     }
 ];
 
