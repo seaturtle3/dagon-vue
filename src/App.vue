@@ -1,39 +1,29 @@
-<script setup>
-// import InquiryForm from './components/inquiry/InquiryForm.vue'
-// import InquiryList from "./views/inquiry/InquiryList.vue";
-</script>
-
 <template>
-  <div id="app">
-    <router-view /> <!-- 여기에 각 페이지 컴포넌트가 렌더링됨 -->
+  <div class="d-flex flex-column min-vh-100">
+    <HeaderNav />
+    <div class="router flex-grow-1" style="padding-top: 10%;">
+      <router-view />
+    </div>
+    <Footer />
   </div>
 </template>
 
+<script>
+import HeaderNav from './components/common/HeaderNav.vue';
+import Footer from './components/common/Footer.vue';
+
+export default {
+  name: 'Home',
+  components: {
+    HeaderNav,
+    Footer,
+  }
+};
+</script>
+
 <style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.router {
+  width: 80%;
+  margin: 0 auto;
 }
 </style>
