@@ -18,6 +18,7 @@ export const useProductEnumStore = defineStore('productEnum', {
                 this.regions = r1.data
                 this.mainTypes = r2.data
                 this.subTypes = r3.data
+
             } catch (err) {
                 console.error('enum 불러오기 실패', err)
             }

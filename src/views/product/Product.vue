@@ -20,11 +20,14 @@ function onFormSubmit() {
 
 onMounted(() => {
   listStore.fetchProducts()
+  enumStore.loadEnums()
+
+  console.log('productEnumStore:', enumStore.loadEnums())
 })
 </script>
 
 <template>
-  <div>
+
     <!-- ProductList -->
     <ProductList
         v-if="!formStore.showForm"
@@ -48,5 +51,5 @@ onMounted(() => {
     <button @click="formStore.toggleForm" class="btn btn-secondary mt-3">
       {{ formStore.showForm ? '뒤로가기' : '배 등록하기' }}
     </button>
-  </div>
+
 </template>

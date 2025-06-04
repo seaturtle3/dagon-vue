@@ -16,7 +16,5 @@ function handleSelect(product) {
 </script>
 
 <template>
-  <div class="fishing-center">
     <ProductList :products="store.products" @select="handleSelect" />
-  </div>
 </template>
