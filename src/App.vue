@@ -1,11 +1,7 @@
 <template>
-  <div class="d-flex flex-column min-vh-100">
-    <HeaderNav />
-    <div class="router flex-grow-1" style="padding-top: 10%;">
-      <router-view />
-    </div>
-    <Footer />
-  </div>
+  <HeaderNav/>
+  <router-view/>
+  <Footer/>
 </template>
 
 <script>
@@ -20,10 +16,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.router {
-  width: 80%;
-  margin: 0 auto;
-}
-</style>
