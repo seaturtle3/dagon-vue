@@ -1,11 +1,12 @@
 <script setup>
-import Home from './views/Home.vue'
-import FishingReport from './views/FishingReport.vue'
+// import InquiryForm from './components/inquiry/InquiryForm.vue'
+// import InquiryList from "./views/inquiry/InquiryList.vue";
 </script>
 
 <template>
-  <Home/>
-  <FishingReport/>
+  <div id="app">
+    <router-view /> <!-- 여기에 각 페이지 컴포넌트가 렌더링됨 -->
+  </div>
 </template>
 
 <style scoped>
