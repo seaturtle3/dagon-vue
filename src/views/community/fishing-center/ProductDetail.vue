@@ -35,14 +35,13 @@ function goBack() {
 <template>
   <div style="max-width: 800px; margin: 0 auto; padding: 1rem;">
     <div v-if="product">
-      <button @click="goBack" style="margin-bottom: 1rem;">← 뒤로가기</button>
+      <h1 style="margin-bottom: 5%">{{ product.prodName }}</h1>
       <img
           :src="`http://localhost:8095/uploads/${product.prodThumbnail}`"
           class="card-img-top"
           alt="썸네일"
           style="width: 100%; height: auto; object-fit: cover; border-radius: 8px;"
       />
-      <h1 style="margin-top: 1rem;">{{ product.prodName }}</h1>
       <p>지역: {{ product.prodRegion }}</p>
       <p>등록일: {{ product.createdAt }}</p>
     </div>
