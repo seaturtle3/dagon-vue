@@ -1,10 +1,9 @@
 <script>
 
-
 </script>
 
 <template>
-  홈 테스트
+<h1>바다낚시 테스트</h1>
 
 </template>
 

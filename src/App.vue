@@ -1,41 +1,29 @@
 <template>
-  <div class="container py-4">
+  <div class="d-flex flex-column min-vh-100">
     <HeaderNav />
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <ReservationBox />
-      </div>
-      <div class="col-md-8">
-        <NoticeBox />
-      </div>
+    <div class="router flex-grow-1" style="padding-top: 10%;">
+      <router-view />
     </div>
-    <SideButtons />
-    <RecommendationList />
-    <PopularList />
+    <Footer />
   </div>
 </template>
 
 <script>
-import HeaderNav from './components/HeaderNav.vue';
-import ReservationBox from './components/ReservationBox.vue';
-import NoticeBox from './components/NoticeBox.vue';
-import SideButtons from './components/SideButtons.vue';
-import RecommendationList from './components/RecommendationList.vue';
-import PopularList from './components/PopularList.vue';
+import HeaderNav from './components/common/HeaderNav.vue';
+import Footer from './components/common/Footer.vue';
 
 export default {
-  name: 'FishingReservationPage',
+  name: 'Home',
   components: {
     HeaderNav,
-    ReservationBox,
-    NoticeBox,
-    SideButtons,
-    RecommendationList,
-    PopularList
+    Footer,
   }
 };
 </script>
 
 <style scoped>
-/* 추가적인 커스텀 스타일 필요 시 여기에 작성 */
+.router {
+  width: 80%;
+  margin: 0 auto;
+}
 </style>
