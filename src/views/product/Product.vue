@@ -20,6 +20,7 @@ function onFormSubmit() {
 
 onMounted(() => {
   listStore.fetchProducts()
+  enumStore.loadEnums()
 })
 </script>
 

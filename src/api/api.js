@@ -24,3 +24,13 @@ export const getNotices = (page = 0, size = 5, searchDTO = {}) => {
 export const getNoticeById = (id) => {
     return apiClient.get(`/notices/${id}`);
 };
+
+
+// 상품 등록 (파일 포함)
+export const createProduct = (formData) => {
+    return apiClient.post('/product/create', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data' // axios가 boundary 자동 설정
+        }
+    });
+};
