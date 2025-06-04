@@ -1,10 +1,9 @@
 <script>
 
-
 </script>
 
 <template>
-안녕? 테스트좀 할게
+<h1>바다낚시 테스트</h1>
 
 </template>
 
