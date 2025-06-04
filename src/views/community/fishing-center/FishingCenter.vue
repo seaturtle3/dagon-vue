@@ -1,7 +1,8 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useFishingCenterStore } from '@/store/fishing-center/fishingCenterStore.js'
-import ProductList from './components/FishingCenterProducts.vue'
+import FishingCenterProducts from './components/FishingCenterProducts.vue'
+import router from "@/router/index.js";
 
 const store = useFishingCenterStore()
 
@@ -11,10 +12,10 @@ onMounted(() => {
 
 function handleSelect(product) {
   console.log('선택된 상품:', product)
-  // 상세 페이지 이동 등 처리 가능
+  router.push({ name: 'ProductDetail', params: { id: product.prodId } })
 }
 </script>
 
 <template>
-    <ProductList :products="store.products" @select="handleSelect" />
+    <FishingCenterProducts :products="store.products" @select="handleSelect" />
 </template>
