@@ -1,9 +1,3 @@
-<script setup>
-import Payments from "./views/payments/Payment.vue";
-import Reservation from "./views/reservation/ReservationForm.vue";
-import InquiryForm from '@/views/inquiries/InquiryForm.vue';
-</script>
-
 <template>
   <div class="d-flex flex-column min-vh-100">
     <HeaderNav />
