@@ -13,6 +13,9 @@ const routes = [
     { path: '/freshwater-fishing', component: FreshwaterFishing },
     { path: '/customer-service', component: CustomerService },
     { path: '/products', component: Product },
+    { path: '/support/notice', component: () => import('@/views/support/notice/NoticeList.vue') }, // 비동기
+    { path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
+        props: true },
 ]
 
 const router = createRouter({
