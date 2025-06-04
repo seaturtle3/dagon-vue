@@ -3,15 +3,13 @@
 </script>
 
 <template>
-
-  <div class="customer">
-    <h1>고객센터 테스트</h1>
+  <div class="fresh">
+    <h1>민물낚시 테스트</h1>
   </div>
-
 </template>
 
 <style scoped>
-.customer {
+.fresh {
   width: 80%;
   margin: 5% auto;
 }
