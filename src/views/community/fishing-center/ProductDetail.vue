@@ -33,7 +33,7 @@ function goBack() {
 </script>
 
 <template>
-  <div style="max-width: 800px; margin: 0 auto; padding: 1rem;">
+  <div class="detail">
     <div v-if="product">
       <h1 style="margin-bottom: 5%">{{ product.prodName }}</h1>
       <img
@@ -50,4 +50,12 @@ function goBack() {
     </div>
   </div>
 </template>
+
+<style scoped>
+.detail {
+  width: 80%;
+  margin: 5% auto;
+  max-width: 800px;
+}
+</style>
 

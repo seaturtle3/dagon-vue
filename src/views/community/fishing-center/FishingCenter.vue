@@ -17,5 +17,14 @@ function handleSelect(product) {
 </script>
 
 <template>
+  <div class="center">
     <FishingCenterProducts :products="store.products" @select="handleSelect" />
+  </div>
 </template>
+
+<style>
+.center {
+  width: 80%;
+  margin: 5% auto;
+}
+</style>
