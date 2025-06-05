@@ -4,15 +4,26 @@ import Product from '@/views/product/Product.vue'
 import FishingCenter from "@/views/community/fishing-center/FishingCenter.vue";
 import SeaFishing from '@/views/fishing-filter/sea-fishing/SeaFishing.vue'
 import FreshwaterFishing from '@/views/fishing-filter/fresh-water-fishing/FreshwaterFishing.vue'
-import Community from '@/views/community/Community.vue'
 import CustomerService from '@/views/support/customer-service/CustomerService.vue'
 import ProductDetail from '@/views/community/fishing-center/ProductDetail.vue'
+import Inquiry from '@/views/inquiries/Inquiry.vue'
 import Payment from '@/views/payments/Payment.vue'
 import Reservation from '@/views/reservation/Reservation.vue'
+import login from "@/views/auth/login/Login.vue";
+import Community from "@/views/community/Community.vue";
+import registerForm from "@/views/auth/register/components/RegisterForm.vue";
+import MyPage from "@/views/mypage/MyPageView.vue";
+import ProfileView from "@/views/mypage/components/ProfileView.vue";
+import PasswordView from "@/views/mypage/components/PasswordView.vue";
+import PointsView from "@/views/mypage/components/PointsView.vue";
+import ReservationsView from "@/views/mypage/components/ReservationsView.vue";
+import NotificationsView from "@/views/mypage/components/NotificationsView.vue";
+import WithdrawalView from "@/views/mypage/components/WithdrawalView.vue";
 
 const routes = [
     { path: '/', component: Home },
     { path: '/fishing-center', component: FishingCenter },
+    { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail'},
     { path: '/sea-fishing', component: SeaFishing },
     { path: '/freshwater-fishing', component: FreshwaterFishing },
     { path: '/community', component: Community},
@@ -22,6 +33,45 @@ const routes = [
     { path: '/inquiries', component: () => import('@/views/inquiries/Inquiry.vue')},
     { path: '/payments', component: () => import('@/views/payments/Payment.vue')},
     { path: '/reservation', component: Reservation }
+    { path: '/inquiry', component: () => import('@/views/inquiries/Inquiry.vue')},
+    { path: '/payments', component: Payment },
+    { path: '/reservation', component: Reservation },
+    { path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue') }, // 비동기
+    { path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
+        props: true },
+    { path: '/login', component: login },
+    { path: '/register', component: registerForm },
+    {
+        path: '/mypage',
+        component: MyPage,
+        redirect: '/mypage/profile',
+        children: [
+            {
+                path: 'profile',
+                component: ProfileView
+            },
+            {
+                path: 'password',
+                component: PasswordView
+            },
+            {
+                path: 'points',
+                component: PointsView
+            },
+            {
+                path: 'reservations',
+                component: ReservationsView
+            },
+            {
+                path: 'notifications',
+                component: NotificationsView
+            },
+            {
+                path: 'withdrawal',
+                component: WithdrawalView
+            }
+        ]
+    }
 ]
 
 const router = createRouter({
