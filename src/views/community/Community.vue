@@ -28,4 +28,4 @@ export default {
 .content {
   margin-top: 20px;
 }
-</style> 
+</style>

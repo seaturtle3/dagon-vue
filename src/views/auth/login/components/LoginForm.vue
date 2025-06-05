@@ -199,7 +199,7 @@ const goToRegister = () => {
     <div class="login-box">
       <!-- 로고 -->
       <div class="logo-section">
-        <h1 class="logo">DΛGON</h1>
+        <h1 class="logo">DAGON</h1>
         <p class="subtitle">낚시의 모든 것</p>
       </div>
 
@@ -229,7 +229,7 @@ const goToRegister = () => {
                 placeholder="비밀번호를 입력하세요"
               />
               <span class="input-icon">
-                <i class="fas fa-lock"></i>
+                <i class="fas fa-times"></i>
               </span>
             </div>
           </div>
@@ -240,13 +240,10 @@ const goToRegister = () => {
             <span>{{ authStore.loading ? '로그인 중...' : '로그인' }}</span>
           </button>
 
-
           <!-- 카카오 로그인 -->
           <div class="social-login">
             <button type="button" class="social-button kakao">
-              <svg width="18" height="18" viewBox="0 0 18 18">
-                <path fill="#000000" d="M9 1.5C4.5 1.5 0.9 4.37 0.9 7.88c0 2.25 1.51 4.22 3.78 5.33l-0.95 3.58c-0.09 0.32 0.28 0.57 0.55 0.37l4.27-2.92c0.14 0.02 0.29 0.02 0.45 0.02 4.5 0 8.1-2.87 8.1-6.38S13.5 1.5 9 1.5z"/>
-              </svg>
+              <i class="fas fa-comment"></i>
               카카오로 계속하기
             </button>
           </div>
@@ -262,10 +259,6 @@ const goToRegister = () => {
             <span class="divider-dot">·</span>
             <a href="#" @click.prevent="currentView = 'findPassword'">비밀번호 찾기</a>
           </div>
-
-
-
-
         </form>
       </div>
 
@@ -468,31 +461,31 @@ const goToRegister = () => {
   align-items: center;
   min-height: 100vh;
   background-color: #f0f2f5;
+  
 }
 
 .login-box {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 1200px;
+  padding: 6rem 10rem;
+  background: white;
 }
 
 .logo-section {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .logo {
-  font-size: 2rem;
+  font-size: 4rem;
   font-weight: bold;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .subtitle {
   color: #666;
-  font-size: 0.9rem;
+  font-size: 1.5rem;
+  margin-bottom: 4rem;
 }
 
 .form-container {
@@ -506,14 +499,13 @@ const goToRegister = () => {
 }
 
 .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .form-group label {
-  font-size: 0.9rem;
-  color: #333;
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
 }
 
 .input-wrapper {
@@ -522,11 +514,11 @@ const goToRegister = () => {
 
 .input-wrapper input {
   width: 100%;
-  padding: 0.75rem;
-  padding-right: 2.5rem;
+  padding: 1.2rem;
+  padding-right: 3rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  border-radius: 5px;
+  font-size: 1.2rem;
 }
 
 .input-wrapper input:focus {
@@ -536,29 +528,43 @@ const goToRegister = () => {
 
 .input-icon {
   position: absolute;
-  right: 0.75rem;
+  right: 1.2rem;
   top: 50%;
   transform: translateY(-50%);
   color: #999;
+  font-size: 1.2rem;
 }
 
 .login-button {
-  background-color: #4a90e2;
+  margin-top: 1rem;
+  padding: 1.2rem 12rem;
+  background: #1a73e8;
   color: white;
-  padding: 0.75rem;
   border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  border-radius: 7px;
+  font-size: 1.2rem;
   cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
+  margin-bottom: 1rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.login-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+.kakao-button {
+  padding: 1.2rem 12rem;
+  background: #fee500;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .back-button {
@@ -566,8 +572,8 @@ const goToRegister = () => {
   color: #666;
   padding: 0.75rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  border-radius: 5px;
+  font-size: 0.875rem;
   cursor: pointer;
   margin-top: 0.5rem;
 }
@@ -589,7 +595,7 @@ const goToRegister = () => {
   display: flex;
   justify-content: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .find-links a {
@@ -605,24 +611,10 @@ const goToRegister = () => {
   color: #666;
 }
 
-.divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 1rem 0;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #ddd;
-}
-
 .divider span {
   padding: 0 0.5rem;
   color: #666;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .social-login {
@@ -643,17 +635,11 @@ const goToRegister = () => {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .social-button.kakao svg {
   margin-right: 0.75rem;
-}
-
-.signup-link {
-  text-align: center;
-  margin-top: 1rem;
-  font-size: 0.9rem;
 }
 
 .signup-link a {
@@ -668,7 +654,7 @@ const goToRegister = () => {
   border: 1px solid #ffccc7;
   border-radius: 4px;
   color: #ff4d4f;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   text-align: center;
 }
 
@@ -679,7 +665,7 @@ const goToRegister = () => {
   border: 1px solid #b7eb8f;
   border-radius: 4px;
   color: #52c41a;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   text-align: center;
 }
 
@@ -710,7 +696,7 @@ const goToRegister = () => {
 }
 
 .found-id-title {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: #666;
   margin-bottom: 0.5rem;
 }
@@ -731,7 +717,7 @@ const goToRegister = () => {
 }
 
 .temp-password-title {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: #666;
   margin-bottom: 0.5rem;
 }
@@ -758,7 +744,7 @@ const goToRegister = () => {
 }
 
 .change-password-title {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: #666;
   margin-bottom: 0.5rem;
 }
@@ -780,7 +766,7 @@ const goToRegister = () => {
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   cursor: pointer;
   margin-top: 0.5rem;
   width: 100%;
@@ -789,5 +775,31 @@ const goToRegister = () => {
 
 .register-link:hover {
   background-color: #f5f5f5;
+}
+
+.links {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.links a {
+  color: #666;
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+
+.sub-links {
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.sub-links a {
+  color: #666;
+  text-decoration: none;
+}
+
+input::placeholder {
+  color: #999;
+  font-size: 1.2rem;
 }
 </style>

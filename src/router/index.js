@@ -5,7 +5,9 @@ import FishingCenter from "@/views/fishing-center/FishingCenter.vue";
 import SeaFishing from '@/views/sea-fishing/SeaFishing.vue'
 import FreshwaterFishing from '@/views/freshwater-fishing/FreshwaterFishing.vue'
 import CustomerService from '@/views/support/customer-service/CustomerService.vue'
-import Community from '@/views/community/Community.vue'
+import login from "@/views/auth/login/Login.vue";
+import Community from "@/views/community/Community.vue";
+import registerForm from "@/views/auth/register/components/RegisterForm.vue";
 
 const routes = [
     { path: '/', component: Home },
@@ -15,6 +17,8 @@ const routes = [
     { path: '/community', component: Community },
     { path: '/customer-service', component: CustomerService },
     { path: '/products', component: Product },
+    { path: '/login', component: login },
+    { path: '/register', component: registerForm },
 ]
 
 const router = createRouter({

@@ -9,7 +9,9 @@ import LoginForm from './components/LoginForm.vue';
 
 export default {
   name: 'LoginView',
-  components: { LoginForm },
+  components: {
+    LoginForm
+  }
 };
 </script>
 
@@ -23,12 +25,10 @@ document.head.appendChild(fontAwesomeScript);
 
 <style scoped>
 .login-page {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 9999;
-  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f1f3f5;
 }
 </style>

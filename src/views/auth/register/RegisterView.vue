@@ -1,5 +1,6 @@
+=
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 full-width">
     <RegisterForm />
   </div>
 </template>
@@ -9,5 +10,7 @@ import RegisterForm from './components/RegisterForm.vue'; // 또는 경로에 �
 </script>
 
 <style scoped>
-/* 기존 스타일 제거 */
+.full-width {
+  width: 100%;
+}
 </style>

@@ -1,10 +1,15 @@
 <template>
   <div class="d-flex flex-column min-vh-100">
-    <HeaderNav />
-    <div class="router flex-grow-1" style="padding-top: 10%;">
+    <template v-if="!isAuthPage">
+      <HeaderNav />
+      <div class="router flex-grow-1" style="padding-top: 10%;">
+        <router-view />
+      </div>
+      <Footer />
+    </template>
+    <template v-else>
       <router-view />
-    </div>
-    <Footer />
+    </template>
   </div>
 </template>
 
@@ -17,6 +22,11 @@ export default {
   components: {
     HeaderNav,
     Footer,
+  },
+  computed: {
+    isAuthPage() {
+      return this.$route.path.includes('/login') || this.$route.path.includes('/register');
+    }
   }
 };
 </script>
