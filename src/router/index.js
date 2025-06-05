@@ -20,7 +20,7 @@ const routes = [
     { path: '/customer-service', component: CustomerService },
     { path: '/products', component: Product },
     { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail'},
-    { path: '/inquiries', component: Inquiry },
+    { path: '/inquiry', component: () => import('@/views/inquiries/Inquiry.vue')},
     { path: '/payments', component: Payment },
     { path: '/reservation', component: Reservation }
 ]
