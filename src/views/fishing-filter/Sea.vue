@@ -1,5 +1,5 @@
 <script>
-
+import seaFilter from '@/store/fishing-region-filter/seaFilter.js'
 </script>
 
 <template>
