@@ -12,6 +12,7 @@
       />
 
       <label for="numPerson">인원 수:</label>
+
       <input
           type="number"
           id="numPerson"
