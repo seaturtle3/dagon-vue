@@ -28,6 +28,11 @@ function submit() {
 </script>
 
 <template>
+  <div class="register">
+
+    <div style="margin-bottom: 3%">
+      <h2>배 등록</h2>
+    </div>
 
     <form
         @submit.prevent="submit"
@@ -108,4 +113,14 @@ function submit() {
         <button type="submit" class="btn btn-primary px-5">등록</button>
       </div>
     </form>
+  </div>
 </template>
+
+<style>
+.register {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column; /* 세로 정렬 */
+}
+</style>
