@@ -1,9 +1,13 @@
 <template>
-  <div class="d-flex flex-column min-vh-100">
+  <div class="layout-wrapper">
     <HeaderNav />
-    <div class="router flex-grow-1" style="padding-top: 10%;">
+
+    <div class="spacer" /> <!-- 헤더 고정용 여백 -->
+
+    <main class="main-content">
       <router-view />
-    </div>
+    </main>
+
     <Footer />
   </div>
 </template>
@@ -21,9 +25,19 @@ export default {
 };
 </script>
 
-<style scoped>
-.router {
-  width: 80%;
-  margin: 0 auto;
+<style>
+.layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.spacer {
+  height: 70px;
+}
+
+.main-content {
+  flex: 1;
+  margin-bottom: 10vh;
 }
 </style>

@@ -1,3 +1,36 @@
+<script>
+import { getNotices } from '@/api/notice.js';
+
+export default {
+  name: 'NoticeBox',
+  data() {
+    return {
+      notices: [],
+      search: {
+        keyword: '',
+        type: '',
+        isActive: true
+      }
+    };
+  },
+
+  mounted() {
+    this.fetchNotices();
+  },
+  methods: {
+    async fetchNotices() {
+      try {
+        const res = await getNotices(0, 5, this.search);
+        this.notices = res.data.content;
+        console.log('--->', res.data);
+      } catch (error) {
+        console.error('공지사항 조회 실패:', error);
+      }
+    }
+  }
+};
+</script>
+
 <template>
   <h2 class="card-title mb-3">공지사항</h2>
 
@@ -27,34 +60,3 @@
     </ul>
   </div>
 </template>
-<script>
-import { getNotices } from '@/api/api.js';
-
-export default {
-  name: 'NoticeBox',
-  data() {
-    return {
-      notices: [],
-      search: {
-        keyword: '',
-        type: '',
-        isActive: true
-      }
-    };
-  },
-  mounted() {
-    this.fetchNotices();
-  },
-  methods: {
-    async fetchNotices() {
-      try {
-        const res = await getNotices(0, 5, this.search);
-        this.notices = res.data.content;
-        console.log('--->', res.data);
-      } catch (error) {
-        console.error('공지사항 조회 실패:', error);
-      }
-    }
-  }
-};
-</script>
