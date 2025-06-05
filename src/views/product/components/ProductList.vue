@@ -13,8 +13,11 @@ function goToPage(num) {
 </script>
 
 <template>
-  <div class="container">
-    <h2>등록된 배 리스트</h2>
+  <div class="lists container">
+
+    <div style="margin-bottom: 3%">
+      <h2>등록된 배 리스트</h2>
+    </div>
 
     <table class="table table-striped table-hover">
       <thead>
@@ -48,7 +51,9 @@ function goToPage(num) {
         <td>{{ product.prodEvent }}</td>
         <td>{{ product.prodNotice }}</td>
         <td>{{ new Date(product.createdAt).toLocaleDateString() }}</td>
-        <td><button class="btn btn-sm btn-primary">예약</button></td>
+        <td>
+          <button class="btn btn-sm btn-primary">예약</button>
+        </td>
       </tr>
       </tbody>
     </table>
@@ -83,3 +88,13 @@ function goToPage(num) {
     </div>
   </div>
 </template>
+
+<style>
+.lists {
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column; /* 세로 정렬 */
+}
+</style>

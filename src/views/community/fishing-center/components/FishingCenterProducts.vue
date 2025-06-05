@@ -1,4 +1,8 @@
 <script setup>
+import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl'
+console.log(IMAGE_BASE_URL);
+console.log(import.meta.env.VITE_IMAGE_BASE_URL); // undefined가 나오면 설정 문제
+
 defineProps({
   products: Array
 })
@@ -20,7 +24,7 @@ function onClick(product) {
     >
       <div class="card h-100" style="cursor: pointer;">
         <img
-            :src="`http://localhost:8095/uploads/${product.prodThumbnail}`"
+            :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
             class="card-img-top"
             alt="썸네일"
             style="height: 60%; object-fit: cover;"
