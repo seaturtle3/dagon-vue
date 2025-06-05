@@ -5,14 +5,7 @@ export default {
   name: 'NoticeBox',
   data() {
     return {
-      notices: [
-        { id: 1, title: '공지사항 테스트 1' },
-        { id: 2, title: '공지사항 테스트 2' },
-        { id: 3, title: '공지사항 테스트 3' },
-        { id: 4, title: '공지사항 테스트 4' },
-        { id: 5, title: '공지사항 테스트 5' },
-        { id: 6, title: '공지사항 테스트 6' }
-      ],
+      notices: [],
       search: {
         keyword: '',
         type: '',
