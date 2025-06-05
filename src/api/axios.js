@@ -12,10 +12,19 @@ const instance = axios.create({
 // 요청 인터셉터
 instance.interceptors.request.use(
     (config) => {
+        // 토큰 가져오기 (localStorage 또는 sessionStorage에서)
+        const token = localStorage.getItem('token'); // 또는 sessionStorage.getItem('token')
+
+        // 토큰이 있으면 Authorization 헤더에 추가
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+
         // FormData를 사용하는 경우 Content-Type 자동 설정
         if (config.data instanceof FormData) {
             config.headers['Content-Type'] = 'multipart/form-data';
         }
+
         return config;
     },
     (error) => {

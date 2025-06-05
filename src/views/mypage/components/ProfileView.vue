@@ -1,0 +1,344 @@
+<template>
+  <div class="profile-container">
+    <h2 class="page-title">회원정보</h2>
+    <div class="profile-form">
+      <div class="profile-image" @click="triggerFileInput">
+        <img :src="getProfileImageUrl(userInfo.profile_image)" alt="프로필 이미지" />
+        <div class="image-upload-overlay" v-if="isEditing">
+          <i class="fas fa-camera"></i>
+          <span>이미지 변경</span>
+        </div>
+        <input 
+          type="file" 
+          ref="fileInput" 
+          @change="handleImageChange" 
+          accept="image/*" 
+          style="display: none"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>아이디</label>
+        <input type="text" v-model="userInfo.uid" disabled class="form-control" />
+      </div>
+      
+      <div class="form-group">
+        <label>이름</label>
+        <input type="text" v-model="userInfo.uname" :disabled="!isEditing" class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label>닉네임</label>
+        <input 
+          type="text" 
+          v-model="userInfo.nickname" 
+          :disabled="!isEditing" 
+          class="form-control" 
+          :placeholder="userInfo.nickname ? '' : '닉네임을 입력하세요'"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>이메일</label>
+        <input type="email" v-model="userInfo.email" :disabled="!isEditing" class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label>전화번호</label>
+        <div class="input-group">
+          <select v-model="phoneNumbers.phone1" :disabled="!isEditing" class="form-select">
+            <option value="010">010</option>
+            <option value="011">011</option>
+            <option value="016">016</option>
+            <option value="017">017</option>
+            <option value="018">018</option>
+            <option value="019">019</option>
+          </select>
+          <span class="input-group-text">-</span>
+          <input type="text" v-model="phoneNumbers.phone2" maxlength="4" :disabled="!isEditing" class="form-control" />
+          <span class="input-group-text">-</span>
+          <input type="text" v-model="phoneNumbers.phone3" maxlength="4" :disabled="!isEditing" class="form-control" />
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button v-if="!isEditing" class="btn btn-primary" @click="startEditing">정보 수정</button>
+        <template v-else>
+          <button class="btn btn-secondary" @click="cancelEditing">취소</button>
+          <button class="btn btn-primary" @click="handleSubmit">수정 완료</button>
+        </template>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { myPageAPI } from '@/api/mypage';
+
+const defaultProfileImage = '/img/default-profile.png';
+const API_BASE_URL = 'http://localhost:8095'; // API 서버 기본 URL
+
+const isEditing = ref(false);
+const fileInput = ref(null);
+const originalUserInfo = ref(null);
+
+const userInfo = ref({
+  uid: '',
+  uname: '',
+  nickname: '',
+  email: '',
+  profile_image: defaultProfileImage,
+  phone: ''
+});
+
+const phoneNumbers = ref({
+  phone1: '010',
+  phone2: '',
+  phone3: ''
+});
+
+const selectedImage = ref(null);
+
+const getProfileImageUrl = (imagePath) => {
+  if (!imagePath) return defaultProfileImage;
+  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('blob:')) return imagePath;
+  return `${API_BASE_URL}/uploads/${imagePath}`;
+};
+
+onMounted(async () => {
+  await loadUserInfo();
+});
+
+const loadUserInfo = async () => {
+  try {
+    const response = await myPageAPI.getMyInfo();
+    console.log('API Response:', response.data);
+    
+    // 응답 데이터를 userInfo에 매핑
+    userInfo.value = {
+      uid: response.data.uid || '',
+      uname: response.data.uname || '',
+      nickname: response.data.nickname || '',
+      email: response.data.email || '',
+      profile_image: response.data.profile_image || '',
+      phone: response.data.phone || ''
+    };
+    
+    // 전화번호 파싱
+    if (response.data.phone) {
+      const phone = response.data.phone.replace(/-/g, '');
+      if (phone.length >= 10) {
+        phoneNumbers.value = {
+          phone1: phone.substring(0, 3),
+          phone2: phone.substring(3, 7),
+          phone3: phone.substring(7)
+        };
+      }
+    }
+
+    // 원본 데이터 저장
+    originalUserInfo.value = JSON.parse(JSON.stringify(userInfo.value));
+  } catch (error) {
+    console.error('사용자 정보 조회 실패:', error);
+    alert('사용자 정보를 불러오는데 실패했습니다.');
+  }
+};
+
+const triggerFileInput = () => {
+  if (isEditing.value) {
+    fileInput.value.click();
+  }
+};
+
+const handleImageChange = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    selectedImage.value = file;
+    userInfo.value.profile_image = URL.createObjectURL(file);
+  }
+};
+
+const startEditing = () => {
+  isEditing.value = true;
+  // 현재 상태를 백업
+  originalUserInfo.value = JSON.parse(JSON.stringify(userInfo.value));
+};
+
+const cancelEditing = () => {
+  isEditing.value = false;
+  // 원래 데이터로 복원
+  userInfo.value = JSON.parse(JSON.stringify(originalUserInfo.value));
+  selectedImage.value = null;
+  if (userInfo.value.profile_image.startsWith('blob:')) {
+    URL.revokeObjectURL(userInfo.value.profile_image);
+    userInfo.value.profile_image = originalUserInfo.value.profile_image;
+  }
+};
+
+const handleSubmit = async () => {
+  try {
+    const formData = new FormData();
+    formData.append('uname', userInfo.value.uname);
+    formData.append('nickname', userInfo.value.nickname);
+    formData.append('email', userInfo.value.email);
+    formData.append('phone1', phoneNumbers.value.phone1);
+    formData.append('phone2', phoneNumbers.value.phone2);
+    formData.append('phone3', phoneNumbers.value.phone3);
+    
+    if (selectedImage.value) {
+      formData.append('profileImage', selectedImage.value);
+    }
+
+    await myPageAPI.updateMyInfo(formData);
+    alert('회원정보가 수정되었습니다.');
+    isEditing.value = false;
+    await loadUserInfo(); // 수정된 정보 다시 로드
+  } catch (error) {
+    console.error('회원정보 수정 실패:', error);
+    alert('회원정보 수정에 실패했습니다.');
+  }
+};
+</script>
+
+<style scoped>
+.profile-container {
+  max-width: 800px;
+  padding: 2rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  color: #1a1a1a;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-image {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 2rem;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.profile-image:hover .image-upload-overlay {
+  opacity: 1;
+}
+
+.image-upload-overlay i {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  border-color: #1a73e8;
+  outline: none;
+}
+
+.form-control:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.input-group input {
+  text-align: center;
+  width: 80px;
+}
+
+.input-group select {
+  width: 100px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #1a73e8;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1557b0;
+}
+
+.btn-secondary {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background: #e5e5e5;
+}
+</style> 
