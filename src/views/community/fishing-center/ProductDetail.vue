@@ -2,6 +2,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFishingCenterStore } from '@/store/fishing-center/fishingCenterStore.js'
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const route = useRoute()
 const router = useRouter()
@@ -37,7 +38,7 @@ function goBack() {
     <div v-if="product">
       <h1 style="margin-bottom: 5%">{{ product.prodName }}</h1>
       <img
-          :src="`/uploads/${product.prodThumbnail}`"
+          :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
           class="card-img-top"
           alt="썸네일"
           style="width: 100%; height: auto; object-fit: cover; border-radius: 8px;"

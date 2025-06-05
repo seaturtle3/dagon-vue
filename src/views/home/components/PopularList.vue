@@ -2,6 +2,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFishingCenterStore } from '@/store/fishing-center/fishingCenterStore.js'
+import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl'
+
+console.log(IMAGE_BASE_URL);
+console.log(import.meta.env.VITE_IMAGE_BASE_URL); // undefined가 나오면 설정 문제
 
 const store = useFishingCenterStore()
 const currentPage = ref(0)
@@ -42,7 +46,7 @@ function goToFishingCenter() {
       >
         <div class="card h-100 text-center" style="cursor: pointer;">
           <img
-              :src="`/uploads/${product.prodThumbnail}`"
+              :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
               class="card-img-top"
               alt="썸네일"
               style="height: 60%; object-fit: cover;"
