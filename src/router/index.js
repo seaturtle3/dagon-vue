@@ -8,6 +8,13 @@ import CustomerService from '@/views/support/customer-service/CustomerService.vu
 import login from "@/views/auth/login/Login.vue";
 import Community from "@/views/community/Community.vue";
 import registerForm from "@/views/auth/register/components/RegisterForm.vue";
+import MyPage from "@/views/mypage/MyPageView.vue";
+import ProfileView from "@/views/mypage/components/ProfileView.vue";
+import PasswordView from "@/views/mypage/components/PasswordView.vue";
+import PointsView from "@/views/mypage/components/PointsView.vue";
+import ReservationsView from "@/views/mypage/components/ReservationsView.vue";
+import NotificationsView from "@/views/mypage/components/NotificationsView.vue";
+import WithdrawalView from "@/views/mypage/components/WithdrawalView.vue";
 
 const routes = [
     { path: '/', component: Home },
@@ -19,6 +26,37 @@ const routes = [
     { path: '/products', component: Product },
     { path: '/login', component: login },
     { path: '/register', component: registerForm },
+    {
+        path: '/mypage',
+        component: MyPage,
+        redirect: '/mypage/profile',
+        children: [
+            {
+                path: 'profile',
+                component: ProfileView
+            },
+            {
+                path: 'password',
+                component: PasswordView
+            },
+            {
+                path: 'points',
+                component: PointsView
+            },
+            {
+                path: 'reservations',
+                component: ReservationsView
+            },
+            {
+                path: 'notifications',
+                component: NotificationsView
+            },
+            {
+                path: 'withdrawal',
+                component: WithdrawalView
+            }
+        ]
+    }
 ]
 
 const router = createRouter({
