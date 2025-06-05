@@ -7,7 +7,6 @@ import FreshwaterFishing from '@/views/fishing-filter/fresh-water-fishing/Freshw
 import Community from '@/views/community/Community.vue'
 import CustomerService from '@/views/support/customer-service/CustomerService.vue'
 import ProductDetail from '@/views/community/fishing-center/ProductDetail.vue'
-import Inquiry from '@/views/inquiries/Inquiry.vue'
 import Payment from '@/views/payments/Payment.vue'
 import Reservation from '@/views/reservation/Reservation.vue'
 
@@ -20,8 +19,8 @@ const routes = [
     { path: '/customer-service', component: CustomerService },
     { path: '/products', component: Product },
     { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail'},
-    { path: '/inquiry', component: () => import('@/views/inquiries/Inquiry.vue')},
-    { path: '/payments', component: Payment },
+    { path: '/inquiries', component: () => import('@/views/inquiries/Inquiry.vue')},
+    { path: '/payments', component: () => import('@/views/payments/Payment.vue')},
     { path: '/reservation', component: Reservation }
 ]
 
