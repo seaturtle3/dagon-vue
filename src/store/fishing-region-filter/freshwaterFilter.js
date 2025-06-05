@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '@/lib/axios'
 
-export const useFreshwaterFishingStore = defineStore('freshwaterFishing', {
+export const useFreshwaterFishingStore = defineStore('freshwaterFilter', {
     state: () => ({
         products: [],
         page: 0,
@@ -13,7 +13,7 @@ export const useFreshwaterFishingStore = defineStore('freshwaterFishing', {
         async fetchProducts({ page = 0, size = 10, sortBy = 'prodId', direction = 'desc' } = {}) {
             this.loading = true
             try {
-                const res = await api.get('/get-all/freshwater', {
+                const res = await api.get('/api/product/get-all/freshwater', {
                     params: { page, size, sortBy, direction }
                 })
                 this.products = res.data.content

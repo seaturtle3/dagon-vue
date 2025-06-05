@@ -1,15 +1,16 @@
-<script lang="ts">
-import {defineComponent} from 'vue'
-
-export default defineComponent({
-name: "SeaFilter"
+<script setup>
+defineProps({
+  filteredProducts: Array
 })
 </script>
 
 <template>
-  $END$
+  <ul>
+    <li v-for="product in filteredProducts" :key="product.prodId">
+      {{ product.prodName }}
+    </li>
+  </ul>
 </template>
 
 <style scoped>
-
 </style>

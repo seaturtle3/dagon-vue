@@ -4,7 +4,7 @@
 
 <template>
   <div class="fresh">
-    <h1>민물낚시 테스트</h1>
+    <h2>민물낚시</h2>
   </div>
 </template>
 
