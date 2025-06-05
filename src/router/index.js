@@ -18,6 +18,7 @@ import PointsView from "@/views/mypage/components/PointsView.vue";
 import ReservationsView from "@/views/mypage/components/ReservationsView.vue";
 import NotificationsView from "@/views/mypage/components/NotificationsView.vue";
 import WithdrawalView from "@/views/mypage/components/WithdrawalView.vue";
+import InquiriesView from '@/views/mypage/components/InquiriesView.vue'
 
 const routes = [
     { path: '/', component: Home },
@@ -38,8 +39,8 @@ const routes = [
     { path: '/register', component: registerForm },
     {
         path: '/mypage',
+        name: 'mypage',
         component: MyPage,
-        redirect: '/mypage/profile',
         children: [
             {
                 path: 'profile',
@@ -55,6 +56,7 @@ const routes = [
             },
             {
                 path: 'reservations',
+                name: 'mypage-reservations',
                 component: ReservationsView
             },
             {
@@ -64,6 +66,15 @@ const routes = [
             {
                 path: 'withdrawal',
                 component: WithdrawalView
+            },
+            {
+                path: 'inquiries',
+                name: 'mypage-inquiries',
+                component: InquiriesView
+            },
+            {
+                path: '',
+                redirect: '/mypage/reservations'
             }
         ]
     }

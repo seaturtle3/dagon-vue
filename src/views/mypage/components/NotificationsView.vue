@@ -32,7 +32,8 @@
           <i :class="getNotificationIcon(notification.type)"></i>
         </div>
         <div class="notification-content">
-          <div class="notification-message">{{ notification.message }}</div>
+          <div class="notification-title">{{ notification.title }}</div>
+          <div class="notification-message">{{ notification.content }}</div>
           <div class="notification-time">{{ notification.time }}</div>
         </div>
         <div class="notification-action">
@@ -48,33 +49,74 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { myPageAPI } from '@/api/mypage';
-import { useAuthStore } from '@/stores/auth'; // Pinia auth store를 사용합니다
+import { useAuthStore } from '@/store/login/loginStore'; // 올바른 auth store import
 
 const authStore = useAuthStore();
 const selectedFilter = ref('all');
 const notifications = ref([]);
 const loading = ref(false);
+const isInitialized = ref(false);
+
+// 사용자 정보 초기화 확인
+const initializeUserInfo = async () => {
+  try {
+    // localStorage에서 사용자 정보 확인
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      const parsedUser = JSON.parse(userInfo);
+      authStore.setUser(parsedUser);
+      console.log('localStorage에서 사용자 정보 복원:', parsedUser);
+    } else {
+      console.log('localStorage에 사용자 정보 없음');
+    }
+  } catch (error) {
+    console.error('사용자 정보 초기화 중 오류:', error);
+  } finally {
+    isInitialized.value = true;
+  }
+};
 
 // 알림 목록 조회
 const fetchNotifications = async () => {
   try {
     loading.value = true;
-    const userUid = authStore.user?.uid; // Pinia store에서 사용자 정보를 가져옵니다
-    if (!userUid) {
-      throw new Error('사용자 정보를 찾을 수 없습니다.');
+    
+    // 로그인 상태 확인
+    if (!authStore.isAuthenticated) {
+      console.warn('사용자가 로그인되어 있지 않습니다.');
+      notifications.value = [];
+      return;
     }
-    const response = await myPageAPI.getNotifications(userUid);
-    notifications.value = response.map(notification => ({
-      id: notification.id,
-      type: notification.type || 'default',
-      message: notification.message,
-      time: new Date(notification.createdAt).toLocaleString(),
-      read: notification.read
-    }));
+
+    const userUno = authStore.user?.uno;
+    console.log('authStore 전체:', authStore);
+    console.log('현재 사용자 정보:', authStore.user);
+    console.log('현재 사용자 UNO:', userUno);
+
+    if (!userUno) {
+      console.warn('사용자 번호가 없습니다.');
+      return;
+    }
+
+    const response = await myPageAPI.getNotifications(userUno);
+    console.log('알림 API 응답:', response);
+
+    if (Array.isArray(response)) {
+      notifications.value = response.map(notification => ({
+        id: notification.id,
+        type: notification.type || 'default',
+        message: `${notification.title} - ${notification.content}`,
+        time: new Date(notification.createdAt).toLocaleString(),
+        read: notification.read,
+        title: notification.title,
+        content: notification.content
+      }));
+    }
   } catch (error) {
     console.error('알림 조회 실패:', error);
+    notifications.value = [];
   } finally {
     loading.value = false;
   }
@@ -125,22 +167,41 @@ const markAllAsRead = async () => {
   }
 };
 
-// 컴포넌트 마운트 시 알림 목록 조회
-onMounted(() => {
-  fetchNotifications();
+// 컴포넌트 마운트 시 초기화
+onMounted(async () => {
+  console.log('NotificationsView 컴포넌트가 마운트되었습니다.');
+  // 인증 상태 확인
+  await authStore.checkAuth();
+  if (authStore.isAuthenticated) {
+    fetchNotifications();
+  } else {
+    console.warn('사용자가 인증되지 않았습니다.');
+  }
 });
+
+// 사용자 정보 변경 감지
+watch(() => authStore.user, (newUser) => {
+  console.log('사용자 정보가 변경되었습니다:', newUser);
+  if (newUser?.uno && authStore.isAuthenticated) {
+    fetchNotifications();
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>
 .notifications-container {
   max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 600;
   margin-bottom: 2rem;
-  color: #1a1a1a;
+  color: #0d47a1;
+  border-bottom: 2px solid #1976d2;
+  padding-bottom: 1rem;
 }
 
 .notifications-header {
@@ -148,6 +209,11 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
+  border: 2px solid #90caf9;
 }
 
 .notification-filters {
@@ -156,18 +222,37 @@ onMounted(() => {
 
 .form-select {
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 2px solid #90caf9;
+  border-radius: 8px;
   font-size: 1rem;
   width: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1565c0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.form-select:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+  outline: none;
 }
 
 .btn-text {
   background: none;
   border: none;
-  color: #1a73e8;
-  font-size: 0.875rem;
+  color: #1976d2;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.btn-text:hover {
+  background: rgba(25, 118, 210, 0.1);
+  transform: translateY(-2px);
 }
 
 .notifications-list {
@@ -179,22 +264,35 @@ onMounted(() => {
 .notification-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid #90caf9;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .notification-item:hover {
-  background: #f8f9fa;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
 }
 
 .notification-item.unread {
-  background: #f8f9fa;
-  border-left: 4px solid #1a73e8;
+  background: rgba(227, 242, 253, 0.9);
+  border-color: #1976d2;
+}
+
+.notification-item.unread::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #1976d2;
 }
 
 .notification-icon {
@@ -203,40 +301,90 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e8f0fe;
+  background: #e3f2fd;
   border-radius: 50%;
-  color: #1a73e8;
+  color: #1976d2;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.notification-item:hover .notification-icon {
+  transform: scale(1.1);
+  background: #1976d2;
+  color: white;
 }
 
 .notification-content {
   flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0d47a1;
+  margin-bottom: 0.5rem;
 }
 
 .notification-message {
-  color: #1a1a1a;
-  margin-bottom: 0.25rem;
+  color: #546e7a;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
 }
 
 .notification-time {
-  font-size: 0.875rem;
-  color: #6c757d;
+  color: #78909c;
+  font-size: 0.85rem;
 }
 
 .notification-action {
-  color: #adb5bd;
+  color: #90caf9;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
 }
 
-.no-notifications {
-  text-align: center;
-  padding: 2rem;
-  color: #6c757d;
-  background: #f8f9fa;
-  border-radius: 4px;
+.notification-item:hover .notification-action {
+  color: #1976d2;
+  transform: translateX(5px);
 }
 
-.loading-state {
+.loading-state, .no-notifications {
   text-align: center;
-  padding: 2rem;
-  color: #6c757d;
+  padding: 3rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  color: #546e7a;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
+  border: 2px solid #90caf9;
+}
+
+@media (max-width: 768px) {
+  .notifications-container {
+    padding: 1rem;
+  }
+
+  .notifications-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .notification-filters {
+    width: 100%;
+  }
+
+  .notification-item {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .notification-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
 }
 </style> 
