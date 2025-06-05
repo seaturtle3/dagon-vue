@@ -1,5 +1,5 @@
 <script setup>
-import {reactive, watch, toRefs, onMounted} from 'vue'
+import {reactive, watch, toRefs, onMounted, ref} from 'vue'
 import {createProduct} from "@/api/api.js";
 
 
@@ -29,27 +29,29 @@ function onFileChange(event) {
     file.value = uploadedFile
   }
 }
-
 async function submit() {
   const formData = new FormData()
 
-  for (const key in localForm) {
-    formData.append(key, localForm[key])
-  }
+  // 👉 여기를 JSON 전체로 묶어서 하나의 Blob으로 추가해야 함
+  const productJson = { ...localForm }
+  formData.append(
+      "product",
+      new Blob([JSON.stringify(productJson)], { type: "application/json" })
+  )
 
   if (file.value) {
-    formData.append('file', file.value)
+    formData.append("thumbnailFile", file.value)
   }
 
   try {
     const response = await createProduct(formData)
     alert('등록 성공')
-    // emit('submit') 등 후처리 필요시 추가
   } catch (err) {
     console.error(err)
     alert('등록 실패')
   }
 }
+
 
 </script>
 

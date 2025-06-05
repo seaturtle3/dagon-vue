@@ -20,7 +20,7 @@ function onClick(product) {
     >
       <div class="card h-100" style="cursor: pointer;">
         <img
-            :src="`http://localhost:8095/uploads/${product.prodThumbnail}`"
+            :src="`/uploads/${product.prodThumbnail}`"
             class="card-img-top"
             alt="썸네일"
             style="height: 60%; object-fit: cover;"
