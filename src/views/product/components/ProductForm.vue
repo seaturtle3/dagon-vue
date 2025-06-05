@@ -12,7 +12,7 @@ const props = defineProps({
   subTypes: Array
 })
 
-const localForm = reactive({ ...props.form })
+const localForm = reactive({...props.form})
 
 // props.form이 바뀌면 localForm도 반영
 watch(
@@ -20,7 +20,7 @@ watch(
     (newForm) => {
       Object.assign(localForm, newForm)
     },
-    { deep: true }
+    {deep: true}
 )
 
 function onFileChange(event) {
@@ -29,14 +29,15 @@ function onFileChange(event) {
     file.value = uploadedFile
   }
 }
+
 async function submit() {
   const formData = new FormData()
 
   // 👉 여기를 JSON 전체로 묶어서 하나의 Blob으로 추가해야 함
-  const productJson = { ...localForm }
+  const productJson = {...localForm}
   formData.append(
       "product",
-      new Blob([JSON.stringify(productJson)], { type: "application/json" })
+      new Blob([JSON.stringify(productJson)], {type: "application/json"})
   )
 
   if (file.value) {
@@ -137,20 +138,16 @@ async function submit() {
         <textarea v-model="localForm.prodNotice" class="form-control"></textarea>
       </div>
 
-      <div class="d-flex justify-content-center mt-4">
+      <div class="mb-2">
+        <label class="form-label">대표 이미지</label>
+        <input type="file" class="form-control" @change="onFileChange"/>
+      </div>
+
+      <div class="d-flex justify-content-center mt-3">
         <button type="submit" class="btn btn-primary px-5">등록</button>
       </div>
     </form>
   </div>
-    <div class="mb-2">
-      <label class="form-label">대표 이미지</label>
-      <input type="file" class="form-control" @change="onFileChange" />
-    </div>
-
-    <div class="d-flex justify-content-center mt-3">
-      <button type="submit" class="btn btn-primary px-5">등록</button>
-    </div>
-  </form>
 </template>
 
 <style>
