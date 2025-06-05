@@ -14,16 +14,15 @@ import Reservation from '@/views/reservation/Reservation.vue'
 const routes = [
     { path: '/', component: Home },
     { path: '/fishing-center', component: FishingCenter },
+    { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail'},
     { path: '/sea-fishing', component: SeaFishing },
     { path: '/freshwater-fishing', component: FreshwaterFishing },
     { path: '/community', component: Community},
     { path: '/customer-service', component: CustomerService },
     { path: '/products', component: Product },
-    { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail'},
     { path: '/inquiry', component: () => import('@/views/inquiries/Inquiry.vue')},
     { path: '/payments', component: Payment },
-    { path: '/reservation', component: Reservation }
-    { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail'},
+    { path: '/reservation', component: Reservation },
     { path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue') }, // 비동기
     { path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
         props: true },
