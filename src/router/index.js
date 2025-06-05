@@ -32,7 +32,7 @@ const routes = [
     { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail'},
     { path: '/inquiries', component: () => import('@/views/inquiries/Inquiry.vue')},
     { path: '/payments', component: () => import('@/views/payments/Payment.vue')},
-    { path: '/reservation', component: Reservation }
+    { path: '/reservation', component: Reservation },
     { path: '/inquiry', component: () => import('@/views/inquiries/Inquiry.vue')},
     { path: '/payments', component: Payment },
     { path: '/reservation', component: Reservation },
