@@ -37,7 +37,7 @@ function goBack() {
     <div v-if="product">
       <h1 style="margin-bottom: 5%">{{ product.prodName }}</h1>
       <img
-          :src="`http://localhost:8095/uploads/${product.prodThumbnail}`"
+          :src="`/uploads/${product.prodThumbnail}`"
           class="card-img-top"
           alt="썸네일"
           style="width: 100%; height: auto; object-fit: cover; border-radius: 8px;"

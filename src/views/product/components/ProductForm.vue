@@ -1,5 +1,9 @@
 <script setup>
-import {reactive, watch, toRefs, onMounted} from 'vue'
+import {reactive, watch, toRefs, onMounted, ref} from 'vue'
+import {createProduct} from "@/api/api.js";
+
+
+const file = ref(null)  // 파일 업로드 항목 추가
 
 const props = defineProps({
   form: Object,
@@ -8,9 +12,7 @@ const props = defineProps({
   subTypes: Array
 })
 
-const emit = defineEmits(['submit'])
-
-const localForm = reactive({...props.form})
+const localForm = reactive({ ...props.form })
 
 // props.form이 바뀌면 localForm도 반영
 watch(
@@ -18,12 +20,38 @@ watch(
     (newForm) => {
       Object.assign(localForm, newForm)
     },
-    {deep: true}
+    { deep: true }
 )
 
-function submit() {
-  emit('submit', {...localForm}) // 데이터 복사해서 emit
+function onFileChange(event) {
+  const uploadedFile = event.target.files[0]
+  if (uploadedFile) {
+    file.value = uploadedFile
+  }
 }
+async function submit() {
+  const formData = new FormData()
+
+  // 👉 여기를 JSON 전체로 묶어서 하나의 Blob으로 추가해야 함
+  const productJson = { ...localForm }
+  formData.append(
+      "product",
+      new Blob([JSON.stringify(productJson)], { type: "application/json" })
+  )
+
+  if (file.value) {
+    formData.append("thumbnailFile", file.value)
+  }
+
+  try {
+    const response = await createProduct(formData)
+    alert('등록 성공')
+  } catch (err) {
+    console.error(err)
+    alert('등록 실패')
+  }
+}
+
 
 </script>
 
@@ -114,6 +142,15 @@ function submit() {
       </div>
     </form>
   </div>
+    <div class="mb-2">
+      <label class="form-label">대표 이미지</label>
+      <input type="file" class="form-control" @change="onFileChange" />
+    </div>
+
+    <div class="d-flex justify-content-center mt-3">
+      <button type="submit" class="btn btn-primary px-5">등록</button>
+    </div>
+  </form>
 </template>
 
 <style>

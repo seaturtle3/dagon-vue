@@ -23,6 +23,7 @@ onMounted(() => {
   enumStore.loadEnums()
 
   console.log('productEnumStore:', enumStore.loadEnums())
+  enumStore.loadEnums()
 })
 </script>
 
