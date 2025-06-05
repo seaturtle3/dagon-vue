@@ -22,6 +22,7 @@
       </div>
     </div>
   </nav>
+
 </template>
 
 <style>

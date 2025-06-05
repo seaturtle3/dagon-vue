@@ -3,13 +3,13 @@
 </script>
 
 <template>
-  <div class="community">
-    <h1>커뮤니티 테스트</h1>
+  <div class="sea">
+    <h1>바다낚시 테스트</h1>
   </div>
 </template>
 
 <style scoped>
-.community {
+.sea {
   width: 80%;
   margin: 5% auto;
 }

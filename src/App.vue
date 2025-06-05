@@ -1,15 +1,14 @@
 <template>
-  <div class="d-flex flex-column min-vh-100">
-    <template v-if="!isAuthPage">
-      <HeaderNav />
-      <div class="router flex-grow-1" style="padding-top: 10%;">
-        <router-view />
-      </div>
-      <Footer />
-    </template>
-    <template v-else>
+  <div class="layout-wrapper">
+    <HeaderNav />
+
+    <div class="spacer" /> <!-- 헤더 고정용 여백 -->
+
+    <main class="main-content">
       <router-view />
-    </template>
+    </main>
+
+    <Footer />
   </div>
 </template>
 
@@ -22,18 +21,23 @@ export default {
   components: {
     HeaderNav,
     Footer,
-  },
-  computed: {
-    isAuthPage() {
-      return this.$route.path.includes('/login') || this.$route.path.includes('/register');
-    }
   }
 };
 </script>
 
-<style scoped>
-.router {
-  width: 80%;
-  margin: 0 auto;
+<style>
+.layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.spacer {
+  height: 70px;
+}
+
+.main-content {
+  flex: 1;
+  margin-bottom: 10vh;
 }
 </style>
