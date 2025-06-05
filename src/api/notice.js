@@ -1,4 +1,5 @@
 // notice.js
+// 공지사항 API
 export const getNotices = (page = 0, size = 5, searchDTO = {}) => {
     return new Promise((resolve) => {
         // 예시 데이터
@@ -15,4 +16,16 @@ export const getNotices = (page = 0, size = 5, searchDTO = {}) => {
         };
         setTimeout(() => resolve(exampleData), 500); // 비동기 흉내 내기
     });
+    return apiClient.get('/notices', {
+        params: {
+            page,
+            size,
+            ...searchDTO // BoardSearchDTO 형태의 검색 조건이 있다면 여기에 포함
+        }
+    });
+};
+
+// 개별 공지사항 상세 보기
+export const getNoticeById = (id) => {
+    return apiClient.get(`/notices/${id}`);
 };
