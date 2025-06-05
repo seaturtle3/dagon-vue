@@ -23,6 +23,10 @@ const routes = [
     { path: '/inquiry', component: () => import('@/views/inquiries/Inquiry.vue')},
     { path: '/payments', component: Payment },
     { path: '/reservation', component: Reservation }
+    { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail'},
+    { path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue') }, // 비동기
+    { path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
+        props: true },
 ]
 
 const router = createRouter({
