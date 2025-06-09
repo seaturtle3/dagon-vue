@@ -6,6 +6,7 @@ import { createPinia } from 'pinia'
 import router from './router'
 
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS 추가
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap'; // 선택: JS 기능 사용 시
 
 const app = createApp(App)
