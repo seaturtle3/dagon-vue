@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, computed } from 'vue'
 import { useProductListStore } from '@/store/product/productListStore.js'
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const store = useProductListStore()
 
@@ -22,14 +23,14 @@ const recommendedProducts = computed(() => {
       <div
           v-for="product in recommendedProducts"
           :key="product.prodId"
-          class="border p-4 text-center d-flex flex-column justify-content-center align-items-center"
+          class="border text-center d-flex flex-column"
           style="min-height: 300px;"
       >
         <img
-            :src="product.prodThumbnail || 'https://via.placeholder.com/150'"
+            :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
             alt="썸네일"
             class="img-fluid mb-2"
-            style="max-height: 120px; object-fit: cover;"
+            style="object-fit: cover;"
         />
         <div class="fw-semibold">{{ product.prodName }}</div>
         <div class="text-secondary small mt-2">{{ product.prodAddress }}</div>
