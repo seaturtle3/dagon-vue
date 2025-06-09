@@ -1,11 +1,11 @@
 <template>
-  <div class="withdrawal-container">
-    <h2 class="page-title">회원 탈퇴</h2>
-    
-    <div class="withdrawal-content">
-      <div class="warning-box">
+  <div class="withdrawal-wrapper">
+    <h2 class="withdrawal-title">회원 탈퇴</h2>
+
+    <div class="withdrawal-card">
+      <div class="warning-section">
         <div class="warning-icon">⚠️</div>
-        <h3>회원 탈퇴 전 꼭 확인해주세요!</h3>
+        <h3>회원 탈퇴 전 꼭 확인해주세요</h3>
         <ul>
           <li>탈퇴 시 모든 개인정보가 삭제되며, 복구가 불가능합니다.</li>
           <li>보유하신 포인트는 모두 소멸되며, 환불되지 않습니다.</li>
@@ -14,39 +14,29 @@
         </ul>
       </div>
 
-      <div class="password-section">
-        <div class="form-group">
-          <label for="password">비밀번호 확인</label>
-          <input 
-            type="password" 
-            id="password" 
+      <div class="password-box">
+        <label for="password">비밀번호 확인</label>
+        <input
+            type="password"
+            id="password"
             v-model="password"
             placeholder="현재 비밀번호를 입력해주세요"
             class="password-input"
-          />
-        </div>
+        />
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-      </div>
-
-      <div class="button-group">
-        <button 
-          class="btn btn-danger" 
-          @click="showConfirmModal"
-          :disabled="!password"
-        >
+        <button class="btn btn-danger full" @click="showConfirmModal" :disabled="!password">
           회원 탈퇴
         </button>
       </div>
+    </div>
 
-      <!-- 최종 확인 모달 -->
-      <div class="modal" v-if="isModalOpen">
-        <div class="modal-content">
-          <h3>정말 탈퇴하시겠습니까?</h3>
-          <p>이 작업은 취소할 수 없습니다.</p>
-          <div class="modal-buttons">
-            <button class="btn btn-secondary" @click="closeModal">취소</button>
-            <button class="btn btn-danger" @click="confirmWithdrawal">탈퇴하기</button>
-          </div>
+    <div v-if="isModalOpen" class="modal-overlay">
+      <div class="modal-box">
+        <h3>정말 탈퇴하시겠습니까?</h3>
+        <p>이 작업은 되돌릴 수 없습니다.</p>
+        <div class="modal-actions">
+          <button class="btn btn-gray" @click="closeModal">취소</button>
+          <button class="btn btn-danger" @click="confirmWithdrawal">탈퇴하기</button>
         </div>
       </div>
     </div>
@@ -81,17 +71,12 @@ const closeModal = () => {
 
 const confirmWithdrawal = async () => {
   try {
-    const response = await myPageAPI.deleteAccount(password.value);
-    if (response.data.message) {
-      await authStore.logout();
-      router.push('/');
-    }
+    await myPageAPI.withdrawMembership({ password: password.value });
+    await authStore.logout();
+    alert('회원 탈퇴가 완료되었습니다.');
+    router.push('/');
   } catch (error) {
-    if (error.response?.data?.error) {
-      errorMessage.value = error.response.data.error;
-    } else {
-      errorMessage.value = '회원 탈퇴 처리 중 오류가 발생했습니다.';
-    }
+    errorMessage.value = error.response?.data?.error || '회원 탈퇴 처리 중 오류가 발생했습니다.';
   } finally {
     closeModal();
   }
@@ -99,182 +84,150 @@ const confirmWithdrawal = async () => {
 </script>
 
 <style scoped>
-.withdrawal-container {
-  max-width: 800px;
-  padding: 2rem;
+.withdrawal-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
+  border: 2px solid #90caf9;
 }
 
-.page-title {
-  font-size: 1.5rem;
+.withdrawal-title {
+  font-size: 1.75rem;
   font-weight: 600;
+  color: #0d47a1;
+  border-bottom: 2px solid #1976d2;
+  padding-bottom: 1rem;
   margin-bottom: 2rem;
-  color: #1a1a1a;
+  text-align: center;
 }
 
-.withdrawal-content {
+.withdrawal-card {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-.warning-box {
-  background: #fff3f3;
-  border: 1px solid #ffcdd2;
-  border-radius: 8px;
-  padding: 2rem;
+.warning-section {
+  background: #fff3e0;
+  border: 1px solid #ffb74d;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(255, 167, 38, 0.15);
 }
 
 .warning-icon {
   font-size: 2rem;
-  margin-bottom: 1rem;
-  text-align: center;
+  margin-bottom: 0.5rem;
 }
 
-.warning-box h3 {
-  color: #d32f2f;
+.warning-section h3 {
   font-size: 1.2rem;
+  color: #ef6c00;
   margin-bottom: 1rem;
-  text-align: center;
 }
 
-.warning-box ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.warning-box li {
-  color: #555;
-  margin-bottom: 0.8rem;
+.warning-section ul {
+  list-style: disc;
   padding-left: 1.5rem;
-  position: relative;
+  color: #6d4c41;
+  font-size: 0.95rem;
 }
 
-.warning-box li::before {
-  content: "•";
-  color: #d32f2f;
-  position: absolute;
-  left: 0;
-}
-
-.password-section {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 2rem;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
+.password-box label {
+  font-weight: 600;
+  color: #0d47a1;
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: bold;
 }
 
 .password-input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #90caf9;
   font-size: 1rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 0.75rem;
 }
 
 .error-message {
   color: #d32f2f;
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-}
-
-.button-group {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
 }
 
 .btn {
-  padding: 0.75rem 2rem;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 8px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.btn.full {
+  width: 100%;
 }
 
 .btn-danger {
-  background: #dc3545;
+  background: #ef5350;
   color: white;
 }
 
-.btn-danger:hover:not(:disabled) {
-  background: #c82333;
+.btn-danger:hover {
+  background: #d32f2f;
+  transform: translateY(-2px);
 }
 
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-  margin-right: 1rem;
+.btn-gray {
+  background: #cfd8dc;
+  color: #37474f;
 }
 
-.btn-secondary:hover {
-  background: #5a6268;
+.btn-gray:hover {
+  background: #b0bec5;
 }
 
-.modal {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
 }
 
-.modal-content {
+.modal-box {
   background: white;
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 12px;
   max-width: 400px;
   width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
-.modal-content h3 {
+.modal-box h3 {
+  font-size: 1.25rem;
+  color: #0d47a1;
   margin-bottom: 1rem;
-  color: #333;
 }
 
-.modal-content p {
+.modal-box p {
+  color: #546e7a;
   margin-bottom: 1.5rem;
-  color: #666;
 }
 
-.modal-buttons {
+.modal-actions {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   gap: 1rem;
-}
-
-@media (max-width: 768px) {
-  .withdrawal-container {
-    padding: 1rem;
-  }
-
-  .warning-box, .password-section {
-    padding: 1.5rem;
-  }
-
-  .modal-content {
-    padding: 1.5rem;
-  }
 }
 </style>

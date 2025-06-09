@@ -1,7 +1,7 @@
 <template>
   <div class="notifications-container">
     <h2 class="page-title">내 알람</h2>
-
+    
     <div class="notifications-header">
       <div class="notification-filters">
         <select v-model="selectedFilter" class="form-select">
@@ -19,14 +19,14 @@
       <div v-if="loading" class="loading-state">
         알림을 불러오는 중...
       </div>
-
-      <div
-          v-else-if="filteredNotifications.length > 0"
-          v-for="notification in filteredNotifications"
-          :key="notification.id"
-          class="notification-item"
-          :class="{ unread: !notification.read }"
-          @click="markAsRead(notification.id)"
+      
+      <div 
+        v-else-if="filteredNotifications.length > 0"
+        v-for="notification in filteredNotifications" 
+        :key="notification.id" 
+        class="notification-item"
+        :class="{ unread: !notification.read }"
+        @click="markAsRead(notification.id)"
       >
         <div class="notification-icon">
           <i :class="getNotificationIcon(notification.type)"></i>
@@ -82,7 +82,7 @@ const initializeUserInfo = async () => {
 const fetchNotifications = async () => {
   try {
     loading.value = true;
-
+    
     // 로그인 상태 확인
     if (!authStore.isAuthenticated) {
       console.warn('사용자가 로그인되어 있지 않습니다.');
@@ -191,13 +191,17 @@ watch(() => authStore.user, (newUser) => {
 <style scoped>
 .notifications-container {
   max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 600;
   margin-bottom: 2rem;
-  color: #1a1a1a;
+  color: #0d47a1;
+  border-bottom: 2px solid #1976d2;
+  padding-bottom: 1rem;
 }
 
 .notifications-header {
@@ -205,6 +209,11 @@ watch(() => authStore.user, (newUser) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
+  border: 2px solid #90caf9;
 }
 
 .notification-filters {
@@ -213,18 +222,37 @@ watch(() => authStore.user, (newUser) => {
 
 .form-select {
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 2px solid #90caf9;
+  border-radius: 8px;
   font-size: 1rem;
   width: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1565c0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.form-select:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+  outline: none;
 }
 
 .btn-text {
   background: none;
   border: none;
-  color: #1a73e8;
-  font-size: 0.875rem;
+  color: #1976d2;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.btn-text:hover {
+  background: rgba(25, 118, 210, 0.1);
+  transform: translateY(-2px);
 }
 
 .notifications-list {
@@ -236,22 +264,35 @@ watch(() => authStore.user, (newUser) => {
 .notification-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid #90caf9;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .notification-item:hover {
-  background: #f8f9fa;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
 }
 
 .notification-item.unread {
-  background: #f8f9fa;
-  border-left: 4px solid #1a73e8;
+  background: rgba(227, 242, 253, 0.9);
+  border-color: #1976d2;
+}
+
+.notification-item.unread::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #1976d2;
 }
 
 .notification-icon {
@@ -260,47 +301,90 @@ watch(() => authStore.user, (newUser) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e8f0fe;
+  background: #e3f2fd;
   border-radius: 50%;
-  color: #1a73e8;
+  color: #1976d2;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.notification-item:hover .notification-icon {
+  transform: scale(1.1);
+  background: #1976d2;
+  color: white;
 }
 
 .notification-content {
   flex: 1;
+  min-width: 0;
 }
 
 .notification-title {
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 0.25rem;
+  color: #0d47a1;
+  margin-bottom: 0.5rem;
 }
 
 .notification-message {
-  color: #4a4a4a;
-  margin-bottom: 0.25rem;
-  font-size: 0.9rem;
+  color: #546e7a;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
 }
 
 .notification-time {
-  font-size: 0.875rem;
-  color: #6c757d;
+  color: #78909c;
+  font-size: 0.85rem;
 }
 
 .notification-action {
-  color: #adb5bd;
+  color: #90caf9;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
 }
 
-.no-notifications {
-  text-align: center;
-  padding: 2rem;
-  color: #6c757d;
-  background: #f8f9fa;
-  border-radius: 4px;
+.notification-item:hover .notification-action {
+  color: #1976d2;
+  transform: translateX(5px);
 }
 
-.loading-state {
+.loading-state, .no-notifications {
   text-align: center;
-  padding: 2rem;
-  color: #6c757d;
+  padding: 3rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  color: #546e7a;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
+  border: 2px solid #90caf9;
+}
+
+@media (max-width: 768px) {
+  .notifications-container {
+    padding: 1rem;
+  }
+
+  .notifications-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .notification-filters {
+    width: 100%;
+  }
+
+  .notification-item {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .notification-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
 }
 </style> 

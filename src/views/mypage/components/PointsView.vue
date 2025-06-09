@@ -89,14 +89,17 @@ onMounted(async () => {
 <style scoped>
 .points-container {
   max-width: 800px;
-  padding: 2rem;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 600;
   margin-bottom: 2rem;
-  color: #1a1a1a;
+  color: #0d47a1;
+  border-bottom: 2px solid #1976d2;
+  padding-bottom: 1rem;
 }
 
 .points-info {
@@ -106,16 +109,18 @@ onMounted(async () => {
 }
 
 .level-card, .points-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
+  backdrop-filter: blur(10px);
 }
 
 .level-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border: 2px solid #90caf9;
 }
 
 .level-info {
@@ -127,35 +132,39 @@ onMounted(async () => {
 .level-badge {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #1a73e8, #0d47a1);
+  background: linear-gradient(135deg, #1976d2, #0d47a1);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 8px rgba(26, 115, 232, 0.2);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  border: 3px solid #90caf9;
 }
 
 .level-text {
   color: white;
   font-size: 1.2rem;
   font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .level-details h3 {
   font-size: 1rem;
-  color: #666;
+  color: #546e7a;
   margin-bottom: 0.5rem;
 }
 
 .level-name {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #0d47a1;
+  text-shadow: 0 1px 2px rgba(25, 118, 210, 0.2);
 }
 
 .level-icon {
-  font-size: 3rem;
+  font-size: 3.5rem;
   margin-right: 1rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .points-header {
@@ -163,6 +172,8 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e3f2fd;
 }
 
 .points-title {
@@ -172,66 +183,80 @@ onMounted(async () => {
 }
 
 .points-header h3 {
-  font-size: 1rem;
-  color: #666;
+  font-size: 1.1rem;
+  color: #546e7a;
 }
 
 .points-amount {
   font-size: 2.5rem;
   font-weight: 600;
-  color: #1a73e8;
+  color: #1976d2;
   letter-spacing: -0.5px;
+  text-shadow: 0 1px 2px rgba(25, 118, 210, 0.2);
 }
 
 .points-icon {
   font-size: 2.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .level-progress {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #bbdefb;
 }
 
 .progress-text {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: #666;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #546e7a;
 }
 
 .highlight {
-  color: #1a73e8;
+  color: #1976d2;
   font-weight: 600;
 }
 
 .progress-bar {
-  height: 10px;
-  background: #e0e0e0;
-  border-radius: 5px;
+  height: 12px;
+  background: #e3f2fd;
+  border-radius: 6px;
   overflow: hidden;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #1a73e8, #64b5f6);
-  border-radius: 5px;
+  background: linear-gradient(90deg, #1976d2, #64b5f6);
+  border-radius: 6px;
   transition: width 0.3s ease;
+  box-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
 }
 
 .progress-labels {
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
-  color: #666;
+  color: #546e7a;
+  font-weight: 500;
 }
 
 .max-level {
   text-align: center;
-  color: #1a73e8;
+  color: #1976d2;
   font-weight: 600;
-  margin-top: 1rem;
-  font-size: 1.2rem;
+  margin-top: 1.5rem;
+  font-size: 1.3rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 1px solid #bbdefb;
+  text-shadow: 0 1px 2px rgba(25, 118, 210, 0.2);
 }
 
 @media (max-width: 768px) {
@@ -250,8 +275,8 @@ onMounted(async () => {
     gap: 1rem;
   }
 
-  .level-icon {
-    margin: 0;
+  .level-badge {
+    margin: 0 auto;
   }
 
   .points-amount {
