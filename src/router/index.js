@@ -14,7 +14,7 @@ const routes = [
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
     {path: '/products', component: () => import('@/views/product/Product.vue')},
     {path: '/inquiry', component: () => import('@/views/inquiries/Inquiry.vue')},
-    {path: '/payments', component: () => import('@/views/payments/Payment.vue')},
+    {path: '/payments', component: () => import('@/views/reservation/Payment.vue')},
     {path: '/reservation', component: () => import('@/views/reservation/Reservation.vue')},
     {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
     {

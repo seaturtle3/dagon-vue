@@ -43,7 +43,7 @@ export default {
                 merchant_uid: rsp.merchant_uid,
               };
 
-              fetch("/api/payment/verify", {
+              fetch("/api/payments", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
