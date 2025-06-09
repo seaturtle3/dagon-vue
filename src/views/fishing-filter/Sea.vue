@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useSeaFishingStore } from '@/store/fishing-region-filter/seaFilter.js'
+import { useSeaFishingStore } from '@/store/fishing-region-filter/seaFilterStore.js'
 import SeaFilter from "@/views/fishing-filter/components/SeaFilter.vue";
 
 const store = useSeaFishingStore()

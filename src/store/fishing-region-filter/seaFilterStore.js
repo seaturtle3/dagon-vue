@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '@/lib/axios'
 
-export const useSeaFishingStore = defineStore('seaFilter', {
+export const useSeaFishingStore = defineStore('seaFilterStore', {
     state: () => ({
         products: [],
         page: 0,
