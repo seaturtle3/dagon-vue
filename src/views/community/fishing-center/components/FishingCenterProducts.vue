@@ -11,7 +11,8 @@ defineProps({
 const emit = defineEmits(['select'])
 
 function onClick(product) {
-  emit('select', product)
+  const url = `/product/${product.prodId}`
+  window.open(url, '_blank')  // 새 탭에서 열기
 }
 
 </script>
