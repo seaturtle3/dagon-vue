@@ -25,7 +25,7 @@ export const usePaymentsStore = defineStore('payments', {
             }
         },
 
-        async addPayment(paymentData) {
+        async addPayments(paymentData) {
             try {
                 const res = await axios.post('/api/payments', paymentData, {
                     headers: {

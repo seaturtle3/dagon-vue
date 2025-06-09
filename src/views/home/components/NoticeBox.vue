@@ -32,9 +32,9 @@ export default {
 </script>
 
 <template>
-  <h2 class="card-title mb-3">공지사항</h2>
-
-  <div class="card p-3">
+  <div class="border p-4 rounded">
+    <h2 class="card-title mb-3">공지사항</h2>
+    <hr>
     <!-- 검색 조건 입력 -->
     <div class="row mb-3">
       <div class="col-md-4">
