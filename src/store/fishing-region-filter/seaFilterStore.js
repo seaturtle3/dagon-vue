@@ -10,11 +10,11 @@ export const useSeaFishingStore = defineStore('seaFilterStore', {
         loading: false,
     }),
     actions: {
-        async fetchProducts({ page = 0, size = 10, sortBy = 'prodId', direction = 'desc'} = {}) {
+        async fetchProducts({ page = 0, size = 1000, sortBy = 'prodId', direction = 'desc'} = {}) {
             this.loading = true
             try {
                 const res = await api.get('/api/product/get-all/sea', {
-                    params: {page, size, sortBy, direction }
+                    params: { page, size, sortBy, direction }
                 })
                 this.products = res.data.content
                 this.page = res.data.number

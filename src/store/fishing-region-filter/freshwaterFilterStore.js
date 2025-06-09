@@ -10,7 +10,7 @@ export const useFreshwaterFishingStore = defineStore('freshwaterFilter', {
         loading: false,
     }),
     actions: {
-        async fetchProducts({ page = 0, size = 10, sortBy = 'prodId', direction = 'desc' } = {}) {
+        async fetchProducts({ page = 0, size = 1000, sortBy = 'prodId', direction = 'desc' } = {}) {
             this.loading = true
             try {
                 const res = await api.get('/api/product/get-all/freshwater', {
