@@ -1,7 +1,7 @@
 <template>
   <div class="notifications-container">
     <h2 class="page-title">내 알람</h2>
-    
+
     <div class="notifications-header">
       <div class="notification-filters">
         <select v-model="selectedFilter" class="form-select">
@@ -19,20 +19,21 @@
       <div v-if="loading" class="loading-state">
         알림을 불러오는 중...
       </div>
-      
-      <div 
-        v-else-if="filteredNotifications.length > 0"
-        v-for="notification in filteredNotifications" 
-        :key="notification.id" 
-        class="notification-item"
-        :class="{ unread: !notification.read }"
-        @click="markAsRead(notification.id)"
+
+      <div
+          v-else-if="filteredNotifications.length > 0"
+          v-for="notification in filteredNotifications"
+          :key="notification.id"
+          class="notification-item"
+          :class="{ unread: !notification.read }"
+          @click="markAsRead(notification.id)"
       >
         <div class="notification-icon">
           <i :class="getNotificationIcon(notification.type)"></i>
         </div>
         <div class="notification-content">
-          <div class="notification-message">{{ notification.message }}</div>
+          <div class="notification-title">{{ notification.title }}</div>
+          <div class="notification-message">{{ notification.content }}</div>
           <div class="notification-time">{{ notification.time }}</div>
         </div>
         <div class="notification-action">
@@ -48,33 +49,74 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { myPageAPI } from '@/api/mypage';
-import { useAuthStore } from '@/stores/auth'; // Pinia auth store를 사용합니다
+import { useAuthStore } from '@/store/login/loginStore'; // 올바른 auth store import
 
 const authStore = useAuthStore();
 const selectedFilter = ref('all');
 const notifications = ref([]);
 const loading = ref(false);
+const isInitialized = ref(false);
+
+// 사용자 정보 초기화 확인
+const initializeUserInfo = async () => {
+  try {
+    // localStorage에서 사용자 정보 확인
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      const parsedUser = JSON.parse(userInfo);
+      authStore.setUser(parsedUser);
+      console.log('localStorage에서 사용자 정보 복원:', parsedUser);
+    } else {
+      console.log('localStorage에 사용자 정보 없음');
+    }
+  } catch (error) {
+    console.error('사용자 정보 초기화 중 오류:', error);
+  } finally {
+    isInitialized.value = true;
+  }
+};
 
 // 알림 목록 조회
 const fetchNotifications = async () => {
   try {
     loading.value = true;
-    const userUid = authStore.user?.uid; // Pinia store에서 사용자 정보를 가져옵니다
-    if (!userUid) {
-      throw new Error('사용자 정보를 찾을 수 없습니다.');
+
+    // 로그인 상태 확인
+    if (!authStore.isAuthenticated) {
+      console.warn('사용자가 로그인되어 있지 않습니다.');
+      notifications.value = [];
+      return;
     }
-    const response = await myPageAPI.getNotifications(userUid);
-    notifications.value = response.map(notification => ({
-      id: notification.id,
-      type: notification.type || 'default',
-      message: notification.message,
-      time: new Date(notification.createdAt).toLocaleString(),
-      read: notification.read
-    }));
+
+    const userUno = authStore.user?.uno;
+    console.log('authStore 전체:', authStore);
+    console.log('현재 사용자 정보:', authStore.user);
+    console.log('현재 사용자 UNO:', userUno);
+
+    if (!userUno) {
+      console.warn('사용자 번호가 없습니다.');
+      return;
+    }
+
+    const response = await myPageAPI.getNotifications(userUno);
+    console.log('알림 API 응답:', response);
+
+    if (Array.isArray(response)) {
+      notifications.value = response.map(notification => ({
+        id: notification.id,
+        type: notification.type || 'default',
+        message: `${notification.title} - ${notification.content}`,
+        time: new Date(notification.createdAt).toLocaleString(),
+        read: notification.read,
+        title: notification.title,
+        content: notification.content
+      }));
+    }
   } catch (error) {
     console.error('알림 조회 실패:', error);
+    notifications.value = [];
   } finally {
     loading.value = false;
   }
@@ -125,10 +167,25 @@ const markAllAsRead = async () => {
   }
 };
 
-// 컴포넌트 마운트 시 알림 목록 조회
-onMounted(() => {
-  fetchNotifications();
+// 컴포넌트 마운트 시 초기화
+onMounted(async () => {
+  console.log('NotificationsView 컴포넌트가 마운트되었습니다.');
+  // 인증 상태 확인
+  await authStore.checkAuth();
+  if (authStore.isAuthenticated) {
+    fetchNotifications();
+  } else {
+    console.warn('사용자가 인증되지 않았습니다.');
+  }
 });
+
+// 사용자 정보 변경 감지
+watch(() => authStore.user, (newUser) => {
+  console.log('사용자 정보가 변경되었습니다:', newUser);
+  if (newUser?.uno && authStore.isAuthenticated) {
+    fetchNotifications();
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>
@@ -212,9 +269,16 @@ onMounted(() => {
   flex: 1;
 }
 
-.notification-message {
+.notification-title {
+  font-weight: 600;
   color: #1a1a1a;
   margin-bottom: 0.25rem;
+}
+
+.notification-message {
+  color: #4a4a4a;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
 }
 
 .notification-time {

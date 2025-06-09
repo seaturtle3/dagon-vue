@@ -15,9 +15,7 @@ onMounted(async () => {
     <div style="margin-bottom: 3%">
       <h2>바다낚시 테스트</h2>
     </div>
-
     <SeaFilter :filteredProducts="store.products" />
-
   </div>
 </template>
 
