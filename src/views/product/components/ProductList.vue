@@ -1,4 +1,6 @@
 <script setup>
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+
 defineProps({
   products: Array,
   page: Number,
@@ -22,7 +24,8 @@ function goToPage(num) {
     <table class="table table-striped table-hover">
       <thead>
       <tr>
-        <th>이름</th>
+        <th>썸네일</th>
+        <th>상품명</th>
         <th>지역</th>
         <th>주 유형</th>
         <th>서브 유형</th>
@@ -37,8 +40,16 @@ function goToPage(num) {
         <th>예약</th>
       </tr>
       </thead>
+
       <tbody>
       <tr v-for="product in products" :key="product.prodId">
+        <td>
+          <img
+              :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
+              alt="썸네일"
+              style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px;"
+          />
+        </td>
         <td>{{ product.prodName }}</td>
         <td>{{ product.prodRegion }}</td>
         <td>{{ product.mainType }}</td>
@@ -56,6 +67,7 @@ function goToPage(num) {
         </td>
       </tr>
       </tbody>
+
     </table>
 
     <!-- 페이지 버튼 -->

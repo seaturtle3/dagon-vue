@@ -3,13 +3,13 @@
 </script>
 
 <template>
-  <div class="sea">
-    <h1>바다낚시 테스트</h1>
+  <div class="fresh">
+    <h2>민물낚시</h2>
   </div>
 </template>
 
 <style scoped>
-.sea {
+.fresh {
   width: 80%;
   margin: 5% auto;
 }

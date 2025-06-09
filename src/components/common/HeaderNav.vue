@@ -15,8 +15,8 @@ const showSupport = ref(false)
         <!-- 메인 네비게이션 -->
         <ul class="navbar-nav d-flex flex-row gap-4 position-absolute start-50 translate-middle-x">
           <li class="nav-item"><router-link class="nav-link" to="/fishing-center">조황센터</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/sea-fishing">바다낚시</router-link></li>
-          <li class="nav-item"><router-link class="nav-link" to="/freshwater-fishing">민물낚시</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/sea">바다낚시</router-link></li>
+          <li class="nav-item"><router-link class="nav-link" to="/freshwater">민물낚시</router-link></li>
 
           <!-- 커뮤니티 -->
           <li class="nav-item"><router-link class="nav-link" to="/community">커뮤니티</router-link></li>

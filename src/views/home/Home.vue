@@ -30,7 +30,6 @@ export default {
         <NoticeBox />
       </div>
     </div>
-
     <SideButtons />
     <PopularList />
     <RecommendationList />

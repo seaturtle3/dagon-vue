@@ -1,14 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/home/Home.vue'
 import Product from '@/views/product/Product.vue'
-import FishingCenter from "@/views/community/fishing-center/FishingCenter.vue";
-import SeaFishing from '@/views/fishing-filter/sea-fishing/SeaFishing.vue'
-import FreshwaterFishing from '@/views/fishing-filter/fresh-water-fishing/FreshwaterFishing.vue'
+import FishingCenter from '@/views/community/fishing-center/FishingCenter.vue'
+import Sea from '@/views/fishing-filter/Sea.vue'
+import Freshwater from '@/views/fishing-filter/Freshwater.vue'
 import CustomerService from '@/views/support/customer-service/CustomerService.vue'
 import ProductDetail from '@/views/community/fishing-center/ProductDetail.vue'
 import Inquiry from '@/views/inquiries/Inquiry.vue'
 import Payment from '@/views/reservation/Payment.vue'
 import PaymentsList from '@/views/reservation/PaymentList.vue';
+import inquiry from '@/views/inquiries/Inquiry.vue'
+import Payment from '@/views/payments/Payment.vue'
 import Reservation from '@/views/reservation/Reservation.vue'
 import login from "@/views/auth/login/Login.vue";
 import Community from "@/views/community/Community.vue";
@@ -24,10 +26,10 @@ import WithdrawalView from "@/views/mypage/components/WithdrawalView.vue";
 const routes = [
     { path: '/', component: Home },
     { path: '/fishing-center', component: FishingCenter },
-    { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail'},
-    { path: '/sea-fishing', component: SeaFishing },
-    { path: '/freshwater-fishing', component: FreshwaterFishing },
-    { path: '/community', component: Community},
+    { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail' },
+    { path: '/sea', component: Sea },
+    { path: '/freshwater', component: Freshwater },
+    { path: '/community', component: Community },
     { path: '/customer-service', component: CustomerService },
     { path: '/products', component: Product },
     { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail'},

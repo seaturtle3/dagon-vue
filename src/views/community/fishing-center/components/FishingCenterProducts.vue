@@ -1,5 +1,6 @@
 <script setup>
 import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl'
+
 console.log(IMAGE_BASE_URL);
 console.log(import.meta.env.VITE_IMAGE_BASE_URL); // undefined가 나오면 설정 문제
 
@@ -12,6 +13,7 @@ const emit = defineEmits(['select'])
 function onClick(product) {
   emit('select', product)
 }
+
 </script>
 
 <template>
