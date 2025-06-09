@@ -8,11 +8,11 @@ const routes = [
         component: () => import('@/views/community/fishing-center/ProductDetail.vue'),
         name: 'ProductDetail'
     },
+    {path: '/products', component: () => import('@/views/product/Product.vue')},
     {path: '/sea', component: () => import('@/views/fishing-filter/Sea.vue')},
     {path: '/freshwater', component: () => import('@/views/fishing-filter/Freshwater.vue')},
     {path: '/community', component: () => import('@/views/community/Community.vue')},
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
-    {path: '/products', component: () => import('@/views/product/Product.vue')},
     {path: '/inquiry', component: () => import('@/views/inquiries/Inquiry.vue')},
     {path: '/payments', component: () => import('@/views/reservation/Payment.vue')},
     {path: '/reservation', component: () => import('@/views/reservation/Reservation.vue')},
