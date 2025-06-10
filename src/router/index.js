@@ -6,7 +6,7 @@ import Sea from '@/views/fishing-filter/Sea.vue'
 import Freshwater from '@/views/fishing-filter/Freshwater.vue'
 import CustomerService from '@/views/support/customer-service/CustomerService.vue'
 import ProductDetail from '@/views/community/fishing-center/ProductDetail.vue'
-import Payment from '@/views/reservation/Payment.vue'
+import Payments from '@/views/reservation/Payment.vue'
 import Reservation from '@/views/reservation/Reservation.vue'
 import login from "@/views/auth/login/Login.vue"
 import Community from "@/views/community/Community.vue"
@@ -29,7 +29,13 @@ const routes = [
     { path: '/customer-service', component: CustomerService },
     { path: '/products', component: Product },
     { path: '/inquiry', component: () => import('@/views/inquiries/Inquiry.vue')},
-    { path: '/payments', component: Payment },
+    { path: '/payments', component: Payments },
+    {
+        path: "/payments/result",
+        name: "PaymentResult",
+        component: () => import("@/views/reservation/components/PaymentResult.vue"),
+    },
+
     { path: '/reservation', component: Reservation },
     { path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue') }, // 비동기
     { path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),

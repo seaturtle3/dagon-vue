@@ -29,7 +29,7 @@
 
 <script setup>
 import { onMounted } from 'vue';
-import { usePaymentsStore } from '@/stores/payments';
+import { usePaymentsStore } from '@/store/payments';
 
 const paymentsStore = usePaymentsStore();
 
