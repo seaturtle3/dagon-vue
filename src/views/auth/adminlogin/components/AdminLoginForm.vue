@@ -48,6 +48,13 @@ export default {
       try {
         const response = await axios.post('/api/admin/login', this.loginForm);
         if (response.data) {
+          // 토큰 저장
+          const token = response.data.token;
+          localStorage.setItem('token', token);
+          
+          // axios 헤더에 토큰 설정
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          
           alert('로그인 성공');
           this.$router.push('/admin/dashboard');
         }

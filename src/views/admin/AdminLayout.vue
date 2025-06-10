@@ -10,11 +10,11 @@
           <span>대시보드</span>
         </router-link>
         <router-link to="/admin/members" class="nav-item">
-          <i class="fas fa-users"></i>
+          <i class="fa-solid fa-bookmark"></i>
           <span>회원 정보</span>
         </router-link>
         <router-link to="/admin/partners" class="nav-item">
-          <i class="fas fa-ship"></i>
+          <i class="fa-solid fa-handshake"></i>
           <span>파트너 관리</span>
         </router-link>
         <router-link to="/admin/partner-applications" class="nav-item">
@@ -38,7 +38,7 @@
           <span>이벤트</span>
         </router-link>
         <router-link to="/admin/notices" class="nav-item">
-          <i class="fas fa-bullhorn"></i>
+          <i class="fa-solid fa-paper-plane"></i>
           <span>공지사항</span>
         </router-link>
         <router-link to="/admin/faq" class="nav-item">
@@ -50,7 +50,7 @@
           <span>1:1 문의</span>
         </router-link>
         <router-link to="/admin/logout" class="nav-item">
-          <i class="fas fa-sign-out-alt"></i>
+          <i class="fa-solid fa-eye-slash"></i>
           <span>로그아웃</span>
         </router-link>
       </nav>
