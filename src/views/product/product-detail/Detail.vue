@@ -24,7 +24,7 @@ watch(
 
 <template>
   <div class="center">
-    <ProductInfo/>
+    <ProductInfo />
   </div>
 </template>
 
