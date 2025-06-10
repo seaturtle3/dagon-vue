@@ -35,7 +35,7 @@ function onClick(product) {
 </script>
 
 <template>
-  <div style="margin-top: 7%">
+  <div style="margin-top: 5%">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="fw-bold fs-5 m-0">최근 인기 조황</h2>
       <button class="btn btn-sm btn-outline-secondary" @click="goToFishingCenter">

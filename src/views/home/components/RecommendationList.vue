@@ -17,7 +17,7 @@ const recommendedProducts = computed(() => {
 </script>
 
 <template>
-  <div style="margin-top: 7%">
+  <div style="margin-top: 5%">
     <h2 class="fw-bold fs-5 mb-4">추천 선사</h2>
     <div class="d-grid" style="grid-template-columns: repeat(6, 1fr); gap: 1rem;">
       <div
