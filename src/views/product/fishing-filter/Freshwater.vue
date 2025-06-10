@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from 'vue'
-import {useFreshwaterFishingStore} from '@/store/fishing-region-filter/freshwaterFilterStore.js'
-import FreshwaterFilter from "@/views/fishing-filter/components/FreshwaterFilter.vue"
+import {useFreshwaterFishingStore} from '@/store/product/fishing-region-filter/freshwaterFilterStore.js'
+import FreshwaterFilter from "@/views/product/fishing-filter/components/FreshwaterFilter.vue"
 
 const store = useFreshwaterFishingStore()
 

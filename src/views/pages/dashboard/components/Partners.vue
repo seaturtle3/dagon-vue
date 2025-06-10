@@ -1,8 +1,19 @@
 <template>
   <div class="partners">
     <h1>파트너 관리</h1>
+    
+    <!-- 에러 메시지 표시 -->
+    <div v-if="error" class="error-message">
+      {{ error }}
+    </div>
+
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="파트너명 또는 사업자번호로 검색">
+      <select v-model="searchType">
+        <option value="pname">파트너명</option>
+        <option value="ceoName">대표자명</option>
+        <option value="pAddress">주소</option>
+      </select>
       <button @click="searchPartners">검색</button>
     </div>
     
@@ -11,69 +22,164 @@
         <tr>
           <th>파트너번호</th>
           <th>파트너명</th>
-          <th>사업자번호</th>
           <th>대표자명</th>
-          <th>연락처</th>
-          <th>상태</th>
+          <th>주소</th>
+          <th>사업자번호</th>
           <th>관리</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="partner in partners" :key="partner.id">
-          <td>{{ partner.id }}</td>
-          <td>{{ partner.name }}</td>
-          <td>{{ partner.businessNumber }}</td>
-          <td>{{ partner.ownerName }}</td>
-          <td>{{ partner.phone }}</td>
-          <td>{{ partner.status }}</td>
+        <tr v-for="partner in partners" :key="partner.uno">
+          <td>{{ partner.uno }}</td>
+          <td>{{ partner.pname }}</td>
+          <td>{{ partner.ceoName }}</td>
+          <td>{{ partner.paddress }}</td>
+          <td>{{ partner.license }}</td>
+
           <td>
-            <button @click="viewPartnerDetails(partner.id)">상세</button>
-            <button @click="togglePartnerStatus(partner.id)">{{ partner.status === '활성' ? '비활성' : '활성' }}</button>
+            <button @click="viewPartnerDetails(partner.uno)" class="detail-btn">상세</button>
+            <button @click="deletePartner(partner.uno)" class="delete-btn">삭제</button>
           </td>
         </tr>
       </tbody>
     </table>
     
     <div class="pagination">
-      <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">이전</button>
-      <span>{{ currentPage }} / {{ totalPages }}</span>
-      <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">다음</button>
+      <button :disabled="currentPage === 0" @click="changePage(currentPage - 1)">이전</button>
+      <span>{{ currentPage + 1 }} / {{ totalPages }}</span>
+      <button :disabled="currentPage === totalPages - 1" @click="changePage(currentPage + 1)">다음</button>
+    </div>
+
+    <!-- 파트너 상세 모달 -->
+    <div v-if="showDetailModal" class="modal">
+      <div class="modal-content">
+        <h2>파트너 상세 정보</h2>
+        <div class="partner-details">
+          <div class="detail-item">
+            <label>파트너명:</label>
+            <input v-model="selectedPartner.pname" type="text">
+          </div>
+          <div class="detail-item">
+            <label>대표자명:</label>
+            <input v-model="selectedPartner.ceoName" type="text">
+          </div>
+          <div class="detail-item">
+            <label>주소:</label>
+            <input v-model="selectedPartner.paddress" type="text">
+          </div>
+          <div class="detail-item">
+            <label>사업자번호:</label>
+            <input v-model="selectedPartner.license" type="text">
+          </div>
+          <div class="detail-item">
+            <label>사업자등록증:</label>
+            <img v-if="selectedPartner.licenseImg" :src="selectedPartner.licenseImg" class="license-img">
+          </div>
+          <div class="detail-item">
+            <label>파트너 정보:</label>
+            <textarea v-model="selectedPartner.pinfo" rows="4"></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button @click="updatePartner" class="update-btn">수정</button>
+          <button @click="showDetailModal = false" class="close-btn">닫기</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import { partnerApi } from '@/api/admin'
+
 export default {
   name: 'Partners',
   data() {
     return {
       searchQuery: '',
+      searchType: 'pname',
       partners: [],
-      currentPage: 1,
+      currentPage: 0,
       totalPages: 1,
-      itemsPerPage: 10
+      itemsPerPage: 10,
+      showDetailModal: false,
+      selectedPartner: null,
+      error: null
     }
   },
   methods: {
     async searchPartners() {
-      // TODO: API 호출하여 파트너 검색
-      this.partners = [
-        {
-          id: 'P001',
-          name: '바다낚시터',
-          businessNumber: '123-45-67890',
-          ownerName: '김철수',
-          phone: '010-1234-5678',
-          status: '활성'
-        },
-        // 더 많은 파트너 데이터...
-      ]
+      this.error = null
+      try {
+        const params = {
+          page: this.currentPage,
+          size: this.itemsPerPage
+        };
+        if (this.searchQuery.trim()) {
+          params.keyword = this.searchQuery.trim();
+          params.searchType = this.searchType;
+        }
+        const response = await partnerApi.getPartners(params);
+        this.partners = response.data.content;
+        this.totalPages = response.data.totalPages;
+      } catch (error) {
+        console.error('파트너 목록 조회 실패:', error)
+        this.error = '파트너 목록을 불러오는데 실패했습니다.'
+      }
     },
-    viewPartnerDetails(partnerId) {
-      // TODO: 파트너 상세 정보 보기
+    async viewPartnerDetails(id) {
+      this.error = null
+      try {
+        const response = await partnerApi.getPartnerDetail(id)
+        this.selectedPartner = response.data
+        this.showDetailModal = true
+      } catch (error) {
+        console.error('파트너 상세 조회 실패:', error)
+        this.error = '파트너 상세 정보를 불러오는데 실패했습니다.'
+      }
     },
-    async togglePartnerStatus(partnerId) {
-      // TODO: 파트너 상태 변경 API 호출
+    async updatePartner() {
+      if (!this.selectedPartner) return
+      
+      this.error = null
+      try {
+        await partnerApi.updatePartner(this.selectedPartner.uno, this.selectedPartner)
+        alert('파트너 정보가 수정되었습니다.')
+        this.showDetailModal = false
+        await this.searchPartners()
+      } catch (error) {
+        console.error('파트너 정보 수정 실패:', error)
+        this.error = '파트너 정보 수정에 실패했습니다.'
+      }
+    },
+    async deletePartner(id) {
+      if (!confirm('해당 파트너를 삭제하시겠습니까?')) return
+      
+      this.error = null
+      try {
+        await partnerApi.deletePartner(id)
+        alert('파트너가 삭제되었습니다.')
+        await this.searchPartners()
+      } catch (error) {
+        console.error('파트너 삭제 실패:', error)
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              this.error = '로그인이 필요합니다.'
+              break
+            case 403:
+              this.error = '본인의 파트너 정보만 삭제할 수 있습니다.'
+              break
+            case 404:
+              this.error = '해당 파트너를 찾을 수 없습니다.'
+              break
+            default:
+              this.error = '파트너 삭제에 실패했습니다.'
+          }
+        } else {
+          this.error = '파트너 삭제에 실패했습니다.'
+        }
+      }
     },
     changePage(page) {
       this.currentPage = page
@@ -99,6 +205,12 @@ export default {
 
 .search-bar input {
   flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.search-bar select {
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -139,13 +251,13 @@ export default {
   cursor: pointer;
 }
 
-.partners-table button:first-child {
-  background-color: #3498db;
+.detail-btn {
+  background-color: #3498db !important;
   color: white;
 }
 
-.partners-table button:last-child {
-  background-color: #e74c3c;
+.delete-btn {
+  background-color: #e74c3c !important;
   color: white;
 }
 
@@ -167,5 +279,90 @@ export default {
 .pagination button:disabled {
   background-color: #f8f9fa;
   cursor: not-allowed;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.partner-details {
+  margin: 1rem 0;
+}
+
+.detail-item {
+  margin-bottom: 1rem;
+}
+
+.detail-item label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.detail-item input,
+.detail-item textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.license-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.modal-actions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.update-btn {
+  background-color: #2ecc71 !important;
+  color: white;
+}
+
+.close-btn {
+  background-color: #95a5a6 !important;
+  color: white;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  border: 1px solid #ef9a9a;
 }
 </style> 

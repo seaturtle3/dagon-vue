@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from '@/lib/axios'
+import axios from '@/lib/axios.js'
 
 export const useFishingCenterStore = defineStore('fishingCenter', {
     state: () => ({

@@ -5,51 +5,51 @@
         <h1>관리자</h1>
       </div>
       <nav class="sidebar-nav">
-        <router-link to="/admin" class="nav-item">
+        <router-link to="/admin/dashboard" class="nav-item" active-class="nav-item-active" exact>
           <i class="fa-solid fa-comments"></i>
           <span>대시보드</span>
         </router-link>
-        <router-link to="/admin/members" class="nav-item">
+        <router-link to="/admin/members" class="nav-item" active-class="nav-item-active">
           <i class="fa-solid fa-bookmark"></i>
           <span>회원 정보</span>
         </router-link>
-        <router-link to="/admin/partners" class="nav-item">
+        <router-link to="/admin/partners" class="nav-item" active-class="nav-item-active">
           <i class="fa-solid fa-handshake"></i>
           <span>파트너 관리</span>
         </router-link>
-        <router-link to="/admin/partner-applications" class="nav-item">
+        <router-link to="/admin/partner-applications" class="nav-item" active-class="nav-item-active">
           <i class="fas fa-file-alt"></i>
           <span>파트너 신청 목록</span>
         </router-link>
-        <router-link to="/admin/reservations" class="nav-item">
+        <router-link to="/admin/reservations" class="nav-item" active-class="nav-item-active">
           <i class="fas fa-calendar-check"></i>
           <span>예약 목록</span>
         </router-link>
-        <router-link to="/admin/notifications" class="nav-item">
+        <router-link to="/admin/notifications" class="nav-item" active-class="nav-item-active">
           <i class="fas fa-bell"></i>
           <span>알림</span>
         </router-link>
-        <router-link to="/admin/reports" class="nav-item">
+        <router-link to="/admin/reports" class="nav-item" active-class="nav-item-active">
           <i class="fas fa-flag"></i>
           <span>신고 목록</span>
         </router-link>
-        <router-link to="/admin/events" class="nav-item">
+        <router-link to="/admin/events" class="nav-item" active-class="nav-item-active">
           <i class="fas fa-calendar-alt"></i>
           <span>이벤트</span>
         </router-link>
-        <router-link to="/admin/notices" class="nav-item">
+        <router-link to="/admin/notices" class="nav-item" active-class="nav-item-active">
           <i class="fa-solid fa-paper-plane"></i>
           <span>공지사항</span>
         </router-link>
-        <router-link to="/admin/faq" class="nav-item">
+        <router-link to="/admin/faq" class="nav-item" active-class="nav-item-active">
           <i class="fas fa-question-circle"></i>
           <span>FAQ</span>
         </router-link>
-        <router-link to="/admin/inquiries" class="nav-item">
+        <router-link to="/admin/inquiries" class="nav-item" active-class="nav-item-active">
           <i class="fas fa-comments"></i>
           <span>1:1 문의</span>
         </router-link>
-        <router-link to="/admin/logout" class="nav-item">
+        <router-link to="/admin/logout" class="nav-item" active-class="nav-item-active">
           <i class="fa-solid fa-eye-slash"></i>
           <span>로그아웃</span>
         </router-link>
@@ -110,8 +110,9 @@ export default {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.nav-item.router-link-active {
-  background-color: #3498db;
+.nav-item-active {
+  background-color: #3498db !important;
+  color: #fff !important;
 }
 
 .nav-item i {

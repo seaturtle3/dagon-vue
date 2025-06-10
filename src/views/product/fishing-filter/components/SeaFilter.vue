@@ -57,7 +57,6 @@ function nextPage() {
 .product-card {
   border: 1px solid #ddd;
   border-radius: 16px;
-  padding: 20px;
   background: #fff;
   text-align: center;
   box-shadow: 0 4px 12px rgba(0,0,0,0.06);

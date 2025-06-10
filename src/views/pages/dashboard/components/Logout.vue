@@ -19,7 +19,7 @@ export default {
         // 로컬 스토리지의 토큰 삭제
         localStorage.removeItem('token')
         // 로그인 페이지로 리다이렉트
-        this.$router.push('/login')
+        this.$router.push('/admin/login')
       } catch (error) {
         console.error('로그아웃 중 오류가 발생했습니다:', error)
       }

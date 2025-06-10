@@ -1,19 +1,17 @@
 <template>
   <div class="reports">
     <h1>신고 목록</h1>
+    
+    <!-- 에러 메시지 표시 -->
+    <div v-if="error" class="error-message">
+      {{ error }}
+    </div>
+
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="신고자 또는 신고대상으로 검색">
-      <select v-model="typeFilter">
-        <option value="">전체 유형</option>
-        <option value="파트너">파트너</option>
-        <option value="회원">회원</option>
-        <option value="게시글">게시글</option>
-      </select>
-      <select v-model="statusFilter">
-        <option value="">전체 상태</option>
-        <option value="대기">대기</option>
-        <option value="처리중">처리중</option>
-        <option value="완료">완료</option>
+      <select v-model="searchType">
+        <option value="uname">신고자</option>
+        <option value="reportedName">신고대상</option>
       </select>
       <button @click="searchReports">검색</button>
     </div>
@@ -23,36 +21,43 @@
         <tr>
           <th>신고번호</th>
           <th>신고자</th>
-          <th>신고유형</th>
           <th>신고대상</th>
-          <th>신고사유</th>
           <th>신고일</th>
-          <th>상태</th>
           <th>관리</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="report in reports" :key="report.id">
           <td>{{ report.id }}</td>
-          <td>{{ report.reporter }}</td>
-          <td>{{ report.type }}</td>
-          <td>{{ report.target }}</td>
-          <td>{{ report.reason }}</td>
-          <td>{{ report.reportedAt }}</td>
-          <td>{{ report.status }}</td>
+          <td>{{ report.reporterUname || '-' }}</td>
+          <td>{{ report.reportedUserUname }}</td>
+          <td>{{ formatDate(report.createdAt) }}</td>
           <td>
             <button @click="viewReportDetails(report.id)">상세</button>
-            <button v-if="report.status === '대기'" @click="startProcessing(report.id)">처리시작</button>
-            <button v-if="report.status === '처리중'" @click="completeReport(report.id)">처리완료</button>
+            <button 
+              v-if="!report.reportedUserActive" 
+              @click="reactivateUser(report.reportedUserId)"
+              class="activate-btn"
+            >
+              활성화
+            </button>
+            <button 
+              v-if="report.reportedUserActive" 
+              @click="deactivateUser(report.reportedUserId)"
+              class="deactivate-btn"
+            >
+              비활성화
+            </button>
+            <button @click="deleteReport(report.id)" class="delete-btn">삭제</button>
           </td>
         </tr>
       </tbody>
     </table>
     
     <div class="pagination">
-      <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">이전</button>
-      <span>{{ currentPage }} / {{ totalPages }}</span>
-      <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">다음</button>
+      <button :disabled="currentPage === 0" @click="changePage(currentPage - 1)">이전</button>
+      <span>{{ currentPage + 1 }} / {{ totalPages }}</span>
+      <button :disabled="currentPage === totalPages - 1" @click="changePage(currentPage + 1)">다음</button>
     </div>
 
     <!-- 신고 상세 모달 -->
@@ -62,38 +67,26 @@
         <div class="report-details">
           <div class="detail-item">
             <label>신고자:</label>
-            <span>{{ selectedReport.reporter }}</span>
-          </div>
-          <div class="detail-item">
-            <label>신고유형:</label>
-            <span>{{ selectedReport.type }}</span>
+            <span>{{ selectedReport.reporterUname || '-' }}</span>
           </div>
           <div class="detail-item">
             <label>신고대상:</label>
-            <span>{{ selectedReport.target }}</span>
+            <span>{{ selectedReport.reportedUserUname }}</span>
           </div>
           <div class="detail-item">
             <label>신고사유:</label>
             <p>{{ selectedReport.reason }}</p>
           </div>
           <div class="detail-item">
-            <label>첨부파일:</label>
-            <div class="attachments">
-              <img v-for="(image, index) in selectedReport.images" 
-                   :key="index" 
-                   :src="image" 
-                   @click="showImage(image)"
-                   class="attachment-image">
-            </div>
+            <label>신고일:</label>
+            <span>{{ formatDate(selectedReport.createdAt) }}</span>
           </div>
           <div class="detail-item">
-            <label>처리내용:</label>
-            <textarea v-model="selectedReport.processNote" 
-                      placeholder="처리 내용을 입력하세요"></textarea>
+            <label>상태:</label>
+            <span>{{ selectedReport.reportedUserActive ? '활성' : '비활성' }}</span>
           </div>
         </div>
         <div class="modal-actions">
-          <button @click="updateReport">저장</button>
           <button @click="showDetailModal = false">닫기</button>
         </div>
       </div>
@@ -102,78 +95,108 @@
 </template>
 
 <script>
+import axios from '@/api/axios'
+
 export default {
   name: 'Reports',
   data() {
     return {
       searchQuery: '',
-      typeFilter: '',
-      statusFilter: '',
+      searchType: 'uname',
       reports: [],
-      currentPage: 1,
+      currentPage: 0,
       totalPages: 1,
       itemsPerPage: 10,
       showDetailModal: false,
-      selectedReport: {
-        id: '',
-        reporter: '',
-        type: '',
-        target: '',
-        reason: '',
-        reportedAt: '',
-        status: '',
-        images: [],
-        processNote: ''
-      }
+      selectedReport: null,
+      error: null
     }
   },
   methods: {
     async searchReports() {
-      // TODO: API 호출하여 신고 목록 검색
-      this.reports = [
-        {
-          id: 'R001',
-          reporter: '홍길동',
-          type: '파트너',
-          target: '바다낚시터',
-          reason: '서비스 불량',
-          reportedAt: '2024-03-20',
-          status: '대기'
-        },
-        // 더 많은 신고 데이터...
-      ]
-    },
-    viewReportDetails(id) {
-      // TODO: 신고 상세 정보 가져오기
-      this.selectedReport = {
-        id: 'R001',
-        reporter: '홍길동',
-        type: '파트너',
-        target: '바다낚시터',
-        reason: '서비스 불량',
-        reportedAt: '2024-03-20',
-        status: '대기',
-        images: ['image1.jpg', 'image2.jpg'],
-        processNote: ''
+      this.error = null
+      try {
+        const params = {
+          page: this.currentPage,
+          size: this.itemsPerPage
+        }
+        
+        if (this.searchQuery.trim()) {
+          params[this.searchType] = this.searchQuery.trim()
+        }
+
+        const response = await axios.get('/api/reports', { params })
+        this.reports = response.data.content
+        this.totalPages = response.data.totalPages
+      } catch (error) {
+        console.error('신고 목록 조회 실패:', error)
+        this.error = '신고 목록을 불러오는데 실패했습니다.'
       }
-      this.showDetailModal = true
     },
-    async startProcessing(id) {
-      // TODO: 신고 처리 시작 API 호출
+    async viewReportDetails(id) {
+      this.error = null
+      try {
+        const response = await axios.get(`/api/reports/${id}`)
+        this.selectedReport = response.data
+        this.showDetailModal = true
+      } catch (error) {
+        console.error('신고 상세 조회 실패:', error)
+        this.error = '신고 상세 정보를 불러오는데 실패했습니다.'
+      }
     },
-    async completeReport(id) {
-      // TODO: 신고 처리 완료 API 호출
+    async deactivateUser(userId) {
+      if (!confirm('해당 유저를 비활성화하시겠습니까?')) return
+      
+      this.error = null
+      try {
+        await axios.put(`/api/users/${userId}/deactivate`)
+        alert('유저가 비활성화되었습니다.')
+        await this.searchReports()
+      } catch (error) {
+        console.error('유저 비활성화 실패:', error)
+        this.error = '유저 비활성화에 실패했습니다.'
+      }
     },
-    async updateReport() {
-      // TODO: 신고 처리 내용 업데이트 API 호출
-      this.showDetailModal = false
+    async reactivateUser(userId) {
+      if (!confirm('해당 유저를 다시 활성화하시겠습니까?')) return
+      
+      this.error = null
+      try {
+        await axios.put(`/api/users/${userId}/reactivate`)
+        alert('유저가 다시 활성화되었습니다.')
+        await this.searchReports()
+      } catch (error) {
+        console.error('유저 활성화 실패:', error)
+        this.error = '유저 활성화에 실패했습니다.'
+      }
     },
-    showImage(image) {
-      // TODO: 이미지 크게 보기
+    async deleteReport(id) {
+      if (!confirm('해당 신고 내역을 삭제하시겠습니까?')) return
+      
+      this.error = null
+      try {
+        await axios.delete(`/api/reports/${id}`)
+        alert('신고가 삭제되었습니다.')
+        await this.searchReports()
+      } catch (error) {
+        console.error('신고 삭제 실패:', error)
+        this.error = '신고 삭제에 실패했습니다.'
+      }
     },
     changePage(page) {
       this.currentPage = page
       this.searchReports()
+    },
+    formatDate(dateString) {
+      if (!dateString) return ''
+      const date = new Date(dateString)
+      return date.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
     }
   },
   created() {
@@ -241,18 +264,18 @@ export default {
   cursor: pointer;
 }
 
-.reports-table button:first-child {
-  background-color: #3498db;
+.activate-btn {
+  background-color: #2ecc71 !important;
   color: white;
 }
 
-.reports-table button:nth-child(2) {
-  background-color: #f1c40f;
+.deactivate-btn {
+  background-color: #e74c3c !important;
   color: white;
 }
 
-.reports-table button:last-child {
-  background-color: #2ecc71;
+.delete-btn {
+  background-color: #95a5a6 !important;
   color: white;
 }
 
@@ -286,6 +309,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .modal-content {
@@ -312,29 +336,6 @@ export default {
   margin-bottom: 0.5rem;
 }
 
-.attachments {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.attachment-image {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.detail-item textarea {
-  width: 100%;
-  height: 100px;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  resize: vertical;
-}
-
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -347,15 +348,16 @@ export default {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-}
-
-.modal-actions button:first-child {
-  background-color: #2ecc71;
-  color: white;
-}
-
-.modal-actions button:last-child {
   background-color: #95a5a6;
   color: white;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  border: 1px solid #ef9a9a;
 }
 </style> 
