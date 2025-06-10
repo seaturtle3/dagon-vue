@@ -22,17 +22,16 @@ export default {
 <template>
   <Banner />
   <div class="home">
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <ReservationBox />
-      </div>
-      <div class="col-md-8">
-        <NoticeBox />
-      </div>
-    </div>
     <SideButtons />
     <PopularList />
     <RecommendationList />
+
+    <div class="row mb-5 mt-5">
+      <div>
+        <NoticeBox />
+      </div>
+    </div>
+
   </div>
 </template>
 
