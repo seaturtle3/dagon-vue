@@ -79,7 +79,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios';
+import { memberApi } from '@/api/admin';
 
 export default {
   name: 'Members',
@@ -101,13 +101,11 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await axios.get('/api/admin/users', {
-          params: {
-            page: this.currentPage - 1,
-            size: this.itemsPerPage,
-            search: this.searchQuery
-          }
-        });
+        const res = await memberApi.getMembers(
+          this.currentPage - 1,
+          this.itemsPerPage,
+          this.searchQuery
+        );
         this.members = res.data.content;
         this.totalPages = res.data.totalPages;
       } catch (e) {
@@ -135,7 +133,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await axios.put(`/api/admin/user/${this.editMember.uno}`, this.editMember);
+        await memberApi.updateMember(this.editMember.uno, this.editMember);
         this.showEditModal = false;
         this.searchMembers();
       } catch (e) {
@@ -149,7 +147,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        await axios.delete(`/api/admin/user/${uno}`);
+        await memberApi.deleteMember(uno);
         this.searchMembers();
       } catch (e) {
         this.error = '회원 삭제에 실패했습니다.';
@@ -161,7 +159,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        await axios.put(`/api/admin/${uno}/deactivate`);
+        await memberApi.deactivateMember(uno);
         this.searchMembers();
       } catch (e) {
         this.error = '계정 비활성화에 실패했습니다.';
@@ -173,7 +171,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        await axios.put(`/api/admin/${uno}/reactivate`);
+        await memberApi.reactivateMember(uno);
         this.searchMembers();
       } catch (e) {
         this.error = '계정 활성화에 실패했습니다.';

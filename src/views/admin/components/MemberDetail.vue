@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios';
+import { memberApi } from '@/api/admin';
 
 export default {
   name: 'MemberDetail',
@@ -91,7 +91,7 @@ export default {
     this.error = '';
     try {
       const uid = this.$route.params.uid;
-      const res = await axios.get(`/api/admin/user/${uid}`);
+      const res = await memberApi.getMemberDetail(uid);
       let member = res.data;
       if ((!member.phone1 || !member.phone2 || !member.phone3) && member.phone) {
         const parts = member.phone.split('-');
@@ -110,7 +110,7 @@ export default {
     submitEdit() {
       this.loading = true;
       this.error = '';
-      axios.put(`/api/admin/user/${this.member.uno}`, this.editMember)
+      memberApi.updateMember(this.member.uno, this.editMember)
         .then(() => {
           this.member = { ...this.editMember };
           this.isEdit = false;

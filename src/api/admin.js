@@ -50,4 +50,39 @@ export const partnerApplicationApi = {
   }
 };
 
+// 회원 관리 관련 API
+export const memberApi = {
+  // 회원 목록 조회
+  getMembers: (page = 0, size = 10, search = '') => {
+    return axios.get('/api/admin/users', {
+      params: { page, size, search }
+    });
+  },
+
+  // 회원 상세 정보 조회
+  getMemberDetail: (uid) => {
+    return axios.get(`/api/admin/user/${uid}`);
+  },
+
+  // 회원 정보 수정
+  updateMember: (uno, memberData) => {
+    return axios.put(`/api/admin/user/${uno}`, memberData);
+  },
+
+  // 회원 삭제
+  deleteMember: (uno) => {
+    return axios.delete(`/api/admin/user/${uno}`);
+  },
+
+  // 회원 비활성화
+  deactivateMember: (uno) => {
+    return axios.put(`/api/users/${uno}/deactivate`);
+  },
+
+  // 회원 활성화
+  reactivateMember: (uno) => {
+    return axios.put(`/api/users/${uno}/reactivate`);
+  }
+};
+
 export default adminApi; 
