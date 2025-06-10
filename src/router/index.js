@@ -1,28 +1,16 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
+import AdminLayout from '../views/pages/dashboard/AdminLayout.vue'
 
 const routes = [
     {path: '/', component: () => import('@/views/home/Home.vue')},
-    {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
-    {
-        path: '/fishing-center/product/:id',
-        component: () => import('@/views/community/fishing-center/ProductDetail.vue'),
-        name: 'ProductDetail'
-    },
-    {path: '/products', component: () => import('@/views/product/Product.vue')},
-    {path: '/sea', component: () => import('@/views/fishing-filter/Sea.vue')},
-    {path: '/freshwater', component: () => import('@/views/fishing-filter/Freshwater.vue')},
-    {path: '/community', component: () => import('@/views/community/Community.vue')},
-    {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
-    {path: '/inquiry', component: () => import('@/views/support/inquiry/Inquiry.vue')},
-    {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
-    {path: '/reservation', component: () => import('@/views/order/reservation/Reservation.vue')},
-    {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
-    {
-        path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
-        props: true
-    },
+
+    // auth
     {path: '/login', component: () => import('@/views/auth/login/Login.vue')},
     {path: '/register', component: () => import('@/views/auth/register/components/RegisterForm.vue')},
+    {path: '/admin/login', component: () => import('@/views/auth/adminlogin/AdminLogin.vue')},
+    {path: '/admin/register', component: () => import('@/views/auth/adminregister/AdminRegister.vue')},
+
+    // pages
     {
         path: '/mypage',
         component: () => import('@/views/pages/my-page/MyPageView.vue'),
@@ -35,14 +23,82 @@ const routes = [
             {path: 'reservations', component: () => import('@/views/pages/my-page/components/ReservationsView.vue')},
             {path: 'notifications', component: () => import('@/views/pages/my-page/components/NotificationsView.vue')},
             {path: 'withdrawal', component: () => import('@/views/pages/my-page/components/WithdrawalView.vue')},
-            {path: 'inquiries', name: 'mypage-inquiries',component: () => import('@/views/pages/my-page/components/InquiriesView.vue')},
+            {path: 'inquiries', component: () => import('@/views/pages/my-page/components/InquiriesView.vue')}
         ]
-    }
+    },
+    {
+        path: '/admin',
+        component: AdminLayout,
+        children: [
+            {path: '', redirect: '/admin/dashboard'},
+            {path: 'dashboard', component: () => import('@/views/pages/dashboard/components/Dashboard.vue'), meta: {requiresAuth: true}},
+            {path: 'members', component: () => import('@/views/pages/dashboard/components/Members.vue'), meta: {requiresAuth: true}},
+            {path: 'partners', component: () => import('@/views/pages/dashboard/components/Partners.vue'), meta: {requiresAuth: true}},
+            {path: 'partner-applications', component: () => import('@/views/pages/dashboard/components/PartnerApplications.vue'), meta: {requiresAuth: true}},
+            {path: 'reservations', component: () => import('@/views/pages/dashboard/components/Reservations.vue'), meta: {requiresAuth: true}},
+            {path: 'notifications', component: () => import('@/views/pages/dashboard/components/Notifications.vue'), meta: {requiresAuth: true}},
+            {path: 'reports', component: () => import('@/views/pages/dashboard/components/Reports.vue'), meta: {requiresAuth: true}},
+            {path: 'events', component: () => import('@/views/pages/dashboard/components/Events.vue'), meta: {requiresAuth: true}},
+            {path: 'notices', component: () => import('@/views/pages/dashboard/components/Notices.vue'), meta: {requiresAuth: true}},
+            {path: 'faq', component: () => import('@/views/pages/dashboard/components/FAQ.vue'), meta: {requiresAuth: true}},
+            {path: 'inquiries', component: () => import('@/views/pages/dashboard/components/Inquiries.vue'), meta: {requiresAuth: true}},
+            {path: 'logout', component: () => import('@/views/pages/dashboard/components/Logout.vue'), meta: {requiresAuth: true}},
+            {path: 'member/:uid', component: () => import('@/views/pages/dashboard/components/MemberDetail.vue'), meta: {requiresAuth: true}},
+            {
+                path: 'inquiries',
+                name: 'mypage-inquiries',
+                component: () => import('@/views/pages/my-page/components/InquiriesView.vue')
+            },
+        ]
+    },
+
+    // product
+    {path: '/products', component: () => import('@/views/product/Product.vue')},
+    {path: '/sea', component: () => import('@/views/fishing-filter/Sea.vue')},
+    {path: '/freshwater', component: () => import('@/views/fishing-filter/Freshwater.vue')},
+
+    // fishing-center
+    {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
+    {
+        path: '/fishing-center/product/:id',
+        component: () => import('@/views/community/fishing-center/ProductDetail.vue'),
+        name: 'ProductDetail'
+    },
+
+    // order
+    {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
+    {path: '/reservation', component: () => import('@/views/order/reservation/Reservation.vue')},
+
+    // community
+    {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
+    {path: '/community', component: () => import('@/views/community/Community.vue')},
+
+    // support
+    {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
+    {
+        path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
+        props: true
+    },
+    {path: '/inquiry', component: () => import('@/views/support/inquiry/Inquiry.vue')},
+
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes
+})
+
+router.beforeEach((to, from, next) => {
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        const token = localStorage.getItem('token')
+        if (!token) {
+            next('/admin/login')
+        } else {
+            next()
+        }
+    } else {
+        next()
+    }
 })
 
 export default router
