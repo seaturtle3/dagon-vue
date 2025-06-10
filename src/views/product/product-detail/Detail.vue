@@ -1,7 +1,9 @@
+// ProductDetailContainer.vue (예시)
 <script setup>
-import {ref, watch, onMounted} from 'vue'
-import {useRoute} from 'vue-router'
-import {useFishingCenterStore} from '@/store/fishing-center/fishingCenterStore.js'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useFishingCenterStore } from '@/store/fishing-center/fishingCenterStore.js'
+import ProductInfo from '@/views/product/product-detail/components/ProductInfo.vue'
 
 const route = useRoute()
 const store = useFishingCenterStore()
@@ -14,17 +16,15 @@ watch(
     (products) => {
       if (products.length > 0) {
         product.value = products.find(p => String(p.prodId) === productId)
-        console.log('found product:', product.value)
       }
     },
-    {immediate: true}
+    { immediate: true }
 )
-
 </script>
 
 <template>
   <div class="center">
-    <ProductInfo />
+    <ProductInfo :product="product"/>
   </div>
 </template>
 
@@ -35,4 +35,3 @@ watch(
   max-width: 800px;
 }
 </style>
-
