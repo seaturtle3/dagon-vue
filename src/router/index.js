@@ -2,27 +2,12 @@ import {createRouter, createWebHistory} from 'vue-router'
 
 const routes = [
     {path: '/', component: () => import('@/views/home/Home.vue')},
-    {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
-    {
-        path: '/fishing-center/product/:id',
-        component: () => import('@/views/community/fishing-center/ProductDetail.vue'),
-        name: 'ProductDetail'
-    },
-    {path: '/products', component: () => import('@/views/product/Product.vue')},
-    {path: '/sea', component: () => import('@/views/fishing-filter/Sea.vue')},
-    {path: '/freshwater', component: () => import('@/views/fishing-filter/Freshwater.vue')},
-    {path: '/community', component: () => import('@/views/community/Community.vue')},
-    {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
-    {path: '/inquiry', component: () => import('@/views/support/inquiry/Inquiry.vue')},
-    {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
-    {path: '/reservation', component: () => import('@/views/order/reservation/Reservation.vue')},
-    {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
-    {
-        path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
-        props: true
-    },
+
+    // auth
     {path: '/login', component: () => import('@/views/auth/login/Login.vue')},
     {path: '/register', component: () => import('@/views/auth/register/components/RegisterForm.vue')},
+
+    // pages
     {
         path: '/mypage',
         component: () => import('@/views/pages/my-page/MyPageView.vue'),
@@ -35,9 +20,43 @@ const routes = [
             {path: 'reservations', component: () => import('@/views/pages/my-page/components/ReservationsView.vue')},
             {path: 'notifications', component: () => import('@/views/pages/my-page/components/NotificationsView.vue')},
             {path: 'withdrawal', component: () => import('@/views/pages/my-page/components/WithdrawalView.vue')},
-            {path: 'inquiries', name: 'mypage-inquiries',component: () => import('@/views/pages/my-page/components/InquiriesView.vue')},
+            {
+                path: 'inquiries',
+                name: 'mypage-inquiries',
+                component: () => import('@/views/pages/my-page/components/InquiriesView.vue')
+            },
         ]
-    }
+    },
+
+    // product
+    {path: '/products', component: () => import('@/views/product/Product.vue')},
+    {path: '/sea', component: () => import('@/views/fishing-filter/Sea.vue')},
+    {path: '/freshwater', component: () => import('@/views/fishing-filter/Freshwater.vue')},
+
+    // fishing-center
+    {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
+    {
+        path: '/fishing-center/product/:id',
+        component: () => import('@/views/community/fishing-center/ProductDetail.vue'),
+        name: 'ProductDetail'
+    },
+
+    // order
+    {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
+    {path: '/reservation', component: () => import('@/views/order/reservation/Reservation.vue')},
+
+    // community
+    {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
+    {path: '/community', component: () => import('@/views/community/Community.vue')},
+
+    // support
+    {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
+    {
+        path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
+        props: true
+    },
+    {path: '/inquiry', component: () => import('@/views/support/inquiry/Inquiry.vue')},
+
 ]
 
 const router = createRouter({
