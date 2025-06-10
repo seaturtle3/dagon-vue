@@ -1,6 +1,6 @@
 <script setup>
-import InquiryList from '@/views/inquiries/components/InquiryList.vue'
-import InquiryForm from '@/views/inquiries/components/InquiryForm.vue'
+import InquiryList from '@/views/support/inquiry/components/InquiryList.vue'
+import InquiryForm from '@/views/support/inquiry/components/InquiryForm.vue'
 
 import { useInquiryStore } from '@/store/inquiries/inquiryStore.js'
 

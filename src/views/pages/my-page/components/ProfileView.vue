@@ -74,7 +74,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { myPageAPI } from '@/api/mypage';
+import { myPageAPI } from '@/api/mypage.js';
 
 const defaultProfileImage = '/img/default-profile.png';
 const API_BASE_URL = 'http://localhost:8095'; // API 서버 기본 URL
@@ -205,20 +205,27 @@ const handleSubmit = async () => {
 <style scoped>
 .profile-container {
   max-width: 800px;
-  padding: 2rem;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 600;
   margin-bottom: 2rem;
-  color: #1a1a1a;
+  color: #0d47a1;
+  border-bottom: 2px solid #1976d2;
+  padding-bottom: 1rem;
 }
 
 .profile-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
 }
 
 .profile-image {
@@ -228,8 +235,9 @@ const handleSubmit = async () => {
   margin: 0 auto 2rem;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
   cursor: pointer;
+  border: 4px solid #1976d2;
 }
 
 .profile-image img {
@@ -244,14 +252,14 @@ const handleSubmit = async () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(13, 71, 161, 0.7);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   color: white;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.3s ease;
 }
 
 .profile-image:hover .image-upload-overlay {
@@ -270,75 +278,104 @@ const handleSubmit = async () => {
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
+  color: #0d47a1;
   font-weight: 500;
-  color: #333;
 }
 
 .form-control {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 2px solid #90caf9;
+  border-radius: 8px;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .form-control:focus {
-  border-color: #1a73e8;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
   outline: none;
 }
 
 .form-control:disabled {
-  background-color: #f5f5f5;
+  background: rgba(236, 239, 241, 0.9);
+  border-color: #cfd8dc;
   cursor: not-allowed;
 }
 
 .input-group {
   display: flex;
-  align-items: center;
   gap: 0.5rem;
+  align-items: center;
 }
 
-.input-group input {
-  text-align: center;
-  width: 80px;
+.input-group .form-control {
+  flex: 1;
 }
 
-.input-group select {
-  width: 100px;
+.input-group-text {
+  color: #1565c0;
+  font-weight: 500;
+}
+
+.form-select {
+  padding: 0.75rem;
+  border: 2px solid #90caf9;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0d47a1;
+  cursor: pointer;
 }
 
 .button-group {
   display: flex;
-  justify-content: flex-end;
   gap: 1rem;
+  justify-content: flex-end;
   margin-top: 2rem;
 }
 
 .btn {
-  padding: 0.75rem 2rem;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 8px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .btn-primary {
-  background: #1a73e8;
+  background: #1976d2;
   color: white;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
 }
 
 .btn-primary:hover {
-  background: #1557b0;
+  background: #1565c0;
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
-  background: #f5f5f5;
-  color: #333;
+  background: #90caf9;
+  color: #0d47a1;
 }
 
 .btn-secondary:hover {
-  background: #e5e5e5;
+  background: #64b5f6;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem;
+  }
+  
+  .button-group {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+  }
 }
 </style> 

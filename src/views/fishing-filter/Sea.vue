@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useSeaFishingStore } from '@/store/fishing-region-filter/seaFilter.js'
+import { useSeaFishingStore } from '@/store/fishing-region-filter/seaFilterStore.js'
 import SeaFilter from "@/views/fishing-filter/components/SeaFilter.vue";
 
 const store = useSeaFishingStore()
@@ -13,11 +13,9 @@ onMounted(async () => {
 <template>
   <div class="sea">
     <div style="margin-bottom: 3%">
-      <h2>바다낚시 테스트</h2>
+      <h2>바다낚시</h2>
     </div>
-
     <SeaFilter :filteredProducts="store.products" />
-
   </div>
 </template>
 

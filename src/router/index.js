@@ -1,3 +1,4 @@
+import {createRouter, createWebHistory} from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/home/Home.vue'
 import Product from '@/views/product/Product.vue'
@@ -20,57 +21,41 @@ import NotificationsView from "@/views/mypage/components/NotificationsView.vue"
 import WithdrawalView from "@/views/mypage/components/WithdrawalView.vue"
 
 const routes = [
-    { path: '/', component: Home },
-    { path: '/fishing-center', component: FishingCenter },
-    { path: '/fishing-center/product/:id', component: ProductDetail, name: 'ProductDetail' },
-    { path: '/sea', component: Sea },
-    { path: '/freshwater', component: Freshwater },
-    { path: '/community', component: Community },
-    { path: '/customer-service', component: CustomerService },
-    { path: '/products', component: Product },
-    { path: '/inquiry', component: () => import('@/views/inquiries/Inquiry.vue')},
-    { path: '/payments', component: Payments },
+    {path: '/', component: () => import('@/views/home/Home.vue')},
+    {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
     {
-        path: "/payments/result",
-        name: "PaymentResult",
-        component: () => import("@/views/reservation/components/PaymentResult.vue"),
+        path: '/fishing-center/product/:id',
+        component: () => import('@/views/community/fishing-center/ProductDetail.vue'),
+        name: 'ProductDetail'
     },
-
-    { path: '/reservation', component: Reservation },
-    { path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue') }, // 비동기
-    { path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
-        props: true },
-    { path: '/login', component: login },
-    { path: '/register', component: registerForm },
+    {path: '/products', component: () => import('@/views/product/Product.vue')},
+    {path: '/sea', component: () => import('@/views/fishing-filter/Sea.vue')},
+    {path: '/freshwater', component: () => import('@/views/fishing-filter/Freshwater.vue')},
+    {path: '/community', component: () => import('@/views/community/Community.vue')},
+    {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
+    {path: '/inquiry', component: () => import('@/views/support/inquiry/Inquiry.vue')},
+    {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
+    {path: '/reservation', component: () => import('@/views/order/reservation/Reservation.vue')},
+    {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
+    {
+        path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
+        props: true
+    },
+    {path: '/login', component: () => import('@/views/auth/login/Login.vue')},
+    {path: '/register', component: () => import('@/views/auth/register/components/RegisterForm.vue')},
     {
         path: '/mypage',
-        component: MyPage,
+        component: () => import('@/views/pages/my-page/MyPageView.vue'),
         redirect: '/mypage/profile',
+        name: 'mypage',
         children: [
-            {
-                path: 'profile',
-                component: ProfileView
-            },
-            {
-                path: 'password',
-                component: PasswordView
-            },
-            {
-                path: 'points',
-                component: PointsView
-            },
-            {
-                path: 'reservations',
-                component: ReservationsView
-            },
-            {
-                path: 'notifications',
-                component: NotificationsView
-            },
-            {
-                path: 'withdrawal',
-                component: WithdrawalView
-            }
+            {path: 'profile', component: () => import('@/views/pages/my-page/components/ProfileView.vue')},
+            {path: 'password', component: () => import('@/views/pages/my-page/components/PasswordView.vue')},
+            {path: 'points', component: () => import('@/views/pages/my-page/components/PointsView.vue')},
+            {path: 'reservations', component: () => import('@/views/pages/my-page/components/ReservationsView.vue')},
+            {path: 'notifications', component: () => import('@/views/pages/my-page/components/NotificationsView.vue')},
+            {path: 'withdrawal', component: () => import('@/views/pages/my-page/components/WithdrawalView.vue')},
+            {path: 'inquiries', name: 'mypage-inquiries',component: () => import('@/views/pages/my-page/components/InquiriesView.vue')},
         ]
     }
 ]

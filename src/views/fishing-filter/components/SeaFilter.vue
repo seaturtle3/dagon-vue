@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const props = defineProps({
   filteredProducts: {
@@ -31,7 +32,9 @@ function nextPage() {
 <template>
   <div class="product-grid">
     <div class="product-card" v-for="product in paginatedProducts" :key="product.prodId">
-      <img :src="product.prodThumbnail" alt="thumbnail" class="thumbnail" />
+      <img
+          :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
+           alt="thumbnail" class="thumbnail" />
       <h4>{{ product.prodName }}</h4>
       <p class="address">{{ product.prodAddress }}</p>
     </div>

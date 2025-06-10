@@ -25,7 +25,6 @@
           <p :class="{ 'valid': passwordRules.length }">• 8자 이상</p>
           <p :class="{ 'valid': passwordRules.lowercase }">• 영문자 포함</p>
           <p :class="{ 'valid': passwordRules.number }">• 숫자 포함</p>
-          <p :class="{ 'valid': passwordRules.special }">• 특수문자 포함</p>
         </div>
       </div>
 
@@ -59,7 +58,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { myPageAPI } from '@/api/mypage';
+import { myPageAPI } from '@/api/mypage.js';
 
 const passwordForm = ref({
   currentPassword: '',
@@ -80,8 +79,7 @@ const validatePassword = () => {
   passwordRules.value = {
     length: password.length >= 8,
     lowercase: /[a-z]/i.test(password), // 대소문자 구분 없이 영문자 체크
-    number: /[0-9]/.test(password),
-    special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    number: /[0-9]/.test(password)
   };
 };
 
@@ -124,20 +122,27 @@ const handleSubmit = async () => {
 <style scoped>
 .password-container {
   max-width: 600px;
-  padding: 2rem;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 600;
   margin-bottom: 2rem;
-  color: #1a1a1a;
+  color: #0d47a1;
+  border-bottom: 2px solid #1976d2;
+  padding-bottom: 1rem;
 }
 
 .password-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
 }
 
 .form-group {
@@ -148,70 +153,104 @@ const handleSubmit = async () => {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #333;
+  color: #0d47a1;
 }
 
 .form-control {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 2px solid #90caf9;
+  border-radius: 8px;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .form-control:focus {
-  border-color: #1a73e8;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
   outline: none;
 }
 
 .password-rules {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
-  color: #666;
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  color: #546e7a;
+  background: rgba(236, 239, 241, 0.6);
+  padding: 1rem;
+  border-radius: 8px;
 }
 
 .password-rules p {
-  margin: 0.25rem 0;
+  margin: 0.35rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.password-rules p::before {
+  content: "•";
+  color: #90a4ae;
 }
 
 .password-match {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  text-align: center;
 }
 
 .valid {
-  color: #28a745;
+  color: #00897b;
 }
 
 .invalid {
-  color: #dc3545;
+  color: #d32f2f;
 }
 
 .button-group {
   margin-top: 2rem;
+  display: flex;
+  justify-content: center;
 }
 
 .btn {
   padding: 0.75rem 2rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  min-width: 200px;
 }
 
 .btn:disabled {
-  background-color: #ccc;
+  background-color: #90caf9;
+  opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btn-primary {
-  background: #1a73e8;
+  background: #1976d2;
   color: white;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1557b0;
+  background: #1565c0;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .password-container {
+    padding: 1rem;
+  }
+  
+  .btn {
+    width: 100%;
+  }
 }
 </style> 
