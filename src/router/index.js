@@ -5,7 +5,7 @@ const routes = [
     {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
     {
         path: '/fishing-center/product/:id',
-        component: () => import('@/views/community/fishing-center/ProductDetail.vue'),
+        component: () => import('@/views/community/fishing-center/FishingDetail.vue'),
         name: 'ProductDetail'
     },
     {path: '/products', component: () => import('@/views/product/Product.vue')},

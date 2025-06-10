@@ -1,11 +1,10 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useFishingCenterStore } from '@/store/fishing-center/fishingCenterStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const route = useRoute()
-const router = useRouter()
 const store = useFishingCenterStore()
 const productId = route.params.id
 
@@ -28,9 +27,6 @@ onMounted(() => {
   }
 })
 
-function goBack() {
-  router.push('/fishing-center')
-}
 </script>
 
 <template>
@@ -46,6 +42,7 @@ function goBack() {
       <p>지역: {{ product.prodRegion }}</p>
       <p>등록일: {{ product.createdAt }}</p>
     </div>
+
     <div v-else>
       <p>상품 정보를 불러오는 중입니다...</p>
     </div>

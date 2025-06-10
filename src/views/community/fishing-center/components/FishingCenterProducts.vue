@@ -2,16 +2,13 @@
 import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl'
 
 console.log(IMAGE_BASE_URL);
-console.log(import.meta.env.VITE_IMAGE_BASE_URL); // undefined가 나오면 설정 문제
 
 defineProps({
   products: Array
 })
 
-const emit = defineEmits(['select'])
-
 function onClick(product) {
-  const url = `/product/${product.prodId}`
+  const url = `/fishing-center/product/${product.prodId}`
   window.open(url, '_blank')  // 새 탭에서 열기
 }
 

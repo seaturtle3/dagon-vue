@@ -27,6 +27,11 @@ const paginatedProducts = computed(() => {
 function goToFishingCenter() {
   router.push('/fishing-center')
 }
+
+function onClick(product) {
+  const url = `/fishing-center/product/${product.prodId}`
+  window.open(url, '_blank')  // 새 탭에서 열기
+}
 </script>
 
 <template>
@@ -43,6 +48,7 @@ function goToFishingCenter() {
           v-for="product in paginatedProducts"
           :key="product.prodId"
           class="col"
+          @click="onClick(product)"
       >
         <div class="card h-100 text-center" style="cursor: pointer;">
           <img
