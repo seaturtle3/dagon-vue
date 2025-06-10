@@ -1,12 +1,11 @@
-// ProductDetailContainer.vue (예시)
 <script setup>
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useFishingCenterStore } from '@/store/fishing-center/fishingCenterStore.js'
+import { useProductListStore } from '@/store/product/all-products/productListStore.js'
 import ProductInfo from '@/views/product/product-detail/components/ProductInfo.vue'
 
 const route = useRoute()
-const store = useFishingCenterStore()
+const store = useProductListStore()
 const productId = route.params.id
 
 const product = ref(null)
@@ -16,15 +15,19 @@ watch(
     (products) => {
       if (products.length > 0) {
         product.value = products.find(p => String(p.prodId) === productId)
+        console.log('찾은 product:', product.value)
       }
     },
     { immediate: true }
 )
+
+console.log('route.params.id:', route.params.id)
 </script>
 
 <template>
   <div class="center">
-    <ProductInfo :product="product"/>
+    <div v-if="!product">상품 정보를 불러오는 중입니다...</div>
+    <ProductInfo v-else :product="product" />
   </div>
 </template>
 

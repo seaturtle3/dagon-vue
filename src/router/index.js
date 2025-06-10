@@ -5,10 +5,10 @@ const routes = [
     {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
     {
         path: '/product-detail/:id',
-        component: () => import('@/views/product/product-detail/Detail.vue'),
+        component: () => import('@/views/product/product-detail/ProductDetail.vue'),
         name: 'ProductDetail'
     },
-    {path: '/products', component: () => import('@/views/product/all-products/Product.vue')},
+    {path: '/products', component: () => import('@/views/product/all-products/AllProducts.vue')},
     {path: '/sea', component: () => import('@/views/product/fishing-filter/Sea.vue')},
     {path: '/freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
     {path: '/community', component: () => import('@/views/community/Community.vue')},
