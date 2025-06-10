@@ -1,24 +1,4 @@
-import {createRouter, createWebHistory} from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '@/views/home/Home.vue'
-import Product from '@/views/product/Product.vue'
-import FishingCenter from '@/views/community/fishing-center/FishingCenter.vue'
-import Sea from '@/views/fishing-filter/Sea.vue'
-import Freshwater from '@/views/fishing-filter/Freshwater.vue'
-import CustomerService from '@/views/support/customer-service/CustomerService.vue'
-import ProductDetail from '@/views/community/fishing-center/ProductDetail.vue'
-import Payments from '@/views/reservation/Payment.vue'
-import Reservation from '@/views/reservation/Reservation.vue'
-import login from "@/views/auth/login/Login.vue"
-import Community from "@/views/community/Community.vue"
-import registerForm from "@/views/auth/register/components/RegisterForm.vue"
-import MyPage from "@/views/mypage/MyPageView.vue"
-import ProfileView from "@/views/mypage/components/ProfileView.vue"
-import PasswordView from "@/views/mypage/components/PasswordView.vue"
-import PointsView from "@/views/mypage/components/PointsView.vue"
-import ReservationsView from "@/views/mypage/components/ReservationsView.vue"
-import NotificationsView from "@/views/mypage/components/NotificationsView.vue"
-import WithdrawalView from "@/views/mypage/components/WithdrawalView.vue"
 
 const routes = [
     {path: '/', component: () => import('@/views/home/Home.vue')},
