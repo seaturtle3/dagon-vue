@@ -79,7 +79,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { myPageAPI } from '@/api/mypage';
+import { myPageAPI } from '@/api/mypage.js';
 
 const tabs = [
   { label: '예정된 예약', value: 'PAID' },

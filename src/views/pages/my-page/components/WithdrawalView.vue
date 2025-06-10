@@ -46,8 +46,8 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { myPageAPI } from '@/api/mypage';
-import { useAuthStore } from '@/store/login/loginStore';
+import { myPageAPI } from '@/api/mypage.js';
+import { useAuthStore } from '@/store/login/loginStore.js';
 
 const router = useRouter();
 const authStore = useAuthStore();

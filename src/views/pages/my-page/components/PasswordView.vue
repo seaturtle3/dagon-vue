@@ -58,7 +58,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { myPageAPI } from '@/api/mypage';
+import { myPageAPI } from '@/api/mypage.js';
 
 const passwordForm = ref({
   currentPassword: '',

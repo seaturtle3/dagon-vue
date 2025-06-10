@@ -42,7 +42,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="notice-list">
+  <div class="notice-list center">
     <h2>공지사항</h2>
 
     <!-- 검색 (선택) -->
@@ -79,5 +79,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
-
+.center {
+  width: 80%;
+  margin: 5% auto;
+  text-align: center;
+}
 </style>

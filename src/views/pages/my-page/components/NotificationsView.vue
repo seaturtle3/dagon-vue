@@ -50,8 +50,8 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { myPageAPI } from '@/api/mypage';
-import { useAuthStore } from '@/store/login/loginStore'; // 올바른 auth store import
+import { myPageAPI } from '@/api/mypage.js';
+import { useAuthStore } from '@/store/login/loginStore.js'; // 올바른 auth store import
 
 const authStore = useAuthStore();
 const selectedFilter = ref('all');

@@ -84,7 +84,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { myPageAPI } from '@/api/mypage';
+import { myPageAPI } from '@/api/mypage.js';
 
 // Font Awesome CDN 추가
 const fontAwesomeScript = document.createElement('link');
