@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
-import api from '@/lib/axios'
+import api from '@/lib/axios.js'
 
 export const useProductListStore = defineStore('productList', {
     state: () => ({
         products: [],
         page: 0,
-        size: 10,
+        size: 25,
         totalPages: 0,
     }),
     actions: {

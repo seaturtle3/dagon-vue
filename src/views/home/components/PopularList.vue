@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useFishingCenterStore } from '@/store/fishing-center/fishingCenterStore.js'
+import { useFishingCenterStore } from '@/store/product/fishing-center/fishingCenterStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 console.log(IMAGE_BASE_URL);
@@ -27,10 +27,15 @@ const paginatedProducts = computed(() => {
 function goToFishingCenter() {
   router.push('/fishing-center')
 }
+
+function onClick(product) {
+  const url = `/product-detail/${product.prodId}`
+  window.open(url, '_blank')  // 새 탭에서 열기
+}
 </script>
 
 <template>
-  <div style="margin-top: 7%">
+  <div style="margin-top: 5%">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="fw-bold fs-5 m-0">최근 인기 조황</h2>
       <button class="btn btn-sm btn-outline-secondary" @click="goToFishingCenter">
@@ -43,6 +48,7 @@ function goToFishingCenter() {
           v-for="product in paginatedProducts"
           :key="product.prodId"
           class="col"
+          @click="onClick(product)"
       >
         <div class="card h-100 text-center" style="cursor: pointer;">
           <img

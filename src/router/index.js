@@ -53,17 +53,17 @@ const routes = [
     },
 
     // product
-    {path: '/products', component: () => import('@/views/product/Product.vue')},
-    {path: '/sea', component: () => import('@/views/fishing-filter/Sea.vue')},
-    {path: '/freshwater', component: () => import('@/views/fishing-filter/Freshwater.vue')},
+    {path: '/products', component: () => import('@/views/product/all-products/AllProducts.vue')},
+    {path: '/sea', component: () => import('@/views/product/fishing-filter/Sea.vue')},
+    {path: '/freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
+    {
+        path: '/products/product-detail/:id',
+        component: () => import('@/views/product/product-detail/ProductDetail.vue'),
+        name: 'ProductDetail'
+    },
 
     // fishing-center
     {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
-    {
-        path: '/fishing-center/product/:id',
-        component: () => import('@/views/community/fishing-center/ProductDetail.vue'),
-        name: 'ProductDetail'
-    },
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},

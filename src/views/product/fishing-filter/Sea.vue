@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useSeaFishingStore } from '@/store/fishing-region-filter/seaFilterStore.js'
-import SeaFilter from "@/views/fishing-filter/components/SeaFilter.vue";
+import { useSeaFishingStore } from '@/store/product/fishing-region-filter/seaFilterStore.js'
+import SeaFilter from "@/views/product/fishing-filter/components/SeaFilter.vue";
 
 const store = useSeaFishingStore()
 

@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted } from 'vue'
-import { useFishingCenterStore } from '@/store/fishing-center/fishingCenterStore.js'
+import { useFishingCenterStore } from '@/store/product/fishing-center/fishingCenterStore.js'
 import FishingCenterProducts from './components/FishingCenterProducts.vue'
 import router from "@/router/index.js";
 

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import api from '@/lib/axios'
+import api from '@/lib/axios.js'
 
 export const useFreshwaterFishingStore = defineStore('freshwaterFilter', {
     state: () => ({
