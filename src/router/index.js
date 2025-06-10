@@ -14,7 +14,6 @@ import Inquiries from '../views/admin/components/Inquiries.vue'
 import Logout from '../views/admin/components/Logout.vue'
 import AdminLogin from '../views/auth/adminlogin/AdminLogin.vue'
 import AdminRegister from '../views/auth/adminregister/AdminRegister.vue'
-import MemberDetail from '@/views/admin/components/MemberDetail.vue'
 
 const routes = [
     {path: '/', component: () => import('@/views/home/Home.vue')},
@@ -135,10 +134,6 @@ const routes = [
                 name: 'Logout',
                 component: Logout,
                 meta: { requiresAuth: true }
-            },
-            {
-                path: 'member/:uid',
-                component: MemberDetail
             }
         ]
     }

@@ -6,7 +6,7 @@
       </div>
       <nav class="sidebar-nav">
         <router-link to="/admin" class="nav-item">
-          <i class="fa-solid fa-comments"></i>
+          <i class="fas fa-tachometer-alt"></i>
           <span>대시보드</span>
         </router-link>
         <router-link to="/admin/members" class="nav-item">
