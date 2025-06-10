@@ -24,15 +24,17 @@ const loadNotices = async (targetPage = 0) => {
   page.value = targetPage
 
   // URL 에 query 반영
-  router.push({
+  await router.push({
     path: `/notice`,
-    query: { page: page.value, keyword: keyword.value, type: searchType.value }})
+    query: {page: page.value, keyword: keyword.value, type: searchType.value}
+  })
 
   const params = {
     page: page.value,
     size: size,
     type: searchType.value
   }
+
   // 🔽 keyword 가 비어있지 않은 경우에만 포함
   if (keyword.value && keyword.value.trim() !== '') {
     params.keyword = keyword.value.trim()
