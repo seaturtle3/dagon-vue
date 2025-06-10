@@ -1,25 +1,6 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { useFishingCenterStore } from '@/store/fishing-center/fishingCenterStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
-
-const route = useRoute()
-const store = useFishingCenterStore()
-const productId = route.params.id
-
-const product = ref(null)
-
-watch(
-    () => store.products,
-    (products) => {
-      if (products.length > 0) {
-        product.value = products.find(p => String(p.prodId) === productId)
-        console.log('found product:', product.value)
-      }
-    },
-    { immediate: true }
-)
+import {onMounted} from "vue";
 
 onMounted(() => {
   if (store.products.length === 0) {
@@ -50,10 +31,5 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.detail {
-  width: 80%;
-  margin: 5% auto;
-  max-width: 800px;
-}
-</style>
 
+</style>

@@ -8,7 +8,7 @@ defineProps({
 })
 
 function onClick(product) {
-  const url = `/fishing-center/product/${product.prodId}`
+  const url = `/product-detail/${product.prodId}`
   window.open(url, '_blank')  // 새 탭에서 열기
 }
 

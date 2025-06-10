@@ -4,13 +4,13 @@ const routes = [
     {path: '/', component: () => import('@/views/home/Home.vue')},
     {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
     {
-        path: '/fishing-center/product/:id',
-        component: () => import('@/views/community/fishing-center/FishingDetail.vue'),
+        path: '/product-detail/:id',
+        component: () => import('@/views/product/product-detail/Detail.vue'),
         name: 'ProductDetail'
     },
-    {path: '/products', component: () => import('@/views/product/Product.vue')},
-    {path: '/sea', component: () => import('@/views/fishing-filter/Sea.vue')},
-    {path: '/freshwater', component: () => import('@/views/fishing-filter/Freshwater.vue')},
+    {path: '/products', component: () => import('@/views/product/all-products/Product.vue')},
+    {path: '/sea', component: () => import('@/views/product/fishing-filter/Sea.vue')},
+    {path: '/freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
     {path: '/community', component: () => import('@/views/community/Community.vue')},
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
     {path: '/inquiry', component: () => import('@/views/support/inquiry/Inquiry.vue')},
