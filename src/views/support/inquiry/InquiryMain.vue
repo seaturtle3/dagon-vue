@@ -1,11 +1,11 @@
 <script setup>
-import Inquiry from '@/views/support/inquiry/components/Inquiry.vue'; // 실제 Inquiry 경로로 바꿔줘
+import MemberInquiry from '@/views/support/inquiry/components/MemberInquiry.vue'; // 실제 Inquiry 경로로 바꿔줘
 
 </script>
 
 <template>
   <div>
-    <Inquiry />
+    <MemberInquiry />
   </div>
 </template>
 

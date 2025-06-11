@@ -44,7 +44,7 @@
             </div>
           </div>
           <div v-else class="inquiry-actions">
-            <button @click="showReplyModal(inquiry.id)">답변하기</button>
+            <button @click="openReplyModal(inquiry.id)">답변하기</button>
           </div>
         </div>
       </div>
@@ -76,6 +76,8 @@
 </template>
 
 <script>
+import { inquiryApi } from '@/api/inquiry'
+
 export default {
   name: 'Inquiries',
   data() {
@@ -97,6 +99,18 @@ export default {
   },
   methods: {
     async searchInquiries() {
+      try {
+        const response = await inquiryApi.getInquiryList({
+          query: this.searchQuery,
+          status: this.statusFilter,
+          page: this.currentPage
+        });
+        this.inquiries = response.data.content;  // content는 Spring의 Page 객체 기준
+        this.totalPages = response.data.totalPages;
+      } catch (error) {
+        console.error('문의 목록 조회 실패:', error);
+        alert('문의 목록 조회 중 오류가 발생했습니다.');
+      }
       // TODO: API 호출하여 문의 목록 검색
       this.inquiries = [
         {
@@ -134,7 +148,7 @@ export default {
         this.expandedInquiries.splice(index, 1)
       }
     },
-    showReplyModal(inquiryId) {
+    openReplyModal(inquiryId) {
       this.editingReply = false
       this.replyForm.inquiryId = inquiryId
       this.replyForm.content = ''
@@ -150,9 +164,33 @@ export default {
       }
     },
     async deleteReply(inquiryId) {
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+      try {
+        await inquiryApi.deleteReply(inquiryId);
+        alert('답변이 삭제되었습니다.');
+        this.searchInquiries();
+      } catch (error) {
+        console.error('답변 삭제 실패:', error);
+        alert('답변 삭제 중 오류가 발생했습니다.');
+      }
       // TODO: 답변 삭제 API 호출
     },
     async submitReply() {
+      try {
+        const { inquiryId, content } = this.replyForm;
+        if (this.editingReply) {
+          await inquiryApi.updateReply(inquiryId, { content });
+          alert('답변이 수정되었습니다.');
+        } else {
+          await inquiryApi.createReply(inquiryId, { content });
+          alert('답변이 등록되었습니다.');
+        }
+        this.showReplyModal = false;
+        this.searchInquiries();
+      } catch (error) {
+        console.error('답변 저장 실패:', error);
+        alert('답변 저장 중 오류가 발생했습니다.');
+      }
       // TODO: 답변 저장 API 호출
       this.showReplyModal = false
     },
