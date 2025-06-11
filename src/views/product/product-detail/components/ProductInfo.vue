@@ -1,14 +1,14 @@
 <script setup>
 import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js"
 
-const { product } = defineProps({
+const props = defineProps({
   product: {
     type: Object,
     required: true,
   }
 })
 
-console.log('ProductInfo props product:', product)
+console.log('ProductInfo props product:', props.product)
 
 function formatDate(dateStr) {
   const date = new Date(dateStr)
@@ -22,17 +22,19 @@ function formatDate(dateStr) {
 
 <template>
   <div class="detail">
-    <div>
-      배 상품 상세페이지
+    
+    <div class="mb-5" style="text-align: center">
+      <h2>배 상품 상세페이지</h2>
     </div>
-    <h1 class="title">{{ product.prodName }}</h1>
+
+    <h1 class="title">{{ props.product.prodName }}</h1>
     <img
-        :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
+        :src="`${IMAGE_BASE_URL}/${props.product.prodThumbnail}`"
         class="thumbnail"
         alt="썸네일"
     />
-    <p>지역: {{ product.prodRegion }}</p>
-    <p>등록일: {{ formatDate(product.createdAt) }}</p>
+    <p>지역: {{ props.product.prodRegion }}</p>
+    <p>등록일: {{ formatDate(props.product.createdAt) }}</p>
   </div>
 </template>
 
