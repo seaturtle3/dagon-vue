@@ -29,7 +29,7 @@ function nextPage() {
 }
 
 function openDetail(product) {
-  const url = `products/product-detail/${product.prodId}`
+  const url = `/products/product-detail/${product.prodId}`
   window.open(url, '_blank')  // 새 탭에서 열기
 }
 </script>

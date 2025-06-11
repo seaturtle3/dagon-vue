@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useFishingCenterStore } from '@/store/product/fishing-center/fishingCenterStore.js'
-import FishingCenterProducts from './components/FishingCenterProducts.vue'
+import FishingCenterList from './components/FishingCenterList.vue'
 import router from "@/router/index.js";
 
 const store = useFishingCenterStore()
@@ -18,7 +18,7 @@ function handleSelect(product) {
 
 <template>
   <div class="center">
-    <FishingCenterProducts :products="store.products" @select="handleSelect" />
+    <FishingCenterList :products="store.products" @select="handleSelect" />
   </div>
 </template>
 

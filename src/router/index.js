@@ -58,8 +58,8 @@ const routes = [
     {path: '/freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
     {
         path: '/products/product-detail/:id',
+        name: 'ProductDetail',
         component: () => import('@/views/product/product-detail/ProductDetail.vue'),
-        name: 'ProductDetail'
     },
 
     // fishing-center
