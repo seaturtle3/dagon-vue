@@ -98,8 +98,8 @@ const menuItems =ref( [
       {label: '조행기', link: '/diary'}
     ]
   },
-  {label: '바다낚시', link: '/sea'},
-  {label: '민물낚시', link: '/freshwater'},
+  {label: '바다낚시', link: '/products/sea'},
+  {label: '민물낚시', link: '/products/freshwater'},
   {
     label: '커뮤니티',
     link: '/event',

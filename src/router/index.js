@@ -54,8 +54,8 @@ const routes = [
 
     // product
     {path: '/products', component: () => import('@/views/product/all-products/AllProducts.vue')},
-    {path: '/sea', component: () => import('@/views/product/fishing-filter/Sea.vue')},
-    {path: '/freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
+    {path: '/products/sea', component: () => import('@/views/product/fishing-filter/Sea.vue')},
+    {path: '/products/freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
     {
         path: '/products/product-detail/:id',
         name: 'ProductDetail',
