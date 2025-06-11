@@ -77,11 +77,15 @@ const routes = [
     },
 
     // fishing-center
-    {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
+    {path:
+            '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
     {path: '/reservation', component: () => import('@/views/order/reservation/Reservation.vue')},
+    {path: '/reservation-form', component: () => import('@/views/order/reservation/components/ReservationForm.vue')},
+
+
 
     // community
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
@@ -93,7 +97,9 @@ const routes = [
         path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
         props: true
     },
-    {path: '/inquiry', component: () => import('@/views/support/inquiry/Inquiry.vue')},
+    {path: '/inquiry', component: () => import('@/views/support/inquiry/components/Inquiry.vue')},
+    {path: '/inquiry-form', component: () => import('@/views/support/inquiry/components/InquiryForm.vue')},
+    {path: '/non-member-inquiry', component: () => import('@/views/support/inquiry/components/NonMemberInquiry.vue')},
 
 ]
 

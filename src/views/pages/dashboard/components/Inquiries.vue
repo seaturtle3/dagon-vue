@@ -1,7 +1,7 @@
 <template>
   <div class="inquiries">
     <h1>1:1 문의 관리</h1>
-    
+
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="제목 또는 작성자로 검색">
       <select v-model="statusFilter">
@@ -11,7 +11,7 @@
       </select>
       <button @click="searchInquiries">검색</button>
     </div>
-    
+
     <div class="inquiries-list">
       <div v-for="inquiry in inquiries" :key="inquiry.id" class="inquiry-item">
         <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
@@ -49,7 +49,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="pagination">
       <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">이전</button>
       <span>{{ currentPage }} / {{ totalPages }}</span>
