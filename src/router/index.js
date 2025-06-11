@@ -97,9 +97,7 @@ const routes = [
         path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
         props: true
     },
-    {path: '/inquiry', component: () => import('@/views/support/inquiry/components/Inquiry.vue')},
-    {path: '/inquiry-form', component: () => import('@/views/support/inquiry/components/InquiryForm.vue')},
-    {path: '/non-member-inquiry', component: () => import('@/views/support/inquiry/components/NonMemberInquiry.vue')},
+    {path: '/inquiry', component: () => import('@/views/support/inquiry/InquiryMain.vue')},
 
 ]
 
