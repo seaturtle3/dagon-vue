@@ -1,6 +1,6 @@
 <template>
   <div class="inquiry-container">
-    <h2 class="page-title">비회원 문의하기</h2>
+    <h2 class="page-title">문의하기(비회원용)</h2>
     
     <!-- 문의하기 목록 -->
     <div class="inquiry-list" v-if="!showDetail">
