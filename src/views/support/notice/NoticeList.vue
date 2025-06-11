@@ -1,4 +1,7 @@
 <script setup>
+import BoardPagination from "@/components/common/BoardPagination.vue";
+import BoardSearchBox from "@/components/common/BoardSearchBox.vue";
+import BoardWriteButton from "@/components/common/BoardWriteButton.vue";
 import {ref, onMounted} from 'vue'
 import {fetchNotices} from '@/api/noticeApi'
 import {computed} from "vue";
@@ -8,16 +11,23 @@ const topNotices = computed(() => notices.value.filter(n => n.isTop))
 const normalNotices = computed(() => notices.value.filter(n => !n.isTop))
 
 const notices = ref([])
-// const page = ref(0)
+
 const totalPages = ref(0)
 const size = 10
-const keyword = ref('')
 
 const route = useRoute()
 const router = useRouter()
 const page = ref(Number(route.query.page) || 0)  // ⬅ URL에서 page 읽기
 
-const searchType = ref('title+content')
+// 상태 묶기
+const search = ref({
+  type: 'title+content',
+  keyword: ''
+})
+
+const onSearch = () => {
+  loadNotices(0)  // 페이지 0으로 초기화하면서 검색
+}
 
 
 const loadNotices = async (targetPage = 0) => {
@@ -26,19 +36,25 @@ const loadNotices = async (targetPage = 0) => {
   // URL 에 query 반영
   await router.push({
     path: `/notice`,
-    query: {page: page.value, keyword: keyword.value, type: searchType.value}
+    query: {
+      page: page.value,
+      keyword: search.value.keyword,
+      type: search.value.type
+    }
   })
 
   const params = {
     page: page.value,
     size: size,
-    type: searchType.value
+    type: search.value.type
   }
 
   // 🔽 keyword 가 비어있지 않은 경우에만 포함
-  if (keyword.value && keyword.value.trim() !== '') {
-    params.keyword = keyword.value.trim()
+  const trimmed = search.value.keyword?.trim()
+  if (trimmed) {
+    params.keyword = trimmed
   }
+
 
   try {
     const res = await fetchNotices(params)
@@ -67,15 +83,7 @@ onMounted(() => {
     <h2>공지사항</h2>
 
     <!-- 검색 (선택) -->
-    <div class="search-box">
-      <select v-model="searchType">
-        <option value="title">제목</option>
-        <option value="content">내용</option>
-        <option value="title+content">제목+내용</option>
-      </select>
-      <input v-model="keyword" placeholder="검색어 입력"/>
-      <button @click="loadNotices(0)">검색</button>
-    </div>
+    <BoardSearchBox v-model:search="search" @search="onSearch" />
 
     <!-- 공지사항 목록 -->
     <table>
@@ -100,12 +108,11 @@ onMounted(() => {
       </tbody>
     </table>
 
+    <!-- 글쓰기버튼(관리자)-->
+    <BoardWriteButton to="/notice/write" label="공지 작성" />
+
     <!-- 페이징 -->
-    <div class="pagination">
-      <button :disabled="page === 0" @click="loadNotices(page - 1)">이전</button>
-      <span>{{ page + 1 }} / {{ totalPages }}</span>
-      <button :disabled="page >= totalPages - 1" @click="loadNotices(page + 1)">다음</button>
-    </div>
+    <BoardPagination :page="page" :totalPages="totalPages" @change="loadNotices" />
   </div>
 </template>
 
@@ -114,5 +121,17 @@ onMounted(() => {
   width: 80%;
   margin: 5% auto;
   text-align: center;
+}
+
+.btn-custom {
+  background-color: #333;
+  color: #fff;
+  padding: 6px 12px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-custom:hover {
+  background-color: #111;
 }
 </style>
