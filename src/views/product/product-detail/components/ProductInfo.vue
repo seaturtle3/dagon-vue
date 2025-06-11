@@ -1,14 +1,13 @@
 <script setup>
 import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js"
 
-defineProps({
+const { product } = defineProps({
   product: {
     type: Object,
     required: true,
   }
 })
 
-// 렌더링 직전 product 값 확인용
 console.log('ProductInfo props product:', product)
 
 function formatDate(dateStr) {
