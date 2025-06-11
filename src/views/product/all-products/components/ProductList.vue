@@ -14,7 +14,7 @@ function goToPage(num) {
 }
 
 function openDetail(product) {
-  const url = `products/product-detail/${product.prodId}`
+  const url = `products/${product.prodId}`
   window.open(url, '_blank')
 }
 
