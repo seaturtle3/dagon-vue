@@ -123,6 +123,7 @@ export default {
           .then(res => res.json())
           .then(data => {
             if (data.success === "true") {
+              this.createReservation();
               alert("결제 성공 및 검증 완료");
             } else {
               alert("결제 검증 실패: " + data.message);
@@ -131,6 +132,35 @@ export default {
           .catch(err => {
             console.error("서버 통신 오류:", err);
             alert("서버 오류가 발생했습니다.");
+          });
+    },
+    createReservation() {
+      const payload = {
+        fishingAt: this.fishingAt,
+        numPerson: this.numPerson,
+        amount: this.totalAmount
+        // 기타 필요한 필드: prodId, optId 등
+      };
+
+      fetch("/api/reservation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + localStorage.getItem("authToken")
+        },
+        body: JSON.stringify(payload)
+      })
+          .then(res => {
+            if (!res.ok) throw new Error("예약 실패");
+            return res.json();
+          })
+          .then(data => {
+            alert("예약이 완료되었습니다.");
+            // 혹은 router.push('/reservation/list') 등으로 이동 처리
+          })
+          .catch(err => {
+            console.error("예약 오류:", err);
+            alert("예약 중 오류가 발생했습니다.");
           });
     }
   }
