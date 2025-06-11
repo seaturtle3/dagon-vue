@@ -99,18 +99,18 @@ export default {
   },
   methods: {
     async searchInquiries() {
-      try {
-        const response = await inquiryApi.getInquiryList({
-          query: this.searchQuery,
-          status: this.statusFilter,
-          page: this.currentPage
-        });
-        this.inquiries = response.data.content;  // content는 Spring의 Page 객체 기준
-        this.totalPages = response.data.totalPages;
-      } catch (error) {
-        console.error('문의 목록 조회 실패:', error);
-        alert('문의 목록 조회 중 오류가 발생했습니다.');
-      }
+      // try {
+      //   const response = await inquiryApi.getInquiryList({
+      //     query: this.searchQuery,
+      //     status: this.statusFilter,
+      //     page: this.currentPage
+      //   });
+      //   this.inquiries = response.data.content;  // content는 Spring의 Page 객체 기준
+      //   this.totalPages = response.data.totalPages;
+      // } catch (error) {
+      //   console.error('문의 목록 조회 실패:', error);
+      //   alert('문의 목록 조회 중 오류가 발생했습니다.');
+      // }
       // TODO: API 호출하여 문의 목록 검색
       this.inquiries = [
         {
