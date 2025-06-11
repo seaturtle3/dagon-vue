@@ -14,6 +14,11 @@ const recommendedProducts = computed(() => {
       .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // 최신순
       .slice(0, 6) // 상위 6개만
 })
+
+function openDetail(productId) {
+  const url = `/products/product-detail/${productId}`
+  window.open(url, '_blank')
+}
 </script>
 
 <template>
@@ -23,8 +28,9 @@ const recommendedProducts = computed(() => {
       <div
           v-for="product in recommendedProducts"
           :key="product.prodId"
-          class="border text-center d-flex flex-column"
+          class="cursor border text-center d-flex flex-column"
           style="min-height: 300px;"
+          @click="openDetail(product.prodId)"
       >
         <img
             :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
@@ -38,3 +44,9 @@ const recommendedProducts = computed(() => {
     </div>
   </div>
 </template>
+
+<style>
+.cursor {
+  cursor: pointer;
+}
+</style>

@@ -22,7 +22,7 @@ function formatDate(dateStr) {
 
 <template>
   <div class="detail">
-    
+
     <div class="mb-5" style="text-align: center">
       <h2>배 상품 상세페이지</h2>
     </div>

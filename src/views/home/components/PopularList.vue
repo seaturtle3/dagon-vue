@@ -48,9 +48,8 @@ function onClick(product) {
           v-for="product in paginatedProducts"
           :key="product.prodId"
           class="col"
-          @click="onClick(product)"
       >
-        <div class="card h-100 text-center" style="cursor: pointer;">
+        <div class="card h-100 text-center" @click="onClick(product)">
           <img
               :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
               class="card-img-top"
@@ -80,5 +79,6 @@ function onClick(product) {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  cursor: pointer;
 }
 </style>

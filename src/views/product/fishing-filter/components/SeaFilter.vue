@@ -27,11 +27,21 @@ function prevPage() {
 function nextPage() {
   if (currentPage.value < totalPages.value) currentPage.value++
 }
+
+function openDetail(product) {
+  const url = `products/product-detail/${product.prodId}`
+  window.open(url, '_blank')  // 새 탭에서 열기
+}
 </script>
 
 <template>
   <div class="product-grid">
-    <div class="product-card" v-for="product in paginatedProducts" :key="product.prodId">
+    <div
+        class="product-card"
+        v-for="product in paginatedProducts"
+        :key="product.prodId"
+        @click="openDetail(product)"
+    >
       <img
           :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
            alt="thumbnail" class="thumbnail" />
@@ -61,6 +71,7 @@ function nextPage() {
   text-align: center;
   box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   transition: transform 0.2s;
+  cursor:pointer;
 }
 .product-card:hover {
   transform: translateY(-4px);

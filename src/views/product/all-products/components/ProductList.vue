@@ -13,7 +13,7 @@ function goToPage(num) {
   emit('page-change', num)
 }
 
-function onClick(product) {
+function openDetail(product) {
   const url = `products/product-detail/${product.prodId}`
   window.open(url, '_blank')
 }
@@ -33,7 +33,7 @@ function onClick(product) {
           :key="product.prodId"
           class="col"
       >
-        <div class="card h-100" @click="onClick(product)">
+        <div class="card h-100" @click="openDetail(product)">
           <img
               :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
               class="card-img-top"
