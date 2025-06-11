@@ -1,40 +1,91 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useProductListStore } from '@/store/product/all-products/productListStore.js'
+import {computed, onMounted, onUnmounted} from 'vue'
+import {useRoute} from 'vue-router'
+import {useProductDetailStore} from '@/store/product/product-detail/productDetailStore.js'
 import ProductInfo from '@/views/product/product-detail/components/ProductInfo.vue'
+import FishingCenter from "@/views/community/fishing-center/FishingCenter.vue";
 
 const route = useRoute()
-const store = useProductListStore()
 const productId = route.params.id
+const store = useProductDetailStore()
+const product = computed(() => store.product)
 
-const product = ref(null)
+onMounted(() => {
+  store.fetchProductDetail(productId)
+  console.log('ProductDetail prodId: ', productId)
+})
 
-watch(
-    () => store.products,
-    (products) => {
-      if (products.length > 0) {
-        product.value = products.find(p => String(p.prodId) === productId)
-        console.log('찾은 product:', product.value)
-      }
-    },
-    { immediate: true }
-)
-
-console.log('route.params.id:', route.params.id)
+onUnmounted(() => {
+  store.clearProduct()
+})
 </script>
 
 <template>
   <div class="center">
-    <div v-if="!product">상품 정보를 불러오는 중입니다...</div>
-    <ProductInfo v-else :product="product" />
+    <ProductInfo v-if="product" :product="product"/>
+
+    <div class="center">
+      <!-- 상위 버튼 -->
+      <div class="top-nav">
+        <button class="nav-btn">조황센터</button>
+        <button class="nav-btn">요금정보</button>
+      </div>
+
+      <!-- 하위 버튼 (조황센터 하위) -->
+      <div class="sub-nav">
+        <button class="sub-btn">전체</button>
+        <button class="sub-btn">조황정보</button>
+        <button class="sub-btn">조행기</button>
+      </div>
+    </div>
   </div>
+  <FishingCenter/>
+
+
 </template>
 
 <style scoped>
 .center {
   width: 80%;
-  margin: 5% auto;
-  max-width: 800px;
+  margin: 4% auto;
+}
+
+/* 상위 버튼 */
+.top-nav {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.nav-btn {
+  flex: 1;
+  padding: 12px;
+  font-size: 1.1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 하위 버튼 */
+.sub-nav {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.sub-btn {
+  flex: 1;
+  padding: 10px;
+  font-size: 1rem;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
 }
 </style>

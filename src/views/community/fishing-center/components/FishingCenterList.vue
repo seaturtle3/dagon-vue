@@ -8,7 +8,7 @@ defineProps({
 })
 
 function onClick(product) {
-  const url = `/product-detail/${product.prodId}`
+  const url = `/products/${product.prodId}`
   window.open(url, '_blank')  // 새 탭에서 열기
 }
 
@@ -20,9 +20,12 @@ function onClick(product) {
         v-for="product in products"
         :key="product.prodId"
         class="col"
-        @click="onClick(product)"
     >
-      <div class="card h-100" style="cursor: pointer;">
+      <div
+          class="card h-100"
+          style="cursor: pointer;"
+          @click="onClick(product)"
+      >
         <img
             :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
             class="card-img-top"

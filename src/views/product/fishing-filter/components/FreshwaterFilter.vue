@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import {ref, computed} from 'vue'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const props = defineProps({
@@ -27,13 +27,23 @@ function prevPage() {
 function nextPage() {
   if (currentPage.value < totalPages.value) currentPage.value++
 }
+
+function openDetail(product) {
+  const url = `/products/${product.prodId}`
+  window.open(url, '_blank')  // 새 탭에서 열기
+}
 </script>
 
 <template>
   <div class="product-grid">
-    <div class="product-card" v-for="product in paginatedProducts" :key="product.prodId">
+    <div
+        class="product-card"
+        v-for="product in paginatedProducts"
+        :key="product.prodId"
+        @click="openDetail(product)"
+    >
       <img :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
-           alt="thumbnail" class="thumbnail" />
+           alt="thumbnail" class="thumbnail"/>
       <h4>{{ product.prodName }}</h4>
       <p class="address">{{ product.prodAddress }}</p>
     </div>
@@ -58,9 +68,11 @@ function nextPage() {
   border-radius: 16px;
   background: #fff;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s;
+  cursor: pointer;
 }
+
 .product-card:hover {
   transform: translateY(-4px);
 }
@@ -93,6 +105,7 @@ button {
   background: #f8f8f8;
   cursor: pointer;
 }
+
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;

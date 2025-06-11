@@ -13,8 +13,8 @@ function goToPage(num) {
   emit('page-change', num)
 }
 
-function onClick(product) {
-  const url = `products/product-detail/${product.prodId}`
+function openDetail(product) {
+  const url = `products/${product.prodId}`
   window.open(url, '_blank')
 }
 
@@ -32,9 +32,8 @@ function onClick(product) {
           v-for="product in products"
           :key="product.prodId"
           class="col"
-          @click="onClick(product)"
       >
-        <div class="card h-100">
+        <div class="card h-100" @click="openDetail(product)">
           <img
               :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
               class="card-img-top"
@@ -83,3 +82,9 @@ function onClick(product) {
 
   </div>
 </template>
+
+<style scoped>
+.card {
+  cursor: pointer;
+}
+</style>
