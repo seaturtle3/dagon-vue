@@ -23,12 +23,13 @@ onUnmounted(() => {
   <div class="center">
     <ProductInfo v-if="product" :product="product" />
   </div>
+
+
 </template>
 
 <style scoped>
 .center {
   width: 80%;
-  margin: 5% auto;
-  max-width: 800px;
+  margin: 4% auto;
 }
 </style>

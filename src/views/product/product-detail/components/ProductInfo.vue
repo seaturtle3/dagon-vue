@@ -54,12 +54,12 @@ function formatDate(dateStr) {
 </template>
 
 <style scoped>
-
 .info-container {
   display: flex;
   flex-direction: row;
   gap: 24px;
   align-items: flex-start;
+  width: 100%; /* 전체 폭 차지 */
 }
 
 .thumbnail-wrapper {
@@ -81,6 +81,7 @@ function formatDate(dateStr) {
   max-height: 400px; /* 썸네일 높이와 동일하게 설정 */
   overflow-y: auto;   /* 내용이 많으면 스크롤 */
   padding-right: 8px; /* 스크롤 생겨도 오른쪽 여백 생기게 */
+  padding-left: 30px; /* 썸네일과 간격 */
 }
 
 .title {
