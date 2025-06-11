@@ -24,7 +24,7 @@ onUnmounted(() => {
   <div class="center">
     <ProductInfo v-if="product" :product="product"/>
 
-    <div class="center">
+    <div class="main">
       <!-- 상위 버튼 -->
       <div class="top-nav">
         <button class="nav-btn">조황센터</button>
@@ -48,6 +48,11 @@ onUnmounted(() => {
 .center {
   width: 80%;
   margin: 4% auto;
+}
+
+.main{
+  width: 100%;
+  margin: 5% 0%;
 }
 
 /* 상위 버튼 */

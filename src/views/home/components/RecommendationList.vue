@@ -16,7 +16,7 @@ const recommendedProducts = computed(() => {
 })
 
 function openDetail(productId) {
-  const url = `/products/product-detail/${productId}`
+  const url = `/products/${productId}`
   window.open(url, '_blank')
 }
 </script>

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useFishingCenterStore } from '@/store/product/fishing-center/fishingCenterStore.js'
+import { useFishingCenterStore } from '@/store/fishing-center/fishingCenterStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 console.log(IMAGE_BASE_URL);
@@ -29,7 +29,7 @@ function goToFishingCenter() {
 }
 
 function onClick(product) {
-  const url = `/product-detail/${product.prodId}`
+  const url = `/products/${product.prodId}`
   window.open(url, '_blank')  // 새 탭에서 열기
 }
 </script>
