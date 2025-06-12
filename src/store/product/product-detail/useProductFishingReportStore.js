@@ -3,22 +3,22 @@ import axios from 'axios'
 
 export const useProductFishingReportStore = defineStore('productFishingReport', {
     state: () => ({
-        fishingReports: [],
-        isLoading: false,
-        error: null
+        report: [],
+        loading: false,
+        error: null,
     }),
+
     actions: {
-        async fetchFishingReports(productId) {
-            this.isLoading = true
+        async fetchFishingReport(productId) {
+            this.loading = true
             this.error = null
             try {
-                const res = await axios.get(`/api/products/${productId}/reports`)
-                this.fishingReports = res.data
+                const response = await axios.get(`/api/product/fishing-report/${productId}`)
+                this.report = response.data
             } catch (err) {
-                this.error = err
-                console.error('조황정보 로딩 실패:', err)
+                this.error = err.response?.data?.message || '조황정보 조회 실패'
             } finally {
-                this.isLoading = false
+                this.loading = false
             }
         }
     }

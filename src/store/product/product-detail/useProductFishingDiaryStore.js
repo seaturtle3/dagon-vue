@@ -1,25 +1,24 @@
-// 조행기 스토어
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
 export const useProductFishingDiaryStore = defineStore('productFishingDiary', {
     state: () => ({
-        fishingDiaries: [],
-        isLoading: false,
-        error: null
+        diary: [],
+        loading: false,
+        error: null,
     }),
+
     actions: {
-        async fetchFishingDiaries(productId) {
-            this.isLoading = true
+        async fetchFishingDiary(productId) {
+            this.loading = true
             this.error = null
             try {
-                const res = await axios.get(`/api/products/${productId}/diary`)
-                this.fishingDiaries = res.data
+                const response = await axios.get(`/api/product/fishing-diary/${productId}`)
+                this.diary = response.data
             } catch (err) {
-                this.error = err
-                console.error('조행기 로딩 실패:', err)
+                this.error = err.response?.data?.message || '조행기 조회 실패'
             } finally {
-                this.isLoading = false
+                this.loading = false
             }
         }
     }

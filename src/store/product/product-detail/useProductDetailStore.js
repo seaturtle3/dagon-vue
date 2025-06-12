@@ -8,12 +8,12 @@ export const useProductDetailStore = defineStore('productDetailStore', {
         error: null,
     }),
     actions: {
-        async fetchProductDetail(productId) {
+        async fetchProductDetail(prodId) {
             this.loading = true
             this.error = null
             try {
-                const res = await api.get(`/api/product/get/${productId}`)
-                console.log('API 응답:', res.data)  // 이 줄 있으면 호출 완료 확인 가능
+                const res = await api.get(`/api/product/get/${prodId}`)
+                // console.log('API 응답:', res.data)  // 이 줄 있으면 호출 완료 확인 가능
                 this.product = res.data
             } catch (err) {
                 console.error('Product detail fetch failed:', err)

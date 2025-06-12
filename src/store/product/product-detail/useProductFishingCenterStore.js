@@ -1,30 +1,29 @@
-// 조황센터 스토어 (조황정보 + 조행기 동시 호출)
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
 export const useProductFishingCenterStore = defineStore('productFishingCenter', {
     state: () => ({
-        reports: [],
-        diaries: [],
-        isLoading: false,
-        error: null
+        report: [],
+        diary: [],
+        loading: false,
+        error: null,
     }),
+
     actions: {
-        async fetchFishingCenterData(productId) {
-            this.isLoading = true
+        async fetchFishingCenter(productId) {
+            this.loading = true
             this.error = null
             try {
-                const [reportRes, diaryRes] = await Promise.all([
-                    axios.get(`/api/products/${productId}/fishing-reports`),
-                    axios.get(`/api/products/${productId}/fishing-diary`)
-                ])
-                this.reports = reportRes.data
-                this.diaries = diaryRes.data
+                const response = await axios.get(`/api/product/fishing-center/${productId}`)
+                this.report = response.data.reportList
+                this.diary = response.data.diaryList
+
+                console.log(response.data)
+
             } catch (err) {
-                this.error = err
-                console.error('조황센터 로딩 실패:', err)
+                this.error = err.response?.data?.message || '조회 실패'
             } finally {
-                this.isLoading = false
+                this.loading = false
             }
         }
     }
