@@ -3,7 +3,7 @@ import axios from './axios';
 export const inquiryApi = {
   // 문의하기 목록 조회
   getInquiryList: (params) => {
-    return axios.get('/api/inquir', { params });
+    return axios.get('/api/inquiry', { params });
   },
 
   // 문의하기 상세 조회

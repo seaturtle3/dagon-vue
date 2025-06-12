@@ -111,10 +111,6 @@
 <script>
 import { inquiryApi } from '@/api/inquiry.js';
 
-function submit() {
-  // 여기서 API 호출 또는 유효성 검사
-}
-
 export default {
   name: 'Inquiry',
   data() {
