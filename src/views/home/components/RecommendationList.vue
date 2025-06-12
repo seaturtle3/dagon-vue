@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, computed } from 'vue'
-import { useProductListStore } from '@/store/product/all-products/productListStore.js'
+import { useProductListStore } from '@/store/product/all-products/useProductListStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const store = useProductListStore()
