@@ -52,9 +52,6 @@
         파트너 정보 수정을 원하시는 경우, 1:1 문의를 통해 수정하고자 하는 정보를 관리자 문의로 보내주시면 확인 후 수정해드리겠습니다.
       </div>
       <div class="button-group">
-        <button class="inquiry-button" @click="goToInquiry">
-          1:1 문의하기
-        </button>
       </div>
     </div>
   </div>
