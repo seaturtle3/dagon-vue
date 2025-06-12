@@ -1,7 +1,46 @@
 <template>
+  <hr>
   <div class="inquiry-container">
     <h2 class="page-title">문의하기(비회원용)</h2>
-    
+
+    <!-- 문의하기 작성/수정 폼 -->
+    <div class="inquiry-form" v-if="showWriteForm || showEditForm">
+      <h3>{{ showEditForm ? '문의하기 수정' : '문의하기 작성' }}</h3>
+      <form @submit.prevent="submitForm">
+        <div class="form-group">
+          <label>작성자</label>
+          <input type="text" value="비회원" disabled>
+        </div>
+        <div class="form-group">
+          <label>작성자 유형</label>
+          <input type="text" value="비회원 문의" disabled>
+        </div>
+        <div class="form-group">
+          <label>문의 유형</label>
+          <select v-model="form.inquiryType" required>
+            <option value="">유형을 선택하세요.</option>
+            <option v-for="type in inquiryTypes"
+                    :key="type.value"
+                    :value="type.value">
+              {{ type.label }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>제목</label>
+          <input type="text" v-model="form.title" required>
+        </div>
+        <div class="form-group">
+          <label>내용</label>
+          <textarea v-model="form.content" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit">{{ showEditForm ? '수정' : '등록' }}</button>
+          <button type="button" @click="cancelForm">취소</button>
+        </div>
+      </form>
+    </div>
+
     <!-- 문의하기 목록 -->
     <div class="inquiry-list" v-if="!showDetail">
       <div class="inquiry-header">
@@ -66,44 +105,6 @@
         <button v-if="isWriter" @click="showEditForm = true">수정</button>
         <button v-if="isWriter" @click="deleteInquiry">삭제</button>
       </div>
-    </div>
-
-    <!-- 문의하기 작성/수정 폼 -->
-    <div class="inquiry-form" v-if="showWriteForm || showEditForm">
-      <h3>{{ showEditForm ? '문의하기 수정' : '문의하기 작성' }}</h3>
-      <form @submit.prevent="submitForm">
-        <div class="form-group">
-          <label>작성자</label>
-          <input type="text" value="비회원" disabled>
-        </div>
-        <div class="form-group">
-          <label>작성자 유형</label>
-          <input type="text" value="비회원 문의" disabled>
-        </div>
-        <div class="form-group">
-          <label>문의 유형</label>
-          <select v-model="form.inquiryType" required>
-            <option value="">유형을 선택하세요.</option>
-            <option v-for="type in inquiryTypes" 
-                    :key="type.value" 
-                    :value="type.value">
-              {{ type.label }}
-            </option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>제목</label>
-          <input type="text" v-model="form.title" required>
-        </div>
-        <div class="form-group">
-          <label>내용</label>
-          <textarea v-model="form.content" required></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit">{{ showEditForm ? '수정' : '등록' }}</button>
-          <button type="button" @click="cancelForm">취소</button>
-        </div>
-      </form>
     </div>
   </div>
 </template>
