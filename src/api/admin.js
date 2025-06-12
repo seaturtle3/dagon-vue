@@ -119,7 +119,7 @@ export const notificationApi = {
 
   // 단일 알림 발송
   sendSimpleNotification: (notificationData) => {
-    return axios.post('/api/notifications/simple', notificationData);
+    return axios.post('/api/notifications/admin-broadcast', notificationData);
   },
 
   // 전체 알림 발송

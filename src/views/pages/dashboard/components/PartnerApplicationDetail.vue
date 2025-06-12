@@ -40,7 +40,7 @@
             <span :class="['status', application.pstatus]">{{ application.pstatus }}</span>
           </div>
           <div class="info-item">
-            <label>신청일</label>
+            <label>승인&반려일</label>
             <span>{{ application.paReviewedAt ? new Date(application.paReviewedAt).toLocaleDateString() : '-' }}</span>
           </div>
         </div>
@@ -56,6 +56,14 @@
           <div v-if="application.paRejectionReason" class="info-item full-width">
             <label>반려 사유</label>
             <p class="rejection-reason">{{ application.paRejectionReason }}</p>
+          </div>
+          <div v-if="application.businessLicenseImage" class="info-item full-width">
+            <label>사업자등록증 이미지</label>
+            <img
+              :src="getImageUrl(application.businessLicenseImage)"
+              alt="사업자등록증 이미지"
+              style="max-width:300px;max-height:300px;border:1px solid #eee;border-radius:8px;display:block;margin-top:0.5rem;"
+            />
           </div>
         </div>
       </div>
@@ -87,6 +95,8 @@
 <script>
 import { partnerApplicationApi } from '@/api/admin.js';
 
+
+
 export default {
   name: 'PartnerApplicationDetail',
   props: {
@@ -110,17 +120,26 @@ export default {
       this.error = null;
       try {
         const response = await partnerApplicationApi.getApplicationDetail(this.pid);
+        console.log('📦 받은 데이터:', response.data); // ✅ 전체 응답 확인
+        console.log('🖼️ 사업자등록증 이미지 경로:', response.data.businessLicenseImage); // ✅ 이미지 경로 확인
+
         this.application = response.data;
       } catch (error) {
         this.error = '상세 정보를 불러오는데 실패했습니다.';
-        console.error('Error fetching application details:', error);
+        console.error('❌ Error fetching application details:', error);
       } finally {
         this.loading = false;
       }
     },
+    getImageUrl(path) {
+      if (!path) return '';
+      if (path.startsWith('http')) return path;
+      return 'http://localhost:8095' + path;
 
+    },
     async handleApprove() {
       if (!confirm('정말로 이 파트너 신청을 승인하시겠습니까?')) {
+
         return;
       }
 
@@ -134,7 +153,6 @@ export default {
         console.error('Error approving application:', error);
       }
     },
-
     async handleReject() {
       if (!this.rejectReason.trim()) {
         alert('반려 사유를 입력해주세요.');

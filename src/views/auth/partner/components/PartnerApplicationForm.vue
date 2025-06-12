@@ -68,7 +68,7 @@ export default {
       if (!this.form.ceoName) errors.ceoName = '대표자명을 입력하세요.';
       if (!this.form.paddress) errors.paddress = '주소를 입력하세요.';
       if (!this.form.license) errors.license = '사업자번호를 입력하세요.';
-      else if (!/^\d{3}-\d{2}-\d{5}$/.test(this.form.license)) errors.license = '사업자번호 형식이 올바르지 않습니다. (예: 123-45-67890)';
+      else if (!/^(\d{3}-\d{2}-\d{5}|\d{10})$/.test(this.form.license)) errors.license = '사업자번호 형식이 올바르지 않습니다. (예: 123-45-67890 또는 1234567890)';
       if (!this.imageFile) errors.imageFile = '사업자등록증 이미지를 첨부하세요.';
       if (this.form.pinfo && this.form.pinfo.length > 500) errors.pinfo = '파트너 정보는 500자 이내로 입력하세요.';
       this.errors = errors;
@@ -80,7 +80,8 @@ export default {
       if (!this.validateForm()) return;
       try {
         const formData = new FormData();
-        formData.append('data', new Blob([JSON.stringify(this.form)], { type: 'application/json' }));
+        const formCopy = { ...this.form, license: this.form.license.replace(/-/g, '') };
+        formData.append('data', new Blob([JSON.stringify(formCopy)], { type: 'application/json' }));
         formData.append('businessLicenseImage', this.imageFile);
 
         await registerPartnerApplication(formData);

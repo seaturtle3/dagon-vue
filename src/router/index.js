@@ -52,6 +52,23 @@ const routes = [
         ]
     },
 
+    // partner pages
+    {
+        path: '/partner',
+        component: () => import('@/views/pages/partner-page/PartnerPage.vue'),
+        redirect: '/partner/dashboard',
+        meta: {requiresAuth: true},
+        children: [
+            {path: 'dashboard', component: () => import('@/views/pages/partner-page/components/Dashboard.vue')},
+            {path: 'info', component: () => import('@/views/pages/partner-page/components/PartnerInfo.vue')},
+            {path: 'inquiries', component: () => import('@/views/pages/partner-page/components/InquiryList.vue')},
+            {path: 'reservations', component: () => import('@/views/pages/partner-page/components/ReservationList.vue')},
+            {path: 'products', component: () => import('@/views/pages/partner-page/components/ProductList.vue')},
+            {path: 'market-info', component: () => import('@/views/pages/partner-page/components/MarketInfo.vue')},
+            {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')}
+        ]
+    },
+
     {
         path: '/partner/apply',
         component: () => import('@/views/auth/partner/components/PartnerApplicationForm.vue')
@@ -77,15 +94,12 @@ const routes = [
     },
 
     // fishing-center
-    {path:
-            '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
+    {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
     {path: '/reservation', component: () => import('@/views/order/reservation/Reservation.vue')},
     {path: '/reservation-form', component: () => import('@/views/order/reservation/components/ReservationForm.vue')},
-
-
 
     // community
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
@@ -99,6 +113,16 @@ const routes = [
     },
     {path: '/inquiry', component: () => import('@/views/support/inquiry/InquiryMain.vue')},
 
+    {
+        path: '/partner/product/list',
+        name: 'PartnerProductList',
+        component: () => import('@/views/pages/partner-page/components/ProductList.vue')
+    },
+    {
+        path: '/partner/product/register',
+        name: 'PartnerProductRegister',
+        component: () => import('@/views/pages/partner-page/components/ProductRegister.vue')
+    },
 ]
 
 const router = createRouter({

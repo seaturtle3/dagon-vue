@@ -92,6 +92,9 @@
 <script>
 import { partnerApi } from '@/api/admin'
 
+
+
+
 export default {
   name: 'Partners',
   data() {
@@ -132,7 +135,9 @@ export default {
       try {
         const response = await partnerApi.getPartnerDetail(id)
         this.selectedPartner = response.data
+        console.log(this.selectedPartner.licenseImg)
         this.showDetailModal = true
+
       } catch (error) {
         console.error('파트너 상세 조회 실패:', error)
         this.error = '파트너 상세 정보를 불러오는데 실패했습니다.'
@@ -145,6 +150,7 @@ export default {
       try {
         await partnerApi.updatePartner(this.selectedPartner.uno, this.selectedPartner)
         alert('파트너 정보가 수정되었습니다.')
+
         this.showDetailModal = false
         await this.searchPartners()
       } catch (error) {
