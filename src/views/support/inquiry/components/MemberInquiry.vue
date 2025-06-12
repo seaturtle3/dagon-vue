@@ -1,13 +1,51 @@
 <template>
   <div class="inquiry-container">
     <h2 class="page-title">1:1 문의(회원전용)</h2>
-    
+
+    <!-- 문의하기 작성/수정 폼 -->
+    <div class="inquiry-form" v-if="showWriteForm || showEditForm">
+      <h3>{{ showEditForm ? '문의하기 수정' : '문의하기 작성' }}</h3>
+      <form @submit.prevent="submitForm">
+        <div class="form-group">
+          <label>작성자 유형</label>
+          <select v-model="form.writerType" required @change="handleWriterTypeChange">
+            <option value="">유형을 선택하세요.</option>
+            <option value="MEMBER">일반회원</option>
+            <option value="PARTNER">파트너</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>문의 유형</label>
+          <select v-model="form.inquiryType" required>
+            <option value="">유형을 선택하세요.</option>
+            <option v-for="type in availableInquiryTypes"
+                    :key="type.value"
+                    :value="type.value">
+              {{ type.label }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>제목</label>
+          <input type="text" v-model="form.title" required>
+        </div>
+        <div class="form-group">
+          <label>내용</label>
+          <textarea v-model="form.content" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit">{{ showEditForm ? '수정' : '등록' }}</button>
+          <button type="button" @click="cancelForm">취소</button>
+        </div>
+      </form>
+    </div>
+
     <!-- 문의하기 목록 -->
     <div class="inquiry-list" v-if="!showDetail">
       <div class="inquiry-header">
         <button class="write-btn" @click="showWriteForm = true">문의하기 작성</button>
       </div>
-      
+
       <table class="inquiry-table">
         <thead>
           <tr>
@@ -35,8 +73,8 @@
 
       <!-- 페이지네이션 -->
       <div class="pagination">
-        <button 
-          v-for="page in totalPages" 
+        <button
+          v-for="page in totalPages"
           :key="page"
           :class="{ active: currentPage === page }"
           @click="changePage(page)"
@@ -67,49 +105,15 @@
         <button v-if="isWriter" @click="deleteInquiry">삭제</button>
       </div>
     </div>
-
-    <!-- 문의하기 작성/수정 폼 -->
-    <div class="inquiry-form" v-if="showWriteForm || showEditForm">
-      <h3>{{ showEditForm ? '문의하기 수정' : '문의하기 작성' }}</h3>
-      <form @submit.prevent="submitForm">
-        <div class="form-group">
-          <label>작성자 유형</label>
-          <select v-model="form.writerType" required @change="handleWriterTypeChange">
-            <option value="">유형을 선택하세요.</option>
-            <option value="MEMBER">일반회원</option>
-            <option value="PARTNER">파트너</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>문의 유형</label>
-          <select v-model="form.inquiryType" required>
-            <option value="">유형을 선택하세요.</option>
-            <option v-for="type in availableInquiryTypes" 
-                    :key="type.value" 
-                    :value="type.value">
-              {{ type.label }}
-            </option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>제목</label>
-          <input type="text" v-model="form.title" required>
-        </div>
-        <div class="form-group">
-          <label>내용</label>
-          <textarea v-model="form.content" required></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit">{{ showEditForm ? '수정' : '등록' }}</button>
-          <button type="button" @click="cancelForm">취소</button>
-        </div>
-      </form>
-    </div>
   </div>
 </template>
 
 <script>
 import { inquiryApi } from '@/api/inquiry.js';
+
+function submit() {
+  // 여기서 API 호출 또는 유효성 검사
+}
 
 export default {
   name: 'Inquiry',
@@ -186,16 +190,25 @@ export default {
       }
     },
     async submitForm() {
+      if (!this.form.writerType || !this.form.inquiryType || !this.form.title || !this.form.content) {
+        alert('모든 항목을 입력해주세요.');
+        return;
+      }
+
       try {
         if (this.showEditForm) {
           await inquiryApi.updateInquiry(this.detail.id, this.form);
+          alert('문의가 수정되었습니다.');
         } else {
           await inquiryApi.createInquiry(this.form);
+          alert('문의가 정상 등록되었습니다.');
         }
         this.resetForm();
         this.fetchInquiryList();
+        this.showDetail = false;
       } catch (error) {
         console.error('문의 저장 실패:', error);
+        alert('저장에 실패했습니다.');
       }
     },
     async deleteInquiry() {
