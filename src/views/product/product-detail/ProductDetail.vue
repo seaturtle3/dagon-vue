@@ -1,7 +1,7 @@
 <script setup>
 import {computed, onMounted, onUnmounted} from 'vue'
 import {useRoute} from 'vue-router'
-import {useProductDetailStore} from '@/store/product/product-detail/productDetailStore.js'
+import {useProductDetailStore} from '@/store/product/product-detail/useProductDetailStore.js'
 import ProductInfo from '@/views/product/product-detail/components/ProductInfo.vue'
 import FishingCenter from "@/views/community/fishing-center/FishingCenter.vue";
 
