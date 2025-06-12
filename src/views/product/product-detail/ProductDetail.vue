@@ -28,7 +28,7 @@ onUnmounted(() => {
       <!-- 상위 버튼 -->
       <div class="top-nav">
         <button class="nav-btn">조황센터</button>
-        <button class="nav-btn">요금정보</button>
+        <button class="nav-btn">결제하기</button>
       </div>
 
       <!-- 하위 버튼 (조황센터 하위) -->
