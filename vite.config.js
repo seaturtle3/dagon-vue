@@ -11,18 +11,16 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
-  server: {
-    port: 5173,
-  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
     },
   },
   server: {
+    port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8095',
         changeOrigin: true,
         secure: false,
         ws: true,

@@ -69,7 +69,7 @@ const routes = [
             {path: 'sea', component: () => import('@/views/product/fishing-filter/Sea.vue')},
             {path: 'freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
             {
-                path: ':id',
+                path: ':prodId',
                 name: 'ProductDetail',
                 component: () => import('@/views/product/product-detail/ProductDetail.vue'),
             },
