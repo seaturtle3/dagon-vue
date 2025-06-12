@@ -14,10 +14,14 @@ instance.interceptors.request.use(
     (config) => {
         // 토큰 가져오기 (localStorage 또는 sessionStorage에서)
         const token = localStorage.getItem('token'); // 또는 sessionStorage.getItem('token')
+        console.log('Current token:', token); // 디버깅용 로그
 
         // 토큰이 있으면 Authorization 헤더에 추가
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
+            console.log('Request headers:', config.headers); // 디버깅용 로그
+        } else {
+            console.warn('No token found in localStorage'); // 디버깅용 로그
         }
 
         // FormData를 사용하는 경우 Content-Type 자동 설정
@@ -28,6 +32,7 @@ instance.interceptors.request.use(
         return config;
     },
     (error) => {
+        console.error('Request interceptor error:', error); // 디버깅용 로그
         return Promise.reject(error);
     }
 );
@@ -41,6 +46,11 @@ instance.interceptors.response.use(
         if (error.response) {
             // 서버가 응답을 반환한 경우
             console.error('API Error:', error.response.data);
+            if (error.response.status === 401) {
+                // 토큰이 만료되었거나 유효하지 않은 경우
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
         } else if (error.request) {
             // 서버에 요청이 도달하지 못한 경우
             console.error('Network Error:', error.request);
