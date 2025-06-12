@@ -85,4 +85,70 @@ export const memberApi = {
   }
 };
 
+// 알림 타입 상수
+export const NOTIFICATION_TYPES = {
+  NOTICE: 'NOTICE',
+  RESERVATION: 'RESERVATION',
+  ANSWER: 'ANSWER',
+  SYSTEM: 'SYSTEM'
+};
+
+// 알림 관리 관련 API
+export const notificationApi = {
+  // 알림 목록 조회
+  getNotifications: (page = 0, size = 10, uid = '', type = '') => {
+    return axios.get('/api/notifications', {
+      params: { page, size, uid, type }
+    });
+  },
+
+  // 알림 상세 조회
+  getNotificationDetail: (id) => {
+    return axios.get(`/api/notifications/${id}`);
+  },
+
+  // 알림 읽음 처리
+  markAsRead: (id) => {
+    return axios.put(`/api/notifications/${id}/read`);
+  },
+
+  // 알림 삭제
+  deleteNotification: (id) => {
+    return axios.delete(`/api/notifications/${id}`);
+  },
+
+  // 단일 알림 발송
+  sendSimpleNotification: (notificationData) => {
+    return axios.post('/api/notifications/simple', notificationData);
+  },
+
+  // 전체 알림 발송
+  sendBroadcastNotification: (notificationData) => {
+    return axios.post('/api/notifications/admin-broadcast', notificationData);
+  }
+};
+
+// 파트너 관리 관련 API
+export const partnerApi = {
+  // 파트너 목록 조회 (검색/페이징 지원)
+  getPartners: (params = {}) => {
+    return axios.get('/api/partner/all', { params });
+  },
+
+  // 파트너 상세 조회
+  getPartnerDetail: (id) => {
+    return axios.get(`/api/partner/${id}`);
+  },
+
+  // 파트너 정보 수정
+  updatePartner: (id, partnerData) => {
+    return axios.put(`/api/partner/update/${id}`, partnerData);
+  },
+
+  // 파트너 삭제
+  deletePartner: (id) => {
+    return axios.delete(`/api/partner/my_page/${id}`);
+  }
+};
+
 export default adminApi; 

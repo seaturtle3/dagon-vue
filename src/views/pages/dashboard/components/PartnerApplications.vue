@@ -43,7 +43,7 @@
             <td>{{ application.ceoName }}</td>
             <td>{{ application.paddress }}</td>
             <td>{{ application.pstatus }}</td>
-            <td>{{ application.paReviewedAt ? new Date(application.paReviewedAt).toLocaleDateString() : '-' }}</td>
+            <td>{{ application.createdAt ? new Date(application.createdAt).toLocaleDateString() : '-' }}</td>
             <td>
               <button @click="showDetail(application.pid)">상세</button>
             </td>

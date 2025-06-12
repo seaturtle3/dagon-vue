@@ -52,6 +52,15 @@ const routes = [
         ]
     },
 
+    {
+        path: '/partner/apply',
+        component: () => import('@/views/auth/partner/components/PartnerApplicationForm.vue')
+    },
+    {
+        path: '/partner/applications',
+        component: () => import('@/views/auth/partner/PartnerApplicationList.vue')
+    },
+
     // product
     {
         path: '/products',
@@ -68,11 +77,15 @@ const routes = [
     },
 
     // fishing-center
-    {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
+    {path:
+            '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
     {path: '/reservation', component: () => import('@/views/order/reservation/Reservation.vue')},
+    {path: '/reservation-form', component: () => import('@/views/order/reservation/components/ReservationForm.vue')},
+
+
 
     // community
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
@@ -84,7 +97,7 @@ const routes = [
         path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
         props: true
     },
-    {path: '/inquiry', component: () => import('@/views/support/inquiry/Inquiry.vue')},
+    {path: '/inquiry', component: () => import('@/views/support/inquiry/InquiryMain.vue')},
 
 ]
 

@@ -4,31 +4,73 @@
     
     <div class="stats-grid">
       <div class="stat-card">
-        <i class="fas fa-users"></i>
+        <i class="fa-solid fa-circle-user"></i>
         <div class="stat-info">
           <h3>전체 회원</h3>
-          <p>{{ stats.totalMembers }}</p>
+          <p>{{ userStats.totalUsers }}</p>
         </div>
       </div>
       <div class="stat-card">
-        <i class="fas fa-ship"></i>
+        <i class="fa-solid fa-handshake"></i>
         <div class="stat-info">
           <h3>전체 파트너</h3>
-          <p>{{ stats.totalPartners }}</p>
+          <p>{{ userStats.totalPartners }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-thumbs-up"></i>
+        <div class="stat-info">
+          <h3>오늘 가입</h3>
+          <p>{{ userStats.todayUserCount }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-circle-xmark"></i>
+        <div class="stat-info">
+          <h3>비활성 회원</h3>
+          <p>{{ userStats.inactiveUserCount }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-flag"></i>
+        <div class="stat-info">
+          <h3>신고 회원</h3>
+          <p>{{ userStats.reportedUserCount }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-circle-up"></i>
+        <div class="stat-info">
+          <h3>최근 로그인</h3>
+          <p>{{ userStats.recentLoginUserCount }}</p>
         </div>
       </div>
       <div class="stat-card">
         <i class="fas fa-calendar-check"></i>
         <div class="stat-info">
-          <h3>오늘의 예약</h3>
-          <p>{{ stats.todayReservations }}</p>
+          <h3>총 예약</h3>
+          <p>{{ reservationStats.total }}</p>
         </div>
       </div>
       <div class="stat-card">
-        <i class="fas fa-comments"></i>
+        <i class="fa-solid fa-exclamation"></i>
         <div class="stat-info">
-          <h3>미답변 문의</h3>
-          <p>{{ stats.pendingInquiries }}</p>
+          <h3>오늘 예약</h3>
+          <p>{{ reservationStats.todayReservationCount }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-calendar-plus"></i>
+        <div class="stat-info">
+          <h3>미래 예약</h3>
+          <p>{{ reservationStats.futureReservationCount }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-hourglass-half"></i>
+        <div class="stat-info">
+          <h3>승인 대기 파트너</h3>
+          <p>{{ pendingPartnerCount }}</p>
         </div>
       </div>
     </div>
@@ -47,41 +89,57 @@
             </div>
           </div>
         </div>
+        <h2 style="margin-top:2rem;">TOP3 파트너</h2>
+        <ul>
+          <li v-for="partner in top3Partners" :key="partner.partnerName">
+            {{ partner.partnerName }} (예약 {{ partner.reservationCount }}건)
+          </li>
+        </ul>
       </div>
 
       <div class="quick-stats">
-        <h2>통계</h2>
-        <div class="stats-list">
-          <div class="stat-item">
-            <h3>이번 달 예약 현황</h3>
-            <div class="stat-chart">
-              <!-- 차트 컴포넌트 추가 예정 -->
-            </div>
-          </div>
-          <div class="stat-item">
-            <h3>회원 가입 추이</h3>
-            <div class="stat-chart">
-              <!-- 차트 컴포넌트 추가 예정 -->
-            </div>
-          </div>
-        </div>
+        <h2>예약 추이 (최근 7일)</h2>
+        <canvas ref="reservationChart"></canvas>
+        <ul class="daily-list">
+          <li v-for="item in dailyReservation" :key="item.date">
+            {{ item.date }}: {{ item.count }}건
+          </li>
+        </ul>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import axios from '@/api/axios'
+import Chart from 'chart.js/auto'
+
 export default {
   name: 'Dashboard',
   data() {
     return {
-      stats: {
-        totalMembers: 0,
+      userStats: {
+        totalUsers: 0,
         totalPartners: 0,
-        todayReservations: 0,
-        pendingInquiries: 0
+        todayUserCount: 0,
+        inactiveUserCount: 0,
+        reportedUserCount: 0,
+        recentLoginUserCount: 0
       },
-      recentActivities: []
+      reservationStats: {
+        total: 0,
+        todayReservationCount: 0,
+        futureReservationCount: 0
+      },
+      pendingPartnerCount: 0,
+      top3Partners: [],
+      dailyReservation: [],
+      recentActivities: [],
+      reservationChart: null,
+      reservationChartData: {
+        labels: [],
+        data: []
+      }
     }
   },
   methods: {
@@ -95,43 +153,79 @@ export default {
       return icons[type] || 'fas fa-info-circle'
     },
     async fetchDashboardData() {
-      // TODO: API 호출하여 대시보드 데이터 가져오기
-      this.stats = {
-        totalMembers: 1234,
-        totalPartners: 56,
-        todayReservations: 23,
-        pendingInquiries: 5
-      }
+      // 1. 회원/파트너/지원자 수
+      const countsRes = await axios.get('/api/admin/counts')
+      this.userStats.totalUsers = countsRes.data.totalUsers || 0
+      this.userStats.totalPartners = countsRes.data.approvedPartners || 0
+      // 지원자 수 필요시: countsRes.data.totalApplications
+
+      // 2. 회원 통계
+      const statsRes = await axios.get('/api/admin/stats')
+      this.userStats.todayUserCount = statsRes.data.todayUserCount || 0
+      this.userStats.inactiveUserCount = statsRes.data.inactiveUserCount || 0
+      this.userStats.reportedUserCount = statsRes.data.reportedUserCount || 0
+      this.userStats.recentLoginUserCount = statsRes.data.recentLoginUserCount || 0
+
+      // 3. 예약 통계
+      const reservationRes = await axios.get('/api/admin/reservations')
+      this.reservationStats.total = reservationRes.data.total || 0
+      this.reservationStats.todayReservationCount = reservationRes.data.todayCount || 0
+      this.reservationStats.futureReservationCount = reservationRes.data.upcoming || 0
+
+      // 4. 승인 대기 파트너 수
+      const pendingRes = await axios.get('/api/admin/pending/count')
+      this.pendingPartnerCount = pendingRes.data || 0
+
+      // 5. 최근 7일 예약 추이
+      const dailyRes = await axios.get('/api/admin/reservation/daily')
+      this.dailyReservation = dailyRes.data
+      this.reservationChartData.labels = dailyRes.data.map(d => d.date)
+      this.reservationChartData.data = dailyRes.data.map(d => d.count)
+
+      // 6. TOP3 파트너
+      const top3Res = await axios.get('/api/admin/partner/top3')
+      this.top3Partners = top3Res.data
+
+      // 7. 최근 활동(예시 데이터)
       this.recentActivities = [
-        {
-          id: 1,
-          type: 'reservation',
-          description: '새로운 예약이 등록되었습니다.',
-          time: '10분 전'
-        },
-        {
-          id: 2,
-          type: 'member',
-          description: '새로운 회원이 가입했습니다.',
-          time: '30분 전'
-        },
-        {
-          id: 3,
-          type: 'partner',
-          description: '새로운 파트너가 등록되었습니다.',
-          time: '1시간 전'
-        },
-        {
-          id: 4,
-          type: 'inquiry',
-          description: '새로운 문의가 등록되었습니다.',
-          time: '2시간 전'
-        }
+        { id: 1, type: 'reservation', description: '새로운 예약이 등록되었습니다.', time: '10분 전' },
+        { id: 2, type: 'member', description: '새로운 회원이 가입했습니다.', time: '30분 전' },
+        { id: 3, type: 'partner', description: '새로운 파트너가 등록되었습니다.', time: '1시간 전' },
+        { id: 4, type: 'inquiry', description: '새로운 문의가 등록되었습니다.', time: '2시간 전' }
       ]
+    },
+    renderReservationChart() {
+      if (this.reservationChart) {
+        this.reservationChart.destroy()
+      }
+      const ctx = this.$refs.reservationChart.getContext('2d')
+      this.reservationChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: this.reservationChartData.labels,
+          datasets: [{
+            label: '예약 수',
+            data: this.reservationChartData.data,
+            borderColor: '#3498db',
+            backgroundColor: 'rgba(52,152,219,0.1)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      })
     }
   },
-  created() {
-    this.fetchDashboardData()
+  async created() {
+    await this.fetchDashboardData()
+    this.$nextTick(() => {
+      this.renderReservationChart()
+    })
   }
 }
 </script>
