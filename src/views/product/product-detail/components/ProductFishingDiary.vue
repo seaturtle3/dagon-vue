@@ -27,8 +27,6 @@ onMounted(() => {
         <hr>
       </div>
     </div>
-    <div v-else>
-      조황정보가 없습니다.
-    </div>
+<!--    <div v-else>조황정보가 없습니다.</div>-->
   </div>
 </template>

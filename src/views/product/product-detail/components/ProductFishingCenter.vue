@@ -22,7 +22,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-4">
     <div v-if="store.loading">로딩중...</div>
     <div v-else-if="store.error" class="text-red-500">{{ store.error }}</div>
     <div v-else>
@@ -41,7 +40,7 @@ onMounted(() => {
           <p><strong>작성자:</strong> {{ report.user?.uname }}</p>
         </div>
       </section>
-      <div v-else class="text-gray-500 mb-6">조황정보가 없습니다.</div>
+<!--      <div v-else class="text-gray-500 mb-6">조황정보가 없습니다.</div>-->
 
       <!-- 조행기 -->
       <section v-if="store.diary && store.diary.length > 0">
@@ -58,11 +57,10 @@ onMounted(() => {
           <p><strong>작성자:</strong> {{ diary.user?.uname }}</p>
         </div>
       </section>
-      <div v-else class="text-gray-500">조행기가 없습니다.</div>
+<!--      <div v-else class="text-gray-500">조행기가 없습니다.</div>-->
     </div>
-  </div>
 </template>
 
 <style scoped>
-/* 필요하면 커스텀 스타일 추가 */
+
 </style>
