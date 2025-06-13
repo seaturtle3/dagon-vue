@@ -10,7 +10,7 @@
           <label>작성자 유형</label>
           <select v-model="form.writerType" required @change="handleWriterTypeChange">
             <option value="">유형을 선택하세요.</option>
-            <option value="MEMBER">일반회원</option>
+            <option value="USER">일반회원</option>
             <option value="PARTNER">파트너</option>
           </select>
         </div>
@@ -23,6 +23,14 @@
                     :value="type.value">
               {{ type.label }}
             </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>답변자 유형</label>
+          <select v-model="form.receiverType">
+            <option disabled value="">답변자 유형 선택</option>
+            <option value="PARTNER">파트너</option>
+            <option value="ADMIN">관리자</option>
           </select>
         </div>
         <div class="form-group">
@@ -90,7 +98,7 @@
         <h3>{{ detail.title }}</h3>
         <div class="detail-info">
           <span>작성자: {{ detail.writer }}</span>
-          <span>작성자 유형: {{ detail.writerType === 'MEMBER' ? '일반회원' : '파트너' }}</span>
+          <span>작성자 유형: {{ detail.writerType === 'USER' ? '일반회원' : '파트너' }}</span>
           <span>문의 유형: {{ getInquiryTypeLabel(detail.inquiryType) }}</span>
           <span>작성일: {{ formatDate(detail.createdAt) }}</span>
           <span>상태: {{ detail.status }}</span>
@@ -111,10 +119,6 @@
 <script>
 import { inquiryApi } from '@/api/inquiry.js';
 
-function submit() {
-  // 여기서 API 호출 또는 유효성 검사
-}
-
 export default {
   name: 'Inquiry',
   data() {
@@ -130,10 +134,12 @@ export default {
         title: '',
         content: '',
         writerType: '',
-        inquiryType: ''
+        inquiryType: '',
+        receiverType: '',
+        receiverId: null
       },
       inquiryTypes: {
-        MEMBER: [
+        USER: [
           { value: 'PRODUCT', label: '상품 문의' },
           { value: 'PARTNERSHIP', label: '제휴 문의' },
           { value: 'SYSTEM', label: '시스템 문의' },
@@ -164,7 +170,7 @@ export default {
       this.form.inquiryType = '';
     },
     getInquiryTypeLabel(type) {
-      const allTypes = [...this.inquiryTypes.MEMBER, ...this.inquiryTypes.PARTNER];
+      const allTypes = [...this.inquiryTypes.USER, ...this.inquiryTypes.PARTNER];
       const found = allTypes.find(t => t.value === type);
       return found ? found.label : type;
     },
@@ -193,6 +199,10 @@ export default {
       if (!this.form.writerType || !this.form.inquiryType || !this.form.title || !this.form.content) {
         alert('모든 항목을 입력해주세요.');
         return;
+      }
+
+      if (this.form.receiverType === 'PARTNER') {
+        this.form.receiverId = 18; // ← 실제 존재하는 파트너 ID로 교체
       }
 
       try {
