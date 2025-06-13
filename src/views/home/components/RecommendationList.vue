@@ -1,18 +1,12 @@
 <script setup>
-import { onMounted, computed } from 'vue'
-import { useProductListStore } from '@/store/product/all-products/useProductListStore.js'
-import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+import { defineProps } from 'vue'
+import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
 
-const store = useProductListStore()
-
-onMounted(async () => {
-  await store.fetchProducts()
-})
-
-const recommendedProducts = computed(() => {
-  return store.products
-      .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // 최신순
-      .slice(0, 6) // 상위 6개만
+const props = defineProps({
+  products: {
+    type: Array,
+    required: true
+  }
 })
 
 function openDetail(productId) {
@@ -26,7 +20,7 @@ function openDetail(productId) {
     <h2 class="fw-bold fs-5 mb-4">추천 선사</h2>
     <div class="d-grid" style="grid-template-columns: repeat(6, 1fr); gap: 1rem;">
       <div
-          v-for="product in recommendedProducts"
+          v-for="product in products"
           :key="product.prodId"
           class="cursor border text-center d-flex flex-column"
           style="min-height: 300px;"
@@ -36,7 +30,6 @@ function openDetail(productId) {
             :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
             alt="썸네일"
             class="product-img mb-4"
-            style="object-fit: cover;"
         />
         <div class="fw-semibold">
           {{ product.prodName }}
@@ -49,7 +42,7 @@ function openDetail(productId) {
   </div>
 </template>
 
-<style>
+<style scoped>
 .product-img {
   height: 50%;
   width: 100%;
