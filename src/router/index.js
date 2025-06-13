@@ -188,6 +188,20 @@ const routes = [
     },
 ]
 
+// const routes = [
+//     {
+//         path: '/admin/inquiries',
+//         name: 'Inquiries',
+//         component: Inquiries,
+//     },
+//     {
+//         path: '/admin/inquiries/:id',
+//         name: 'MemberInquiry',
+//         component: MemberInquiry,
+//         props: true,
+//     },
+// ];
+
 const router = createRouter({
     history: createWebHistory(),
     routes
