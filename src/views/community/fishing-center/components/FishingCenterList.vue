@@ -1,47 +1,85 @@
 <script setup>
-import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl'
+import { computed } from 'vue'
 
-console.log(IMAGE_BASE_URL);
-
-defineProps({
-  products: Array
+const props = defineProps({
+  centers: {
+    type: Array,
+    required: true,
+    default: () => []
+  }
 })
 
-function onClick(product) {
-  const url = `/products/${product.prodId}`
-  window.open(url, '_blank')  // 새 탭에서 열기
-}
+const combinedList = computed(() => {
+  if (!Array.isArray(props.centers)) return [] // 이거 필수
+
+  return props.centers.flatMap(center => {
+    const product = center.product
+    const reports = (center.reports || []).map(r => ({
+      ...r,
+      _type: 'report',
+      product,
+    }))
+    const diaries = (center.diaries || []).map(d => ({
+      ...d,
+      _type: 'diary',
+      product,
+    }))
+    return [...reports, ...diaries]
+  }).sort((a, b) => {
+    if (!a.fishingAt && !b.fishingAt) return 0
+    if (!a.fishingAt) return 1
+    if (!b.fishingAt) return -1
+    return new Date(b.fishingAt) - new Date(a.fishingAt)
+  }).slice(0, 30)
+})
 
 </script>
 
 <template>
-  <div class="row row-cols-1 row-cols-md-5 g-3">
-    <div
-        v-for="product in products"
-        :key="product.prodId"
-        class="col"
-    >
+  <div>
+    <h2 class="mb-3 font-bold text-lg">
+      전체 조황정보/조행기 <span class="count">({{ combinedList.length }})</span>
+    </h2>
+
+    <div class="combined-grid" v-if="combinedList.length > 0">
       <div
-          class="card h-100"
-          style="cursor: pointer;"
-          @click="onClick(product)"
+          v-for="item in combinedList"
+          :key="item._type + '-' + (item.frId || item.fdId)"
+          class="combined-box"
       >
-        <img
-            :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
-            class="card-img-top"
-            alt="썸네일"
-            style="height: 60%; object-fit: cover;"
-        />
-        <div class="card-body p-2 mt-2">
-          <h6 class="card-title mb-1">
-            {{ product.prodName }}</h6>
-          <p class="card-text text-muted" style="font-size: 0.8rem;">
-            {{ product.prodRegion }}
-          </p>
-          <small class="text-muted">
-            {{ product.createdAt }}</small>
-        </div>
+        <p><strong>구분:</strong> {{ item._type === 'report' ? '조황정보' : '조행기' }}</p>
+        <p><strong>제목:</strong> {{ item.title }}</p>
+        <p><strong>내용:</strong> {{ item.content }}</p>
+        <p>날짜: {{ item.fishingAt?.slice(0, 10) || '날짜 없음' }}</p>
+        <p><strong>상품명:</strong> {{ item.product?.prodName }}</p>
+        <p><strong>작성자:</strong> {{ item.user?.uname }}</p>
       </div>
     </div>
+
+    <div v-else class="text-gray-500">표시할 조황정보나 조행기가 없습니다.</div>
   </div>
 </template>
+
+<style scoped>
+.combined-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-auto-rows: minmax(150px, auto);
+  gap: 16px;
+  max-height: calc(150px * 5 + 16px * 4);
+  overflow-y: auto;
+  padding: 10px 0;
+}
+.combined-box {
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  padding: 12px;
+  background-color: #f9f9f9;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+}
+.count {
+  color: #4a90e2;
+  font-weight: 600;
+  margin-left: 6px;
+}
+</style>

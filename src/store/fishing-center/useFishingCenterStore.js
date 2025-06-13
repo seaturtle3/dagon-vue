@@ -3,27 +3,22 @@ import axios from '@/lib/axios.js'
 
 export const useFishingCenterStore = defineStore('fishingCenter', {
     state: () => ({
-        products: [],
-        page: 0,
-        size: 10,
-        totalPages: 0
+        reportList: [],
+        diaryList: [],
     }),
 
     actions: {
-        async fetchProducts() {
+        async fetchFishingCenterData() {
             try {
-                const res = await axios.get('/api/fishing-center/get-with-reports-or-diaries', {
-                    params: { page: this.page, size: this.size }
-                })
-                this.products = res.data.content
-                this.totalPages = res.data.totalPages
+                const res = await axios.get('/api/fishing-center/get-all') // ← 이 API에서 reportList + diaryList 줌
+                console.log('useFishingCenterStore 조황센터 응답:', res.data)
+
+                this.reportList = res.data.reportList
+                this.diaryList = res.data.diaryList
             } catch (err) {
-                console.error('상품 불러오기 실패', err)
+                console.error('조황센터 데이터 로드 실패', err)
             }
-        },
-        goToPage(pageNum) {
-            this.page = pageNum
-            this.fetchProducts()
         }
     }
 })
+

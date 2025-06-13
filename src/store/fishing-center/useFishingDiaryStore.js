@@ -9,8 +9,8 @@ export const useFishingDiaryStore = defineStore('fishingDiary', {
         async fetchDiaries() {
             try {
                 const res = await api.get('/api/fishing-diary/get-all')
-                this.diaries = res.data
-                console.log('조행기 로드 완료:', this.diaries)
+                this.diaries = res.data.content
+                console.log('useFishingDiaryStore 조행기 :', this.diaries)
             } catch (err) {
                 console.error('조행기 불러오기 실패', err)
             }
