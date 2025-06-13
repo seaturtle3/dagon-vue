@@ -24,7 +24,10 @@ onMounted(() => {
       isAdmin.value = payload.role === 'ADMIN'
     } catch (e) {
       console.error('JWT 파싱 실패:', e)
+      isAdmin.value = false
     }
+  } else {
+    isAdmin.value = false  // ✅ 토큰 없을 경우 명시적 설정
   }
 })
 

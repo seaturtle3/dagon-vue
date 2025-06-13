@@ -3,9 +3,11 @@ import {ref, onMounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import BoardWriteForm from "@/components/common/BoardWriteForm.vue";
 import {fetchNoticeById, createNotice, updateNotice} from "@/api/noticeApi.js";
+import { useAdminAuthStore} from "@/store/auth/auth.js";
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAdminAuthStore()
 
 const isEdit = !!route.params.id
 
@@ -16,6 +18,8 @@ const form = ref({
 })
 
 onMounted(async () => {
+  authStore.loadTokenFromStorage()
+
   if (isEdit) {
     const { data } = await fetchNoticeById(route.params.id)
     form.value = {
@@ -27,12 +31,21 @@ onMounted(async () => {
 })
 
 const handleSubmit = async () => {
-  if (isEdit) {
-    await updateNotice(route.params.id, form.value)
-  } else {
-    await createNotice(form.value)
+  if (!authStore.token) {
+    alert('관리자 로그인이 필요합니다.')
+    return
   }
-  router.push('/notice')
+
+  try {
+    if (isEdit) {
+      await updateNotice(route.params.id, form.value, authStore.token)
+    } else {
+      await createNotice(form.value, authStore.token) // ✅ 토큰 포함
+    }
+    router.push('/notice')
+  } catch (error) {
+    console.error('공지사항 저장 오류:', error)
+  }
 }
 </script>
 

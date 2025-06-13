@@ -104,11 +104,13 @@ form {
   flex-direction: column;
   gap: 16px;
 }
+
 input {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
 }
+
 button {
   padding: 8px 16px;
   background: #333;
