@@ -36,8 +36,10 @@ onMounted(() => {
               method: 'POST',
               body: formData
             })
-            const result = await res.json()
-            const imageUrl = result.url
+            const imagePath = await res.text()
+            const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL
+            const imageUrl = `${baseUrl}/${imagePath}`
+            console.log('📸 최종 이미지 URL:', imageUrl)
             $('#editor').summernote('insertImage', imageUrl)
           } catch (e) {
             console.error('이미지 업로드 실패', e)
@@ -88,8 +90,7 @@ watch(
             type="checkbox"
             :checked="modelValue.isTop"
             @change="updateField('isTop', $event.target.checked)"
-        />
-        상단 고정
+        />상단 고정
       </label>
     </div>
 
