@@ -61,7 +61,7 @@ const totalCount = computed(() => {
           <p><strong>구분:</strong> {{ center._type === 'report' ? '조황정보' : '조행기' }}</p>
           <p><strong>제목:</strong> {{ center.title }}</p>
           <p><strong>내용:</strong> {{ center.content }}</p>
-          <p><strong>날짜:</strong> {{ center.fishingAt || '날짜 없음' }}</p>
+          <p>날짜: {{ center.fishingAt ? center.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
           <p><strong>상품명:</strong> {{ center.product?.prodName }}</p>
           <p><strong>작성자:</strong> {{ center.user?.uname }}</p>
         </div>

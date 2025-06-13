@@ -1,7 +1,7 @@
 <script setup>
 import {computed, onMounted} from 'vue'
-import { useRoute } from 'vue-router'
-import { useProductFishingDiaryStore } from '@/store/product/product-detail/useProductFishingDiaryStore.js'
+import {useRoute} from 'vue-router'
+import {useProductFishingDiaryStore} from '@/store/product/product-detail/useProductFishingDiaryStore.js'
 
 const route = useRoute()
 const store = useProductFishingDiaryStore()
@@ -27,17 +27,17 @@ const diaryCount = computed(() => store.diary?.length || 0)
     <div v-if="store.diary.length > 0" class="diary-grid">
       <div
           v-for="diary in store.diary.slice(0, 15)"
-      :key="diary.fdId"
-      class="diary-box"
+          :key="diary.fdId"
+          class="diary-box"
       >
-      <h3>제목: {{ diary.title }}</h3>
-      <p>내용: {{ diary.content }}</p>
-      <p>날짜: {{ diary.fishingAt || '날짜 없음' }}</p>
-      <p>상품명: {{ diary.product?.prodName }}</p>
-      <p>작성자: {{ diary.user?.uname }}</p>
+        <h3>제목: {{ diary.title }}</h3>
+        <p>내용: {{ diary.content }}</p>
+        <p>날짜: {{ diary.fishingAt ? diary.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
+        <p>상품명: {{ diary.product?.prodName }}</p>
+        <p>작성자: {{ diary.user?.uname }}</p>
+      </div>
     </div>
-  </div>
-  <!-- <div v-else>조황정보가 없습니다.</div> -->
+    <!-- <div v-else>조황정보가 없습니다.</div> -->
   </div>
 </template>
 

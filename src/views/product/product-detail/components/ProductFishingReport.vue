@@ -27,17 +27,17 @@ const reportCount = computed(() => store.report?.length || 0)
     <div v-if="store.report.length > 0" class="report-grid">
       <div
           v-for="(report, index) in store.report.slice(0, 15)"
-      :key="report.frId"
-      class="report-box"
+          :key="report.frId"
+          class="report-box"
       >
-      <h3>제목: {{ report.title }}</h3>
-      <p>내용: {{ report.content }}</p>
-      <p>날짜: {{ report.fishingAt || '날짜 없음' }}</p>
-      <p>상품명: {{ report.product?.prodName }}</p>
-      <p>작성자: {{ report.user?.uname }}</p>
+        <h3>제목: {{ report.title }}</h3>
+        <p>내용: {{ report.content }}</p>
+        <p>날짜: {{ report.fishingAt ? report.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
+        <p>상품명: {{ report.product?.prodName }}</p>
+        <p>작성자: {{ report.user?.uname }}</p>
+      </div>
     </div>
-  </div>
-  <!-- <div v-else>조황정보가 없습니다.</div> -->
+    <!-- <div v-else>조황정보가 없습니다.</div> -->
   </div>
 </template>
 
