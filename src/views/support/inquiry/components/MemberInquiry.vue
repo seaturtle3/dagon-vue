@@ -2,35 +2,25 @@
   <div class="inquiry-container">
     <h2 class="page-title">1:1 문의(회원전용)</h2>
 
-    <!-- 문의하기 작성/수정 폼 -->
-    <div class="inquiry-form" v-if="showWriteForm || showEditForm">
-      <h3>{{ showEditForm ? '문의하기 수정' : '문의하기 작성' }}</h3>
+    <!-- 항상 보이는 문의하기 작성 폼 -->
+    <div class="inquiry-form">
+      <h3>문의하기 작성</h3>
       <form @submit.prevent="submitForm">
         <div class="form-group">
+          <label>아이디</label>
+          <input type="text" :value="loginUser.uid" readonly class="readonly-input">
+        </div>
+        <div class="form-group">
           <label>작성자 유형</label>
-          <select v-model="form.writerType" required @change="handleWriterTypeChange">
-            <option value="">유형을 선택하세요.</option>
-            <option value="USER">일반회원</option>
-            <option value="PARTNER">파트너</option>
-          </select>
+          <input type="text" :value="loginUser.role === 'PARTNER' ? '파트너' : '일반회원'" readonly class="readonly-input">
         </div>
         <div class="form-group">
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
-            <option value="">유형을 선택하세요.</option>
-            <option v-for="type in availableInquiryTypes"
-                    :key="type.value"
-                    :value="type.value">
+            <option value="">문의 유형을 선택하세요.</option>
+            <option v-for="type in availableInquiryTypes" :key="type.value" :value="type.value">
               {{ type.label }}
             </option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>답변자 유형</label>
-          <select v-model="form.receiverType">
-            <option disabled value="">답변자 유형 선택</option>
-            <option value="PARTNER">파트너</option>
-            <option value="ADMIN">관리자</option>
           </select>
         </div>
         <div class="form-group">
@@ -42,76 +32,10 @@
           <textarea v-model="form.content" required></textarea>
         </div>
         <div class="form-actions">
-          <button type="submit">{{ showEditForm ? '수정' : '등록' }}</button>
-          <button type="button" @click="cancelForm">취소</button>
+          <button type="submit">등록</button>
+          <button type="button" @click="resetForm">초기화</button>
         </div>
       </form>
-    </div>
-
-    <!-- 문의하기 목록 -->
-    <div class="inquiry-list" v-if="!showDetail">
-      <div class="inquiry-header">
-        <button class="write-btn" @click="showWriteForm = true">문의하기 작성</button>
-      </div>
-
-      <table class="inquiry-table">
-        <thead>
-          <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>작성자</th>
-            <th>작성자 유형</th>
-            <th>문의 유형</th>
-            <th>작성일</th>
-            <th>상태</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in inquiryList" :key="item.id" @click="viewDetail(item.id)">
-            <td>{{ item.id }}</td>
-            <td>{{ item.title }}</td>
-            <td>{{ item.writer }}</td>
-            <td>{{ item.writerType === 'MEMBER' ? '일반회원' : '파트너' }}</td>
-            <td>{{ getInquiryTypeLabel(item.inquiryType) }}</td>
-            <td>{{ formatDate(item.createdAt) }}</td>
-            <td>{{ item.status }}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- 페이지네이션 -->
-      <div class="pagination">
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          :class="{ active: currentPage === page }"
-          @click="changePage(page)"
-        >
-          {{ page }}
-        </button>
-      </div>
-    </div>
-
-    <!-- 문의하기 상세 -->
-    <div class="inquiry-detail" v-if="showDetail">
-      <div class="detail-header">
-        <h3>{{ detail.title }}</h3>
-        <div class="detail-info">
-          <span>작성자: {{ detail.writer }}</span>
-          <span>작성자 유형: {{ detail.writerType === 'USER' ? '일반회원' : '파트너' }}</span>
-          <span>문의 유형: {{ getInquiryTypeLabel(detail.inquiryType) }}</span>
-          <span>작성일: {{ formatDate(detail.createdAt) }}</span>
-          <span>상태: {{ detail.status }}</span>
-        </div>
-      </div>
-      <div class="detail-content">
-        {{ detail.content }}
-      </div>
-      <div class="detail-actions">
-        <button @click="showDetail = false">목록으로</button>
-        <button v-if="isWriter" @click="showEditForm = true">수정</button>
-        <button v-if="isWriter" @click="deleteInquiry">삭제</button>
-      </div>
     </div>
   </div>
 </template>
@@ -123,19 +47,19 @@ export default {
   name: 'Inquiry',
   data() {
     return {
-      inquiryList: [],
-      detail: null,
-      showDetail: false,
-      showWriteForm: false,
-      showEditForm: false,
-      currentPage: 1,
-      totalPages: 1,
+      // 실제 로그인된 사용자 정보 예시 (DB 컬럼 기반으로 구성)
+      loginUser: {
+        uno: 123, // => uno
+        uid: 'angler001', // => uid
+        nickname: '낚시꾼', // => nickname
+        role: 'PARTNER' // => role: USER or PARTNER
+      },
       form: {
+        uid: '',
         title: '',
         content: '',
         writerType: '',
         inquiryType: '',
-        receiverType: '',
         receiverId: null
       },
       inquiryTypes: {
@@ -156,105 +80,45 @@ export default {
     };
   },
   computed: {
-    isWriter() {
-      // 현재 로그인한 사용자와 작성자가 같은지 확인
-      return this.detail?.writer === 'currentUser'; // 실제 구현시 현재 로그인한 사용자 정보와 비교
-    },
     availableInquiryTypes() {
       return this.inquiryTypes[this.form.writerType] || [];
     }
   },
+  mounted() {
+    // 로그인된 사용자 역할을 작성자 유형으로 자동 설정
+    this.form.writerType = this.loginUser.role;
+  },
   methods: {
-    handleWriterTypeChange() {
-      // 작성자 유형이 변경되면 문의 유형을 초기화
-      this.form.inquiryType = '';
-    },
-    getInquiryTypeLabel(type) {
-      const allTypes = [...this.inquiryTypes.USER, ...this.inquiryTypes.PARTNER];
-      const found = allTypes.find(t => t.value === type);
-      return found ? found.label : type;
-    },
-    async fetchInquiryList() {
-      try {
-        const response = await inquiryApi.getInquiryList({
-          page: this.currentPage,
-          size: 10
-        });
-        this.inquiryList = response.data.content;
-        this.totalPages = response.data.totalPages;
-      } catch (error) {
-        console.error('문의 목록 조회 실패:', error);
-      }
-    },
-    async viewDetail(id) {
-      try {
-        const response = await inquiryApi.getInquiryDetail(id);
-        this.detail = response.data;
-        this.showDetail = true;
-      } catch (error) {
-        console.error('문의 상세 조회 실패:', error);
-      }
-    },
     async submitForm() {
       if (!this.form.writerType || !this.form.inquiryType || !this.form.title || !this.form.content) {
         alert('모든 항목을 입력해주세요.');
         return;
       }
 
-      if (this.form.receiverType === 'PARTNER') {
-        this.form.receiverId = 18; // ← 실제 존재하는 파트너 ID로 교체
-      }
+      // 관리자 ID (예: 1)로 receiver 설정
+      this.form.receiverId = 1;
 
       try {
-        if (this.showEditForm) {
-          await inquiryApi.updateInquiry(this.detail.id, this.form);
-          alert('문의가 수정되었습니다.');
-        } else {
-          await inquiryApi.createInquiry(this.form);
-          alert('문의가 정상 등록되었습니다.');
-        }
+        await inquiryApi.createInquiry({
+          ...this.form,
+          writerId: this.loginUser.id
+        });
+        alert('문의가 정상 등록되었습니다.');
         this.resetForm();
-        this.fetchInquiryList();
-        this.showDetail = false;
       } catch (error) {
         console.error('문의 저장 실패:', error);
         alert('저장에 실패했습니다.');
       }
     },
-    async deleteInquiry() {
-      if (!confirm('정말 삭제하시겠습니까?')) return;
-      
-      try {
-        await inquiryApi.deleteInquiry(this.detail.id);
-        this.showDetail = false;
-        this.fetchInquiryList();
-      } catch (error) {
-        console.error('문의 삭제 실패:', error);
-      }
-    },
-    changePage(page) {
-      this.currentPage = page;
-      this.fetchInquiryList();
-    },
-    formatDate(date) {
-      return new Date(date).toLocaleDateString();
-    },
     resetForm() {
       this.form = {
         title: '',
         content: '',
-        writerType: '',
-        inquiryType: ''
+        writerType: this.loginUser.role,
+        inquiryType: '',
+        receiverId: null
       };
-      this.showWriteForm = false;
-      this.showEditForm = false;
-    },
-    cancelForm() {
-      this.resetForm();
     }
-  },
-  created() {
-    this.fetchInquiryList();
   }
 };
 </script>
@@ -270,27 +134,6 @@ export default {
   margin-bottom: 30px;
   font-size: 24px;
   font-weight: bold;
-}
-
-.inquiry-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
-}
-
-.write-btn {
-  padding: 8px 16px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.inquiry-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
 }
 
 .inquiry-table th,
@@ -309,11 +152,17 @@ export default {
   cursor: pointer;
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
+.readonly-input {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 8px;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.form-group select option[value=""] {
+  color: #aaa;
 }
 
 .pagination button {
@@ -327,37 +176,6 @@ export default {
   background-color: #4CAF50;
   color: white;
   border-color: #4CAF50;
-}
-
-.inquiry-detail {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.detail-header {
-  margin-bottom: 20px;
-}
-
-.detail-info {
-  display: flex;
-  gap: 20px;
-  color: #666;
-  font-size: 14px;
-}
-
-.detail-content {
-  padding: 20px 0;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 20px;
-}
-
-.detail-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
 }
 
 .inquiry-form {

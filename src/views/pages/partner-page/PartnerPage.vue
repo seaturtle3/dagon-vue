@@ -27,7 +27,7 @@
         </router-link>
         <router-link to="/partner/market-info" class="nav-item">
           <i class="fas fa-chart-bar"></i>
-          조항 정보
+          조황정보
         </router-link>
         <router-link to="/partner/withdrawal" class="nav-item">
           <i class="fa-solid fa-eye-slash"></i>
