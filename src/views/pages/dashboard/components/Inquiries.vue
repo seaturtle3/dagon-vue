@@ -99,18 +99,18 @@ export default {
   },
   methods: {
     async searchInquiries() {
-      // try {
-      //   const response = await inquiryApi.getInquiryList({
-      //     query: this.searchQuery,
-      //     status: this.statusFilter,
-      //     page: this.currentPage
-      //   });
-      //   this.inquiries = response.data.content;  // content는 Spring의 Page 객체 기준
-      //   this.totalPages = response.data.totalPages;
-      // } catch (error) {
-      //   console.error('문의 목록 조회 실패:', error);
-      //   alert('문의 목록 조회 중 오류가 발생했습니다.');
-      // }
+      try {
+        const response = await inquiryApi.getInquiryList({
+          query: this.searchQuery,
+          status: this.statusFilter,
+          page: this.currentPage
+        });
+        this.inquiries = response.data.content;  // content는 Spring의 Page 객체 기준
+        this.totalPages = response.data.totalPages;
+      } catch (error) {
+        console.error('문의 목록 조회 실패:', error);
+        alert('문의 목록 조회 중 오류가 발생했습니다.');
+      }
       // TODO: API 호출하여 문의 목록 검색
       this.inquiries = [
         {
@@ -137,6 +137,36 @@ export default {
             content: '결제 확인 후 예약이 확정되었습니다.',
             createdAt: '2024-03-14 15:30'
           }
+        },
+        {
+          id: 3,
+          title: '시스템 관련 문의',
+          content: '시스템 문의',
+          author: '유관순',
+          createdAt: '2024-03-15',
+          status: '대기중',
+          attachments: [],
+          reply: null
+        },
+        {
+          id: 4,
+          title: '상품 관련 문의',
+          content: '상품 문의',
+          author: '김구',
+          createdAt: '2024-03-15',
+          status: '대기중',
+          attachments: [],
+          reply: null
+        },
+        {
+          id: 5,
+          title: '제휴 관련 문의',
+          content: '파트너 등록 문의',
+          author: '박지성',
+          createdAt: '2024-03-15',
+          status: '대기중',
+          attachments: [],
+          reply: null
         }
       ]
     },

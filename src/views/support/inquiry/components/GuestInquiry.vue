@@ -3,9 +3,9 @@
   <div class="inquiry-container">
     <h2 class="page-title">문의하기(비회원용)</h2>
 
-    <!-- 문의하기 작성/수정 폼 -->
-    <div class="inquiry-form" v-if="showWriteForm || showEditForm">
-      <h3>{{ showEditForm ? '문의하기 수정' : '문의하기 작성' }}</h3>
+    <!-- 항상 보이는 문의하기 작성 폼 -->
+    <div class="inquiry-form">
+      <h3>문의하기 작성</h3>
       <form @submit.prevent="submitForm">
         <div class="form-group">
           <label>작성자</label>
@@ -14,14 +14,13 @@
         <div class="form-group">
           <label>작성자 유형</label>
           <input type="text" value="비회원 문의" disabled>
+
         </div>
         <div class="form-group">
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
             <option value="">유형을 선택하세요.</option>
-            <option v-for="type in inquiryTypes"
-                    :key="type.value"
-                    :value="type.value">
+            <option v-for="type in inquiryTypes" :key="type.value" :value="type.value">
               {{ type.label }}
             </option>
           </select>
@@ -35,76 +34,10 @@
           <textarea v-model="form.content" required></textarea>
         </div>
         <div class="form-actions">
-          <button type="submit">{{ showEditForm ? '수정' : '등록' }}</button>
-          <button type="button" @click="cancelForm">취소</button>
+          <button type="submit">등록</button>
+          <button type="button" @click="resetForm">초기화</button>
         </div>
       </form>
-    </div>
-
-    <!-- 문의하기 목록 -->
-    <div class="inquiry-list" v-if="!showDetail">
-      <div class="inquiry-header">
-        <button class="write-btn" @click="showWriteForm = true">문의하기 작성</button>
-      </div>
-      
-      <table class="inquiry-table">
-        <thead>
-          <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>작성자</th>
-            <th>작성자 유형</th>
-            <th>문의 유형</th>
-            <th>작성일</th>
-            <th>상태</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in inquiryList" :key="item.id" @click="viewDetail(item.id)">
-            <td>{{ item.id }}</td>
-            <td>{{ item.title }}</td>
-            <td>{{ item.writer }}</td>
-            <td>비회원</td>
-            <td>{{ getInquiryTypeLabel(item.inquiryType) }}</td>
-            <td>{{ formatDate(item.createdAt) }}</td>
-            <td>{{ item.status }}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- 페이지네이션 -->
-      <div class="pagination">
-        <button 
-          v-for="page in totalPages" 
-          :key="page"
-          :class="{ active: currentPage === page }"
-          @click="changePage(page)"
-        >
-          {{ page }}
-        </button>
-      </div>
-    </div>
-
-    <!-- 문의하기 상세 -->
-    <div class="inquiry-detail" v-if="showDetail">
-      <div class="detail-header">
-        <h3>{{ detail.title }}</h3>
-        <div class="detail-info">
-          <span>작성자: {{ detail.writer }}</span>
-          <span>작성자 유형: 비회원</span>
-          <span>문의 유형: {{ getInquiryTypeLabel(detail.inquiryType) }}</span>
-          <span>작성일: {{ formatDate(detail.createdAt) }}</span>
-          <span>상태: {{ detail.status }}</span>
-        </div>
-      </div>
-      <div class="detail-content">
-        {{ detail.content }}
-      </div>
-      <div class="detail-actions">
-        <button @click="showDetail = false">목록으로</button>
-        <button v-if="isWriter" @click="showEditForm = true">수정</button>
-        <button v-if="isWriter" @click="deleteInquiry">삭제</button>
-      </div>
     </div>
   </div>
 </template>
@@ -116,13 +49,6 @@ export default {
   name: 'NonMemberInquiry',
   data() {
     return {
-      inquiryList: [],
-      detail: null,
-      showDetail: false,
-      showWriteForm: false,
-      showEditForm: false,
-      currentPage: 1,
-      totalPages: 1,
       form: {
         title: '',
         content: '',
@@ -138,68 +64,15 @@ export default {
       ]
     };
   },
-  computed: {
-    isWriter() {
-      return this.detail?.writer === 'currentUser';
-    }
-  },
   methods: {
-    getInquiryTypeLabel(type) {
-      const found = this.inquiryTypes.find(t => t.value === type);
-      return found ? found.label : type;
-    },
-    async fetchInquiryList() {
-      try {
-        const response = await inquiryApi.getInquiryList({
-          page: this.currentPage,
-          size: 10,
-          writerType: 'NON_MEMBER'
-        });
-        this.inquiryList = response.data.content;
-        this.totalPages = response.data.totalPages;
-      } catch (error) {
-        console.error('문의 목록 조회 실패:', error);
-      }
-    },
-    async viewDetail(id) {
-      try {
-        const response = await inquiryApi.getInquiryDetail(id);
-        this.detail = response.data;
-        this.showDetail = true;
-      } catch (error) {
-        console.error('문의 상세 조회 실패:', error);
-      }
-    },
     async submitForm() {
       try {
-        if (this.showEditForm) {
-          await inquiryApi.updateInquiry(this.detail.id, this.form);
-        } else {
-          await inquiryApi.createInquiry(this.form);
-        }
+        await inquiryApi.createInquiry(this.form);
+        alert('문의가 등록되었습니다.');
         this.resetForm();
-        this.fetchInquiryList();
       } catch (error) {
         console.error('문의 저장 실패:', error);
       }
-    },
-    async deleteInquiry() {
-      if (!confirm('정말 삭제하시겠습니까?')) return;
-      
-      try {
-        await inquiryApi.deleteInquiry(this.detail.id);
-        this.showDetail = false;
-        this.fetchInquiryList();
-      } catch (error) {
-        console.error('문의 삭제 실패:', error);
-      }
-    },
-    changePage(page) {
-      this.currentPage = page;
-      this.fetchInquiryList();
-    },
-    formatDate(date) {
-      return new Date(date).toLocaleDateString();
     },
     resetForm() {
       this.form = {
@@ -208,15 +81,12 @@ export default {
         writerType: 'NON_MEMBER',
         inquiryType: ''
       };
-      this.showWriteForm = false;
-      this.showEditForm = false;
     },
     cancelForm() {
-      this.resetForm();
+      if (confirm('작성을 취소하시겠습니까?')) {
+        this.resetForm();
+      }
     }
-  },
-  created() {
-    this.fetchInquiryList();
   }
 };
 </script>
