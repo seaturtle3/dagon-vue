@@ -1,13 +1,59 @@
 <template>
   <div class="inquiry-container">
     <h2 class="page-title">1:1 문의(회원전용)</h2>
-    
+
+    <!-- 문의하기 작성/수정 폼 -->
+    <div class="inquiry-form" v-if="showWriteForm || showEditForm">
+      <h3>{{ showEditForm ? '문의하기 수정' : '문의하기 작성' }}</h3>
+      <form @submit.prevent="submitForm">
+        <div class="form-group">
+          <label>작성자 유형</label>
+          <select v-model="form.writerType" required @change="handleWriterTypeChange">
+            <option value="">유형을 선택하세요.</option>
+            <option value="USER">일반회원</option>
+            <option value="PARTNER">파트너</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>문의 유형</label>
+          <select v-model="form.inquiryType" required>
+            <option value="">유형을 선택하세요.</option>
+            <option v-for="type in availableInquiryTypes"
+                    :key="type.value"
+                    :value="type.value">
+              {{ type.label }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>답변자 유형</label>
+          <select v-model="form.receiverType">
+            <option disabled value="">답변자 유형 선택</option>
+            <option value="PARTNER">파트너</option>
+            <option value="ADMIN">관리자</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>제목</label>
+          <input type="text" v-model="form.title" required>
+        </div>
+        <div class="form-group">
+          <label>내용</label>
+          <textarea v-model="form.content" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit">{{ showEditForm ? '수정' : '등록' }}</button>
+          <button type="button" @click="cancelForm">취소</button>
+        </div>
+      </form>
+    </div>
+
     <!-- 문의하기 목록 -->
     <div class="inquiry-list" v-if="!showDetail">
       <div class="inquiry-header">
         <button class="write-btn" @click="showWriteForm = true">문의하기 작성</button>
       </div>
-      
+
       <table class="inquiry-table">
         <thead>
           <tr>
@@ -35,8 +81,8 @@
 
       <!-- 페이지네이션 -->
       <div class="pagination">
-        <button 
-          v-for="page in totalPages" 
+        <button
+          v-for="page in totalPages"
           :key="page"
           :class="{ active: currentPage === page }"
           @click="changePage(page)"
@@ -52,7 +98,7 @@
         <h3>{{ detail.title }}</h3>
         <div class="detail-info">
           <span>작성자: {{ detail.writer }}</span>
-          <span>작성자 유형: {{ detail.writerType === 'MEMBER' ? '일반회원' : '파트너' }}</span>
+          <span>작성자 유형: {{ detail.writerType === 'USER' ? '일반회원' : '파트너' }}</span>
           <span>문의 유형: {{ getInquiryTypeLabel(detail.inquiryType) }}</span>
           <span>작성일: {{ formatDate(detail.createdAt) }}</span>
           <span>상태: {{ detail.status }}</span>
@@ -66,44 +112,6 @@
         <button v-if="isWriter" @click="showEditForm = true">수정</button>
         <button v-if="isWriter" @click="deleteInquiry">삭제</button>
       </div>
-    </div>
-
-    <!-- 문의하기 작성/수정 폼 -->
-    <div class="inquiry-form" v-if="showWriteForm || showEditForm">
-      <h3>{{ showEditForm ? '문의하기 수정' : '문의하기 작성' }}</h3>
-      <form @submit.prevent="submitForm">
-        <div class="form-group">
-          <label>작성자 유형</label>
-          <select v-model="form.writerType" required @change="handleWriterTypeChange">
-            <option value="">유형을 선택하세요.</option>
-            <option value="MEMBER">일반회원</option>
-            <option value="PARTNER">파트너</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>문의 유형</label>
-          <select v-model="form.inquiryType" required>
-            <option value="">유형을 선택하세요.</option>
-            <option v-for="type in availableInquiryTypes" 
-                    :key="type.value" 
-                    :value="type.value">
-              {{ type.label }}
-            </option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>제목</label>
-          <input type="text" v-model="form.title" required>
-        </div>
-        <div class="form-group">
-          <label>내용</label>
-          <textarea v-model="form.content" required></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit">{{ showEditForm ? '수정' : '등록' }}</button>
-          <button type="button" @click="cancelForm">취소</button>
-        </div>
-      </form>
     </div>
   </div>
 </template>
@@ -126,10 +134,12 @@ export default {
         title: '',
         content: '',
         writerType: '',
-        inquiryType: ''
+        inquiryType: '',
+        receiverType: '',
+        receiverId: null
       },
       inquiryTypes: {
-        MEMBER: [
+        USER: [
           { value: 'PRODUCT', label: '상품 문의' },
           { value: 'PARTNERSHIP', label: '제휴 문의' },
           { value: 'SYSTEM', label: '시스템 문의' },
@@ -160,7 +170,7 @@ export default {
       this.form.inquiryType = '';
     },
     getInquiryTypeLabel(type) {
-      const allTypes = [...this.inquiryTypes.MEMBER, ...this.inquiryTypes.PARTNER];
+      const allTypes = [...this.inquiryTypes.USER, ...this.inquiryTypes.PARTNER];
       const found = allTypes.find(t => t.value === type);
       return found ? found.label : type;
     },
@@ -186,16 +196,29 @@ export default {
       }
     },
     async submitForm() {
+      if (!this.form.writerType || !this.form.inquiryType || !this.form.title || !this.form.content) {
+        alert('모든 항목을 입력해주세요.');
+        return;
+      }
+
+      if (this.form.receiverType === 'PARTNER') {
+        this.form.receiverId = 18; // ← 실제 존재하는 파트너 ID로 교체
+      }
+
       try {
         if (this.showEditForm) {
           await inquiryApi.updateInquiry(this.detail.id, this.form);
+          alert('문의가 수정되었습니다.');
         } else {
           await inquiryApi.createInquiry(this.form);
+          alert('문의가 정상 등록되었습니다.');
         }
         this.resetForm();
         this.fetchInquiryList();
+        this.showDetail = false;
       } catch (error) {
         console.error('문의 저장 실패:', error);
+        alert('저장에 실패했습니다.');
       }
     },
     async deleteInquiry() {

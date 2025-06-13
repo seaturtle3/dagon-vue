@@ -2,9 +2,9 @@
 import ProductList from '@/views/product/all-products/components/ProductList.vue'
 import ProductForm from '@/views/product/all-products/components/ProductForm.vue'
 
-import {useProductEnumStore} from '@/store/product/all-products/productEnumStore.js'
-import {useProductListStore} from '@/store/product/all-products/productListStore.js'
-import {useProductFormStore} from '@/store/product/all-products/productFormStore.js'
+import {useProductEnumStore} from '@/store/product/all-products/useProductEnumStore.js'
+import {useProductListStore} from '@/store/product/all-products/useProductListStore.js'
+import {useProductFormStore} from '@/store/product/all-products/useProductFormStore.js'
 
 import {onMounted} from 'vue'
 

@@ -8,7 +8,7 @@ const props = defineProps({
   }
 })
 
-console.log('ProductInfo props product:', props.product)
+// console.log('ProductInfo props product:', props.product)
 
 function formatDate(dateStr) {
   const date = new Date(dateStr)

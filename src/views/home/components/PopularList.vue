@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useFishingCenterStore } from '@/store/product/fishing-center/fishingCenterStore.js'
+import { useFishingCenterStore } from '@/store/fishing-center/useFishingCenterStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 console.log(IMAGE_BASE_URL);

@@ -44,6 +44,7 @@ function openDetail(product) {
     >
       <img :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
            alt="thumbnail" class="thumbnail"/>
+      <h5>{{ product.prodId }}</h5>
       <h4>{{ product.prodName }}</h4>
       <p class="address">{{ product.prodAddress }}</p>
     </div>
