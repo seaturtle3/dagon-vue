@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProductFishingCenterStore } from '@/store/product/product-detail/useProductFishingCenterStore'
 
@@ -19,48 +19,88 @@ onMounted(() => {
     console.warn('올바르지 않은 productId입니다.')
   }
 })
+
+const combinedList = computed(() => {
+  const combined = [
+    ...store.report.map(center => ({ ...center, _type: 'report' })),
+    ...store.diary.map(center => ({ ...center, _type: 'diary' })),
+  ]
+  return combined
+      .sort((a, b) => {
+        if (!a.fishingAt && !b.fishingAt) return 0
+        if (!a.fishingAt) return 1
+        if (!b.fishingAt) return -1
+        return new Date(b.fishingAt) - new Date(a.fishingAt)
+      })
+      .slice(0, 15)
+})
+
+const totalCount = computed(() => {
+  const reportCount = store.report ? store.report.length : 0
+  const diaryCount = store.diary ? store.diary.length : 0
+  return reportCount + diaryCount
+})
 </script>
 
 <template>
-    <div v-if="store.loading">로딩중...</div>
-    <div v-else-if="store.error" class="text-red-500">{{ store.error }}</div>
-    <div v-else>
-      <!-- 조황정보 -->
-      <section v-if="store.report && store.report.length > 0">
-        <h2 class="text-xl font-bold mb-2">조황정보</h2>
-        <div
-            v-for="report in store.report"
-            :key="report.frId"
-            class="border rounded p-3 mb-4 shadow-sm"
-        >
-          <p><strong>제목:</strong> {{ report.title }}</p>
-          <p><strong>내용:</strong> {{ report.content }}</p>
-          <p><strong>날짜:</strong> {{ report.fishingAt || '날짜 없음' }}</p>
-          <p><strong>상품명:</strong> {{ report.product?.prodName }}</p>
-          <p><strong>작성자:</strong> {{ report.user?.uname }}</p>
-        </div>
-      </section>
-<!--      <div v-else class="text-gray-500 mb-6">조황정보가 없습니다.</div>-->
+  <div v-if="store.loading">로딩중...</div>
+  <div v-else-if="store.error" class="text-red-500">{{ store.error }}</div>
+  <div v-else>
 
-      <!-- 조행기 -->
-      <section v-if="store.diary && store.diary.length > 0">
-        <h2 class="text-xl font-bold mb-2">조행기</h2>
+    <h2 class="mb-3 font-bold text-lg">
+      조황정보/조행기 <span class="count">({{ totalCount }})</span>
+    </h2>
+
+    <section v-if="combinedList.length > 0">
+      <div class="combined-grid">
         <div
-            v-for="diary in store.diary"
-            :key="diary.fdId"
-            class="border rounded p-3 mb-4 shadow-sm"
+            v-for="center in combinedList"
+            :key="center._type + '-' + (center.frId || center.fdId)"
+            class="combined-box"
         >
-          <p><strong>제목:</strong> {{ diary.title }}</p>
-          <p><strong>내용:</strong> {{ diary.content }}</p>
-          <p><strong>날짜:</strong> {{ diary.fishingAt || '날짜 없음' }}</p>
-          <p><strong>상품명:</strong> {{ diary.product?.prodName }}</p>
-          <p><strong>작성자:</strong> {{ diary.user?.uname }}</p>
+          <p><strong>구분:</strong> {{ center._type === 'report' ? '조황정보' : '조행기' }}</p>
+          <p><strong>제목:</strong> {{ center.title }}</p>
+          <p><strong>내용:</strong> {{ center.content }}</p>
+          <p><strong>날짜:</strong> {{ center.fishingAt || '날짜 없음' }}</p>
+          <p><strong>상품명:</strong> {{ center.product?.prodName }}</p>
+          <p><strong>작성자:</strong> {{ center.user?.uname }}</p>
         </div>
-      </section>
-<!--      <div v-else class="text-gray-500">조행기가 없습니다.</div>-->
-    </div>
+      </div>
+    </section>
+    <div v-else class="text-gray-500">표시할 조황정보나 조행기가 없습니다.</div>
+  </div>
 </template>
 
 <style scoped>
+.combined-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(150px, auto);
+  gap: 16px;
+  max-height: calc(150px * 5 + 16px * 4);
+  overflow-y: auto;
+  padding: 10px 0;
+}
 
+.combined-box {
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  padding: 12px;
+  background-color: #f9f9f9;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+strong {
+  font-weight: 600;
+}
+
+.count {
+  color: #4a90e2;
+  font-weight: 600;
+  margin-left: 6px;
+}
 </style>

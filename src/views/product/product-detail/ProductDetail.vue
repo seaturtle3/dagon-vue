@@ -118,11 +118,18 @@ const setTab = (tab) => {
   flex: 1;
   padding: 12px;
   font-size: 1.1rem;
-  background-color: #007bff;
-  color: white;
+  background-color: #e0e0e0; /* 연한 회색 */
+  color: #333;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.nav-btn.active {
+  background-color: #2c3e70; /* 딥 블루 */
+  color: white;
+  box-shadow: 0 2px 6px rgba(58, 129, 241, 0.6);
 }
 
 /* 하위 버튼 */
@@ -142,5 +149,12 @@ const setTab = (tab) => {
   border: 1px solid #ccc;
   border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.sub-btn.active {
+  background-color: #3a81f1; /* 세련된 파란색 */
+  color: white;
+  box-shadow: 0 3px 8px rgba(106, 79, 156, 0.5);
 }
 </style>
