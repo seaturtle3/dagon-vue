@@ -1,5 +1,5 @@
 <script setup>
-import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js"
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js"
 
 const props = defineProps({
   product: {
@@ -18,6 +18,11 @@ function formatDate(dateStr) {
     day: 'numeric'
   })
 }
+
+function onContactClick() {
+  alert('문의 기능은 준비 중입니다!')
+}
+
 </script>
 
 <template>
@@ -38,7 +43,11 @@ function formatDate(dateStr) {
 
       <!-- 텍스트 정보 영역 -->
       <div class="info-text">
-        <h1 class="title">{{ props.product.prodName }}</h1>
+        <div class="title-row">
+          <h1 class="title">{{ props.product.prodName }}</h1>
+          <button @click="onContactClick" class="inquiry-button">1:1 문의</button>
+        </div>
+
         <p>지역: {{ props.product.prodRegion }}</p>
         <p>메인타입: {{ props.product.mainType }}</p>
         <p>서브타입: {{ props.product.subType }}</p>
@@ -79,7 +88,7 @@ function formatDate(dateStr) {
   display: flex;
   flex-direction: column;
   max-height: 400px; /* 썸네일 높이와 동일하게 설정 */
-  overflow-y: auto;   /* 내용이 많으면 스크롤 */
+  overflow-y: auto; /* 내용이 많으면 스크롤 */
   padding-right: 8px; /* 스크롤 생겨도 오른쪽 여백 생기게 */
   padding-left: 30px; /* 썸네일과 간격 */
 }
@@ -87,7 +96,28 @@ function formatDate(dateStr) {
 .title {
   font-size: 1.5rem;
   font-weight: bold;
-  margin-bottom: 12px;
+  margin: 0; /* 기본 h1 마진 제거 */
+  line-height: 1.2; /* 글자 위아래 높이 안정화 */
+}
+
+/* 🔥 타이틀과 버튼을 수평 정렬 */
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+}
+
+.inquiry-button {
+  background-color: white; /* Tailwind: blue-200 */
+  padding: 6px 14px; /* 약간 줄여서 중앙 정렬 느낌 맞춤 */
+  font-size: 0.9rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.inquiry-button:hover {
+  background-color: #93c5fd; /* Tailwind: blue-300 */
 }
 </style>
 
