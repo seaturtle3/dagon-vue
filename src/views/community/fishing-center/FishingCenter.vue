@@ -6,20 +6,17 @@ import FishingCenterList from './components/FishingCenterList.vue'
 const store = useFishingCenterStore()
 
 onMounted(async () => {
-  await store.fetchFishingCenters()
-  console.log('-----------------fishingCenter :', store.fishingCenters) // 이제 데이터 제대로 찍힘
+  await store.fetchFishingCenterData()
+  console.log(store)
 })
 
-function handleSelect(centers) {
-
-}
 </script>
 
 <template>
   <div class="center">
     <div v-if="store.isLoading">로딩 중...</div>
     <div v-else>
-      <FishingCenterList :centers="store.fishingCenters"/>
+      <FishingCenterList :centers="store.fetchFishingCenterData"/>
     </div>
   </div>
 </template>
