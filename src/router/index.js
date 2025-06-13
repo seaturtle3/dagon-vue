@@ -31,19 +31,71 @@ const routes = [
         component: AdminLayout,
         children: [
             {path: '', redirect: '/admin/dashboard'},
-            {path: 'dashboard', component: () => import('@/views/pages/dashboard/components/Dashboard.vue'), meta: {requiresAuth: true}},
-            {path: 'members', component: () => import('@/views/pages/dashboard/components/Members.vue'), meta: {requiresAuth: true}},
-            {path: 'partners', component: () => import('@/views/pages/dashboard/components/Partners.vue'), meta: {requiresAuth: true}},
-            {path: 'partner-applications', component: () => import('@/views/pages/dashboard/components/PartnerApplications.vue'), meta: {requiresAuth: true}},
-            {path: 'reservations', component: () => import('@/views/pages/dashboard/components/Reservations.vue'), meta: {requiresAuth: true}},
-            {path: 'notifications', component: () => import('@/views/pages/dashboard/components/Notifications.vue'), meta: {requiresAuth: true}},
-            {path: 'reports', component: () => import('@/views/pages/dashboard/components/Reports.vue'), meta: {requiresAuth: true}},
-            {path: 'events', component: () => import('@/views/pages/dashboard/components/Events.vue'), meta: {requiresAuth: true}},
-            {path: 'notices', component: () => import('@/views/pages/dashboard/components/Notices.vue'), meta: {requiresAuth: true}},
-            {path: 'faq', component: () => import('@/views/pages/dashboard/components/FAQ.vue'), meta: {requiresAuth: true}},
-            {path: 'inquiries', component: () => import('@/views/pages/dashboard/components/Inquiries.vue'), meta: {requiresAuth: true}},
-            {path: 'logout', component: () => import('@/views/pages/dashboard/components/Logout.vue'), meta: {requiresAuth: true}},
-            {path: 'member/:uid', component: () => import('@/views/pages/dashboard/components/MemberDetail.vue'), meta: {requiresAuth: true}},
+            {
+                path: 'dashboard',
+                component: () => import('@/views/pages/dashboard/components/Dashboard.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'members',
+                component: () => import('@/views/pages/dashboard/components/Members.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'partners',
+                component: () => import('@/views/pages/dashboard/components/Partners.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'partner-applications',
+                component: () => import('@/views/pages/dashboard/components/PartnerApplications.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'reservations',
+                component: () => import('@/views/pages/dashboard/components/Reservations.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'notifications',
+                component: () => import('@/views/pages/dashboard/components/Notifications.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'reports',
+                component: () => import('@/views/pages/dashboard/components/Reports.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'events',
+                component: () => import('@/views/pages/dashboard/components/Events.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'notices',
+                component: () => import('@/views/pages/dashboard/components/Notices.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'faq',
+                component: () => import('@/views/pages/dashboard/components/FAQ.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'inquiries',
+                component: () => import('@/views/pages/dashboard/components/Inquiries.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'logout',
+                component: () => import('@/views/pages/dashboard/components/Logout.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'member/:uid',
+                component: () => import('@/views/pages/dashboard/components/MemberDetail.vue'),
+                meta: {requiresAuth: true}
+            },
             {
                 path: 'inquiries',
                 name: 'mypage-inquiries',
@@ -77,8 +129,10 @@ const routes = [
     },
 
     // fishing-center
-    {path:
-            '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
+    {
+        path:
+            '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')
+    },
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
@@ -86,17 +140,26 @@ const routes = [
     {path: '/reservation-form', component: () => import('@/views/order/reservation/components/ReservationForm.vue')},
 
 
-
     // community
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
     {path: '/community', component: () => import('@/views/community/Community.vue')},
 
+
     // support
     {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
     {
-        path: '/support/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'),
-        props: true
+        path: '/notice/write',
+        component: () => import('@/views/support/notice/NoticeWrite.vue'),
+        meta: {requiresAuth: true}
     },
+    {
+        path: '/notice/edit/:id',
+        component: () => import('@/views/support/notice/NoticeWrite.vue'),
+        props: true,
+        meta: {requiresAuth: true}
+    },
+    {path: '/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'), props: true},
+
     {path: '/inquiry', component: () => import('@/views/support/inquiry/InquiryMain.vue')},
 
 ]
