@@ -94,8 +94,8 @@ const menuItems =ref( [
     link: '/fishing-center',
     open:false,
     children: [
-      {label: '조황정보', link: '/report'},
-      {label: '조행기', link: '/diary'}
+      {label: '조황정보', link: '/fishing-report'},
+      {label: '조행기', link: '/fishing-diary'}
     ]
   },
   {label: '바다낚시', link: '/products/sea'},

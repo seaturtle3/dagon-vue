@@ -1,6 +1,6 @@
 <script>
 import { onMounted } from 'vue'
-import { useFishingReportStore } from "@/store/product/fishing-center/useFishingReportStore.js";
+import { useFishingReportStore } from "@/store/fishing-center/useFishingReportStore.js";
 
 const reportStore = useFishingReportStore()
 

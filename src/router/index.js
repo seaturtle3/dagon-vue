@@ -95,6 +95,8 @@ const routes = [
 
     // fishing-center
     {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
+    {path: '/fishing-report', component: () => import('@/views/community/fishing-report/FishingReport.vue')},
+    {path: '/fishing-diary', component: () => import('@/views/community/fishing-diary/FishingDiary.vue')},
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},

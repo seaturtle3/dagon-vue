@@ -1,24 +1,23 @@
 <script setup>
-import { onMounted } from 'vue'
+import {onMounted} from 'vue'
 import { useFishingCenterStore } from '@/store/fishing-center/useFishingCenterStore.js'
 import FishingCenterList from './components/FishingCenterList.vue'
-import router from "@/router/index.js";
 
 const store = useFishingCenterStore()
 
-onMounted(() => {
-  store.fetchProducts()
+onMounted(async () => {
+  await store.fetchFishingCenters()
+  console.log('store.fishingCenters:', store.fishingCenters) // 이제 데이터 제대로 찍힘
 })
 
-function handleSelect(product) {
-  console.log('선택된 상품:', product)
-  router.push({ name: 'ProductDetail', params: { id: product.prodId } })
+function handleSelect(centers) {
+
 }
 </script>
 
 <template>
   <div class="center">
-    <FishingCenterList :products="store.products" @select="handleSelect" />
+    <FishingCenterList :centers="store.fishingCenters" @select="handleSelect" />
   </div>
 </template>
 
