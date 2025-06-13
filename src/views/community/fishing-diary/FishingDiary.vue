@@ -1,24 +1,28 @@
-<script>
+<script setup>
 import { onMounted } from 'vue'
-import { useFishingReportStore } from "@/store/fishing-center/useFishingReportStore.js";
+import { useFishingDiaryStore } from "@/store/fishing-center/useFishingDiaryStore.js";
+import {defineComponent} from "vue";
+import FishingDiaryList from "@/views/community/fishing-diary/components/FishingDiaryList.vue";
 
-const reportStore = useFishingReportStore()
+const store = useFishingDiaryStore()
 
 onMounted(() => {
-  reportStore.fetchReports()
+  store.fetchDiaries()
+  console.log('-------------FishingDiary : ', store.diaries)
 })
 </script>
 
 <template>
-  <div class="fishing-diary">
+  <div class="center">
     <h1>조행기</h1>
-    <ul>
-      <li v-for="diary in diaryStore.diaries" :key="diary.id">
-        {{ diary.title }}
-      </li>
-    </ul>
+    <FishingDiaryList v-if="store.diaries.length" :diaries="store.diaries" />
+    <p v-else>조황 정보를 불러오는 중입니다...</p>
   </div>
 </template>
 
 <style scoped>
+.center {
+  width: 80%;
+  margin: 5% auto;
+}
 </style>

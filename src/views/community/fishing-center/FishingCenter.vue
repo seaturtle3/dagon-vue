@@ -1,13 +1,13 @@
 <script setup>
 import {onMounted} from 'vue'
-import { useFishingCenterStore } from '@/store/fishing-center/useFishingCenterStore.js'
+import {useFishingCenterStore} from '@/store/fishing-center/useFishingCenterStore.js'
 import FishingCenterList from './components/FishingCenterList.vue'
 
 const store = useFishingCenterStore()
 
 onMounted(async () => {
   await store.fetchFishingCenters()
-  console.log('store.fishingCenters:', store.fishingCenters) // 이제 데이터 제대로 찍힘
+  console.log('-----------------fishingCenter :', store.fishingCenters) // 이제 데이터 제대로 찍힘
 })
 
 function handleSelect(centers) {
@@ -17,7 +17,10 @@ function handleSelect(centers) {
 
 <template>
   <div class="center">
-    <FishingCenterList :centers="store.fishingCenters" @select="handleSelect" />
+    <div v-if="store.isLoading">로딩 중...</div>
+    <div v-else>
+      <FishingCenterList :centers="store.fishingCenters"/>
+    </div>
   </div>
 </template>
 

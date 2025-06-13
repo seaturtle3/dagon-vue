@@ -15,7 +15,7 @@ export const useFishingCenterStore = defineStore('fishingCenter', {
                 const res = await axios.get('/api/fishing-center/get-all', {
                     params: { page: this.page, size: this.size }
                 })
-                console.log(res.data)
+                console.log(res.data.content)
 
                 this.fishingCenters = res.data.content
                 this.totalPages = res.data.totalPages

@@ -1,4 +1,3 @@
-<!-- src/views/fishing-center/components/FishingReportList.vue -->
 <script setup>
 const props = defineProps({
   reports: {

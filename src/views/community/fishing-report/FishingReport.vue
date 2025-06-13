@@ -5,23 +5,21 @@ import FishingReportList from "@/views/community/fishing-report/components/Fishi
 
 const store = useFishingReportStore()
 
-onMounted(() => {
-  store.fetchReports()
+onMounted(async () => {
+  await store.fetchReports()
+  console.log('-------------reports : ', store.reports)
 })
 </script>
 
 <template>
-  <div class="fishing-report center">
+  <div class="center">
     <h1>조황정보</h1>
-  <FishingReportList :reports="store.reports" />
+    <FishingReportList v-if="store.reports.length" :reports="store.reports" />
+    <p v-else>조황 정보를 불러오는 중입니다...</p>
   </div>
 </template>
 
 <style scoped>
-.fishing-report {
-  padding: 20px;
-}
-
 .center {
   width: 80%;
   margin: 5% auto;
