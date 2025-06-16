@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
 
 const props = defineProps({
   centers: {
@@ -61,12 +62,19 @@ const goToPage = (page) => {
           :key="item._type + '-' + (item.frId || item.fdId)"
           class="combined-box"
       >
+        <!-- 썸네일 -->
+        <img
+            v-if="item.thumbnailUrl"
+            class="thumbnail"
+            :src="`${IMAGE_BASE_URL}/${item._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${item.thumbnailUrl}`"
+            alt="썸네일"
+        />
+
         <p><strong>구분:</strong> {{ item._type === 'report' ? '조황정보' : '조행기' }}</p>
         <p><strong>제목:</strong> {{ item.title }}</p>
-        <p><strong>내용:</strong> {{ item.content }}</p>
-        <p>날짜: {{ item.fishingAt || '날짜 없음' }}</p>
         <p><strong>상품명:</strong> 없음</p>
         <p><strong>작성자:</strong> {{ item.user?.uname }}</p>
+        <p>날짜: {{ item.fishingAt || '날짜 없음' }}</p>
       </div>
     </div>
 
@@ -84,18 +92,34 @@ const goToPage = (page) => {
 .combined-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  grid-auto-rows: minmax(150px, auto);
+  grid-auto-rows: minmax(200px, auto);
   gap: 16px;
   padding: 10px 0;
-  margin-bottom: 40px; /* ← 하단 페이징과 겹치지 않도록 여백 추가 */
+  margin-bottom: 40px;
 }
 
 .combined-box {
   border: 1px solid #aaa;
   border-radius: 6px;
-  padding: 12px;
   background-color: #f9f9f9;
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.combined-box p {
+  margin: 2px 0;
+  font-size: 14px;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 50%;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 8px;
 }
 
 .count {
@@ -126,5 +150,4 @@ const goToPage = (page) => {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 </style>

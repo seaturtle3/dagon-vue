@@ -1,4 +1,6 @@
 <script setup>
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+
 const props = defineProps({
   reports: {
     type: Array,
@@ -16,15 +18,15 @@ const props = defineProps({
         :key="report.id"
     >
       <!-- 썸네일 이미지 -->
-      <div v-if="report.thumbnailUrl" class="thumbnail-wrapper">
-        <img :src="report.thumbnailUrl" alt="썸네일" class="thumbnail" />
-      </div>
+      <img
+          class="thumbnail"
+          :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+      />
 
       <h3>제목: {{ report.title }}</h3>
-      <p>내용: {{ report.content }}</p>
-      <p>날짜: {{ report.fishingAt || '날짜 없음' }}</p>
       <p>상품명: {{ report.product?.prodName }}</p>
       <p>작성자: {{ report.user?.uname }}</p>
+      <p>날짜: {{ report.fishingAt || '날짜 없음' }}</p>
     </div>
   </div>
 </template>
@@ -41,23 +43,20 @@ const props = defineProps({
 .report-card {
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 12px;
   background-color: #f9f9f9;
   box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-}
-
-.thumbnail-wrapper {
-  width: 100%;
-  height: 120px;
-  margin-bottom: 8px;
-  overflow: hidden;
-  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  height: 100%; /* grid-auto-rows 기준 따라감 */
 }
 
 .thumbnail {
   width: 100%;
-  height: 100%;
+  height: 50%; /* 전체 박스 높이의 50% */
   object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 8px;
 }
 </style>
