@@ -1,5 +1,6 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
 
 const props = defineProps({
   centers: {
@@ -9,22 +10,20 @@ const props = defineProps({
   }
 })
 
-console.log(props)
+const itemsPerPage = 18
+const currentPage = ref(1)
 
 const combinedList = computed(() => {
-  if (!Array.isArray(props.centers)) return [] // 이거 필수
+  if (!Array.isArray(props.centers)) return []
 
   return props.centers.flatMap(center => {
-    const product = center.product
     const reports = (center.reports || []).map(r => ({
       ...r,
       _type: 'report',
-      product,
     }))
     const diaries = (center.diaries || []).map(d => ({
       ...d,
       _type: 'diary',
-      product,
     }))
     return [...reports, ...diaries]
   }).sort((a, b) => {
@@ -32,9 +31,23 @@ const combinedList = computed(() => {
     if (!a.fishingAt) return 1
     if (!b.fishingAt) return -1
     return new Date(b.fishingAt) - new Date(a.fishingAt)
-  }).slice(0, 30)
+  })
 })
 
+const pagedList = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return combinedList.value.slice(start, start + itemsPerPage)
+})
+
+const totalPages = computed(() =>
+    Math.ceil(combinedList.value.length / itemsPerPage)
+)
+
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
 </script>
 
 <template>
@@ -43,22 +56,35 @@ const combinedList = computed(() => {
       전체 조황정보/조행기 <span class="count">({{ combinedList.length }})</span>
     </h2>
 
-    <div class="combined-grid" v-if="combinedList.length > 0">
+    <div class="combined-grid" v-if="pagedList.length > 0">
       <div
-          v-for="item in combinedList"
+          v-for="item in pagedList"
           :key="item._type + '-' + (item.frId || item.fdId)"
           class="combined-box"
       >
+        <!-- 썸네일 -->
+        <img
+            v-if="item.thumbnailUrl"
+            class="thumbnail"
+            :src="`${IMAGE_BASE_URL}/${item._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${item.thumbnailUrl}`"
+            alt="썸네일"
+        />
+
         <p><strong>구분:</strong> {{ item._type === 'report' ? '조황정보' : '조행기' }}</p>
         <p><strong>제목:</strong> {{ item.title }}</p>
-        <p><strong>내용:</strong> {{ item.content }}</p>
-        <p>날짜: {{ item.fishingAt?.slice(0, 10) || '날짜 없음' }}</p>
-        <p><strong>상품명:</strong> {{ item.product?.prodName }}</p>
+        <p><strong>상품명:</strong> 없음</p>
         <p><strong>작성자:</strong> {{ item.user?.uname }}</p>
+        <p>날짜: {{ item.fishingAt || '날짜 없음' }}</p>
       </div>
     </div>
 
     <div v-else class="text-gray-500">표시할 조황정보나 조행기가 없습니다.</div>
+
+    <div class="pagination" v-if="totalPages > 1">
+      <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">이전</button>
+      <span>Page {{ currentPage }} / {{ totalPages }}</span>
+      <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">다음</button>
+    </div>
   </div>
 </template>
 
@@ -66,21 +92,62 @@ const combinedList = computed(() => {
 .combined-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  grid-auto-rows: minmax(150px, auto);
+  grid-auto-rows: minmax(200px, auto);
   gap: 16px;
-  max-height: calc(150px * 5 + 16px * 4);
   padding: 10px 0;
+  margin-bottom: 40px;
 }
+
 .combined-box {
   border: 1px solid #aaa;
   border-radius: 6px;
-  padding: 12px;
   background-color: #f9f9f9;
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
+
+.combined-box p {
+  margin: 2px 0;
+  font-size: 14px;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 50%;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
 .count {
   color: #4a90e2;
   font-weight: 600;
   margin-left: 6px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-bottom: 20px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

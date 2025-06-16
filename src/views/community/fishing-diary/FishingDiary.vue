@@ -1,7 +1,6 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useFishingDiaryStore } from "@/store/fishing-center/useFishingDiaryStore.js";
-import {defineComponent} from "vue";
 import FishingDiaryList from "@/views/community/fishing-diary/components/FishingDiaryList.vue";
 
 const store = useFishingDiaryStore()

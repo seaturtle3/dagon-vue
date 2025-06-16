@@ -24,7 +24,7 @@ const topReports = computed(() =>
   <div class="popular-section">
     <div class="header">
       <h2 class="title">인기 조황정보</h2>
-      <button class="view-all" @click="router.push('/report')">전체보기 →</button>
+      <button class="view-all" @click="router.push('/fishing-report')">전체보기 </button>
     </div>
 
     <div class="report-grid">
@@ -33,33 +33,42 @@ const topReports = computed(() =>
           :key="report.frId"
           class="report-card"
       >
-        <h3 class="report-title">{{ report.title }}</h3>
-        <p class="report-date">{{ report.fishingAt?.slice(0, 10) || '날짜 없음' }}</p>
-        <p class="report-content">{{ report.content }}</p>
-        <p class="report-user">by {{ report.user?.uname }}</p>
+        <!-- 썸네일 이미지 -->
+        <img
+            class="thumbnail"
+            :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+            alt="썸네일"
+        />
+
+        <div class="report-info">
+          <h3 class="report-title">{{ report.title }}</h3>
+          <p class="report-user">by {{ report.user?.uname }}</p>
+          <p class="report-date">{{ report.fishingAt?.slice(0, 10) || '날짜 없음' }}</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.popular-section {
-  padding: 16px;
-}
-
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  position: relative;
 }
 
 .title {
   font-size: 20px;
   font-weight: bold;
+  margin: 0;
 }
 
 .view-all {
+  position: absolute;
+  right: 0;
+  top: 0;
   font-size: 14px;
   color: #4a90e2;
   background: none;
@@ -70,16 +79,32 @@ const topReports = computed(() =>
 .report-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  grid-auto-rows: minmax(150px, auto);
+  grid-auto-rows: minmax(220px, auto);
   gap: 16px;
 }
 
 .report-card {
   background-color: #f8f8f8;
-  padding: 12px;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 50%;
+  object-fit: cover;
+}
+
+.report-info {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1;
 }
 
 .report-title {
@@ -89,18 +114,11 @@ const topReports = computed(() =>
 .report-date {
   font-size: 12px;
   color: #777;
-  margin-bottom: 8px;
-}
-.report-content {
-  font-size: 14px;
-  color: #333;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-bottom: 6px;
 }
 .report-user {
   font-size: 12px;
   color: #888;
-  margin-top: 10px;
+  margin-top: auto;
 }
 </style>
