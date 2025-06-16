@@ -3,7 +3,7 @@
     <h1>예약 등록</h1>
     <p>예약할 배: {{ product.prodName }}</p>
 
-    <form @submit.prevent="openReservationPopup">
+    <form @submit.prevent="onSubmit">
       <label for="fishingAt">출조일</label>
       <input
           type="datetime-local"
@@ -12,7 +12,6 @@
       />
 
       <label for="numPerson">인원 수:</label>
-
       <input
           type="number"
           id="numPerson"
@@ -30,139 +29,142 @@
     </form>
 
     <br />
-    <button type="button" @click="openReservationPopup">예약 확인</button>
-    <button type="button" @click="requestPay">결제하기</button>
+    <button @click="openReservationPopup">예약 확인</button>
+    <button @click="requestPay">결제하기</button>
   </div>
 </template>
 
 <script>
+import { onMounted, reactive, ref, computed } from 'vue'
+import axios from 'axios'
+
 export default {
   name: 'ReservationForm',
-  data() {
-    return {
-      fishingAt: '',
-      numPerson: 1,
-      user: {
-        displayName: ''
-      },
-      product: {
-        prodName: '테스트 선박'
-      },
-      pricePerPerson: 1000
-    };
-  },
-  computed: {
-    totalAmount() {
-      return this.numPerson * this.pricePerPerson;
-    }
-  },
-  mounted() {
-    this.fetchUserInfo();
+  setup() {
+    const product = reactive({ prodName: '테스트 배' }) // 서버에서 받아오는 구조라면 props나 API 연동 필요
+    const fishingAt = ref('')
+    const numPerson = ref(1)
+    const user = reactive({ displayName: '' })
+    const pricePerPerson = 1000
 
-    // 아임포트 초기화
-    if (window.IMP) {
-      window.IMP.init("imp64386158");
+    const totalAmount = computed(() => numPerson.value * pricePerPerson)
+
+    const fetchUserInfo = async () => {
+      try {
+        const response = await axios.get('/api/users/me', {
+          headers: getAuthHeaders()
+        })
+        user.displayName = response.data.displayName
+      } catch (error) {
+        console.error('사용자 정보 요청 실패:', error)
+      }
     }
-  },
-  methods: {
-    fetchUserInfo() {
-      fetch('/api/users/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem('authToken')
-        }
-      })
-          .then(res => {
-            if (!res.ok) throw new Error("사용자 정보 요청 실패");
-            return res.json();
-          })
-          .then(data => {
-            this.user.displayName = data.displayName;
-          })
-          .catch(err => console.error("에러:", err));
-    },
-    openReservationPopup() {
+
+    const openReservationPopup = () => {
       const query = new URLSearchParams({
-        fishingAt: this.fishingAt,
-        numPerson: this.numPerson,
-        amount: this.totalAmount
-      }).toString();
+        fishingAt: fishingAt.value,
+        numPerson: numPerson.value,
+        amount: totalAmount.value
+      }).toString()
+      window.open(`/reservation/confirm?${query}`, '예약확인', 'width=1200,height=800')
+    }
 
-      window.open(`/reservation/confirm?${query}`, '예약확인', 'width=1200,height=800');
-    },
-    requestPay() {
-      const { IMP } = window;
-      IMP.request_pay({
-        pg: "html5_inicis.INIpayTest",
-        pay_method: "card",
-        merchant_uid: "ORD-" + new Date().getTime(),
-        name: "테스트 상품",
-        amount: this.totalAmount,
-        buyer_email: "test@test.com",
-        buyer_name: this.user.displayName,
-        buyer_tel: "010-0000-0000",
-        buyer_addr: "서울시 강남구",
-        buyer_postcode: "12345"
-      }, (rsp) => {
-        if (rsp.success) {
-          this.verifyPayment(rsp.imp_uid);
-        } else {
-          alert("결제 실패: " + rsp.error_msg);
-        }
-      });
-    },
-    verifyPayment(impUid) {
-      fetch("/api/payment/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + localStorage.getItem("authToken")
-        },
-        body: JSON.stringify({ imp_uid: impUid })
-      })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success === "true") {
-              this.createReservation();
-              alert("결제 성공 및 검증 완료");
+    const requestPay = () => {
+      if (!window.IMP) {
+        alert('결제 모듈이 로드되지 않았습니다.')
+        return
+      }
+
+      const IMP = window.IMP
+      IMP.init('imp64386158')
+
+      IMP.request_pay(
+          {
+            pg: 'html5_inicis.INIpayTest',
+            pay_method: 'card',
+            merchant_uid: 'ORD-' + new Date().getTime(),
+            name: '테스트 상품',
+            amount: totalAmount.value,
+            buyer_email: 'test@test.com',
+            buyer_name: user.displayName || '홍길동',
+            buyer_tel: '010-0000-0000',
+            buyer_addr: '서울시 강남구',
+            buyer_postcode: '12345'
+          },
+          (rsp) => {
+            if (rsp.success) {
+              verifyPayment(rsp.imp_uid)
             } else {
-              alert("결제 검증 실패: " + data.message);
+              alert('결제 실패: ' + rsp.error_msg)
             }
-          })
-          .catch(err => {
-            console.error("서버 통신 오류:", err);
-            alert("서버 오류가 발생했습니다.");
-          });
-    },
-    createReservation() {
-      const payload = {
-        fishingAt: this.fishingAt,
-        numPerson: this.numPerson,
-        amount: this.totalAmount
-        // 기타 필요한 필드: prodId, optId 등
-      };
+          }
+      )
+    }
 
-      fetch("/api/reservation", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + localStorage.getItem("authToken")
-        },
-        body: JSON.stringify(payload)
-      })
-          .then(res => {
-            if (!res.ok) throw new Error("예약 실패");
-            return res.json();
-          })
-          .then(data => {
-            alert("예약이 완료되었습니다.");
-            // 혹은 router.push('/reservation/list') 등으로 이동 처리
-          })
-          .catch(err => {
-            console.error("예약 오류:", err);
-            alert("예약 중 오류가 발생했습니다.");
-          });
+    const verifyPayment = async (impUid) => {
+      try {
+        const response = await axios.post(
+            '/api/payment/verify',
+            { imp_uid: impUid },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + localStorage.getItem('authToken')
+              }
+            }
+        )
+        if (response.data.success === 'true') {
+          alert('결제 성공 및 검증 완료')
+        } else {
+          alert('결제 검증 실패: ' + response.data.message)
+        }
+      } catch (error) {
+        console.error('서버 통신 오류:', error)
+        alert('서버 오류가 발생했습니다.')
+      }
+    }
+
+    const getAuthHeaders = () => {
+      return {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken')
+      }
+    }
+
+    const onSubmit = () => {
+      // 필요시 예약 등록 로직 처리
+      console.log('폼 제출')
+    }
+
+    onMounted(() => {
+      fetchUserInfo()
+    })
+
+    return {
+      product,
+      fishingAt,
+      numPerson,
+      user,
+      totalAmount,
+      openReservationPopup,
+      requestPay,
+      onSubmit
     }
   }
-};
+}
 </script>
+
+<!-- IAMPORT 스크립트 포함 -->
+<script src="https://cdn.iamport.kr/js/iamport.payment-1.1.8.js"></script>
+
+<style scoped>
+label {
+  display: block;
+  margin-top: 10px;
+}
+input {
+  margin-bottom: 10px;
+}
+button {
+  margin-right: 10px;
+}
+</style>

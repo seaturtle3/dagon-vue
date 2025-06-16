@@ -87,6 +87,13 @@ const routes = [
                 meta: {requiresAuth: true}
             },
             {
+                path: 'inquiries/:id',
+                name: 'AdminInquiryDetail',
+                component: () => import('@/views/support/inquiry/components/MemberInquiry.vue'),
+                props: true,
+                meta: {requiresAuth: true}
+            },
+            {
                 path: 'logout',
                 component: () => import('@/views/pages/dashboard/components/Logout.vue'),
                 meta: {requiresAuth: true}
@@ -114,7 +121,10 @@ const routes = [
             {path: 'dashboard', component: () => import('@/views/pages/partner-page/components/Dashboard.vue')},
             {path: 'info', component: () => import('@/views/pages/partner-page/components/PartnerInfo.vue')},
             {path: 'inquiries', component: () => import('@/views/pages/partner-page/components/InquiryList.vue')},
-            {path: 'reservations', component: () => import('@/views/pages/partner-page/components/ReservationList.vue')},
+            {
+                path: 'reservations',
+                component: () => import('@/views/pages/partner-page/components/ReservationList.vue')
+            },
             {path: 'products', component: () => import('@/views/pages/partner-page/components/ProductList.vue')},
             {path: 'market-info', component: () => import('@/views/pages/partner-page/components/MarketInfo.vue')},
             {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')}
@@ -152,7 +162,7 @@ const routes = [
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
-    {path: '/reservation', component: () => import('@/views/order/reservation/Reservation.vue')},
+    {path: '/reservation-confirm', component: () => import('@/views/order/reservation/components/ReservationConfirm.vue')},
     {path: '/reservation-form', component: () => import('@/views/order/reservation/components/ReservationForm.vue')},
 
     // community
@@ -187,20 +197,6 @@ const routes = [
         component: () => import('@/views/pages/partner-page/components/ProductRegister.vue')
     },
 ]
-
-// const routes = [
-//     {
-//         path: '/admin/inquiries',
-//         name: 'Inquiries',
-//         component: Inquiries,
-//     },
-//     {
-//         path: '/admin/inquiries/:id',
-//         name: 'MemberInquiry',
-//         component: MemberInquiry,
-//         props: true,
-//     },
-// ];
 
 const router = createRouter({
     history: createWebHistory(),
