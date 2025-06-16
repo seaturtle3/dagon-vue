@@ -16,6 +16,8 @@ import { fas } from '@fortawesome/free-solid-svg-icons'
 import { far } from '@fortawesome/free-regular-svg-icons'
 
 // 🔽 아이콘 라이브러리에 아이콘 추가
+
+
 library.add(fas, far)
 
 const app = createApp(App)

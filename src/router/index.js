@@ -87,6 +87,13 @@ const routes = [
                 meta: {requiresAuth: true}
             },
             {
+                path: 'inquiries/:id',
+                name: 'AdminInquiryDetail',
+                component: () => import('@/views/support/inquiry/components/MemberInquiry.vue'),
+                props: true,
+                meta: {requiresAuth: true}
+            },
+            {
                 path: 'logout',
                 component: () => import('@/views/pages/dashboard/components/Logout.vue'),
                 meta: {requiresAuth: true}
@@ -154,7 +161,7 @@ const routes = [
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
-    {path: '/reservation', component: () => import('@/views/order/reservation/Reservation.vue')},
+    {path: '/reservation-confirm', component: () => import('@/views/order/reservation/components/ReservationConfirm.vue')},
     {path: '/reservation-form', component: () => import('@/views/order/reservation/components/ReservationForm.vue')},
 
     // community
