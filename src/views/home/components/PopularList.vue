@@ -24,7 +24,7 @@ const topReports = computed(() =>
   <div class="popular-section">
     <div class="header">
       <h2 class="title">인기 조황정보</h2>
-      <button class="view-all" @click="router.push('/report')">전체보기 →</button>
+      <button class="view-all" @click="router.push('/fishing-report')">전체보기 →</button>
     </div>
 
     <div class="report-grid">
