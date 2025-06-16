@@ -17,7 +17,7 @@ const props = defineProps({
     >
       <h3>제목: {{ diary.title }}</h3>
       <p>내용: {{ diary.content }}</p>
-      <p>날짜: {{ diary.fishingAt ? diary.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
+      <p>날짜: {{ diary.fishingAt || '날짜 없음' }}</p>
       <p>상품명: {{ diary.product?.prodName }}</p>
       <p>작성자: {{ diary.user?.uname }}</p>
     </div>
