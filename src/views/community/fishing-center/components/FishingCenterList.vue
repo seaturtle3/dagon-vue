@@ -9,6 +9,8 @@ const props = defineProps({
   }
 })
 
+console.log(props)
+
 const combinedList = computed(() => {
   if (!Array.isArray(props.centers)) return [] // 이거 필수
 
@@ -67,7 +69,6 @@ const combinedList = computed(() => {
   grid-auto-rows: minmax(150px, auto);
   gap: 16px;
   max-height: calc(150px * 5 + 16px * 4);
-  overflow-y: auto;
   padding: 10px 0;
 }
 .combined-box {

@@ -4,66 +4,59 @@
     
     <div class="filter-section">
       <div class="search-box">
-        <input type="text" v-model="searchQuery" placeholder="예약자명 또는 상품명을 입력하세요">
-        <button class="search-button" @click="searchReservations">검색</button>
+        <input type="text" v-model="searchQuery" placeholder="상품명을 입력하세요">
+        <button class="search-button" @click="searchReservations"><i class="fa-solid fa-eye"></i></button>
       </div>
       
       <div class="filter-options">
         <select v-model="statusFilter" @change="filterReservations">
           <option value="all">전체</option>
-          <option value="PENDING">대기중</option>
-          <option value="CONFIRMED">확정</option>
-          <option value="CANCELLED">취소됨</option>
+          <option value="PENDING">대기</option>
+          <option value="PAID">결제완료</option>
+          <option value="CANCELED">취소됨</option>
         </select>
       </div>
     </div>
 
-    <div class="reservation-grid">
-      <div v-for="reservation in filteredReservations" :key="reservation.id" class="reservation-card">
-        <div class="reservation-header">
-          <h3>{{ reservation.productName }}</h3>
-          <span :class="['status-badge', reservation.status.toLowerCase()]">
-            {{ getStatusText(reservation.status) }}
+    <div class="reservation-table">
+      <div class="table-header">
+        <div class="header-item">상품명</div>
+        <div class="header-item">예약자</div>
+        <div class="header-item">예약일</div>
+        <div class="header-item">인원</div>
+        <div class="header-item">결제방법</div>
+        <div class="header-item">상태</div>
+        <div class="header-item">관리</div>
+      </div>
+
+      <div v-for="reservation in filteredReservations" :key="reservation.reservationId" class="reservation-row" :class="{ 'deleted': reservation.deleted }">
+        <div class="row-item">
+          {{ reservation.productName || '상품명 없음' }}
+          <span v-if="reservation.deleted" class="deleted-mark">
+            <i class="fas fa-times"></i> 비공개
           </span>
         </div>
-        
-        <div class="reservation-info">
-          <div class="info-item">
-            <label>예약자</label>
-            <p>{{ reservation.userName }}</p>
-          </div>
-          <div class="info-item">
-            <label>예약일</label>
-            <p>{{ formatDate(reservation.reservationDate) }}</p>
-          </div>
-          <div class="info-item">
-            <label>인원</label>
-            <p>{{ reservation.personCount }}명</p>
-          </div>
-          <div class="info-item">
-            <label>금액</label>
-            <p>{{ formatPrice(reservation.totalPrice) }}원</p>
-          </div>
+        <div class="row-item">{{ reservation.userName }}</div>
+        <div class="row-item">{{ formatDate(reservation.fishingAt) }}</div>
+        <div class="row-item">{{ reservation.numPerson }}명</div>
+        <div class="row-item">{{ reservation.paymentsMethod }}</div>
+        <div class="row-item">
+          <span :class="['status-badge', (reservation.reservationStatus || '').toLowerCase()]">
+            {{ getStatusText(reservation.reservationStatus) }}
+          </span>
         </div>
-
-        <div class="reservation-actions">
+        <div class="row-item actions">
           <button 
-            v-if="reservation.status === 'PENDING'"
-            class="confirm-button"
-            @click="confirmReservation(reservation.id)"
-          >
-            확정
-          </button>
-          <button 
-            v-if="reservation.status === 'PENDING'"
+            v-if="reservation.reservationStatus === 'PENDING'"
             class="cancel-button"
-            @click="cancelReservation(reservation.id)"
+            @click="cancelReservation(reservation.reservationId)"
           >
             취소
           </button>
+          
           <button 
             class="detail-button"
-            @click="viewReservationDetail(reservation.id)"
+            @click="viewReservationDetail(reservation.reservationId)"
           >
             상세보기
           </button>
@@ -93,96 +86,63 @@ export default {
     filteredReservations() {
       return this.reservations.filter(reservation => {
         const matchesSearch = 
-          reservation.productName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          reservation.userName.toLowerCase().includes(this.searchQuery.toLowerCase())
-        const matchesStatus = this.statusFilter === 'all' || reservation.status === this.statusFilter
-        return matchesSearch && matchesStatus
-      })
+          (reservation.productName?.toLowerCase() || '').includes(this.searchQuery.toLowerCase()) ||
+          (reservation.userName?.toLowerCase() || '').includes(this.searchQuery.toLowerCase());
+        const matchesStatus = this.statusFilter === 'all' || 
+          (reservation.reservationStatus || '').toUpperCase() === this.statusFilter;
+        return matchesSearch && matchesStatus;
+      });
     }
   },
   methods: {
     async loadReservations() {
       try {
-        // API 연동 전 임시 데이터
-        this.reservations = [
-          {
-            id: 1,
-            productName: '바다낚시 체험',
-            userName: '홍길동',
-            reservationDate: '2024-03-15',
-            personCount: 2,
-            totalPrice: 100000,
-            status: 'PENDING'
-          },
-          {
-            id: 2,
-            productName: '민물낚시 체험',
-            userName: '김철수',
-            reservationDate: '2024-03-16',
-            personCount: 3,
-            totalPrice: 150000,
-            status: 'CONFIRMED'
-          },
-          {
-            id: 3,
-            productName: '선상낚시 체험',
-            userName: '이영희',
-            reservationDate: '2024-03-17',
-            personCount: 4,
-            totalPrice: 200000,
-            status: 'CANCELLED'
-          }
-        ]
+        const response = await partnerService.getPartnerReservations();
+        this.reservations = response.data;
       } catch (error) {
-        console.error('예약 목록 로딩 실패:', error)
-        alert('예약 목록을 불러오는데 실패했습니다.')
+        console.error('예약 목록 로딩 실패:', error);
+        alert('예약 목록을 불러오는데 실패했습니다.');
       }
     },
     formatDate(dateString) {
-      const date = new Date(dateString)
+      const date = new Date(dateString);
       return date.toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
-      })
+      });
     },
     formatPrice(price) {
-      return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+      return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
     getStatusText(status) {
-      const statusMap = {
-        'PENDING': '대기중',
-        'CONFIRMED': '확정',
-        'CANCELLED': '취소됨'
-      }
-      return statusMap[status] || status
-    },
-    async confirmReservation(id) {
-      if (!confirm('예약을 확정하시겠습니까?')) return
+      if (!status) return '상태 없음';
       
-      try {
-        await partnerService.confirmReservation(id)
-        await this.loadReservations()
-        alert('예약이 확정되었습니다.')
-      } catch (error) {
-        console.error('예약 확정 실패:', error)
-        alert('예약 확정에 실패했습니다.')
-      }
+      const statusMap = {
+        'PENDING': '대기',
+        'PAID': '결제완료',
+        'CANCELED': '취소됨'
+      };
+      return statusMap[status.toUpperCase()] || status;
     },
     async cancelReservation(id) {
-      if (!confirm('예약을 취소하시겠습니까?')) return
+      if (!confirm('예약을 취소하시겠습니까?')) return;
       
       try {
-        await partnerService.cancelReservation(id)
-        await this.loadReservations()
-        alert('예약이 취소되었습니다.')
+        await partnerService.cancelReservation(id);
+        await this.loadReservations();
+        alert('예약이 취소되었습니다.');
       } catch (error) {
-        console.error('예약 취소 실패:', error)
-        alert('예약 취소에 실패했습니다.')
+        console.error('예약 취소 실패:', error);
+        if (error.response?.status === 403) {
+          alert('해당 예약을 취소할 수 없습니다.');
+        } else {
+          alert('예약 취소에 실패했습니다.');
+        }
       }
     },
     viewReservationDetail(id) {
-      this.$router.push(`/partner/reservations/${id}`)
+      this.$router.push(`/partner/reservations/${id}`);
     },
     searchReservations() {
       // 검색 로직은 computed 속성에서 처리됨
@@ -199,78 +159,140 @@ export default {
 
 <style scoped>
 .reservation-list {
-  padding: 20px;
+  padding: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .page-title {
-  margin-bottom: 30px;
-  color: #333;
+  margin-bottom: 40px;
+  color: #1a237e;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .filter-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  gap: 20px;
 }
 
 .search-box {
   display: flex;
   gap: 10px;
+  flex: 1;
+  max-width: 500px;
 }
 
 .search-box input {
-  padding: 8px 12px;
+  padding: 12px 15px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 300px;
+  border-radius: 6px;
+  width: 100%;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  border-color: #1a237e;
+  box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+  outline: none;
 }
 
 .search-button {
-  padding: 8px 16px;
+  padding: 12px 24px;
   background: #1a237e;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
+}
+
+.search-button:hover {
+  background: #283593;
+  transform: translateY(-2px);
 }
 
 .filter-options select {
-  padding: 8px 12px;
+  padding: 12px 15px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 1rem;
+  min-width: 150px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.reservation-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+.filter-options select:focus {
+  border-color: #1a237e;
+  box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+  outline: none;
 }
 
-.reservation-card {
+.reservation-table {
   background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
 }
 
-.reservation-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.reservation-header h3 {
-  margin: 0;
+.table-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 0.8fr 1fr 1fr 1.2fr;
+  padding: 15px 20px;
+  background: #eef2f7;
+  border-bottom: 2px solid #eee;
+  font-weight: 700;
   color: #333;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+.reservation-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 0.8fr 1fr 1fr 1.2fr;
+  padding: 15px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.reservation-row:last-child {
+  border-bottom: none;
+}
+
+.reservation-row:hover {
+  background: #f8f9fa;
+}
+
+.header-item, .row-item {
+  padding: 0;
 }
 
 .status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
 }
 
 .status-badge.pending {
@@ -278,67 +300,39 @@ export default {
   color: #ef6c00;
 }
 
-.status-badge.confirmed {
+.status-badge.paid {
   background: #e8f5e9;
   color: #2e7d32;
 }
 
-.status-badge.cancelled {
+.status-badge.canceled {
   background: #ffebee;
   color: #c62828;
 }
 
-.reservation-info {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.info-item label {
-  display: block;
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 5px;
-}
-
-.info-item p {
-  margin: 0;
-  color: #333;
-  font-size: 1.1rem;
-}
-
-.reservation-actions {
+.actions {
   display: flex;
   gap: 10px;
 }
 
-.reservation-actions button {
-  flex: 1;
-  padding: 8px;
+.actions button {
+  padding: 8px 16px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s;
-}
-
-.confirm-button {
-  background: #2e7d32;
-  color: white;
-}
-
-.confirm-button:hover {
-  background: #1b5e20;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .cancel-button {
-  background: #c62828;
+  background: #dc3545;
   color: white;
 }
 
 .cancel-button:hover {
-  background: #b71c1c;
+  background: #c82333;
+  transform: translateY(-2px);
 }
 
 .detail-button {
@@ -348,12 +342,121 @@ export default {
 
 .detail-button:hover {
   background: #283593;
+  transform: translateY(-2px);
 }
 
 .no-reservations {
   text-align: center;
-  padding: 40px;
+  padding: 80px;
   color: #666;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px dashed #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-top: 30px;
+}
+
+.reservation-row.deleted {
+  opacity: 0.85;
+  background-color: #f8f9fa;
+  border-left: 4px solid #dc3545;
+}
+
+.deleted-mark {
+  color: #dc3545;
+  font-size: 0.9em;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.deleted-mark i {
+  font-size: 1em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .reservation-list {
+    padding: 20px;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .search-box {
+    max-width: 100%;
+  }
+
+  .filter-options {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .reservation-table {
+    overflow-x: auto;
+  }
+
+  .table-header, .reservation-row {
+    grid-template-columns: minmax(150px, 1.5fr) repeat(6, minmax(100px, 1fr));
+  }
+
+  .table-header {
+    padding: 15px 10px;
+  }
+
+  .reservation-row {
+    padding: 15px 10px;
+  }
+
+  .actions button {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-header {
+    display: none; /* Hide table header on small screens */
+  }
+
+  .reservation-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid #eee;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    padding: 15px;
+  }
+
+  .row-item {
+    width: 100%;
+    padding: 5px 0;
+    text-align: left;
+  }
+
+  .row-item:first-child {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #1a237e;
+    margin-bottom: 10px;
+  }
+
+  .row-item.actions {
+    justify-content: flex-end;
+    width: 100%;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+  }
 }
 </style> 

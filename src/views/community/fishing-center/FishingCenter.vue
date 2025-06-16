@@ -6,8 +6,7 @@ import FishingCenterList from './components/FishingCenterList.vue'
 const store = useFishingCenterStore()
 
 onMounted(async () => {
-  await store.fetchFishingCenterData()
-  console.log(store)
+  store.fetchFishingCenterData()
 })
 
 </script>
@@ -16,7 +15,7 @@ onMounted(async () => {
   <div class="center">
     <div v-if="store.isLoading">로딩 중...</div>
     <div v-else>
-      <FishingCenterList :centers="store.fetchFishingCenterData"/>
+      <FishingCenterList :centers="[{ reports: store.reportList, diaries: store.diaryList }]" />
     </div>
   </div>
 </template>

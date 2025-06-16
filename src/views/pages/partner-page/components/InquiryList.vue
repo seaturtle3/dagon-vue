@@ -5,7 +5,7 @@
     <div class="filter-section">
       <div class="search-box">
         <input type="text" v-model="searchQuery" placeholder="제목를 검색해주세요">
-        <button class="search-button" @click="searchInquiries">검색</button>
+        <button class="search-button" @click="searchInquiries"><i class="fa-solid fa-eye"></i></button>
       </div>
       
       <div class="filter-options">
@@ -37,7 +37,7 @@
             <td>{{ inquiry.id }}</td>
             <td>{{ inquiry.inquiryType }}</td>
             <td>{{ inquiry.title }}</td>
-            <td>{{ inquiry.writer }}</td>
+            <td>{{ inquiry.userName }}</td>
             <td>{{ formatDate(inquiry.createdAt) }}</td>
             <td>
               <span :class="['status-badge', inquiry.answerContent ? 'completed' : 'pending']">
@@ -59,8 +59,8 @@
           <p><strong>제목:</strong> {{ selectedInquiry.title }}</p>
           <p><strong>내용:</strong> {{ selectedInquiry.content }}</p>
           <p><strong>유형:</strong> {{ selectedInquiry.inquiryType }}</p>
-          <p><strong>작성자:</strong> {{ selectedInquiry.writer }}</p>
-          <p><strong>연락처:</strong> {{ selectedInquiry.contact }}</p>
+          <p><strong>작성자:</strong> {{ selectedInquiry.userName }}</p>
+          <p><strong>업소명:</strong> {{ selectedInquiry.partnerName }}</p>
           <p><strong>작성일:</strong> {{ formatDate(selectedInquiry.createdAt) }}</p>
         </div>
         
@@ -145,7 +145,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`http://localhost:8095/api/inquiries/partner-inquiries?partnerUno=${this.partnerUno}`, {
+        const response = await fetch(`http://localhost:8095/api/inquiry/partner-inquiries?partnerUno=${this.partnerUno}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -224,60 +224,104 @@ export default {
 
 <style scoped>
 .inquiry-list {
-  padding: 20px;
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .page-title {
-  margin-bottom: 30px;
-  color: #333;
+  margin-bottom: 40px;
+  color: #1a237e;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .filter-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .search-box {
   display: flex;
   gap: 10px;
+  flex: 1;
+  max-width: 500px;
 }
 
 .search-box input {
-  padding: 8px 12px;
+  padding: 12px 15px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 300px;
+  border-radius: 6px;
+  width: 100%;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  border-color: #1a237e;
+  box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+  outline: none;
 }
 
 .search-button {
-  padding: 8px 16px;
-  background-color: #1976d2;
+  padding: 12px 24px;
+  background-color: #1a237e;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: #283593;
+  transform: translateY(-2px);
 }
 
 .filter-options {
   display: flex;
-  gap: 10px;
+  gap: 15px;
 }
 
 .filter-options select,
-.filter-options input {
-  padding: 8px 12px;
+.filter-options input[type="date"] {
+  padding: 12px 15px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 1rem;
+  min-width: 150px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-options select:focus,
+.filter-options input[type="date"]:focus {
+  border-color: #1a237e;
+  box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+  outline: none;
 }
 
 .table-container {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
   overflow: hidden;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  border: 1px solid #e0e0e0;
 }
 
 table {
@@ -286,26 +330,33 @@ table {
 }
 
 th, td {
-  padding: 12px 15px;
+  padding: 15px 20px;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.95rem;
 }
 
 th {
-  background-color: #f5f5f5;
-  font-weight: 600;
+  background-color: #eef2f7;
+  font-weight: 700;
   color: #333;
+  text-transform: uppercase;
+}
+
+tr:last-child td {
+  border-bottom: none;
 }
 
 .status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .status-badge.pending {
   background-color: #fff3e0;
-  color: #e65100;
+  color: #ef6c00;
 }
 
 .status-badge.completed {
@@ -314,36 +365,57 @@ th {
 }
 
 .view-button {
-  padding: 6px 12px;
-  background-color: #f5f5f5;
+  padding: 8px 16px;
+  background-color: #1a237e;
+  color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  color: #333;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.view-button:hover {
+  background-color: #283593;
+  transform: translateY(-2px);
 }
 
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
+  margin-top: 30px;
 }
 
 .page-button {
-  padding: 8px 16px;
-  background-color: #f5f5f5;
-  border: none;
-  border-radius: 4px;
+  padding: 10px 18px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.page-button:hover:not(:disabled) {
+  background-color: #eef2f7;
+  transform: translateY(-2px);
 }
 
 .page-button:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .page-info {
   color: #666;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .inquiry-detail-modal {
@@ -352,7 +424,7 @@ th {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -361,54 +433,181 @@ th {
 
 .modal-content {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
+  padding: 2.5rem;
+  border-radius: 12px;
   width: 90%;
-  max-width: 600px;
-  max-height: 80vh;
+  max-width: 700px;
+  max-height: 85vh;
   overflow-y: auto;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
-.inquiry-info {
-  margin-bottom: 1.5rem;
+.modal-content h2 {
+  color: #1a237e;
+  font-size: 2rem;
+  margin-bottom: 25px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
 }
 
 .inquiry-info p {
-  margin: 0.5rem 0;
+  margin: 10px 0;
+  color: #444;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.inquiry-info strong {
+  color: #222;
 }
 
 .answer-section {
-  margin-top: 1.5rem;
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid #eee;
+}
+
+.answer-section h3 {
+  color: #1a237e;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
 }
 
 .answer-section textarea {
-  width: 100%;
-  padding: 0.5rem;
+  width: calc(100% - 20px);
+  padding: 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  margin: 0.5rem 0;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 1rem;
+  resize: vertical;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.answer-section textarea:focus {
+  border-color: #1a237e;
+  box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+  outline: none;
 }
 
 .button-group {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.submit-button, .close-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
 .submit-button {
-  padding: 8px 16px;
-  background-color: #1976d2;
+  background-color: #1a237e;
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+}
+
+.submit-button:hover {
+  background-color: #283593;
+  transform: translateY(-2px);
 }
 
 .close-button {
-  padding: 8px 16px;
-  background-color: #f5f5f5;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.close-button:hover {
+  background-color: #ccc;
+  transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .search-box {
+    max-width: 100%;
+  }
+
+  .filter-options {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  tr {
+    border: 1px solid #eee;
+    margin-bottom: 15px;
+    border-radius: 8px;
+  }
+
+  td {
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 50%;
+    text-align: right;
+  }
+
+  td:before {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: bold;
+    color: #666;
+  }
+
+  td:nth-of-type(1):before { content: "문의번호"; }
+  td:nth-of-type(2):before { content: "문의유형"; }
+  td:nth-of-type(3):before { content: "제목"; }
+  td:nth-of-type(4):before { content: "작성자"; }
+  td:nth-of-type(5):before { content: "작성일"; }
+  td:nth-of-type(6):before { content: "상태"; }
+  td:nth-of-type(7):before { content: "관리"; }
+
+  .modal-content {
+    padding: 1.5rem;
+  }
+
+  .modal-content h2 {
+    font-size: 1.8rem;
+  }
+
+  .answer-section h3 {
+    font-size: 1.3rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .submit-button, .close-button {
+    width: 100%;
+    padding: 10px;
+  }
 }
 </style> 
