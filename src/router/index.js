@@ -115,8 +115,10 @@ const routes = [
             {path: 'info', component: () => import('@/views/pages/partner-page/components/PartnerInfo.vue')},
             {path: 'inquiries', component: () => import('@/views/pages/partner-page/components/InquiryList.vue')},
             {path: 'reservations', component: () => import('@/views/pages/partner-page/components/ReservationList.vue')},
+            {path: 'reservations/:id', component: () => import('@/views/pages/partner-page/components/ReservationDetail.vue')},
             {path: 'products', component: () => import('@/views/pages/partner-page/components/ProductList.vue')},
-            {path: 'market-info', component: () => import('@/views/pages/partner-page/components/MarketInfo.vue')},
+            {path: 'market-info', component: () => import('@/views/pages/partner-page/components/FishingReportManager.vue')},
+            {path: 'market-info/:id', component: () => import('@/views/pages/partner-page/components/FishingReportDetail.vue')},
             {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')}
         ]
     },

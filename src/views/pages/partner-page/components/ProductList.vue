@@ -10,7 +10,7 @@
     <div class="filter-section">
       <div class="search-box">
         <input type="text" v-model="searchQuery" placeholder="상품명을 입력하세요">
-        <button class="search-button" @click="searchProducts">검색</button>
+        <button class="search-button" @click="searchProducts"><i class="fa-solid fa-eye"></i></button>
       </div>
       
       <div class="filter-options">
@@ -19,28 +19,104 @@
           <option value="SEA">바다낚시</option>
           <option value="FRESHWATER">민물낚시</option>
         </select>
+        <select v-model="statusFilter" @change="filterProducts">
+          <option value="all">전체 상태</option>
+          <option value="active">공개</option>
+          <option value="deleted">비공개</option>
+        </select>
       </div>
     </div>
 
     <div class="product-grid">
-      <div v-for="product in filteredProducts" :key="product.prodId" class="product-card" @click="$router.push(`/products/${product.prodId}`)">
-        <div class="product-image">
+      <div v-for="product in filteredProducts" :key="product.prodId" class="product-card" :class="{ 'deleted': product.deleted }">
+        <div class="product-image" @click="$router.push(`/products/${product.prodId}`)">
           <img :src="getThumbnailUrl(product.prodThumbnail)" :alt="product.prodName">
           <span :class="['type-badge', product.mainType?.toLowerCase()]">
             {{ getTypeText(product.mainType) }}
           </span>
+          <div v-if="product.deleted" class="deleted-badge">
+            <i class="fas fa-times-circle"></i> 비공개
+          </div>
         </div>
         
         <div class="product-info">
-          <h3 class="product-name">{{ product.prodName }}</h3>
+          <h3 class="product-name">
+            {{ product.prodName }}
+            <span v-if="product.deleted" class="deleted-mark">
+              <i class="fas fa-times"></i>
+            </span>
+          </h3>
           <p class="product-region">{{ product.prodRegion || '지역 미지정' }}</p>
           <p class="product-subtype">{{ getSubTypeText(product.subType) }}</p>
+          <div class="product-actions">
+            <button v-if="!product.deleted" class="delete-button" @click.stop="deleteProduct(product.prodId)">비공개</button>
+            <button v-else class="restore-button" @click.stop="restoreProduct(product.prodId)">복구</button>
+            <button class="report-button" @click.stop="openCreateReportForm(product.prodId)">조황 등록</button>
+          </div>
         </div>
       </div>
     </div>
 
     <div v-if="products.length === 0" class="no-products">
       등록된 상품이 없습니다.
+    </div>
+
+    <!-- 조황 등록 폼 (오버레이) -->
+    <div v-if="showCreateReportFormForProduct" class="create-report-overlay">
+      <div class="create-report-form-container">
+        <h3>{{ getProductNameForReport() }} 조황정보 등록</h3>
+        <form @submit.prevent="createReportForProduct">
+          <div class="form-group">
+            <label for="reportTitle">제목</label>
+            <input
+              type="text"
+              id="reportTitle"
+              v-model="newReport.title"
+              required
+              placeholder="조황정보 제목"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="reportContent">내용</label>
+            <textarea
+              id="reportContent"
+              v-model="newReport.content"
+              required
+              placeholder="조황정보 내용"
+              rows="4"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="fishingAt">낚시 날짜</label>
+            <input
+              type="date"
+              id="fishingAt"
+              v-model="newReport.fishingAt"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="imageFile">이미지 파일</label>
+            <input
+              type="file"
+              id="imageFile"
+              @change="handleThumbnailChange"
+              accept="image/*"
+            />
+            <div v-if="thumbnailPreview" class="thumbnail-preview">
+              <img :src="thumbnailPreview" alt="썸네일 미리보기" />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="submit-button">등록</button>
+            <button type="button" class="cancel-button" @click="cancelCreateReport">취소</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
@@ -54,8 +130,18 @@ export default {
     return {
       searchQuery: '',
       typeFilter: 'all',
+      statusFilter: 'all',
       products: [],
-      defaultImage: '/src/assets/images/default-product.jpg'
+      defaultImage: '/images/default-product.jpg',
+      showCreateReportFormForProduct: false,
+      selectedProdId: null,
+      newReport: {
+        title: '',
+        content: '',
+        fishingAt: '',
+      },
+      thumbnailFile: null,
+      thumbnailPreview: null,
     }
   },
   computed: {
@@ -63,15 +149,25 @@ export default {
       return this.products.filter(product => {
         const matchesSearch = product.prodName.toLowerCase().includes(this.searchQuery.toLowerCase());
         const matchesType = this.typeFilter === 'all' || product.mainType === this.typeFilter;
-        return matchesSearch && matchesType;
+        const matchesStatus = this.statusFilter === 'all' || 
+          (this.statusFilter === 'active' && !product.deleted) ||
+          (this.statusFilter === 'deleted' && product.deleted);
+        return matchesSearch && matchesType && matchesStatus;
       });
     }
   },
   methods: {
     async loadProducts() {
       try {
-        const response = await partnerService.getPartnerProducts();
-        this.products = response.data;
+        const response = await partnerService.getPartnerAllProducts();
+        console.log('받아온 상품 데이터:', response.data);
+        this.products = response.data.map(product => {
+          console.log(`상품 ${product.prodId}의 deleted 상태:`, product.deleted);
+          return {
+            ...product,
+            deleted: product.deleted || false // deleted가 undefined인 경우 false로 설정
+          };
+        });
       } catch (error) {
         console.error("상품 목록 로딩 실패:", error);
         alert("상품 목록을 불러오는데 실패했습니다.");
@@ -112,6 +208,119 @@ export default {
     },
     filterProducts() {
       // 필터링 로직은 computed 속성에서 처리됨
+    },
+    async deleteProduct(prodId) {
+      if (!confirm('이 상품을 비공개로 설정하시겠습니까?')) {
+        return;
+      }
+
+      try {
+        await partnerService.deleteProduct(prodId);
+        alert('상품이 비공개로 설정되었습니다.');
+        await this.loadProducts();
+      } catch (error) {
+        console.error('상품 비공개 설정 실패:', error);
+        if (error.response?.status === 403) {
+          alert('권한이 없습니다.');
+        } else if (error.response?.status === 404) {
+          alert('상품을 찾을 수 없습니다.');
+        } else {
+          alert(error.response?.data?.message || '상품 비공개 설정에 실패했습니다.');
+        }
+      }
+    },
+    async restoreProduct(prodId) {
+      if (!confirm('이 상품을 다시 공개하시겠습니까?')) {
+        return;
+      }
+
+      try {
+        await partnerService.restoreProduct(prodId);
+        alert('상품이 성공적으로 복구되었습니다.');
+        await this.loadProducts();
+      } catch (error) {
+        console.error('상품 복구 실패:', error);
+        if (error.response?.status === 403) {
+          alert('복구 권한이 없습니다.');
+        } else {
+          alert(error.response?.data?.message || '상품 복구에 실패했습니다.');
+        }
+      }
+    },
+    // 조황 등록 폼 열기
+    openCreateReportForm(prodId) {
+      this.selectedProdId = prodId;
+      this.showCreateReportFormForProduct = true; // 폼 표시
+      this.resetNewReportForm();
+    },
+    // 조황 등록 폼 닫기 및 초기화
+    cancelCreateReport() {
+      this.showCreateReportFormForProduct = false;
+      this.selectedProdId = null;
+      this.resetNewReportForm();
+    },
+    // 새 조황정보 폼 데이터 초기화
+    resetNewReportForm() {
+      this.newReport = {
+        title: '',
+        content: '',
+        fishingAt: '',
+      };
+      this.thumbnailFile = null;
+      this.thumbnailPreview = null;
+    },
+    // 썸네일 이미지 변경 처리
+    handleThumbnailChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.thumbnailFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.thumbnailPreview = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        this.thumbnailFile = null;
+        this.thumbnailPreview = null;
+      }
+    },
+    // 폼 제목에 상품명 표시
+    getProductNameForReport() {
+      const product = this.products.find(p => p.prodId === this.selectedProdId);
+      return product ? product.prodName : '';
+    },
+    // 조황 정보 등록 처리
+    async createReportForProduct() {
+      console.log("createReportForProduct 호출됨, prodId:", this.selectedProdId);
+      if (!confirm('조황정보를 등록하시겠습니까?')) {
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        // 백엔드 @RequestPart("dto")에 맞춤
+        formData.append("dto", new Blob([JSON.stringify({
+          title: this.newReport.title,
+          content: this.newReport.content,
+          fishingAt: this.newReport.fishingAt, // 날짜 필드
+          prodId: this.selectedProdId // 선택된 상품 ID 추가
+        })], { type: "application/json" }));
+
+        // 백엔드 @RequestPart(value = "thumbnailFile")에 맞춤
+        if (this.thumbnailFile) {
+          formData.append("thumbnailFile", this.thumbnailFile);
+        }
+
+        await partnerService.createFishingReport(formData);
+        alert('조황정보가 성공적으로 등록되었습니다.');
+        this.cancelCreateReport(); // 폼 닫기
+        // 조황 등록 후 상품 목록을 새로고침할 필요는 없지만,
+        // 만약 상품 목록에 조황 정보 요약이 표시된다면 loadProducts()를 호출할 수 있습니다.
+        // 현재 ProductList에서는 직접적으로 조황 정보를 표시하지 않으므로 생략.
+      } catch (error) {
+        console.error('조황정보 등록 실패:', error);
+        alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.');
+      }
     }
   },
   mounted() {
@@ -122,92 +331,149 @@ export default {
 
 <style scoped>
 .product-list {
-  padding: 20px;
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
 }
 
 .page-title {
   margin: 0;
-  color: #333;
+  color: #1a237e;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .register-button {
-  padding: 10px 20px;
-  background-color: #1976d2;
+  padding: 12px 24px;
+  background-color: #1a237e;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.register-button:hover {
+  background-color: #283593;
+  transform: translateY(-2px);
 }
 
 .filter-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .search-box {
   display: flex;
   gap: 10px;
+  flex: 1;
+  max-width: 500px;
 }
 
 .search-box input {
-  padding: 8px 12px;
+  padding: 12px 15px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 300px;
+  border-radius: 6px;
+  width: 100%;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  border-color: #1a237e;
+  box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+  outline: none;
 }
 
 .search-button {
-  padding: 8px 16px;
-  background-color: #1976d2;
+  padding: 12px 24px;
+  background: #1a237e;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  writing-mode: horizontal-tb; /* 글자를 다시 가로로 정렬 */
+  text-orientation: mixed; /* 글자 방향 유지 */
+}
+
+.search-button:hover {
+  background: #283593;
+  transform: translateY(-2px);
 }
 
 .filter-options {
   display: flex;
-  gap: 10px;
+  gap: 15px;
 }
 
 .filter-options select {
-  padding: 8px 12px;
+  padding: 12px 15px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 1rem;
+  min-width: 150px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-options select:focus {
+  border-color: #1a237e;
+  box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+  outline: none;
 }
 
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 25px;
+  margin-bottom: 30px;
 }
 
 .product-card {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
   overflow: hidden;
-  transition: transform 0.2s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
+  border: 1px solid #e0e0e0;
 }
 
 .product-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
 }
 
 .product-image {
   position: relative;
-  height: 200px;
+  height: 220px;
+  overflow: hidden;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .product-image img {
@@ -215,20 +481,26 @@ export default {
   height: 100%;
   object-fit: cover;
   background-color: #f5f5f5;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.05);
 }
 
 .type-badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  top: 15px;
+  right: 15px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
   color: white;
+  font-weight: 600;
 }
 
 .type-badge.sea {
-  background-color: #1976d2;
+  background-color: #1a237e;
 }
 
 .type-badge.freshwater {
@@ -236,31 +508,328 @@ export default {
 }
 
 .product-info {
-  padding: 15px;
+  padding: 20px;
 }
 
 .product-name {
-  margin: 0 0 5px;
-  color: #333;
-  font-size: 1.1rem;
+  margin: 0 0 10px;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .product-region {
-  margin: 0 0 5px;
+  margin: 0 0 8px;
   color: #666;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .product-subtype {
-  margin: 0;
-  color: #1976d2;
-  font-size: 0.9rem;
+  margin: 0 0 15px;
+  color: #1a237e;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .no-products {
   text-align: center;
-  padding: 40px;
+  padding: 80px;
   color: #666;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px dashed #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.product-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.delete-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  background-color: #dc3545;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+}
+
+/* 조황 등록 버튼 스타일 */
+.report-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  background-color: #007bff; /* 파란색 계열 */
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-left: 10px; /* 삭제 버튼과의 간격 */
+}
+
+.report-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+/* 조황 등록 폼 스타일 */
+.create-report-form-container {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f0f8ff; /* 연한 파란색 배경 */
+}
+
+.create-report-form-container h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #1a237e;
+  font-size: 1.2rem;
+}
+
+.create-report-form-container .form-group {
+  margin-bottom: 15px;
+}
+
+.create-report-form-container label {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.create-report-form-container input[type="text"],
+.create-report-form-container input[type="date"],
+.create-report-form-container textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.create-report-form-container input[type="text"]:focus,
+.create-report-form-container input[type="date"]:focus,
+.create-report-form-container textarea:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+  outline: none;
+}
+
+.create-report-form-container textarea {
+  resize: vertical;
+}
+
+.create-report-form-container .thumbnail-preview {
+  margin-top: 10px;
+  max-width: 100px;
+}
+
+.create-report-form-container .thumbnail-preview img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.create-report-form-container .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 0; /* 기존 product-actions의 padding-top 제거 */
+  border-top: none; /* 기존 product-actions의 border-top 제거 */
+}
+
+.create-report-form-container .submit-button,
+.create-report-form-container .cancel-button {
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.create-report-form-container .submit-button {
+  background-color: #28a745; /* 녹색 계열 */
+}
+
+.create-report-form-container .submit-button:hover {
+  background-color: #218838;
+}
+
+.create-report-form-container .cancel-button {
+  background-color: #6c757d; /* 회색 계열 */
+}
+
+.create-report-form-container .cancel-button:hover {
+  background-color: #5a6268;
+}
+
+/* 반응형 조정 추가 */
+@media (max-width: 768px) {
+  .create-report-form-container .form-actions {
+    flex-direction: column; /* 모바일에서 버튼 세로 정렬 */
+    gap: 8px;
+  }
+  .create-report-form-container .submit-button,
+  .create-report-form-container .cancel-button {
+    width: 100%; /* 버튼 너비 100% */
+  }
+}
+
+/* 새롭게 추가된 오버레이 스타일 */
+.create-report-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.create-report-form-container {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px; /* FishingReportManager.vue와 동일한 max-width */
+  max-height: 90vh;
+  overflow-y: auto;
+  margin-top: 0; /* 기존 margin-top 제거 */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
+}
+
+.create-report-form-container h3 {
+  margin-top: 0;
+  margin-bottom: 20px; /* 여백 조정 */
+  color: #1a237e;
+  font-size: 1.5rem; /* 제목 크기 조정 */
+}
+
+.create-report-form-container .form-group {
+  margin-bottom: 20px; /* 여백 조정 */
+}
+
+.create-report-form-container label {
+  margin-bottom: 8px; /* 여백 조정 */
+  font-weight: 600; /* 폰트 두께 */
+}
+
+.create-report-form-container input[type="text"],
+.create-report-form-container input[type="date"],
+.create-report-form-container textarea {
+  padding: 12px; /* 패딩 조정 */
+  border-radius: 6px; /* 둥근 모서리 */
+  font-size: 1rem; /* 폰트 크기 조정 */
+}
+
+.create-report-form-container .form-actions {
+  margin-top: 30px; /* 여백 조정 */
+  padding-top: 0; /* 기존 product-actions의 padding-top 제거 */
+  border-top: none; /* 기존 product-actions의 border-top 제거 */
+}
+
+.create-report-form-container .submit-button,
+.create-report-form-container .cancel-button {
+  padding: 12px 24px; /* 버튼 패딩 조정 */
+  font-size: 1rem; /* 버튼 폰트 크기 조정 */
+  font-weight: 600; /* 버튼 폰트 두께 */
+  border-radius: 6px; /* 버튼 둥근 모서리 */
+}
+
+.create-report-form-container .submit-button {
+  background-color: #4CAF50; /* FishingReportManager.vue와 동일한 색상 */
+}
+
+.create-report-form-container .submit-button:hover {
+  background-color: #45a049;
+}
+
+.create-report-form-container .cancel-button {
+  background-color: #6c757d; /* 회색 계열 */
+  color: white;
+}
+
+.create-report-form-container .cancel-button:hover {
+  background-color: #5a6268;
+}
+
+.deleted-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(220, 53, 69, 0.9);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1em;
+}
+
+.deleted-badge i {
+  font-size: 1.2em;
+}
+
+.deleted-mark {
+  color: #dc3545;
+  font-size: 1em;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.deleted-mark i {
+  font-size: 1.1em;
+}
+
+.product-card.deleted {
+  opacity: 0.85;
+  background-color: #f8f9fa;
+  border: 1px solid #dc3545;
+}
+
+.product-card.deleted .product-image img {
+  filter: grayscale(70%);
+}
+
+.product-card.deleted .product-name {
+  color: #6c757d;
+}
+
+.restore-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  background-color: #28a745;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.restore-button:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
 }
 </style> 

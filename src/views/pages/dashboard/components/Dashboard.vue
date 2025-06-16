@@ -84,8 +84,8 @@
               <i :class="getActivityIcon(activity.type)"></i>
             </span>
             <div class="activity-content">
-              <p>{{ activity.description }}</p>
-              <span class="activity-time">{{ activity.time }}</span>
+              <p>{{ truncateText(activity.description, 40) }}</p>
+              <span class="activity-time">{{ formatRelativeTime(activity.time) }}</span>
             </div>
           </div>
         </div>
@@ -139,18 +139,52 @@ export default {
       reservationChartData: {
         labels: [],
         data: []
-      }
+      },
+      productCount: 0,
+      unansweredInquiryCount: 0
     }
   },
   methods: {
     getActivityIcon(type) {
       const icons = {
         reservation: 'fas fa-calendar-check',
+        user: 'fas fa-user',
         member: 'fas fa-user',
         partner: 'fas fa-ship',
         inquiry: 'fas fa-comments'
       }
       return icons[type] || 'fas fa-info-circle'
+    },
+    truncateText(text, maxLength) {
+      if (!text) return '';
+      if (text.length > maxLength) {
+        return text.slice(0, maxLength) + '...';
+      }
+      return text;
+    },
+    formatRelativeTime(timestamp) {
+      if (!timestamp) return '';
+
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffSeconds = Math.floor((now - date) / 1000);
+
+      const minute = 60;
+      const hour = minute * 60;
+      const day = hour * 24;
+      // const week = day * 7; // 주 단위는 더 이상 사용하지 않으므로 주석 처리
+
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+
+      if (date >= today) {
+        return `오늘 ${date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+      } else if (date >= yesterday) {
+        return `어제 ${date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+      } else {
+        return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+      }
     },
     async fetchDashboardData() {
       // 1. 회원/파트너/지원자 수
@@ -165,34 +199,57 @@ export default {
       this.userStats.inactiveUserCount = statsRes.data.inactiveUserCount || 0
       this.userStats.reportedUserCount = statsRes.data.reportedUserCount || 0
       this.userStats.recentLoginUserCount = statsRes.data.recentLoginUserCount || 0
+      this.unansweredInquiryCount = statsRes.data.unansweredInquiryCount || 0
 
       // 3. 예약 통계
-      const reservationRes = await axios.get('/api/admin/reservations')
-      this.reservationStats.total = reservationRes.data.total || 0
-      this.reservationStats.todayReservationCount = reservationRes.data.todayCount || 0
-      this.reservationStats.futureReservationCount = reservationRes.data.upcoming || 0
+      const reservationRes = await axios.get('/api/admin/reservations/counts')
+      console.log('예약 통계 응답 데이터:', reservationRes.data);
+      this.reservationStats.total = reservationRes.data.totalReservations || 0
+      this.reservationStats.todayReservationCount = reservationRes.data.todayReservations || 0
+      this.reservationStats.futureReservationCount = reservationRes.data.futureReservations || 0
 
       // 4. 승인 대기 파트너 수
       const pendingRes = await axios.get('/api/admin/pending/count')
       this.pendingPartnerCount = pendingRes.data || 0
 
-      // 5. 최근 7일 예약 추이
+      // 5. 전체 상품 수 조회
+      try {
+        const productCountResponse = await axios.get('/api/admin/product/counts')
+        this.productCount = productCountResponse.data.totalProducts || 0
+      } catch (productError) {
+        console.error('전체 상품 수 조회 실패:', productError);
+        this.productCount = 0; // 오류 발생 시 0으로 설정
+      }
+
+      // 6. 최근 7일 예약 추이
       const dailyRes = await axios.get('/api/admin/reservation/daily')
+      console.log('최근 7일 예약 추이 응답 데이터:', dailyRes.data);
       this.dailyReservation = dailyRes.data
       this.reservationChartData.labels = dailyRes.data.map(d => d.date)
       this.reservationChartData.data = dailyRes.data.map(d => d.count)
 
-      // 6. TOP3 파트너
+      // 7. TOP3 파트너
       const top3Res = await axios.get('/api/admin/partner/top3')
+      console.log('TOP3 파트너 응답 데이터:', top3Res.data);
       this.top3Partners = top3Res.data
 
-      // 7. 최근 활동(예시 데이터)
-      this.recentActivities = [
-        { id: 1, type: 'reservation', description: '새로운 예약이 등록되었습니다.', time: '10분 전' },
-        { id: 2, type: 'member', description: '새로운 회원이 가입했습니다.', time: '30분 전' },
-        { id: 3, type: 'partner', description: '새로운 파트너가 등록되었습니다.', time: '1시간 전' },
-        { id: 4, type: 'inquiry', description: '새로운 문의가 등록되었습니다.', time: '2시간 전' }
-      ]
+      // 8. 최근 활동 조회
+      try {
+        const activitiesRes = await axios.get('/api/admin/activities');
+        console.log('최근 활동 응답 데이터:', activitiesRes.data);
+        this.recentActivities = activitiesRes.data.map(activity => ({
+          id: activity.id,
+          type: activity.type.toLowerCase(),
+          description: activity.details,
+          time: activity.createdAt
+        })).slice(0, 4);
+      } catch (activitiesError) {
+        console.error('최근 활동 조회 실패:', activitiesError);
+        this.recentActivities = [
+          { id: 1, type: 'reservation', description: '새로운 예약이 등록되었습니다.', time: '데이터 로딩 실패' },
+          { id: 2, type: 'member', description: '새로운 회원이 가입했습니다.', time: '데이터 로딩 실패' }
+        ];
+      }
     },
     renderReservationChart() {
       if (this.reservationChart) {
@@ -322,6 +379,10 @@ export default {
 
 .activity-icon.member {
   background-color: #3498db;
+}
+
+.activity-icon.user {
+  background-color: #6a8baf;
 }
 
 .activity-icon.partner {

@@ -85,7 +85,8 @@
       </div>
 
       <div class="d-flex justify-content-center mt-3">
-        <button type="submit" class="btn btn-primary px-5">등록</button>
+        <button type="submit" class="btn btn-primary px-5 me-2">등록</button>
+        <button v-if="prodId" type="button" class="btn btn-danger px-5" @click="deleteProduct(prodId)">삭제</button>
       </div>
     </form>
   </div>
@@ -96,6 +97,12 @@ import { partnerService } from "@/api/partner";
 
 export default {
   name: 'ProductRegister',
+  props: {
+    prodId: {
+      type: [String, Number],
+      default: null
+    }
+  },
   data() {
     return {
       file: null,
@@ -165,8 +172,43 @@ export default {
         this.file = uploadedFile
       }
     },
+    async deleteProduct(prodId) {
+      if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) {
+        return;
+      }
+
+      try {
+        await partnerService.deleteProduct(prodId);
+        alert('상품이 성공적으로 삭제되었습니다.');
+        this.$router.push('/partner/products');
+      } catch (error) {
+        console.error('상품 삭제 실패:', error);
+        if (error.response?.status === 403) {
+          alert('삭제 권한이 없습니다.');
+        } else {
+          alert(error.response?.data || '상품 삭제에 실패했습니다.');
+        }
+      }
+    },
     async submit() {
-      await partnerService.handleProductRegistration(this.localForm, this.file, this.$router);
+      try {
+        const formData = new FormData();
+        formData.append('product', new Blob([JSON.stringify(this.localForm)], { type: 'application/json' }));
+        
+        if (this.file) {
+          formData.append('thumbnailFile', this.file);
+        }
+
+        const response = await partnerService.registerProduct(formData);
+        
+        if (response.data) {
+          alert('상품이 성공적으로 등록되었습니다.');
+          this.$router.push('/partner/products');
+        }
+      } catch (error) {
+        console.error('상품 등록 실패:', error);
+        alert(error.response?.data || '상품 등록에 실패했습니다.');
+      }
     }
   },
   mounted() {
@@ -177,36 +219,32 @@ export default {
 
 <style scoped>
 .register {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
   padding: 20px;
 }
 
 .form-label {
-  font-weight: 500;
+  font-weight: bold;
   color: #333;
 }
 
 .form-control, .form-select {
   border: 1px solid #ddd;
   border-radius: 4px;
-  padding: 8px 12px;
+  padding: 8px;
 }
 
 .form-control:focus, .form-select:focus {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.25);
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 .btn-primary {
-  background-color: #1976d2;
-  border-color: #1976d2;
+  background-color: #007bff;
+  border-color: #007bff;
 }
 
 .btn-primary:hover {
-  background-color: #1565c0;
-  border-color: #1565c0;
+  background-color: #0069d9;
+  border-color: #0062cc;
 }
 </style> 
