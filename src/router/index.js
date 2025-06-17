@@ -158,8 +158,20 @@ const routes = [
 
     // fishing-center
     {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
-    {path: '/fishing-report', component: () => import('@/views/community/fishing-report/FishingReport.vue')},
-    {path: '/fishing-diary', component: () => import('@/views/community/fishing-diary/FishingDiary.vue')},
+    {path: '/fishing-report', component: () => import('@/views/community/fishing-report/ReportList.vue')},
+    {
+        path: '/fishing-report/:frId',
+        name: 'ReportDetail',
+        component: () => import('@/views/community/fishing-report/ReportDetail.vue'),
+        props: true, // <--- 이걸 해야 route.params.id를 prop으로 받을 수 있어
+    },
+    {path: '/fishing-diary', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
+    {
+        path: '/fishing-diary/:fdId',
+        name: 'DiaryDetail',
+        component: () => import('@/views/community/fishing-diary/DiaryDetail.vue'),
+        props: true,
+    },
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},

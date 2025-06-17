@@ -14,6 +14,10 @@ onMounted(() => {
 })
 
 const diaryCount = computed(() => store.diary?.length || 0)
+
+const goToDetail = (diary) => {
+  window.open(`/fishing-diary/${diary.fdId}`, '_blank')
+}
 </script>
 
 <template>
@@ -29,17 +33,22 @@ const diaryCount = computed(() => store.diary?.length || 0)
       <div
           v-for="diary in store.diary.slice(0, 15)"
           :key="diary.fdId"
-          class="diary-box"
+          class="item-box"
+          @click="goToDetail(diary)"
+          style="cursor: pointer"
       >
-        <img
-            class="thumbnail"
-            :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
-        />
-        <h3>제목: {{ diary.title }}</h3>
-        <p>내용: {{ diary.content }}</p>
-        <p>날짜: {{ diary.fishingAt ? diary.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
-        <p>상품명: {{ diary.product?.prodName }}</p>
-        <p>작성자: {{ diary.user?.uname }}</p>
+        <div class="thumbnail-wrapper">
+          <img
+              class="thumbnail"
+              :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
+          />
+        </div>
+        <div class="item-content">
+          <h4>제목: {{ diary.title }}</h4>
+          <p>상품명: {{ diary.product?.prodName }}</p>
+          <p>작성자: {{ diary.user?.uname }}</p>
+          <p>날짜: {{ diary.fishingAt ? diary.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
+        </div>
       </div>
     </div>
     <!-- <div v-else>조황정보가 없습니다.</div> -->
@@ -56,21 +65,32 @@ const diaryCount = computed(() => store.diary?.length || 0)
   overflow-y: auto; /* 넘칠 시 스크롤 */
 }
 
-.diary-box {
-  border: 1px solid #aaa; /* 각 박스만 테두리 */
+.item-box {
+  border: 1px solid #aaa;
   border-radius: 6px;
-  padding: 12px;
   background-color: #f9f9f9;
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 500px;
+  padding: 0; /* 패딩 제거 */
+}
+.item-content {
+  height: 40%;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
   justify-content: space-between;
 }
 
-.count {
-  color: #4a90e2;
-  font-weight: 600;
-  margin-left: 6px;
+.thumbnail-wrapper {
+  height: 60%;
+}
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 </style>
