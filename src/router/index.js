@@ -9,6 +9,8 @@ const routes = [
     {path: '/register', component: () => import('@/views/auth/register/components/RegisterForm.vue')},
     {path: '/admin/login', component: () => import('@/views/auth/adminlogin/AdminLogin.vue')},
     {path: '/admin/register', component: () => import('@/views/auth/adminregister/AdminRegister.vue')},
+    {path: '/oauth/callback', component: () => import('@/views/auth/oauth/OAuthCallback.vue')},
+    {path: '/additional-info', component: () => import('@/views/auth/oauth/AdditionalInfoForm.vue')},
 
     // pages
     {

@@ -177,5 +177,15 @@ export const partnerService = {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
+    },
+
+    // 상품 신고
+    reportProduct(prodId, reason) {
+        return axiosInstance.post(`${API_URL}/reports/product/${prodId}`, reason, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'text/plain'
+            }
+        });
     }
 };
