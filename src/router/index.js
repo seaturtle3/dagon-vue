@@ -163,6 +163,12 @@ const routes = [
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
     {path: '/reservation-confirm', component: () => import('@/views/order/reservation/components/ReservationConfirm.vue')},
     {path: '/reservation-form', component: () => import('@/views/order/reservation/components/ReservationForm.vue')},
+    {
+        path: '/reservation/:prodId',
+        name: 'Reservation',
+        component: () => import('@/views/order/reservation/ReservationMain.vue'),
+        props: true
+    },
 
     // community
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
