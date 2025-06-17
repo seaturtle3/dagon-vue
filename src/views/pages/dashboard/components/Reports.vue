@@ -22,6 +22,8 @@
           <th>신고번호</th>
           <th>신고자</th>
           <th>신고대상</th>
+          <th>신고당한 ID</th>
+          <th>신고 타입</th>
           <th>신고일</th>
           <th>관리</th>
         </tr>
@@ -31,6 +33,8 @@
           <td>{{ report.id }}</td>
           <td>{{ report.reporterUname || '-' }}</td>
           <td>{{ report.reportedUserUname }}</td>
+          <td>{{ report.targetId || '-' }}</td>
+          <td>{{ getTargetTypeText(report.targetType) }}</td>
           <td>{{ formatDate(report.createdAt) }}</td>
           <td>
             <button @click="viewReportDetails(report.id)">상세</button>
@@ -72,6 +76,14 @@
           <div class="detail-item">
             <label>신고대상:</label>
             <span>{{ selectedReport.reportedUserUname }}</span>
+          </div>
+          <div class="detail-item">
+            <label>신고당한 ID:</label>
+            <span>{{ selectedReport.targetId || '-' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>신고 타입:</label>
+            <span>{{ getTargetTypeText(selectedReport.targetType) }}</span>
           </div>
           <div class="detail-item">
             <label>신고사유:</label>
@@ -197,6 +209,16 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       })
+    },
+    getTargetTypeText(targetType) {
+      const typeMap = {
+        'FISHING_POST': '조행기',
+        'FISHING_REPORT': '조황정보',
+        'PRODUCT': '낚시배 상품',
+        'COMMENT_FISHING_POST': '조행기 댓글',
+        'COMMENT_FISHING_REPORT': '조황정보 댓글'
+      };
+      return typeMap[targetType] || targetType || '미지정';
     }
   },
   created() {
