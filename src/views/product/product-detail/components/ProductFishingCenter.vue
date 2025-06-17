@@ -2,6 +2,7 @@
 import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProductFishingCenterStore } from '@/store/product/product-detail/useProductFishingCenterStore'
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const route = useRoute()
 const store = useProductFishingCenterStore()
@@ -58,12 +59,30 @@ const totalCount = computed(() => {
             :key="center._type + '-' + (center.frId || center.fdId)"
             class="combined-box"
         >
+          <!-- 뱃지 -->
+          <div
+              class="badge"
+              :class="center._type === 'diary' ? 'badge-diary' : 'badge-report'"
+          >
+            {{ center._type === 'report' ? '조황정보' : '조행기' }}
+          </div>
 
-          <p><strong>구분:</strong> {{ center._type === 'report' ? '조황정보' : '조행기' }}</p>
-          <p><strong>제목:</strong> {{ center.title }}</p>
-          <p>날짜: {{ center.fishingAt ? center.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
-          <p><strong>상품명:</strong> {{ center.product?.prodName }}</p>
-          <p><strong>작성자:</strong> {{ center.user?.uname }}</p>
+          <!-- 썸네일 -->
+          <div v-if="center.thumbnailUrl" class="thumbnail-wrapper">
+            <img
+                class="thumbnail"
+                :src="`${IMAGE_BASE_URL}/${center._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${center.thumbnailUrl}`"
+                alt="썸네일"
+            />
+          </div>
+
+          <!-- 텍스트 영역 -->
+          <div class="combined-content">
+            <h4>제목: {{ center.title }}</h4>
+            <p><strong>상품명:</strong> {{ center.product?.prodName }}</p>
+            <p><strong>작성자:</strong> {{ center.user?.uname }}</p>
+            <p><strong>날짜:</strong> {{ center.fishingAt ? center.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
+          </div>
         </div>
       </div>
     </section>
@@ -82,18 +101,6 @@ const totalCount = computed(() => {
   padding: 10px 0;
 }
 
-.combined-box {
-  border: 1px solid #aaa;
-  border-radius: 6px;
-  padding: 12px;
-  background-color: #f9f9f9;
-  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
 strong {
   font-weight: 600;
 }
@@ -103,4 +110,55 @@ strong {
   font-weight: 600;
   margin-left: 6px;
 }
+
+.combined-box {
+  position: relative; /* 뱃지 포지셔닝용 */
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+  padding: 0;
+}
+.combined-content {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.combined-content p {
+  margin: 0;
+}
+
+.thumbnail-wrapper {
+  height: 60%; /* 전체 높이의 60% */
+}
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 0 0 6px 0;
+  z-index: 1;
+}
+.badge-report {
+  background-color: #4a90e2; /* 파랑 */
+}
+.badge-diary {
+  background-color: #4caf50; /* 초록 */
+}
+
 </style>
