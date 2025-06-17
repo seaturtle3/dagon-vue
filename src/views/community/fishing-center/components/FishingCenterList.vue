@@ -78,7 +78,6 @@ const goToPage = (page) => {
           </div>
         </div>
 
-        <p><strong>구분:</strong> {{ item._type === 'report' ? '조황정보' : '조행기' }}</p>
         <p><strong>제목:</strong> {{ item.title }}</p>
         <p><strong>상품명:</strong> 없음</p>
         <p><strong>작성자:</strong> {{ item.user?.uname }}</p>
