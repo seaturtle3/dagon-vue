@@ -54,8 +54,11 @@ const props = defineProps({
 .thumbnail {
   width: 100%;
   height: 60%;
-  object-fit: cover;
+  object-fit: cover; /* 비율 유지하면서 꽉 채움 */
+  object-position: center; /* 잘릴 경우 중앙 정렬 */
   border-radius: 6px;
   margin-bottom: 8px;
+  display: block;
+  flex-shrink: 0; /* 작아지지 않게 고정 */
 }
 </style>
