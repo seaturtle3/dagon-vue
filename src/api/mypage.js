@@ -143,7 +143,7 @@ export const myPageAPI = {
   async getMyInquiries() {
     try {
       console.log('문의 내역 API 호출 시작');
-      const response = await api.get('/api/inquiries/my-inquiries');
+      const response = await api.get('/api/inquiry/my-inquiries');
       console.log('문의 내역 조회 결과:', response.data);
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {

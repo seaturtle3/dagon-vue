@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/login/loginStore.js';
 import axios from '@/lib/axios';
@@ -33,6 +33,37 @@ const changePasswordLoading = ref(false);
 
 // 비밀번호 변경 관련 상태
 const changePasswordId = ref('');
+
+// OAuth 에러 메시지 처리
+const checkOAuthError = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+  
+  if (error) {
+    console.log('OAuth Error detected:', error);
+    
+    switch (error) {
+      case 'oauth_failed':
+        errorMessage.value = '카카오 로그인에 실패했습니다. 다시 시도해주세요.';
+        break;
+      case 'no_token':
+        errorMessage.value = '인증 토큰을 받지 못했습니다. 다시 시도해주세요.';
+        break;
+      case 'callback_failed':
+        errorMessage.value = '로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.';
+        break;
+      case 'no_temp_token':
+        errorMessage.value = '임시 인증 정보가 없습니다. 다시 로그인해주세요.';
+        break;
+      default:
+        errorMessage.value = `로그인 중 오류가 발생했습니다: ${error}`;
+    }
+    
+    // URL에서 에러 파라미터 제거
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+  }
+};
 
 // 로그인 화면으로 돌아가기
 const goBackToLogin = () => {
@@ -192,6 +223,24 @@ const handleChangePassword = async () => {
 const goToRegister = () => {
   router.push('/register');
 };
+
+// 카카오 로그인 처리
+const handleKakaoLogin = () => {
+  try {
+    // 카카오 OAuth 인증 URL로 리다이렉트
+    const kakaoAuthUrl = 'http://localhost:8095/oauth2/authorization/kakao';
+    console.log('Redirecting to Kakao OAuth:', kakaoAuthUrl);
+    window.location.href = kakaoAuthUrl;
+  } catch (error) {
+    console.error('카카오 로그인 리다이렉트 실패:', error);
+    errorMessage.value = '카카오 로그인을 시작할 수 없습니다. 다시 시도해주세요.';
+  }
+};
+
+// 컴포넌트 마운트 시 OAuth 에러를 확인하도록 수정
+onMounted(() => {
+  checkOAuthError();
+});
 </script>
 
 <template>
@@ -242,7 +291,7 @@ const goToRegister = () => {
 
           <!-- 카카오 로그인 -->
           <div class="social-login">
-            <button type="button" class="social-button kakao">
+            <button type="button" class="social-button kakao" @click="handleKakaoLogin">
               <i class="fas fa-comment"></i>
               카카오로 계속하기
             </button>
@@ -550,21 +599,37 @@ const goToRegister = () => {
   margin-right: auto;
 }
 
-.kakao-button {
-  padding: 1.2rem 12rem;
-  background: #fee500;
-  color: black;
-  border: none;
-  border-radius: 5px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  margin-bottom: 2rem;
+.social-login {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.social-button.kakao {
+  background-color: #FEE500;
+  border-color: #FEE500;
+  color: #000000;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  margin-left: auto;
-  margin-right: auto;
+  padding: 1.2rem;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  transition: background-color 0.2s ease;
+}
+
+.social-button.kakao:hover {
+  background-color: #FDD835;
+}
+
+.social-button.kakao i {
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
 }
 
 .back-button {
@@ -615,31 +680,6 @@ const goToRegister = () => {
   padding: 0 0.5rem;
   color: #666;
   font-size: 0.875rem;
-}
-
-.social-login {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.social-button.kakao {
-  background-color: #FEE500;
-  border-color: #FEE500;
-  color: #000000;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-}
-
-.social-button.kakao svg {
-  margin-right: 0.75rem;
 }
 
 .signup-link a {

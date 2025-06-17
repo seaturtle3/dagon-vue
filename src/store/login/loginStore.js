@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from '@/lib/axios';
+import { useAdminAuthStore} from "@/store/auth/auth.js";
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -26,6 +27,15 @@ export const useAuthStore = defineStore('auth', {
                 const userRes = await axios.get('/api/users/me');
                 this.user = userRes.data;
                 this.isAuthenticated = true;
+
+                // ✅ authStore에 값 연동 추가
+                const adminAuthStore = useAdminAuthStore()
+                adminAuthStore.setToken(token)
+                adminAuthStore.setUser({
+                    uid: userRes.data.uid,
+                    name: userRes.data.uname,
+                    profileImage: userRes.data.profileImg
+                })
             } catch (err) {
                 console.error('로그인 실패', err);
                 this.user = null;

@@ -118,6 +118,30 @@
         </form>
       </div>
     </div>
+
+    <!-- 상품 신고 폼 (오버레이) -->
+    <div v-if="showReportProductForm" class="report-product-overlay">
+      <div class="report-product-form-container">
+        <h3>{{ getProductNameForReport() }} 신고</h3>
+        <form @submit.prevent="submitProductReport">
+          <div class="form-group">
+            <label for="reportReason">신고 사유</label>
+            <textarea
+              id="reportReason"
+              v-model="productReport.reason"
+              required
+              placeholder="신고 사유를 입력해주세요"
+              rows="4"
+            ></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="submit-button">신고하기</button>
+            <button type="button" class="cancel-button" @click="cancelReportProduct">취소</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -320,6 +344,34 @@ export default {
       } catch (error) {
         console.error('조황정보 등록 실패:', error);
         alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.');
+      }
+    },
+    openReportProductForm(prodId, prodName) {
+      // 신고 제품 폼 열기
+      console.log(`신고 제품 폼을 열기, prodId: ${prodId}, prodName: ${prodName}`);
+      this.selectedProdId = prodId;
+      this.showReportProductForm = true;
+    },
+    cancelReportProduct() {
+      this.showReportProductForm = false;
+      this.selectedProdId = null;
+      this.productReport = {
+        reason: '',
+      };
+    },
+    async submitProductReport() {
+      if (!confirm('제품을 신고하시겠습니까?')) {
+        return;
+      }
+
+      try {
+        await partnerService.reportProduct(this.selectedProdId, this.productReport.reason);
+        alert('제품이 성공적으로 신고되었습니다.');
+        this.cancelReportProduct();
+      } catch (error) {
+        console.error('제품 신고 실패:', error);
+        const errorMessage = error.response?.data?.message || '제품 신고에 실패했습니다. 다시 시도해주세요.';
+        alert(errorMessage);
       }
     }
   },
@@ -586,40 +638,54 @@ export default {
   transform: translateY(-2px);
 }
 
-/* 조황 등록 폼 스타일 */
+/* 새롭게 추가된 오버레이 스타일 */
+.create-report-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
 .create-report-form-container {
-  margin-top: 20px;
-  padding: 15px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #f0f8ff; /* 연한 파란색 배경 */
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px; /* FishingReportManager.vue와 동일한 max-width */
+  max-height: 90vh;
+  overflow-y: auto;
+  margin-top: 0; /* 기존 margin-top 제거 */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
 }
 
 .create-report-form-container h3 {
   margin-top: 0;
-  margin-bottom: 15px;
+  margin-bottom: 20px; /* 여백 조정 */
   color: #1a237e;
-  font-size: 1.2rem;
+  font-size: 1.5rem; /* 제목 크기 조정 */
 }
 
 .create-report-form-container .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px; /* 여백 조정 */
 }
 
 .create-report-form-container label {
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 5px;
+  margin-bottom: 8px; /* 여백 조정 */
+  font-weight: 600; /* 폰트 두께 */
 }
 
 .create-report-form-container input[type="text"],
 .create-report-form-container input[type="date"],
 .create-report-form-container textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
+  padding: 12px; /* 패딩 조정 */
+  border-radius: 6px; /* 둥근 모서리 */
+  font-size: 1rem; /* 폰트 크기 조정 */
 }
 
 .create-report-form-container input[type="text"]:focus,
@@ -689,87 +755,6 @@ export default {
   }
 }
 
-/* 새롭게 추가된 오버레이 스타일 */
-.create-report-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.create-report-form-container {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 800px; /* FishingReportManager.vue와 동일한 max-width */
-  max-height: 90vh;
-  overflow-y: auto;
-  margin-top: 0; /* 기존 margin-top 제거 */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
-}
-
-.create-report-form-container h3 {
-  margin-top: 0;
-  margin-bottom: 20px; /* 여백 조정 */
-  color: #1a237e;
-  font-size: 1.5rem; /* 제목 크기 조정 */
-}
-
-.create-report-form-container .form-group {
-  margin-bottom: 20px; /* 여백 조정 */
-}
-
-.create-report-form-container label {
-  margin-bottom: 8px; /* 여백 조정 */
-  font-weight: 600; /* 폰트 두께 */
-}
-
-.create-report-form-container input[type="text"],
-.create-report-form-container input[type="date"],
-.create-report-form-container textarea {
-  padding: 12px; /* 패딩 조정 */
-  border-radius: 6px; /* 둥근 모서리 */
-  font-size: 1rem; /* 폰트 크기 조정 */
-}
-
-.create-report-form-container .form-actions {
-  margin-top: 30px; /* 여백 조정 */
-  padding-top: 0; /* 기존 product-actions의 padding-top 제거 */
-  border-top: none; /* 기존 product-actions의 border-top 제거 */
-}
-
-.create-report-form-container .submit-button,
-.create-report-form-container .cancel-button {
-  padding: 12px 24px; /* 버튼 패딩 조정 */
-  font-size: 1rem; /* 버튼 폰트 크기 조정 */
-  font-weight: 600; /* 버튼 폰트 두께 */
-  border-radius: 6px; /* 버튼 둥근 모서리 */
-}
-
-.create-report-form-container .submit-button {
-  background-color: #4CAF50; /* FishingReportManager.vue와 동일한 색상 */
-}
-
-.create-report-form-container .submit-button:hover {
-  background-color: #45a049;
-}
-
-.create-report-form-container .cancel-button {
-  background-color: #6c757d; /* 회색 계열 */
-  color: white;
-}
-
-.create-report-form-container .cancel-button:hover {
-  background-color: #5a6268;
-}
-
 .deleted-badge {
   position: absolute;
   top: 50%;
@@ -831,5 +816,84 @@ export default {
 .restore-button:hover {
   background-color: #218838;
   transform: translateY(-2px);
+}
+
+/* 상품 신고 폼 스타일 */
+.report-product-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.report-product-form-container {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin-top: 0;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.report-product-form-container h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #1a237e;
+  font-size: 1.5rem;
+}
+
+.report-product-form-container .form-group {
+  margin-bottom: 20px;
+}
+
+.report-product-form-container label {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.report-product-form-container textarea {
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.report-product-form-container .form-actions {
+  margin-top: 30px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.report-product-form-container .submit-button,
+.report-product-form-container .cancel-button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.report-product-form-container .submit-button {
+  background-color: #4CAF50;
+}
+
+.report-product-form-container .submit-button:hover {
+  background-color: #45a049;
+}
+
+.report-product-form-container .cancel-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.report-product-form-container .cancel-button:hover {
+  background-color: #5a6268;
 }
 </style> 
