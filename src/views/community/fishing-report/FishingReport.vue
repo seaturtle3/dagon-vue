@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
-import FishingReportList from "@/views/community/fishing-report/components/FishingReportList.vue";
+import ReportListView from "@/views/community/fishing-report/components/ReportListView.vue";
 
 const store = useFishingReportStore()
 
@@ -14,7 +14,7 @@ onMounted(async () => {
 <template>
   <div class="center">
     <h1>조황정보</h1>
-    <FishingReportList v-if="store.reports.length" :reports="store.reports" />
+    <ReportListView v-if="store.reports.length" :reports="store.reports" />
     <p v-else>조황 정보를 불러오는 중입니다...</p>
   </div>
 </template>

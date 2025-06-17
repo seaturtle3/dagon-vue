@@ -75,6 +75,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { myPageAPI } from '@/api/mypage.js';
+import { BASE_URL, IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
 
 const defaultProfileImage = '/img/default-profile.png';
 const API_BASE_URL = 'http://localhost:8095'; // API 서버 기본 URL

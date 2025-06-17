@@ -28,16 +28,16 @@ export const inquiryApi = {
 
   // 답변 등록
   createReply: (inquiryId, replyData) => {
-    return axios.post(`/api/inquiry/${inquiryId}/reply`, replyData);
+    return axios.post(`/api/inquiry/${inquiryId}/answer`, replyData);
   },
 
-// 답변 수정
+  // 답변 수정
   updateReply: (inquiryId, replyData) => {
-    return axios.put(`/api/inquiry/${inquiryId}/reply`, replyData);
+    return axios.post(`/api/inquiry/${inquiryId}/answer`, replyData);
   },
 
-// 답변 삭제
+  // 답변 삭제
   deleteReply: (inquiryId) => {
-    return axios.delete(`/api/inquiry/${inquiryId}/reply`);
+    return axios.post(`/api/inquiry/${inquiryId}/answer`, { delete: true });
   }
 }; 

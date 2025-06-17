@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
+import {useRouter} from "vue-router";
 
 const props = defineProps({
   centers: {
@@ -9,6 +10,8 @@ const props = defineProps({
     default: () => []
   }
 })
+
+const router = useRouter()  // 라우터 인스턴스 생성
 
 const itemsPerPage = 18
 const currentPage = ref(1)
@@ -48,6 +51,15 @@ const goToPage = (page) => {
     currentPage.value = page
   }
 }
+
+// 상세 페이지로 이동 함수
+const goToDetail = (item) => {
+  if(item._type === 'report'){
+    window.open(`/fishing-report/${item.frId}`, '_blank')
+  } else if(item._type === 'diary'){
+    window.open(`/fishing-diary/${item.fdId}`, '_blank')
+  }
+}
 </script>
 
 <template>
@@ -61,14 +73,24 @@ const goToPage = (page) => {
           v-for="item in pagedList"
           :key="item._type + '-' + (item.frId || item.fdId)"
           class="combined-box"
+          @click="goToDetail(item)"
+          style="cursor: pointer;"
       >
         <!-- 썸네일 -->
-        <img
-            v-if="item.thumbnailUrl"
-            class="thumbnail"
-            :src="`${IMAGE_BASE_URL}/${item._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${item.thumbnailUrl}`"
-            alt="썸네일"
-        />
+        <div class="thumbnail-wrapper">
+          <img
+              v-if="item.thumbnailUrl"
+              class="thumbnail"
+              :src="`${IMAGE_BASE_URL}/${item._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${item.thumbnailUrl}`"
+              alt="썸네일"
+          />
+          <div
+              class="badge"
+              :class="item._type === 'report' ? 'badge-report' : 'badge-diary'"
+          >
+            {{ item._type === 'report' ? '조황정보' : '조행기' }}
+          </div>
+        </div>
 
         <p><strong>구분:</strong> {{ item._type === 'report' ? '조황정보' : '조행기' }}</p>
         <p><strong>제목:</strong> {{ item.title }}</p>
@@ -105,7 +127,7 @@ const goToPage = (page) => {
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 300px;
   overflow: hidden;
 }
 
@@ -114,12 +136,41 @@ const goToPage = (page) => {
   font-size: 14px;
 }
 
+.thumbnail-wrapper {
+  position: relative;
+  width: 100%;
+  height: 60%;
+  overflow: hidden;           /* 이게 있어야 뱃지가 박스 밖으로 안 튀어나감 */
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
 .thumbnail {
   width: 100%;
-  height: 50%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 4px;
-  margin-bottom: 8px;
+  object-position: center;
+  display: block;
+}
+
+.badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 123, 255, 0.9);
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  z-index: 1;
+  line-height: 1;
+  border-radius: 0 0 6px 0; /* 오른쪽 아래만 둥글게 */
+}
+.badge-report {
+  background-color: #007bff; /* 파랑 */
+}
+
+.badge-diary {
+  background-color: #28a745; /* 초록 */
 }
 
 .count {

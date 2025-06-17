@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useProductDetailStore } from '@/store/product/product-detail/useProductDetailStore.js'
 import ProductInfo from '@/views/product/product-detail/components/ProductInfo.vue'
 import ProductFishingCenter from '@/views/product/product-detail/components/ProductFishingCenter.vue'
@@ -8,6 +8,7 @@ import ProductFishingReport from '@/views/product/product-detail/components/Prod
 import ProductFishingDiary from '@/views/product/product-detail/components/ProductFishingDiary.vue'
 
 const route = useRoute()
+const router = useRouter()
 const prodId = route.params.prodId
 const store = useProductDetailStore()
 const product = computed(() => store.product)
@@ -28,6 +29,11 @@ const setTab = (tab) => {
   if (tab === '조황센터') {
     activeSubTab.value = '전체'
   }
+  goToReservation()
+}
+
+const goToReservation = () => {
+  router.push(`/reservation/${prodId}`)
 }
 </script>
 
@@ -85,10 +91,6 @@ const setTab = (tab) => {
       <ProductFishingCenter v-if="activeSubTab === '전체'" />
       <ProductFishingReport v-if="activeSubTab === '조황정보'" />
       <ProductFishingDiary v-if="activeSubTab === '조행기'" />
-    </div>
-
-    <div v-else-if="activeTab === '결제하기'">
-      <p>결제 기능 준비 중입니다.</p>
     </div>
   </div>
 </template>
@@ -156,5 +158,25 @@ const setTab = (tab) => {
   background-color: #3a81f1; /* 세련된 파란색 */
   color: white;
   box-shadow: 0 3px 8px rgba(106, 79, 156, 0.5);
+}
+
+.reservation-btn {
+  display: block;
+  width: 200px;
+  margin: 20px auto;
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  background-color: #2c3e70;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reservation-btn:hover {
+  background-color: #1a237e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 62, 112, 0.3);
 }
 </style>

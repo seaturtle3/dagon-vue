@@ -1,7 +1,7 @@
 <template>
   <div class="notifications-container">
     <h2 class="page-title">내 알람</h2>
-    
+
     <div class="notifications-header">
       <div class="notification-filters">
         <select v-model="selectedFilter" class="form-select">
@@ -19,11 +19,11 @@
       <div v-if="loading" class="loading-state">
         알림을 불러오는 중...
       </div>
-      
-      <div 
+
+      <div
         v-else-if="filteredNotifications.length > 0"
-        v-for="notification in filteredNotifications" 
-        :key="notification.id" 
+        v-for="notification in filteredNotifications"
+        :key="notification.id"
         class="notification-item"
         :class="{ unread: !notification.read }"
         @click="markAsRead(notification.id)"
@@ -82,7 +82,7 @@ const initializeUserInfo = async () => {
 const fetchNotifications = async () => {
   try {
     loading.value = true;
-    
+
     // 로그인 상태 확인
     if (!authStore.isAuthenticated) {
       console.warn('사용자가 로그인되어 있지 않습니다.');
