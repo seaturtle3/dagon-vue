@@ -1,7 +1,6 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
-import ReportCard from "@/views/community/fishing-report/components/ReportCard.vue";
 import ReportListView from "@/views/community/fishing-report/components/ReportListView.vue";
 
 const store = useFishingReportStore()

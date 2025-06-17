@@ -1,4 +1,3 @@
-<!-- views/community/fishing-diary/components/DiaryCard.vue -->
 <script setup>
 import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js"
 

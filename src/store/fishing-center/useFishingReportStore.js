@@ -4,6 +4,7 @@ import api from '@/lib/axios.js'
 export const useFishingReportStore = defineStore('fishingReport', {
     state: () => ({
         reports: [],
+        currentReport: null, // 상세보기용
     }),
     actions: {
         async fetchReports() {
@@ -15,5 +16,16 @@ export const useFishingReportStore = defineStore('fishingReport', {
                 console.error('조황정보 로드 실패', err)
             }
         },
-    },
+
+        // 단건 조황 가져오기
+        async fetchReportById(id) {
+            try {
+                const res = await api.get(`/api/fishing-report/get/${id}`)
+                this.currentReport = res.data
+                console.log('단일 조황:', this.currentReport)
+            } catch (err) {
+                console.error(`조황정보(id: ${id}) 로드 실패`, err)
+            }
+        }
+    }
 })
