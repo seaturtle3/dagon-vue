@@ -41,8 +41,8 @@
           <div class="dropdown">
             <a class="dropdown-toggle d-flex align-items-center text-dark text-decoration-none"
                href="#" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              <img :src="user.profileImage" class="rounded-circle me-2" width="32" height="32"/>
-              {{ user.name }}
+              <img :src="authStore.user?.profileImage || '/default.png'" width="32" />
+              {{ authStore.user?.name || '사용자' }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
