@@ -2,6 +2,7 @@
 import {computed, onMounted} from 'vue'
 import {useRoute} from 'vue-router'
 import {useProductFishingReportStore} from '@/store/product/product-detail/useProductFishingReportStore.js'
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const route = useRoute()
 const store = useProductFishingReportStore()
@@ -30,8 +31,11 @@ const reportCount = computed(() => store.report?.length || 0)
           :key="report.frId"
           class="report-box"
       >
+        <img
+            class="thumbnail"
+            :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+        />
         <h3>제목: {{ report.title }}</h3>
-        <p>내용: {{ report.content }}</p>
         <p>날짜: {{ report.fishingAt ? report.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
         <p>상품명: {{ report.product?.prodName }}</p>
         <p>작성자: {{ report.user?.uname }}</p>

@@ -2,6 +2,7 @@
 import {computed, onMounted} from 'vue'
 import {useRoute} from 'vue-router'
 import {useProductFishingDiaryStore} from '@/store/product/product-detail/useProductFishingDiaryStore.js'
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const route = useRoute()
 const store = useProductFishingDiaryStore()
@@ -30,6 +31,10 @@ const diaryCount = computed(() => store.diary?.length || 0)
           :key="diary.fdId"
           class="diary-box"
       >
+        <img
+            class="thumbnail"
+            :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
+        />
         <h3>제목: {{ diary.title }}</h3>
         <p>내용: {{ diary.content }}</p>
         <p>날짜: {{ diary.fishingAt ? diary.fishingAt.slice(0, 10) : '날짜 없음' }}</p>

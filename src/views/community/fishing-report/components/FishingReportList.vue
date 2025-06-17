@@ -23,7 +23,7 @@ const props = defineProps({
           :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
       />
 
-      <h3>제목: {{ report.title }}</h3>
+      <h4>제목: {{ report.title }}</h4>
       <p>상품명: {{ report.product?.prodName }}</p>
       <p>작성자: {{ report.user?.uname }}</p>
       <p>날짜: {{ report.fishingAt || '날짜 없음' }}</p>
@@ -35,7 +35,6 @@ const props = defineProps({
 .grid-container {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  grid-auto-rows: minmax(180px, auto);
   gap: 16px;
   margin-top: 20px;
 }
@@ -49,12 +48,12 @@ const props = defineProps({
   display: flex;
   flex-direction: column;
   justify-content: start;
-  height: 100%; /* grid-auto-rows 기준 따라감 */
+  height: 300px;
 }
 
 .thumbnail {
   width: 100%;
-  height: 50%; /* 전체 박스 높이의 50% */
+  height: 60%;
   object-fit: cover;
   border-radius: 6px;
   margin-bottom: 8px;

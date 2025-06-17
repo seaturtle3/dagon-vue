@@ -92,7 +92,6 @@ const goToPage = (page) => {
 .combined-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  grid-auto-rows: minmax(200px, auto);
   gap: 16px;
   padding: 10px 0;
   margin-bottom: 40px;
@@ -105,7 +104,7 @@ const goToPage = (page) => {
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 400px;
   overflow: hidden;
 }
 
@@ -116,7 +115,7 @@ const goToPage = (page) => {
 
 .thumbnail {
   width: 100%;
-  height: 50%;
+  height: 60%;
   object-fit: cover;
   border-radius: 4px;
   margin-bottom: 8px;
