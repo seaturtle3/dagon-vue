@@ -30,4 +30,4 @@ export const deleteNotice = (id, token) => {
             Authorization: `Bearer ${token}`
         }
     });
-};
+}
