@@ -40,6 +40,32 @@
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useInquiryStore } from '@/store/inquiries/inquiryStore';
+
+const route = useRoute();
+const router = useRouter();
+const store = useInquiryStore();
+
+const inquiry = ref(null);
+const answerContent = ref('');
+
+onMounted(async () => {
+  const id = route.params.id;
+  await store.fetchInquiryById(id);
+  inquiry.value = store.selectedInquiry;
+  answerContent.value = inquiry.value?.answer || '';
+});
+
+const submitAnswer = async () => {
+  await store.submitAnswer(inquiry.value.id, answerContent.value);
+  alert('답변이 저장되었습니다.');
+  router.push('/admin/inquiries');
+};
+</script>
+
 <script>
 import { inquiryApi } from '@/api/inquiry.js';
 

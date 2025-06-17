@@ -1,57 +1,95 @@
 <template>
   <div class="dashboard">
-    <h1>대시보드</h1>
-    
-    <div class="stats-grid">
-      <div class="stat-card">
-        <i class="fas fa-box"></i>
-        <div class="stat-info">
-          <h3>전체 상품</h3>
-          <p>{{ stats.totalProducts }}개</p>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <i class="fas fa-calendar-check"></i>
-        <div class="stat-info">
-          <h3>이번 달 예약</h3>
-          <p>{{ stats.monthlyReservations }}건</p>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <i class="fas fa-won-sign"></i>
-        <div class="stat-info">
-          <h3>이번 달 매출</h3>
-          <p>{{ formatPrice(stats.monthlyRevenue) }}원</p>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <i class="fas fa-question-circle"></i>
-        <div class="stat-info">
-          <h3>대기 문의</h3>
-          <p>{{ stats.pendingInquiries }}건</p>
-        </div>
-      </div>
+    <div class="dashboard-header">
+      <h2>대시보드</h2>
+      <p class="last-updated">마지막 업데이트: {{ formatDate(new Date()) }}</p>
     </div>
-
-    <div class="recent-reservations">
-      <h2>최근 예약</h2>
-      <div class="reservation-list">
-        <div v-for="reservation in recentReservations" 
-             :key="reservation.id" 
-             class="reservation-card">
-          <div class="reservation-info">
-            <h3>{{ reservation.productName }}</h3>
-            <p class="date">{{ formatDate(reservation.date) }}</p>
-            <p class="status" :class="reservation.status">
-              {{ getStatusText(reservation.status) }}
-            </p>
+    
+    <div v-if="loading" class="loading">
+      <div class="spinner"></div>
+      <p>데이터를 불러오는 중입니다...</p>
+    </div>
+    
+    <div v-else-if="error" class="error">
+      <p>{{ error }}</p>
+      <button @click="loadDashboardData" class="retry-button">다시 시도</button>
+    </div>
+    
+    <div v-else>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-calendar-check"></i>
           </div>
-          <button @click="viewReservation(reservation.id)" class="view-btn">
-            상세보기
+          <div class="stat-content">
+            <h3>전체 예약</h3>
+            <p class="stat-value">{{ reservationCount }}</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <div class="stat-content">
+            <h3>전체 상품</h3>
+            <p class="stat-value">{{ productCount }}</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fa-solid fa-address-book"></i>
+          </div>
+          <div class="stat-content">
+            <h3>오늘의 예약</h3>
+            <p class="stat-value">{{ todayReservationCount }}</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-question-circle"></i>
+          </div>
+          <div class="stat-content">
+            <h3>대기 문의</h3>
+            <p class="stat-value">{{ unansweredInquiryCount }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="recent-reservations">
+        <div class="section-header">
+          <h3>최근 예약</h3>
+          <button @click="$router.push('/partner/reservations')" class="view-all-button">
+            전체 보기
           </button>
+        </div>
+        
+        <div v-if="recentReservations.length === 0" class="no-data">
+          <i class="fas fa-calendar-times"></i>
+          <p>최근 예약이 없습니다.</p>
+        </div>
+        
+        <div v-else class="reservation-list">
+          <div v-for="reservation in sortedRecentReservations" 
+               :key="reservation.reservationId" 
+               class="reservation-card">
+            <div class="reservation-info">
+              <div class="reservation-header">
+                <h4>{{ reservation.productName }}</h4>
+                <span :class="['status-badge', getStatusClass(reservation.status)]">
+                  {{ getStatusText(reservation.status) }}
+                </span>
+              </div>
+              <div class="reservation-details">
+                <p><i class="fas fa-user"></i> {{ reservation.userName }}</p>
+                <p><i class="fa-solid fa-circle-user"></i> {{ reservation.numPerson }}명</p>
+                <p><i class="fas fa-clock"></i> {{ formatDate(reservation.fishingAt) }}</p>
+              </div>
+            </div>
+            <button @click="viewReservation(reservation.reservationId)" 
+                    class="view-button">
+              상세보기
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -65,67 +103,109 @@ export default {
   name: 'Dashboard',
   data() {
     return {
-      stats: {
-        totalProducts: 0,
-        monthlyReservations: 0,
-        monthlyRevenue: 0,
-        pendingInquiries: 0
-      },
+      loading: true,
+      error: null,
+      reservationCount: 0,
+      productCount: 0,
+      todayReservationCount: 0,
+      unansweredInquiryCount: 0,
       recentReservations: []
+    }
+  },
+  computed: {
+    sortedRecentReservations() {
+      return [...this.recentReservations]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 3)
     }
   },
   methods: {
     async loadDashboardData() {
+      this.loading = true
+      this.error = null
+      
       try {
-        // API 연동 전 임시 데이터
-        this.stats = {
-          totalProducts: 12,
-          monthlyReservations: 45,
-          monthlyRevenue: 2500000,
-          pendingInquiries: 3
-        }
-        
-        this.recentReservations = [
-          {
-            id: 1,
-            productName: '제주도 해산물 체험',
-            date: '2024-03-15',
-            status: 'confirmed'
-          },
-          {
-            id: 2,
-            productName: '부산 어시장 투어',
-            date: '2024-03-14',
-            status: 'pending'
-          },
-          {
-            id: 3,
-            productName: '인천 갯벌 체험',
-            date: '2024-03-13',
-            status: 'cancelled'
+        // 예약 수 조회
+        const reservationResponse = await partnerService.getReservationCount()
+        this.reservationCount = reservationResponse.data
+
+        // 전체 상품 수 조회
+        const productCountResponse = await partnerService.getProductCount()
+        this.productCount = productCountResponse.data
+
+        // 오늘 예약 수 조회
+        const todayReservationResponse = await partnerService.getTodayReservationCount()
+        this.todayReservationCount = todayReservationResponse.data
+
+        // 대기 문의 수 조회
+        const inquiryResponse = await partnerService.getUnansweredInquiryCount()
+        this.unansweredInquiryCount = inquiryResponse.data
+
+        // 최근 예약 목록 조회
+        try {
+          const recentReservationsResponse = await partnerService.getRecentReservations()
+          if (Array.isArray(recentReservationsResponse.data)) {
+            this.recentReservations = recentReservationsResponse.data.map(reservation => ({
+              reservationId: reservation.reservationId,
+              createdAt: reservation.createdAt,
+              fishingAt: reservation.fishingAt,
+              numPerson: reservation.numPerson,
+              status: reservation.reservationStatus,
+              userName: reservation.userName,
+              productName: reservation.productName,
+              userPhone: reservation.userPhone
+            }))
+          } else {
+            this.recentReservations = []
           }
-        ]
+        } catch (reservationError) {
+          console.error('최근 예약 조회 실패:', reservationError)
+          this.recentReservations = []
+        }
       } catch (error) {
         console.error('대시보드 데이터 로딩 실패:', error)
+        this.error = '데이터를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+        // 임시 데이터로 대체
+        this.reservationCount = 15
+        this.productCount = 8
+        this.todayReservationCount = 3
+        this.unansweredInquiryCount = 2
+        this.recentReservations = []
+      } finally {
+        this.loading = false
       }
     },
-    formatPrice(price) {
-      return price.toLocaleString()
-    },
-    formatDate(date) {
-      return new Date(date).toLocaleDateString('ko-KR', {
+    formatDate(dateString) {
+      if (!dateString) return '날짜 없음'
+      return new Date(dateString).toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
       })
     },
     getStatusText(status) {
+      if (!status) return '상태 없음'
       const statusMap = {
-        pending: '대기중',
-        confirmed: '확정',
-        cancelled: '취소됨'
+        'PENDING': '대기중',
+        'CONFIRMED': '확정',
+        'CANCELLED': '취소됨',
+        'COMPLETED': '완료'
       }
       return statusMap[status] || status
+    },
+    getStatusClass(status) {
+      const statusClassMap = {
+        'PENDING': 'status-pending',
+        'CONFIRMED': 'status-confirmed',
+        'CANCELLED': 'status-cancelled',
+        'COMPLETED': 'status-completed'
+      }
+      return statusClassMap[status] || ''
+    },
+    formatPrice(price) {
+      return price.toLocaleString()
     },
     viewReservation(id) {
       this.$router.push(`/partner/reservations/${id}`)
@@ -139,118 +219,272 @@ export default {
 
 <style scoped>
 .dashboard {
-  padding: 20px;
+  padding: 24px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 }
 
-h1 {
-  margin-bottom: 30px;
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.dashboard-header h2 {
+  margin: 0;
   color: #2c3e50;
+  font-size: 1.8em;
+}
+
+.last-updated {
+  color: #6c757d;
+  font-size: 0.9em;
+  margin: 0;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error {
+  text-align: center;
+  color: #e74c3c;
+  padding: 32px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.retry-button {
+  margin-top: 16px;
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s;
+}
+
+.retry-button:hover {
+  background-color: #2980b9;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .stat-card {
   background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   display: flex;
   align-items: center;
+  gap: 20px;
+  transition: transform 0.3s;
 }
 
-.stat-card i {
-  font-size: 2rem;
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  background: #e3f2fd;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon i {
+  font-size: 24px;
   color: #3498db;
-  margin-right: 20px;
 }
 
-.stat-info h3 {
-  margin: 0;
-  font-size: 1rem;
-  color: #7f8c8d;
+.stat-content h3 {
+  margin: 0 0 8px 0;
+  color: #6c757d;
+  font-size: 1em;
 }
 
-.stat-info p {
-  margin: 5px 0 0;
-  font-size: 1.5rem;
+.stat-value {
+  font-size: 2em;
   font-weight: bold;
   color: #2c3e50;
+  margin: 0;
 }
 
 .recent-reservations {
   background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.recent-reservations h2 {
-  margin-bottom: 20px;
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.section-header h3 {
+  margin: 0;
   color: #2c3e50;
+  font-size: 1.4em;
+}
+
+.view-all-button {
+  padding: 8px 16px;
+  background-color: #e3f2fd;
+  color: #3498db;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.3s;
+}
+
+.view-all-button:hover {
+  background-color: #3498db;
+  color: white;
+}
+
+.no-data {
+  text-align: center;
+  padding: 48px;
+  color: #6c757d;
+}
+
+.no-data i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #dee2e6;
 }
 
 .reservation-list {
   display: grid;
-  gap: 15px;
+  gap: 16px;
 }
 
 .reservation-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  border: 1px solid #ecf0f1;
+  padding: 20px;
+  background: #f8f9fa;
   border-radius: 8px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s;
 }
 
-.reservation-info h3 {
+.reservation-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.reservation-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.reservation-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.reservation-header h4 {
   margin: 0;
   color: #2c3e50;
+  font-size: 1.2em;
 }
 
-.reservation-info .date {
-  color: #7f8c8d;
-  margin: 5px 0;
-}
-
-.reservation-info .status {
-  display: inline-block;
+.status-badge {
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 0.9rem;
+  font-size: 0.8em;
+  font-weight: 500;
 }
 
-.status.pending {
-  background-color: #f1c40f;
-  color: white;
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
 }
 
-.status.confirmed {
-  background-color: #2ecc71;
-  color: white;
+.status-confirmed {
+  background-color: #d4edda;
+  color: #155724;
 }
 
-.status.cancelled {
-  background-color: #e74c3c;
-  color: white;
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
 }
 
-.view-btn {
+.status-completed {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.reservation-details {
+  display: grid;
+  gap: 8px;
+}
+
+.reservation-details p {
+  margin: 0;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reservation-details i {
+  width: 16px;
+  color: #adb5bd;
+}
+
+.view-button {
+  padding: 8px 16px;
   background-color: #3498db;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
   transition: background-color 0.3s;
 }
 
-.view-btn:hover {
+.view-button:hover {
   background-color: #2980b9;
 }
 </style> 

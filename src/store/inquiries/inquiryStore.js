@@ -28,6 +28,7 @@ export const useInquiryStore = defineStore('inquiryStore', () => {
         showForm.value = !showForm.value
     }
 
+
     function fetchInquiries() {
         // 예시 데이터
         inquiries.value = [

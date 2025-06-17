@@ -8,11 +8,13 @@ import PopularList from '@/views/home/components/PopularList.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useFishingCenterStore } from '@/store/fishing-center/useFishingCenterStore.js'
 import { useProductListStore } from '@/store/product/all-products/useProductListStore.js'
+import { useFishingReportStore} from "@/store/fishing-center/useFishingReportStore.js";
 
 const centerStore = useFishingCenterStore()
 const currentPage = ref(0)
 const pageSize = 8
 const productListStore = useProductListStore()
+const reportStore = useFishingReportStore()
 
 onMounted(() => {
   centerStore.fetchFishingCenterData()
@@ -39,7 +41,7 @@ const recommendedProducts = computed(() => {
   <Banner />
   <div class="home">
     <SideButtons />
-    <PopularList :centers="paginatedProducts" />
+    <PopularList :reports="reportStore.reports" />
     <RecommendationList :products="recommendedProducts" />
 
     <div class="row mb-5 mt-5">

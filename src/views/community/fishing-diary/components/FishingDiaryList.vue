@@ -1,4 +1,6 @@
 <script setup>
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+
 const props = defineProps({
   diaries: {
     type: Array,
@@ -15,11 +17,16 @@ const props = defineProps({
         v-for="diary in diaries.slice(0, 18)"
         :key="diary.id"
     >
+      <!-- 썸네일 이미지 -->
+      <img
+          class="thumbnail"
+          :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
+      />
+
       <h3>제목: {{ diary.title }}</h3>
-      <p>내용: {{ diary.content }}</p>
-      <p>날짜: {{ diary.fishingAt ? diary.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
       <p>상품명: {{ diary.product?.prodName }}</p>
       <p>작성자: {{ diary.user?.uname }}</p>
+      <p>날짜: {{ diary.fishingAt || '날짜 없음' }}</p>
     </div>
   </div>
 </template>
@@ -36,9 +43,20 @@ const props = defineProps({
 .diary-card {
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 12px;
   background-color: #f9f9f9;
   box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  height: 100%;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 50%; /* 전체 박스의 절반 높이 */
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 8px;
 }
 </style>
