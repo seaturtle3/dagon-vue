@@ -6,25 +6,24 @@ import ReportDetailItem from "@/views/community/fishing-report/components/Report
 
 const store = useFishingReportStore()
 const route = useRoute()
-const reportId = useRoute()
+const id = route.params.frId
 
 onMounted(async () => {
-  await store.fetchReportById(reportId)
+  await store.fetchReportById(id)
 })
 
 </script>
 
 <template>
-  <div class="detail-wrapper">
-    <ReportDetailItem :report="store.currentReport" v-if="store.currentReport" />
+  <div class="center" >
+    <ReportDetailItem :report="store.currentReport" v-if="store.currentReport"/>
     <p v-else>조황 정보를 불러오는 중입니다...</p>
   </div>
 </template>
 
 <style scoped>
-.detail-wrapper {
+.center {
   width: 80%;
-  margin: 0 auto;
-  padding-top: 40px;
+  margin: 5% auto;
 }
 </style>

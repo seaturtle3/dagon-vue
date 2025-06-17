@@ -1,13 +1,24 @@
 <script setup>
 import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js";
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const props = defineProps({
-  report: Object
+  report: {
+    type: Object,
+    required: true
+  }
 });
+
+console.log('ReportCard ID:', props.report?.frId)
+
+const goToDetail = () => {
+  router.push(`/fishing-report/${props.report.frId}`)
+}
 </script>
 
 <template>
-  <div class="report-card">
+  <div class="report-card" @click="goToDetail">
     <img
         class="thumbnail"
         :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
@@ -30,6 +41,7 @@ const props = defineProps({
   flex-direction: column;
   justify-content: start;
   height: 300px;
+  cursor: pointer;
 }
 
 .thumbnail {

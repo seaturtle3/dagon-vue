@@ -8,13 +8,14 @@ const props = defineProps({
     required: true
   }
 })
+
 </script>
 
 <template>
   <div class="grid-container">
     <ReportCard
         v-for="report in reports.slice(0, 18)"
-        :key="report.id"
+        :key="report.frId"
         :report="report"
     />
   </div>

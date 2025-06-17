@@ -23,8 +23,8 @@ export const useFishingReportStore = defineStore('fishingReport', {
                 const res = await api.get(`/api/fishing-report/get/${id}`)
                 this.currentReport = res.data
                 console.log('단일 조황:', this.currentReport)
-            } catch (err) {
-                console.error(`조황정보(id: ${id}) 로드 실패`, err)
+            } catch (e) {
+                console.error(`조황정보(id: ${id}) 로드 실패`, e)
             }
         }
     }
