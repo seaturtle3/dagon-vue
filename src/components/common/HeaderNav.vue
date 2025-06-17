@@ -32,17 +32,17 @@
       <div class="d-flex align-items-center gap-2">
         <router-link to="/multtae" class="btn btn-outline-primary btn-sm">🌊 물때·날씨</router-link>
 
-        <template v-if="!isLoggedIn">
+        <template v-if="!authStore.isAuthenticated">
           <router-link to="/signup" class="btn btn-outline-secondary btn-sm">회원가입</router-link>
           <router-link to="/login" class="btn btn-outline-secondary btn-sm">로그인</router-link>
         </template>
 
-        <template v-else>
+        <template v-else-if="authStore.isAuthenticated">
           <div class="dropdown">
             <a class="dropdown-toggle d-flex align-items-center text-dark text-decoration-none"
                href="#" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              <img :src="user.profileImage" class="rounded-circle me-2" width="32" height="32"/>
-              {{ user.name }}
+              <img :src="authStore.user?.profileImage || '/default.png'" width="32" />
+              {{ authStore.user?.name || '사용자' }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
@@ -64,7 +64,7 @@
                      class="text-danger fs-4"
                      title="신고하기"
                      style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
-          <SirenIcon />
+          <SirenIcon/>
         </router-link>
       </div>
 
@@ -74,25 +74,26 @@
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import {ref, onMounted} from 'vue'
 import SirenIcon from '@/components/icons/SirenIcon.vue'
+import {useAdminAuthStore} from "@/store/auth/auth.js";
 
-const isLoggedIn = ref(false)
-const user = ref({
-  name: '홍길동',
-  profileImage: 'https://cdn-icons-png.flaticon.com/512/847/847969.png'
-})
+const authStore = useAdminAuthStore()
+
 
 const logout = () => {
+  authStore.clearToken()
   alert('로그아웃되었습니다.')
-  isLoggedIn.value = false
 }
 
-const menuItems =ref( [
+onMounted(() => {
+  authStore.loadTokenFromStorage()  // ✅ 이거 한 줄로 로그인 상태 자동 반영됨
+})
+const menuItems = ref([
   {
     label: '조황센터',
     link: '/fishing-center',
-    open:false,
+    open: false,
     children: [
       {label: '조황정보', link: '/fishing-report'},
       {label: '조행기', link: '/fishing-diary'}
@@ -103,7 +104,7 @@ const menuItems =ref( [
   {
     label: '커뮤니티',
     link: '/event',
-    open:false,
+    open: false,
     children: [
       // {label: '자유게시판', link: 'free'},
       {label: '이벤트', link: '/event'},
@@ -112,8 +113,8 @@ const menuItems =ref( [
   },
   {
     label: '고객센터',
-    link:  '/notice',
-    open:false,
+    link: '/notice',
+    open: false,
     children: [
       {label: '공지사항', link: '/notice'},
       {label: '자주묻는질문', link: '/faq'},

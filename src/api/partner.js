@@ -10,13 +10,21 @@ export const partnerService = {
 
     // 파트너 상품 목록 조회
     getPartnerProducts() {
-        return axiosInstance.get(`${API_URL}/partner/product/my-products`);
+        return axiosInstance.get(`${API_URL}/partner/product/my-products`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
     },
 
     // 파트너 상품 등록
     registerProduct(productData) {
         // FormData인 경우 Content-Type을 자동으로 설정하도록 함
-        return axiosInstance.post(`${API_URL}/product/create`, productData);
+        return axiosInstance.post(`${API_URL}/product/create`, productData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
     },
 
     // 파트너 상품 상세 조회
@@ -27,7 +35,7 @@ export const partnerService = {
     // 상품 썸네일 URL 가져오기
     getThumbnailUrl(filename) {
         if (!filename) {
-            return '/src/assets/images/default-product.jpg';
+            return '/images/default-product.jpg';
         }
         return `http://localhost:8095/uploads/${filename}`;
     },
@@ -46,6 +54,84 @@ export const partnerService = {
         }
 
         return form;
+    },
+
+    // 파트너 상품 삭제
+    deleteProduct(prodId) {
+        return axiosInstance.delete(`${API_URL}/partner/product/delete/${prodId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+    },
+
+    // 파트너 예약 목록 조회
+    getPartnerReservations() {
+        return axiosInstance.get(`${API_URL}/reservation/partner`);
+    },
+
+    // 예약 취소
+    cancelReservation(reservationId) {
+        return axiosInstance.delete(`${API_URL}/reservation/${reservationId}`);
+    },
+
+    // 예약 상세 조회
+    getReservationDetail(reservationId) {
+        return axiosInstance.get(`${API_URL}/reservation/${reservationId}`);
+    },
+
+    // 조황정보 목록 조회
+    getFishingReports(prodId = null) {
+        if (prodId) {
+            return axiosInstance.get(`${API_URL}/fishing-report/mine/${prodId}`);
+        } else {
+            return axiosInstance.get(`${API_URL}/fishing-report/mine`);
+        }
+    },
+
+    // 조황정보 상세 조회
+    getFishingReportDetail(frId) {
+        return axiosInstance.get(`${API_URL}/fishing-report/${frId}`);
+    },
+
+    // 조황정보 생성
+    createFishingReport(reportData) {
+        return axiosInstance.post(`${API_URL}/fishing-report`, reportData);
+    },
+
+    // 조황정보 업데이트
+    updateFishingReport(frId, reportData) {
+        return axiosInstance.put(`${API_URL}/fishing-report/${frId}`, reportData);
+    },
+
+    // 조황정보 삭제
+    deleteFishingReport(frId) {
+        return axiosInstance.delete(`${API_URL}/fishing-report/${frId}`);
+    },
+
+    // 파트너 대시보드 예약 수 조회
+    getReservationCount() {
+        return axiosInstance.get(`${API_URL}/partner/dashboard/reservation-count`);
+    },
+
+    // 파트너 대시보드 상품 수 조회
+    getProductCount() {
+        return axiosInstance.get(`${API_URL}/partner/dashboard/product-count`);
+    },
+
+    // 파트너 대시보드 오늘 예약 수 조회
+    getTodayReservationCount() {
+        return axiosInstance.get(`${API_URL}/partner/dashboard/today-reservation-count`);
+    },
+
+    // 파트너 대시보드 대기 문의 수 조회
+    getUnansweredInquiryCount() {
+        return axiosInstance.get(`${API_URL}/partner/dashboard/unanswered-inquiry-count`);
+    },
+
+    // 파트너 대시보드 최근 예약 목록 조회
+    getRecentReservations() {
+        return axiosInstance.get(`${API_URL}/partner/dashboard/recent-reservations`);
     },
 
     // 상품 등록 처리
@@ -73,5 +159,23 @@ export const partnerService = {
             }
             return false;
         }
+    },
+
+    // 파트너 상품 복구
+    restoreProduct(prodId) {
+        return axiosInstance.put(`${API_URL}/partner/product/restore/${prodId}`, {}, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+    },
+
+    // 파트너의 모든 상품 목록 조회 (공개/비공개 포함)
+    getPartnerAllProducts() {
+        return axiosInstance.get(`${API_URL}/partner/product/all`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
     }
 };

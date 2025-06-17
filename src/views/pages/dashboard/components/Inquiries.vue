@@ -15,34 +15,33 @@
     <div class="inquiries-list">
       <div v-for="inquiry in inquiries" :key="inquiry.id" class="inquiry-item">
         <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
+
           <span class="inquiry-status" :class="inquiry.status">{{ inquiry.status }}</span>
           <h3>{{ inquiry.title }}</h3>
           <span class="inquiry-author">{{ inquiry.author }}</span>
-          <span class="inquiry-date">{{ inquiry.createdAt }}</span>
+          <span class="inquiry-date">{{ formatDate(inquiry.createdAt) }}</span>
           <span class="inquiry-toggle">{{ expandedInquiries.includes(inquiry.id) ? '▼' : '▶' }}</span>
         </div>
+        <!-- 문의 상세 펼침 영역 -->
         <div v-if="expandedInquiries.includes(inquiry.id)" class="inquiry-content">
           <div class="inquiry-message">
             <h4>문의 내용</h4>
             <p>{{ inquiry.content }}</p>
-            <div v-if="inquiry.attachments.length > 0" class="inquiry-attachments">
-              <h4>첨부파일</h4>
-              <ul>
-                <li v-for="file in inquiry.attachments" :key="file.id">
-                  <a :href="file.url" target="_blank">{{ file.name }}</a>
-                </li>
-              </ul>
-            </div>
           </div>
-          <div v-if="inquiry.reply" class="inquiry-reply">
+          <!-- 답변이 있을 경우 -->
+          <div v-if="inquiry.answerContent" class="inquiry-reply">
             <h4>답변</h4>
-            <p>{{ inquiry.reply.content }}</p>
-            <span class="reply-date">{{ inquiry.reply.createdAt }}</span>
+            <p class="reply-label">[관리자 답변]</p>
+            <p class="reply-content">{{ inquiry.answerContent }}</p>
+            <p class="reply-date">{{ formatDate(inquiry.answeredAt) }}</p>
+
+            <!-- 답변이 있을 경우 -->
             <div class="reply-actions">
               <button @click="editReply(inquiry.id)">수정</button>
               <button @click="deleteReply(inquiry.id)">삭제</button>
             </div>
           </div>
+          <!-- 답변이 없을 경우 -->
           <div v-else class="inquiry-actions">
             <button @click="openReplyModal(inquiry.id)">답변하기</button>
           </div>
@@ -75,8 +74,18 @@
   </div>
 </template>
 
+<script setup>
+import {useRouter} from 'vue-router';
+
+const router = useRouter();
+
+const goToDetail = (id) => {
+  router.push({name: 'AdminInquiryDetail', params: {id}});
+};
+</script>
+
 <script>
-import { inquiryApi } from '@/api/inquiry'
+import {inquiryApi} from '@/api/inquiry'
 
 export default {
   name: 'Inquiries',
@@ -91,6 +100,9 @@ export default {
       itemsPerPage: 10,
       showReplyModal: false,
       editingReply: false,
+      isAnswered: false,
+      answerContent: '',
+      answeredAt: '',
       replyForm: {
         inquiryId: null,
         content: ''
@@ -100,75 +112,21 @@ export default {
   methods: {
     async searchInquiries() {
       try {
-        const response = await inquiryApi.getInquiryList({
-          query: this.searchQuery,
-          status: this.statusFilter,
-          page: this.currentPage
-        });
+        const params = {
+          keyword: this.searchQuery || '', // 검색어가 없으면 빈 문자열
+          status: this.statusFilter || '', // 필터가 없으면 전체
+          page: this.currentPage - 1, // Spring은 0-based paging
+          size: this.itemsPerPage
+        };
+
+        const response = await inquiryApi.getInquiryList(params);
         this.inquiries = response.data.content;  // content는 Spring의 Page 객체 기준
+        console.log(this.inquiries)
         this.totalPages = response.data.totalPages;
       } catch (error) {
         console.error('문의 목록 조회 실패:', error);
         alert('문의 목록 조회 중 오류가 발생했습니다.');
       }
-      // TODO: API 호출하여 문의 목록 검색
-      this.inquiries = [
-        {
-          id: 1,
-          title: '예약 취소 문의',
-          content: '예약을 취소하고 싶은데 어떻게 해야 하나요?',
-          author: '홍길동',
-          createdAt: '2024-03-15',
-          status: '대기중',
-          attachments: [],
-          reply: null
-        },
-        {
-          id: 2,
-          title: '결제 관련 문의',
-          content: '결제가 완료되었는데 예약 확인이 안됩니다.',
-          author: '김철수',
-          createdAt: '2024-03-14',
-          status: '답변완료',
-          attachments: [
-            { id: 1, name: '결제내역.pdf', url: '/files/payment.pdf' }
-          ],
-          reply: {
-            content: '결제 확인 후 예약이 확정되었습니다.',
-            createdAt: '2024-03-14 15:30'
-          }
-        },
-        {
-          id: 3,
-          title: '시스템 관련 문의',
-          content: '시스템 문의',
-          author: '유관순',
-          createdAt: '2024-03-15',
-          status: '대기중',
-          attachments: [],
-          reply: null
-        },
-        {
-          id: 4,
-          title: '상품 관련 문의',
-          content: '상품 문의',
-          author: '김구',
-          createdAt: '2024-03-15',
-          status: '대기중',
-          attachments: [],
-          reply: null
-        },
-        {
-          id: 5,
-          title: '제휴 관련 문의',
-          content: '파트너 등록 문의',
-          author: '박지성',
-          createdAt: '2024-03-15',
-          status: '대기중',
-          attachments: [],
-          reply: null
-        }
-      ]
     },
     toggleInquiry(id) {
       const index = this.expandedInquiries.indexOf(id)
@@ -207,12 +165,12 @@ export default {
     },
     async submitReply() {
       try {
-        const { inquiryId, content } = this.replyForm;
+        const {inquiryId, content} = this.replyForm;
         if (this.editingReply) {
-          await inquiryApi.updateReply(inquiryId, { content });
+          await inquiryApi.updateReply(inquiryId, {content});
           alert('답변이 수정되었습니다.');
         } else {
-          await inquiryApi.createReply(inquiryId, { content });
+          await inquiryApi.createReply(inquiryId, {content});
           alert('답변이 등록되었습니다.');
         }
         this.showReplyModal = false;
@@ -227,11 +185,21 @@ export default {
     changePage(page) {
       this.currentPage = page
       this.searchInquiries()
+    }, formatDate(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`;
     }
   },
   created() {
     this.searchInquiries()
   }
+
 }
 </script>
 
@@ -279,7 +247,7 @@ export default {
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .inquiry-header {
