@@ -1,13 +1,24 @@
 <script setup>
 import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js"
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const props = defineProps({
-  diary: Object
+  diary: {
+    type: Object,
+    required: true
+  }
 })
+
+const goToDetail = () => {
+  window.open(`/fishing-diary/${props.diary.fdId}`)
+}
 </script>
 
 <template>
-  <div class="diary-card">
+  <div class="diary-card"
+       @click="goToDetail">
     <img
         class="thumbnail"
         :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
@@ -31,6 +42,7 @@ const props = defineProps({
   flex-direction: column;
   justify-content: start;
   height: 300px;
+  cursor: pointer;
 }
 
 .thumbnail {

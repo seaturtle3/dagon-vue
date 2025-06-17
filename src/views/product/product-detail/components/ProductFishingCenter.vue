@@ -41,6 +41,14 @@ const totalCount = computed(() => {
   const diaryCount = store.diary ? store.diary.length : 0
   return reportCount + diaryCount
 })
+
+// 상세 페이지로 이동 함수
+const goToDetail = (item) => {
+  if (!item || !item._type) return
+  const basePath = item._type === 'report' ? 'fishing-report' : 'fishing-diary'
+  const id = item._type === 'report' ? item.frId : item.fdId
+  window.open(`/${basePath}/${id}`, '_blank')
+}
 </script>
 
 <template>
@@ -58,6 +66,8 @@ const totalCount = computed(() => {
             v-for="center in combinedList"
             :key="center._type + '-' + (center.frId || center.fdId)"
             class="combined-box"
+            @click="goToDetail(center)"
+            style="cursor: pointer"
         >
           <!-- 뱃지 -->
           <div

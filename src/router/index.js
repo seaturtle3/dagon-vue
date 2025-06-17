@@ -163,8 +163,13 @@ const routes = [
         component: () => import('@/views/community/fishing-report/ReportDetail.vue'),
         props: true, // <--- 이걸 해야 route.params.id를 prop으로 받을 수 있어
     },
-
     {path: '/fishing-diary', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
+    {
+        path: '/fishing-diary/:fdId',
+        name: 'DiaryDetail',
+        component: () => import('@/views/community/fishing-diary/DiaryDetail.vue'),
+        props: true,
+    },
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},

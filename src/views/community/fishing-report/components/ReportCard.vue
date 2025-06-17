@@ -13,12 +13,13 @@ const props = defineProps({
 console.log('ReportCard ID:', props.report?.frId)
 
 const goToDetail = () => {
-  router.push(`/fishing-report/${props.report.frId}`)
+  window.open(`/fishing-report/${props.report.frId}`)
 }
 </script>
 
 <template>
-  <div class="report-card" @click="goToDetail">
+  <div class="report-card"
+       @click="goToDetail">
     <img
         class="thumbnail"
         :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"

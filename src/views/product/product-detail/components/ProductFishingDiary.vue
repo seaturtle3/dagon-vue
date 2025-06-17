@@ -14,6 +14,10 @@ onMounted(() => {
 })
 
 const diaryCount = computed(() => store.diary?.length || 0)
+
+const goToDetail = (diary) => {
+  window.open(`/fishing-diary/${diary.fdId}`, '_blank')
+}
 </script>
 
 <template>
@@ -30,6 +34,8 @@ const diaryCount = computed(() => store.diary?.length || 0)
           v-for="diary in store.diary.slice(0, 15)"
           :key="diary.fdId"
           class="item-box"
+          @click="goToDetail(diary)"
+          style="cursor: pointer"
       >
         <div class="thumbnail-wrapper">
           <img

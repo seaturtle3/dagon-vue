@@ -1,23 +1,21 @@
 <script setup>
-import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js";
 
 const props = defineProps({
-  report: {
+  diary: {
     type: Object,
     required: true
   }
 })
-
-console.log('props 댓글 확인: ', props.report.comments)
 </script>
 
 <template>
   <div class="detail-container">
     <!-- 제목 -->
-    <h2 class="text-center mb-4 fw-bold">{{ report.title }}</h2>
+    <h2 class="text-center mb-4 fw-bold">{{ diary.title }}</h2>
 
     <!-- 구분선 -->
-    <hr class="my-4"/>
+    <hr class="my-4" />
 
     <!-- 썸네일 + 정보 -->
     <div class="d-flex flex-column flex-md-row align-items-start mb-4 position-relative">
@@ -28,36 +26,37 @@ console.log('props 댓글 확인: ', props.report.comments)
       >
       신고하기
       </span>
+
       <!-- 썸네일 -->
       <img
           class="thumbnail rounded"
-          :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+          :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
           alt="썸네일"
       />
 
       <!-- 우측 정보 -->
       <div class="info-section ms-md-4 mt-3 mt-md-0">
-        <p><strong>상품명:</strong> {{ report.product?.prodName || '없음' }}</p>
-        <p><strong>작성자:</strong> {{ report.user?.uname || '익명' }}</p>
-        <p><strong>조행일자:</strong> {{ report.fishingAt || '날짜 없음' }}</p>
+        <p><strong>상품명:</strong> {{ diary.product?.prodName || '없음' }}</p>
+        <p><strong>작성자:</strong> {{ diary.user?.uname || '익명' }}</p>
+        <p><strong>조행일자:</strong> {{ diary.fishingAt || '날짜 없음' }}</p>
       </div>
     </div>
 
-    <!-- 조황 내용 -->
+    <!-- 조행기 내용 -->
     <div class="content mb-4">
-      <p class="content-text">{{ report.content }}</p>
+      <p class="content-text">{{ diary.content }}</p>
     </div>
 
     <!-- 추가 이미지 예시 (필요시 확장 가능) -->
-    <div v-if="report.imageUrls && report.imageUrls.length" class="report-images mt-3">
+    <div v-if="diary.imageUrls && diary.imageUrls.length" class="diary-images mt-3">
       <h5 class="fw-semibold mb-2">사진</h5>
       <div class="d-flex flex-wrap gap-3">
         <img
-            v-for="(img, index) in report.imageUrls"
+            v-for="(img, index) in diary.imageUrls"
             :key="index"
-            :src="`${IMAGE_BASE_URL}/fishing-report/${img}`"
+            :src="`${IMAGE_BASE_URL}/fishing-diary/${img}`"
             class="extra-image rounded"
-            alt="조황 사진"
+            alt="조행기 사진"
         />
       </div>
     </div>
@@ -66,10 +65,10 @@ console.log('props 댓글 확인: ', props.report.comments)
   <!-- 댓글 박스 -->
   <div class="comment-box p-4 mt-5 rounded">
     <h5 class="mb-3 fw-semibold">댓글</h5>
-    <div v-if="report.comments && report.comments.length">
+    <div v-if="diary.comments && diary.comments.length">
       <div
-          v-for="(comment, index) in report.comments"
-          :key="comment.frCommentId"
+          v-for="(comment, index) in diary.comments"
+          :key="comment.fdCommentId"
           class="mb-2 position-relative"
       >
         <!-- 우측 상단 신고 버튼 -->
@@ -81,15 +80,14 @@ console.log('props 댓글 확인: ', props.report.comments)
         </span>
 
         <!-- 댓글 작성자 -->
-        <p class="text-muted mb-1">{{ comment.user?.uname || '익명' }}</p>
+        <p class="text-muted user-name">{{ comment.user?.uname || '익명' }}</p>
 
         <!-- 작성 시간 -->
-        <small class="text-secondary">{{ comment.createdAt }}</small>
+        <small class="d-block text-secondary mb-3">{{comment.createdAt}}</small>
 
         <!-- 댓글 내용 -->
-        <p class="mb-0 mt-1">{{ comment.comment }}</p>
-
-        <hr class="my-2" v-if="index < report.comments.length - 1"/>
+        <p class="mb-1">{{ comment.comment }}</p>
+        <hr class="my-2" v-if="index < diary.comments.length - 1" />
       </div>
     </div>
 

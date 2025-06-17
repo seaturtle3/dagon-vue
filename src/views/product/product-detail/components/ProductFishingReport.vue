@@ -14,6 +14,10 @@ onMounted(() => {
 })
 
 const reportCount = computed(() => store.report?.length || 0)
+
+const goToDetail = (report) => {
+  window.open(`/fishing-report/${report.frId}`, '_blank')
+}
 </script>
 
 <template>
@@ -30,6 +34,8 @@ const reportCount = computed(() => store.report?.length || 0)
           v-for="(report, index) in store.report.slice(0, 15)"
           :key="report.frId"
           class="item-box"
+          @click="goToDetail(report)"
+          style="cursor: pointer;"
       >
         <div class="thumbnail-wrapper">
           <img
