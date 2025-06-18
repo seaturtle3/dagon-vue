@@ -1,6 +1,6 @@
 <script setup>
-import ProductList from '@/views/product/all-products/components/ProductList.vue'
-import ProductForm from '@/views/product/all-products/components/ProductForm.vue'
+import ProductListView from '@/views/product/all-products/components/ProductListView.vue'
+import ProductFormView from '@/views/product/all-products/components/ProductFormView.vue'
 
 import {useProductEnumStore} from '@/store/product/all-products/useProductEnumStore.js'
 import {useProductListStore} from '@/store/product/all-products/useProductListStore.js'
@@ -29,8 +29,8 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <!-- ProductList -->
-    <ProductList
+    <!-- ProductListView -->
+    <ProductListView
         v-if="!formStore.showForm"
         :products="listStore.products"
         :page="listStore.page"
@@ -38,8 +38,8 @@ onMounted(() => {
         @page-change="listStore.goToPage"
     />
 
-    <!-- ProductForm -->
-    <ProductForm
+    <!-- ProductFormView -->
+    <ProductFormView
         v-if="formStore.showForm"
         :form="formStore.form"
         :regions="enumStore.regions"

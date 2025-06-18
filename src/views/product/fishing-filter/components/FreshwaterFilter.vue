@@ -2,6 +2,7 @@
 import {ref, computed} from 'vue'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 import { useRouter } from 'vue-router'
+import Pagination from "@/components/common-function/Pagination.vue";
 
 const props = defineProps({
   filteredProducts: {
@@ -10,6 +11,7 @@ const props = defineProps({
   }
 })
 
+const router = useRouter()
 const currentPage = ref(1)
 const pageSize = 12
 
@@ -18,22 +20,18 @@ const totalPages = computed(() =>
 )
 
 const paginatedProducts = computed(() =>
-    props.filteredProducts.slice((currentPage.value - 1) * pageSize, currentPage.value * pageSize)
+    props.filteredProducts.slice(
+        (currentPage.value - 1) * pageSize,
+        currentPage.value * pageSize
+    )
 )
 
-const router = useRouter()
-
-function prevPage() {
-  if (currentPage.value > 1) currentPage.value--
-}
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) currentPage.value++
-}
-
 function openDetail(product) {
-  const url = `/products/${product.prodId}`
-  router.push(url) // 같은 탭에서 이동
+  router.push(`/products/${product.prodId}`)
+}
+
+function onPageChange(newPage) {
+  currentPage.value = newPage
 }
 </script>
 
@@ -53,11 +51,13 @@ function openDetail(product) {
     </div>
   </div>
 
-  <div class="pagination">
-    <button @click="prevPage" :disabled="currentPage === 1">이전</button>
-    <span>{{ currentPage }} / {{ totalPages }}</span>
-    <button @click="nextPage" :disabled="currentPage === totalPages">다음</button>
-  </div>
+  <!-- 공통 Pagination 컴포넌트 사용 -->
+  <Pagination
+      :page="currentPage"
+      :total-pages="totalPages"
+      :zero-based="false"
+      @page-change="onPageChange"
+  />
 </template>
 
 <style scoped>
@@ -92,14 +92,6 @@ function openDetail(product) {
 .address {
   font-size: 0.9rem;
   color: #666;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-  margin: 20px 0;
 }
 
 button {
