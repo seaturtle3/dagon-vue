@@ -123,11 +123,23 @@ const routes = [
             {path: 'dashboard', component: () => import('@/views/pages/partner-page/components/Dashboard.vue')},
             {path: 'info', component: () => import('@/views/pages/partner-page/components/PartnerInfo.vue')},
             {path: 'inquiries', component: () => import('@/views/pages/partner-page/components/InquiryList.vue')},
-            {path: 'reservations', component: () => import('@/views/pages/partner-page/components/ReservationList.vue')},
-            {path: 'reservations/:id', component: () => import('@/views/pages/partner-page/components/ReservationDetail.vue')},
+            {
+                path: 'reservations',
+                component: () => import('@/views/pages/partner-page/components/ReservationList.vue')
+            },
+            {
+                path: 'reservations/:id',
+                component: () => import('@/views/pages/partner-page/components/ReservationDetail.vue')
+            },
             {path: 'products', component: () => import('@/views/pages/partner-page/components/ProductList.vue')},
-            {path: 'market-info', component: () => import('@/views/pages/partner-page/components/FishingReportManager.vue')},
-            {path: 'market-info/:id', component: () => import('@/views/pages/partner-page/components/FishingReportDetail.vue')},
+            {
+                path: 'market-info',
+                component: () => import('@/views/pages/partner-page/components/FishingReportManager.vue')
+            },
+            {
+                path: 'market-info/:id',
+                component: () => import('@/views/pages/partner-page/components/FishingReportDetail.vue')
+            },
             {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')}
         ]
     },
@@ -145,7 +157,8 @@ const routes = [
     {
         path: '/products',
         children: [
-            {path: '', component: () => import('@/views/product/all-products/AllProducts.vue')},
+            {path: '', component: () => import('@/views/product/all-products/ProductList.vue')},
+            {path: 'form', component: () => import('@/views/product/all-products/ProductForm.vue')},
             {path: 'sea', component: () => import('@/views/product/fishing-filter/Sea.vue')},
             {path: 'freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
             {
@@ -158,24 +171,41 @@ const routes = [
 
     // fishing-center
     {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
-    {path: '/fishing-report', component: () => import('@/views/community/fishing-report/ReportList.vue')},
     {
-        path: '/fishing-report/:frId',
-        name: 'ReportDetail',
-        component: () => import('@/views/community/fishing-report/ReportDetail.vue'),
-        props: true, // <--- 이걸 해야 route.params.id를 prop으로 받을 수 있어
+        path: '/fishing-report',
+        children: [
+            {path: '', component: () => import('@/views/community/fishing-report/ReportList.vue')},
+            {path: 'form', component: () => import('@/views/community/fishing-report/ReportForm.vue')},
+            {
+                path: ':frId',
+                name: 'ReportDetail',
+                component: () => import('@/views/community/fishing-report/ReportDetail.vue'),
+                props: true, // <--- 이걸 해야 route.params.id를 prop으로 받을 수 있어},
+            },
+        ]
     },
-    {path: '/fishing-diary', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
+
     {
-        path: '/fishing-diary/:fdId',
-        name: 'DiaryDetail',
-        component: () => import('@/views/community/fishing-diary/DiaryDetail.vue'),
-        props: true,
+        path: '/fishing-diary',
+        children: [
+            {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
+            // {path: 'form', component: () => import('@/views/community/fishing-diary/DiaryList/DiaryForm.vue')},
+            {
+                path: ':fdId',
+                name: 'DiaryDetail',
+                component: () => import('@/views/community/fishing-diary/DiaryDetail.vue'),
+                props: true,
+            },
+        ]
     },
+
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
-    {path: '/reservation-confirm', component: () => import('@/views/order/reservation/components/ReservationConfirm.vue')},
+    {
+        path: '/reservation-confirm',
+        component: () => import('@/views/order/reservation/components/ReservationConfirm.vue')
+    },
     {path: '/reservation-form', component: () => import('@/views/order/reservation/components/ReservationForm.vue')},
     {
         path: '/reservation/:prodId',

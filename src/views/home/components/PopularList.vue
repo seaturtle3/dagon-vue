@@ -47,8 +47,8 @@ const goToDetail = (report) => {
         />
 
         <div class="report-info">
-          <h3 class="report-title">{{ report.title }}</h3>
-          <p class="report-user">by {{ report.user?.uname }}</p>
+          <h5 class="report-title">{{ report.prodName }}</h5>
+          <h6 class="report-title">{{ report.title }}</h6>
           <p class="report-date">{{ report.fishingAt?.slice(0, 10) || '날짜 없음' }}</p>
         </div>
       </div>
