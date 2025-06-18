@@ -13,7 +13,7 @@ onMounted(async () => {
 <template>
   <div class="sea">
     <div style="margin-bottom: 3%">
-      <h2>바다낚시</h2>
+      <h4>바다낚시</h4>
     </div>
     <SeaFilter :filteredProducts="store.products" />
   </div>

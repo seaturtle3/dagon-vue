@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
+import {ref, computed} from 'vue'
+import {IMAGE_BASE_URL} from '@/constants/imageBaseUrl.js'
 import {useRouter} from "vue-router";
 
 const props = defineProps({
@@ -54,9 +54,9 @@ const goToPage = (page) => {
 
 // 상세 페이지로 이동 함수
 const goToDetail = (item) => {
-  if(item._type === 'report'){
+  if (item._type === 'report') {
     window.open(`/fishing-report/${item.frId}`, '_blank')
-  } else if(item._type === 'diary'){
+  } else if (item._type === 'diary') {
     window.open(`/fishing-diary/${item.fdId}`, '_blank')
   }
 }
@@ -64,9 +64,10 @@ const goToDetail = (item) => {
 
 <template>
   <div>
-    <h2 class="mb-3 font-bold text-lg">
-      전체 조황정보/조행기 <span class="count">({{ combinedList.length }})</span>
-    </h2>
+    <h4 class="mb-3 font-bold text-lg">
+      전체 조황정보/조행기
+      <span class="count">({{ combinedList.length }})</span>
+    </h4>
 
     <div class="combined-grid" v-if="pagedList.length > 0">
       <div
@@ -92,10 +93,11 @@ const goToDetail = (item) => {
           </div>
         </div>
 
-        <p><strong>제목:</strong> {{ item.title }}</p>
-        <p><strong>상품명:</strong> 없음</p>
-        <p><strong>작성자:</strong> {{ item.user?.uname }}</p>
-        <p>날짜: {{ item.fishingAt || '날짜 없음' }}</p>
+        <div class="content">
+          <strong> {{ item.product?.prodName }} </strong>
+          <h6>{{ item.title }}</h6>
+          <small>날짜: {{ item.fishingAt || '날짜 없음' }}</small>
+        </div>
       </div>
     </div>
 
@@ -138,7 +140,7 @@ const goToDetail = (item) => {
   position: relative;
   width: 100%;
   height: 60%;
-  overflow: hidden;           /* 이게 있어야 뱃지가 박스 밖으로 안 튀어나감 */
+  overflow: hidden; /* 이게 있어야 뱃지가 박스 밖으로 안 튀어나감 */
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
 }
@@ -163,6 +165,7 @@ const goToDetail = (item) => {
   line-height: 1;
   border-radius: 0 0 6px 0; /* 오른쪽 아래만 둥글게 */
 }
+
 .badge-report {
   background-color: #007bff; /* 파랑 */
 }
@@ -174,7 +177,6 @@ const goToDetail = (item) => {
 .count {
   color: #4a90e2;
   font-weight: 600;
-  margin-left: 6px;
 }
 
 .pagination {
@@ -198,5 +200,9 @@ const goToDetail = (item) => {
 .pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.content {
+  padding: 8px 12px;
 }
 </style>
