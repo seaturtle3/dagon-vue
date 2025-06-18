@@ -1,4 +1,18 @@
 <template>
+  <ModalDialog
+    :show="showLoginModal"
+    title="로그인 필요"
+    message="문의 내역 조회는 로그인 후 이용 가능합니다."
+    confirmText="로그인 페이지로 이동"
+    :onConfirm="goToLogin"
+  />
+  <ModalDialog
+    :show="showErrorModal"
+    title="오류"
+    :message="errorMessage"
+    :onConfirm="() => showErrorModal = false"
+  />
+
   <div class="inquiries-container">
     <div class="page-header">
       <font-awesome-icon icon="fa-solid fa-anchor" class="header-icon" />
@@ -85,6 +99,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { myPageAPI } from '@/api/mypage.js';
+import { useRouter } from 'vue-router';
+import ModalDialog from '@/components/common/ModalDialog.vue';
 
 // Font Awesome CDN 추가
 const fontAwesomeScript = document.createElement('link');
@@ -94,6 +110,10 @@ document.head.appendChild(fontAwesomeScript);
 
 const inquiries = ref([]);
 const loading = ref(false);
+const showLoginModal = ref(false);
+const showErrorModal = ref(false);
+const errorMessage = ref('');
+const router = useRouter();
 
 const getInquiryTypeText = (type) => {
   const typeMap = {
@@ -142,15 +162,27 @@ const formatDate = (dateString) => {
 const loadInquiries = async () => {
   loading.value = true;
   try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showLoginModal.value = true;
+      return;
+    }
     const data = await myPageAPI.getMyInquiries();
-    console.log('받아온 문의 데이터:', data);
     inquiries.value = data;
   } catch (error) {
-    console.error('문의 내역 로딩 실패:', error);
-    alert('문의 내역을 불러오는데 실패했습니다.');
+    if (error.response?.status === 401) {
+      showLoginModal.value = true;
+    } else {
+      errorMessage.value = '문의 내역을 불러오는데 실패했습니다.';
+      showErrorModal.value = true;
+    }
   } finally {
     loading.value = false;
   }
+};
+
+const goToLogin = () => {
+  router.push('/login');
 };
 
 onMounted(() => {

@@ -54,11 +54,25 @@
       </div>
     </div>
   </div>
+  <div v-if="showLoginModal" class="modal-overlay">
+    <div class="modal-content" @click.stop>
+      <div class="modal-header">
+        <h2>로그인 필요</h2>
+      </div>
+      <div class="modal-body">
+        <p>비밀번호 변경은 로그인 후 이용 가능합니다.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" @click="goToLogin">로그인 페이지로 이동</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { myPageAPI } from '@/api/mypage.js';
+import { useRouter } from 'vue-router';
 
 const passwordForm = ref({
   currentPassword: '',
@@ -116,6 +130,20 @@ const handleSubmit = async () => {
     console.error('비밀번호 변경 실패:', error);
     alert(error.response?.data?.error || '비밀번호 변경에 실패했습니다.');
   }
+};
+
+const showLoginModal = ref(false);
+const router = useRouter();
+
+onMounted(() => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showLoginModal.value = true;
+  }
+});
+
+const goToLogin = () => {
+  router.push('/login');
 };
 </script>
 

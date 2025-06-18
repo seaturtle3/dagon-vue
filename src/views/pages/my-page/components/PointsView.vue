@@ -1,4 +1,18 @@
 <template>
+  <!-- 공통 모달 적용 -->
+  <ModalDialog
+    :show="showLoginModal"
+    title="로그인 필요"
+    message="포인트 및 레벨 조회는 로그인 후 이용 가능합니다."
+    confirmText="로그인 페이지로 이동"
+    :onConfirm="goToLogin"
+  />
+  <ModalDialog
+    :show="showErrorModal"
+    title="오류"
+    :message="errorMessage"
+    :onConfirm="goToLogin"
+  />
   <div class="points-container">
     <h2 class="page-title">포인트 및 레벨</h2>
     
@@ -58,6 +72,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { myPageAPI } from '@/api/mypage.js';
+import { useRouter } from 'vue-router';
+import ModalDialog from '@/components/common/ModalDialog.vue';
 
 const pointInfo = ref({
   point: 0,
@@ -75,15 +91,32 @@ const progressPercentage = computed(() => {
   return ((current - prev) / (next - prev)) * 100;
 });
 
+const showLoginModal = ref(false);
+const showErrorModal = ref(false);
+const errorMessage = ref('');
+const router = useRouter();
+
 onMounted(async () => {
   try {
     const response = await myPageAPI.getPointAndLevel();
     pointInfo.value = response.data;
+    // 로그인 정보가 없으면 모달 표시
+    const token = localStorage.getItem('token');
+    if (!token) showLoginModal.value = true;
   } catch (error) {
     console.error('포인트 정보 조회 실패:', error);
-    alert('포인트 정보를 불러오는데 실패했습니다.');
+    if (error.response?.status === 401) {
+      showLoginModal.value = true;
+    } else {
+      errorMessage.value = '포인트 정보를 불러오는데 실패했습니다.';
+      showErrorModal.value = true;
+    }
   }
 });
+
+const goToLogin = () => {
+  router.push('/login')
+}
 </script>
 
 <style scoped>

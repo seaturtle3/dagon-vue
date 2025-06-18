@@ -1,4 +1,23 @@
 <template>
+  <ModalDialog
+    :show="showLoginModal"
+    title="로그인 필요"
+    message="예약 내역 조회는 로그인 후 이용 가능합니다."
+    confirmText="확인"
+    :onConfirm="goToLogin"
+  />
+  <ModalDialog
+    :show="showErrorModal"
+    title="오류"
+    :message="errorMessage"
+    :onConfirm="() => showErrorModal = false"
+  />
+  <ModalDialog
+    :show="showSuccessModal"
+    title="알림"
+    :message="successMessage"
+    :onConfirm="() => showSuccessModal = false"
+  />
   <div class="reservations-container">
     <h2 class="page-title">예약 현황</h2>
     
@@ -80,6 +99,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { myPageAPI } from '@/api/mypage.js';
+import { useRouter } from 'vue-router';
+import ModalDialog from '@/components/common/ModalDialog.vue';
 
 const tabs = [
   { label: '예정된 예약', value: 'PAID' },
@@ -91,6 +112,12 @@ const currentTab = ref('PAID');
 const reservations = ref([]);
 const loading = ref(false);
 const cancelling = ref(false);
+const showLoginModal = ref(false);
+const showErrorModal = ref(false);
+const errorMessage = ref('');
+const showSuccessModal = ref(false);
+const successMessage = ref('');
+const router = useRouter();
 
 // 테스트용 임시 데이터
 const testData = [
@@ -132,12 +159,19 @@ const loadReservations = async () => {
       productName: item.productName
     })));
     reservations.value = data;
+    // 로그인 정보가 없으면 모달 표시
+    if (!Array.isArray(data) || data.length === 0) {
+      // 추가적으로 사용자 정보 체크를 원하면 getMyInfo()로도 체크 가능
+      const token = localStorage.getItem('token');
+      if (!token) showLoginModal.value = true;
+    }
   } catch (error) {
     console.error('예약 목록 로딩 실패:', error);
     if (error.response?.status === 401) {
-      alert('로그인이 필요합니다.');
+      showLoginModal.value = true;
     } else {
-      alert('예약 목록을 불러오는데 실패했습니다.');
+      errorMessage.value = '예약 목록을 불러오는데 실패했습니다.';
+      showErrorModal.value = true;
     }
     reservations.value = [];
   } finally {
@@ -199,22 +233,27 @@ const handleCancelReservation = async (id) => {
   cancelling.value = true;
   try {
     await myPageAPI.cancelReservation(id);
-    alert('예약이 성공적으로 취소되었습니다.');
+    successMessage.value = '예약이 성공적으로 취소되었습니다.';
+    showSuccessModal.value = true;
     await loadReservations();
   } catch (error) {
     console.error('예약 취소 실패:', error);
-    const errorMessage = error.response?.data || '예약 취소 중 오류가 발생했습니다.';
-    
+    const errMsg = error.response?.data || '예약 취소 중 오류가 발생했습니다.';
     if (error.response?.status === 403) {
-      alert('현재 상태에서는 예약을 취소할 수 없습니다.\n이미 취소되었거나, 이용이 완료된 예약입니다.');
+      errorMessage.value = '현재 상태에서는 예약을 취소할 수 없습니다.\n이미 취소되었거나, 이용이 완료된 예약입니다.';
     } else if (error.response?.status === 401) {
-      alert('로그인이 필요합니다.');
+      errorMessage.value = '로그인이 필요합니다.';
     } else {
-      alert(errorMessage);
+      errorMessage.value = errMsg;
     }
+    showErrorModal.value = true;
   } finally {
     cancelling.value = false;
   }
+};
+
+const goToLogin = () => {
+  router.push('/login');
 };
 
 onMounted(() => {

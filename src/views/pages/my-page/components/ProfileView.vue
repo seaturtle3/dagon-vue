@@ -1,4 +1,17 @@
 <template>
+  <ModalDialog
+    :show="showLoginModal"
+    title="로그인 필요"
+    message="회원정보 조회는 로그인 후 이용 가능합니다."
+    confirmText="로그인 페이지로 이동"
+    :onConfirm="goToLogin"
+  />
+  <ModalDialog
+    :show="showErrorModal"
+    title="오류"
+    :message="errorMessage"
+    :onConfirm="() => showErrorModal = false"
+  />
   <div class="profile-container">
     <h2 class="page-title">회원정보</h2>
     <div class="profile-form">
@@ -76,6 +89,8 @@
 import { ref, onMounted } from 'vue';
 import { myPageAPI } from '@/api/mypage.js';
 import {BASE_URL} from "@/constants/baseUrl.js";
+import { useRouter } from 'vue-router';
+import ModalDialog from '@/components/common/ModalDialog.vue';
 
 const defaultProfileImage = '/img/default-profile.png';
 const API_BASE_URL = `${BASE_URL}`; // API 서버 기본 URL
@@ -83,6 +98,9 @@ const API_BASE_URL = `${BASE_URL}`; // API 서버 기본 URL
 const isEditing = ref(false);
 const fileInput = ref(null);
 const originalUserInfo = ref(null);
+const showLoginModal = ref(false);
+const showErrorModal = ref(false);
+const errorMessage = ref('');
 
 const userInfo = ref({
   uid: '',
@@ -100,6 +118,7 @@ const phoneNumbers = ref({
 });
 
 const selectedImage = ref(null);
+const router = useRouter();
 
 const getProfileImageUrl = (imagePath) => {
   if (!imagePath) return defaultProfileImage;
@@ -127,6 +146,11 @@ const loadUserInfo = async () => {
       phone: response.data.phone || ''
     };
     
+    // 로그인 정보가 없으면 모달 표시
+    if (!userInfo.value.uid) {
+      showLoginModal.value = true;
+    }
+    
     // 전화번호 파싱
     if (response.data.phone) {
       const phone = response.data.phone.replace(/-/g, '');
@@ -143,7 +167,7 @@ const loadUserInfo = async () => {
     originalUserInfo.value = JSON.parse(JSON.stringify(userInfo.value));
   } catch (error) {
     console.error('사용자 정보 조회 실패:', error);
-    alert('사용자 정보를 불러오는데 실패했습니다.');
+    showLoginModal.value = true;
   }
 };
 
@@ -193,12 +217,24 @@ const handleSubmit = async () => {
     }
 
     await myPageAPI.updateMyInfo(formData);
-    alert('회원정보가 수정되었습니다.');
-    isEditing.value = false;
-    await loadUserInfo(); // 수정된 정보 다시 로드
+    showSuccessModal.value = true;
   } catch (error) {
-    console.error('회원정보 수정 실패:', error);
-    alert('회원정보 수정에 실패했습니다.');
+    errorMessage.value = error.response?.data?.error || '회원정보 수정에 실패했습니다.';
+    showErrorModal.value = true;
+  }
+};
+
+const goToLogin = () => {
+  router.push('/login')
+}
+
+const confirmWithdrawal = async () => {
+  try {
+    await myPageAPI.withdrawMembership({ password: password.value });
+    showSuccessModal.value = true;
+  } catch (error) {
+    errorMessage.value = error.response?.data?.error || '회원 탈퇴 처리 중 오류가 발생했습니다.';
+    showErrorModal.value = true;
   }
 };
 </script>

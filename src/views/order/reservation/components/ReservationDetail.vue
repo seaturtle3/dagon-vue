@@ -1,4 +1,10 @@
 <template>
+  <ModalDialog
+    :show="showSuccessModal"
+    title="결제 성공"
+    :message="successMessage"
+    :onConfirm="goToReservations"
+  />
   <div class="reservation-detail">
     <h1>예약 상세 정보</h1>
     <div class="detail-content">
@@ -39,7 +45,7 @@
       </div>
 
       <div class="button-group">
-        <button @click="goToReservationForm" class="btn btn-primary">결제하기</button>
+        <button @click="onPaymentSuccess" class="btn btn-primary">결제하기</button>
       </div>
     </div>
   </div>
@@ -49,12 +55,15 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { reservationAPI } from '@/api/reservation.js'
+import ModalDialog from '@/components/common/ModalDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
 const reservation = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const showSuccessModal = ref(false)
+const successMessage = ref('결제가 완료되었습니다.')
 
 const fetchReservationDetail = async () => {
   try {
@@ -86,6 +95,15 @@ const goToReservationForm = () => {
     params: { id: route.params.id },
     state: { product: reservation.value.product }
   })
+}
+
+const goToReservations = () => {
+  showSuccessModal.value = false
+  router.push('/mypage/reservations')
+}
+
+const onPaymentSuccess = () => {
+  showSuccessModal.value = true
 }
 
 onMounted(() => {

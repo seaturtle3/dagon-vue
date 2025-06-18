@@ -1,58 +1,69 @@
 <template>
-<!--  <div class="reservation-confirm">-->
-<!--    <h2>예약 정보 확인</h2>-->
+  <!-- 예약 확인 성공 시 모달 -->
+  <ModalDialog
+    :show="showSuccessModal"
+    title="예약 완료"
+    :message="successMessage"
+    :onConfirm="goToReservations"
+  />
+  <!--  <div class="reservation-confirm">-->
+  <!--    <h2>예약 정보 확인</h2>-->
 
-<!--    <div class="confirm-content">-->
-<!--      <div class="info-section">-->
-<!--        <h3>예약 정보</h3>-->
-<!--        <div class="info-item">-->
-<!--          <span class="label">출조일:</span>-->
-<!--          <span class="value">{{ formatDateTime(fishingAt) }}</span>-->
-<!--        </div>-->
-<!--        <div class="info-item">-->
-<!--          <span class="label">인원 수:</span>-->
-<!--          <span class="value">{{ numPerson }}명</span>-->
-<!--        </div>-->
-<!--        <div class="info-item">-->
-<!--          <span class="label">결제 금액:</span>-->
-<!--          <span class="value">{{ amount.toLocaleString() }}원</span>-->
-<!--        </div>-->
-<!--      </div>-->
+  <!--    <div class="confirm-content">-->
+  <!--      <div class="info-section">-->
+  <!--        <h3>예약 정보</h3>-->
+  <!--        <div class="info-item">-->
+  <!--          <span class="label">출조일:</span>-->
+  <!--          <span class="value">{{ formatDateTime(fishingAt) }}</span>-->
+  <!--        </div>-->
+  <!--        <div class="info-item">-->
+  <!--          <span class="label">인원 수:</span>-->
+  <!--          <span class="value">{{ numPerson }}명</span>-->
+  <!--        </div>-->
+  <!--        <div class="info-item">-->
+  <!--          <span class="label">결제 금액:</span>-->
+  <!--          <span class="value">{{ amount.toLocaleString() }}원</span>-->
+  <!--        </div>-->
+  <!--      </div>-->
 
-<!--      <div class="info-section">-->
-<!--        <h3>예약자 정보</h3>-->
-<!--        <div class="info-item">-->
-<!--          <span class="label">닉네임:</span>-->
-<!--          <span class="value">{{ userName }}</span>-->
-<!--        </div>-->
-<!--        <div class="info-item">-->
-<!--          <span class="label">연락처:</span>-->
-<!--          <span class="value">{{ userPhone }}</span>-->
-<!--        </div>-->
-<!--        <div class="info-item">-->
-<!--          <span class="label">이메일:</span>-->
-<!--          <span class="value">{{ userEmail }}</span>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
+  <!--      <div class="info-section">-->
+  <!--        <h3>예약자 정보</h3>-->
+  <!--        <div class="info-item">-->
+  <!--          <span class="label">닉네임:</span>-->
+  <!--          <span class="value">{{ userName }}</span>-->
+  <!--        </div>-->
+  <!--        <div class="info-item">-->
+  <!--          <span class="label">연락처:</span>-->
+  <!--          <span class="value">{{ userPhone }}</span>-->
+  <!--        </div>-->
+  <!--        <div class="info-item">-->
+  <!--          <span class="label">이메일:</span>-->
+  <!--          <span class="value">{{ userEmail }}</span>-->
+  <!--        </div>-->
+  <!--      </div>-->
+  <!--    </div>-->
 
-<!--    <div class="button-group">-->
-<!--      <button @click="closePopup" class="btn btn-primary">확인</button>-->
-<!--    </div>-->
-<!--  </div>-->
+  <!--    <div class="button-group">-->
+  <!--      <button @click="closePopup" class="btn btn-primary">확인</button>-->
+  <!--    </div>-->
+  <!--  </div>-->
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import ModalDialog from '@/components/common/ModalDialog.vue'
 
 const route = useRoute()
+const router = useRouter()
 const fishingAt = ref('')
 const numPerson = ref(0)
 const amount = ref(0)
 const userName = ref('')
 const userPhone = ref('')
 const userEmail = ref('')
+const showSuccessModal = ref(false)
+const successMessage = ref('예약이 완료되었습니다.')
 
 const formatDateTime = (dateString) => {
   if (!dateString) return ''
@@ -68,6 +79,11 @@ const formatDateTime = (dateString) => {
 
 const closePopup = () => {
   window.close()
+}
+
+const goToReservations = () => {
+  showSuccessModal.value = false
+  router.push('/mypage/reservations')
 }
 
 onMounted(() => {

@@ -1,4 +1,17 @@
 <template>
+  <ModalDialog
+    :show="showLoginModal"
+    title="로그인 필요"
+    message="알림 조회는 로그인 후 이용 가능합니다."
+    confirmText="로그인 페이지로 이동"
+    :onConfirm="goToLogin"
+  />
+  <ModalDialog
+    :show="showErrorModal"
+    title="오류"
+    :message="errorMessage"
+    :onConfirm="() => showErrorModal = false"
+  />
   <div class="notifications-container">
     <h2 class="page-title">내 알람</h2>
     
@@ -52,12 +65,16 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { myPageAPI } from '@/api/mypage.js';
 import { useAuthStore } from '@/store/login/loginStore.js'; // 올바른 auth store import
+import ModalDialog from '@/components/common/ModalDialog.vue';
 
 const authStore = useAuthStore();
 const selectedFilter = ref('all');
 const notifications = ref([]);
 const loading = ref(false);
 const isInitialized = ref(false);
+const showLoginModal = ref(false);
+const showErrorModal = ref(false);
+const errorMessage = ref('');
 
 // 사용자 정보 초기화 확인
 const initializeUserInfo = async () => {
@@ -176,6 +193,7 @@ onMounted(async () => {
     fetchNotifications();
   } else {
     console.warn('사용자가 인증되지 않았습니다.');
+    showLoginModal.value = true;
   }
 });
 
