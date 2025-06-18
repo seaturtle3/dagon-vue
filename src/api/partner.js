@@ -1,4 +1,5 @@
 import axiosInstance from './axios';
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const API_URL = '/api';
 
@@ -37,7 +38,7 @@ export const partnerService = {
         if (!filename) {
             return '/images/default-product.jpg';
         }
-        return `http://localhost:8095/uploads/${filename}`;
+        return `${IMAGE_BASE_URL}/${filename}`;
     },
 
     // 상품 등록 폼 데이터 생성

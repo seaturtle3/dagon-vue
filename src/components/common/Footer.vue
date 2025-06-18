@@ -13,7 +13,7 @@
         <!-- 빠른 링크 -->
         <div class="col-md-4 text-center">
           <h5 class="fw-bold mb-3">빠른 링크</h5>
-          <ul class="list-unstyled">
+          <ul class="list-unstyled d-flex justify-content-center gap-4 mb-0">
             <li><a href="/about" class="text-light text-decoration-none">소개</a></li>
             <li><a href="/tips" class="text-light text-decoration-none">낚시 팁</a></li>
             <li><a href="/spots" class="text-light text-decoration-none">낚시터 찾기</a></li>
@@ -52,5 +52,13 @@
 
 .fishing-footer p, .fishing-footer ul {
   font-size: 0.9rem;
+}
+
+.fishing-footer ul {
+  padding-left: 0;
+}
+
+.fishing-footer ul li {
+  display: inline;
 }
 </style>

@@ -1,9 +1,9 @@
 import axios from 'axios';
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 // Axios 인스턴스 생성 (기본 설정)
 const apiClient = axios.create({
-    // baseURL: 'http://docs.yi.or.kr:8095/api',
-    baseURL: 'http://localhost:8095/api',
+    baseURL: `${BASE_URL}/api`,
     // headers: {
     //     'Content-Type': 'application/json',
     // },

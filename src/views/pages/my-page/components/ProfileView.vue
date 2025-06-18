@@ -75,9 +75,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { myPageAPI } from '@/api/mypage.js';
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const defaultProfileImage = '/img/default-profile.png';
-const API_BASE_URL = 'http://localhost:8095'; // API 서버 기본 URL
+const API_BASE_URL = `${BASE_URL}`; // API 서버 기본 URL
 
 const isEditing = ref(false);
 const fileInput = ref(null);

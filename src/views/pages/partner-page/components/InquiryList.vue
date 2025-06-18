@@ -88,6 +88,8 @@
 </template>
 
 <script>
+import {BASE_URL} from "@/constants/baseUrl.js";
+
 export default {
   name: 'InquiryList',
   data() {
@@ -145,7 +147,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`http://localhost:8095/api/inquiry/partner-inquiries?partnerUno=${this.partnerUno}`, {
+        const response = await fetch(`${BASE_URL}/api/inquiry/partner-inquiries?partnerUno=${this.partnerUno}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -170,7 +172,7 @@ export default {
 
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch(`http://localhost:8095/api/inquiries/${this.selectedInquiry.id}/answer`, {
+        const response = await fetch(`${BASE_URL}/api/inquiries/${this.selectedInquiry.id}/answer`, {
           method: "POST",
           headers: {
             'Content-Type': 'application/json',

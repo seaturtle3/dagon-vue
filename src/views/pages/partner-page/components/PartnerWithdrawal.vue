@@ -38,6 +38,8 @@
 </template>
 
 <script>
+import {BASE_URL} from "@/constants/baseUrl.js";
+
 export default {
   name: 'PartnerWithdrawal',
   data() {
@@ -66,7 +68,7 @@ export default {
 
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:8095/api/partner/my_page/${this.$store.state.user.uno}`, {
+        const response = await fetch(`${BASE_URL}/api/partner/my_page/${this.$store.state.user.uno}`, {
           method: "DELETE",
           headers: {
             'Authorization': `Bearer ${token}`
