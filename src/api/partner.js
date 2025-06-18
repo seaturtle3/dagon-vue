@@ -188,5 +188,45 @@ export const partnerService = {
                 'Content-Type': 'text/plain'
             }
         });
+    },
+
+    // 조황정보 신고
+    reportFishingReport(frId, reason) {
+        return axiosInstance.post(`${API_URL}/reports/fishing-report/${frId}`, reason, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'text/plain'
+            }
+        });
+    },
+
+    // 조황정보 댓글 신고
+    reportFishingReportComment(commentId, reason) {
+        return axiosInstance.post(`${API_URL}/reports/fishing-report-comment/${commentId}`, reason, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'text/plain'
+            }
+        });
+    },
+
+    // 조행기 신고
+    reportFishingPost(fdId, reason) {
+        return axiosInstance.post(`${API_URL}/reports/fishing-post/${fdId}`, reason, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'text/plain'
+            }
+        });
+    },
+
+    // 조행기 댓글 신고
+    reportFishingPostComment(commentId, reason) {
+        return axiosInstance.post(`${API_URL}/reports/fishing-post-comment/${commentId}`, reason, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'text/plain'
+            }
+        });
     }
 };

@@ -36,7 +36,8 @@ export const useAuthStore = defineStore('auth', {
                 localStorage.setItem('userInfo', JSON.stringify({
                     uid: res.data.uid,
                     uname: res.data.uname,
-                    profileImg: res.data.profileImg
+                    profileImg: res.data.profileImg,
+                    uno: res.data.uno
                 }));
 
                 // 3. 토큰을 Authorization 헤더에 설정
@@ -53,7 +54,8 @@ export const useAuthStore = defineStore('auth', {
                 adminAuthStore.setUser({
                     uid: userRes.data.uid,
                     name: userRes.data.uname,
-                    profileImage: userRes.data.profileImg
+                    profileImage: userRes.data.profileImg,
+                    uno: userRes.data.uno
                 });
 
                 return true;
@@ -101,7 +103,12 @@ export const useAuthStore = defineStore('auth', {
                 // authStore에도 사용자 정보 업데이트
                 const adminAuthStore = useAdminAuthStore();
                 adminAuthStore.setToken(token);
-                adminAuthStore.setUser(JSON.parse(userInfo));
+                adminAuthStore.setUser({
+                    uid: userRes.data.uid,
+                    name: userRes.data.uname,
+                    profileImage: userRes.data.profileImg,
+                    uno: userRes.data.uno
+                });
 
                 return true;
             } catch (err) {
