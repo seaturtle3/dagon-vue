@@ -22,6 +22,19 @@ watch(
     {deep: true}
 )
 
+onMounted(() => {
+  // ✅ enum 배열이 로드된 뒤 가장 첫 값으로 초기화
+  if (!localForm.prodRegion && props.regions.length > 0) {
+    localForm.prodRegion = props.regions[0].name
+  }
+  if (!localForm.mainType && props.mainTypes.length > 0) {
+    localForm.mainType = props.mainTypes[0].name
+  }
+  if (!localForm.subType && props.subTypes.length > 0) {
+    localForm.subType = props.subTypes[0].name
+  }
+})
+
 function onFileChange(event) {
   const uploadedFile = event.target.files[0]
   if (uploadedFile) {
@@ -93,7 +106,7 @@ async function submit() {
         </div>
 
         <div class="mb-3 col-md-6">
-          <label class="form-label">서브 유형</label>
+          <label class="form-label">상세 장소</label>
           <select v-model="localForm.subType" class="form-select">
             <option v-for="sub in subTypes" :key="sub.name" :value="sub.name">
               {{ sub.korean }}
