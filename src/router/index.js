@@ -9,6 +9,8 @@ const routes = [
     {path: '/register', component: () => import('@/views/auth/register/components/RegisterForm.vue')},
     {path: '/admin/login', component: () => import('@/views/auth/adminlogin/AdminLogin.vue')},
     {path: '/admin/register', component: () => import('@/views/auth/adminregister/AdminRegister.vue')},
+    {path: '/oauth/callback', component: () => import('@/views/auth/oauth/OAuthCallback.vue')},
+    {path: '/additional-info', component: () => import('@/views/auth/oauth/AdditionalInfoForm.vue')},
 
     // pages
     {
@@ -156,13 +158,31 @@ const routes = [
 
     // fishing-center
     {path: '/fishing-center', component: () => import('@/views/community/fishing-center/FishingCenter.vue')},
-    {path: '/fishing-report', component: () => import('@/views/community/fishing-report/FishingReport.vue')},
-    {path: '/fishing-diary', component: () => import('@/views/community/fishing-diary/FishingDiary.vue')},
+    {path: '/fishing-report', component: () => import('@/views/community/fishing-report/ReportList.vue')},
+    {
+        path: '/fishing-report/:frId',
+        name: 'ReportDetail',
+        component: () => import('@/views/community/fishing-report/ReportDetail.vue'),
+        props: true, // <--- 이걸 해야 route.params.id를 prop으로 받을 수 있어
+    },
+    {path: '/fishing-diary', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
+    {
+        path: '/fishing-diary/:fdId',
+        name: 'DiaryDetail',
+        component: () => import('@/views/community/fishing-diary/DiaryDetail.vue'),
+        props: true,
+    },
 
     // order
     {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
     {path: '/reservation-confirm', component: () => import('@/views/order/reservation/components/ReservationConfirm.vue')},
     {path: '/reservation-form', component: () => import('@/views/order/reservation/components/ReservationForm.vue')},
+    {
+        path: '/reservation/:prodId',
+        name: 'Reservation',
+        component: () => import('@/views/order/reservation/ReservationMain.vue'),
+        props: true
+    },
 
     // community
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},

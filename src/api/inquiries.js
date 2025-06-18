@@ -8,5 +8,5 @@ await axios.post('/api/inquiries', {
 const res = await axios.get('/api/inquiries')
 
 await axios.put('/api/inquiries/1/answer', {
-    answer: '문의 주셔서 감사합니다. 예약 완료되었습니다.'
+    answerContent: '문의 주셔서 감사합니다. 예약이 완료되었습니다.'
 })

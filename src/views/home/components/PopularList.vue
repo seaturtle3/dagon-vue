@@ -18,6 +18,10 @@ const topReports = computed(() =>
     store.reports
         .slice(0, 10) // 또는 정렬 후 slice
 )
+
+const goToDetail = (report) => {
+  window.open(`/fishing-report/${report.frId}`, '_blank')
+}
 </script>
 
 <template>
@@ -32,6 +36,8 @@ const topReports = computed(() =>
           v-for="report in topReports"
           :key="report.frId"
           class="report-card"
+          @click="goToDetail(report)"
+          style="cursor: pointer"
       >
         <!-- 썸네일 이미지 -->
         <img
@@ -95,7 +101,7 @@ const topReports = computed(() =>
 
 .thumbnail {
   width: 100%;
-  height: 50%;
+  height: 60%;
   object-fit: cover;
 }
 

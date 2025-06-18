@@ -180,12 +180,18 @@ export default {
     async submitNotification() {
       this.error = null
       try {
-        if (this.notificationForm.receiverUid) {
+        // 수신자가 비어있으면 null로 설정
+        const notificationData = {
+          ...this.notificationForm,
+          receiverUid: this.notificationForm.receiverUid.trim() || null
+        }
+        
+        if (notificationData.receiverUid) {
           // 특정 사용자에게 발송
-          await notificationApi.sendSimpleNotification(this.notificationForm)
+          await notificationApi.sendSimpleNotification(notificationData)
         } else {
           // 전체 발송
-          await notificationApi.sendBroadcastNotification(this.notificationForm)
+          await notificationApi.sendBroadcastNotification(notificationData)
         }
         this.showCreateModal = false
         await this.searchNotifications()
