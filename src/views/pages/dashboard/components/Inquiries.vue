@@ -74,16 +74,6 @@
   </div>
 </template>
 
-<script setup>
-import {useRouter} from 'vue-router';
-
-const router = useRouter();
-
-const goToDetail = (id) => {
-  router.push({name: 'AdminInquiryDetail', params: {id}});
-};
-</script>
-
 <script>
 import {inquiryApi} from '@/api/inquiry'
 
@@ -129,6 +119,7 @@ export default {
       }
     },
     toggleInquiry(id) {
+      console.log("Toggle inquiry ID:", id);
       const index = this.expandedInquiries.indexOf(id)
       if (index === -1) {
         this.expandedInquiries.push(id)
@@ -144,10 +135,10 @@ export default {
     },
     editReply(inquiryId) {
       const inquiry = this.inquiries.find(i => i.id === inquiryId)
-      if (inquiry && inquiry.reply) {
+      if (inquiry && inquiry.answerContent) {
         this.editingReply = true
         this.replyForm.inquiryId = inquiryId
-        this.replyForm.content = inquiry.reply.content
+        this.replyForm.content = inquiry.answerContent
         this.showReplyModal = true
       }
     },
@@ -167,20 +158,18 @@ export default {
       try {
         const {inquiryId, content} = this.replyForm;
         if (this.editingReply) {
-          await inquiryApi.updateReply(inquiryId, {content});
+          await inquiryApi.updateReply(inquiryId, {answerContent: content});
           alert('답변이 수정되었습니다.');
         } else {
-          await inquiryApi.createReply(inquiryId, {content});
+          await inquiryApi.createReply(inquiryId, {answerContent: content});
           alert('답변이 등록되었습니다.');
         }
         this.showReplyModal = false;
-        this.searchInquiries();
+        await this.searchInquiries(); // 목록 새로고침
       } catch (error) {
         console.error('답변 저장 실패:', error);
         alert('답변 저장 중 오류가 발생했습니다.');
       }
-      // TODO: 답변 저장 API 호출
-      this.showReplyModal = false
     },
     changePage(page) {
       this.currentPage = page

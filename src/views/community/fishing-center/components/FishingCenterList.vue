@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
+import {useRouter} from "vue-router";
 
 const props = defineProps({
   centers: {
@@ -9,6 +10,8 @@ const props = defineProps({
     default: () => []
   }
 })
+
+const router = useRouter()  // 라우터 인스턴스 생성
 
 const itemsPerPage = 18
 const currentPage = ref(1)
@@ -48,6 +51,15 @@ const goToPage = (page) => {
     currentPage.value = page
   }
 }
+
+// 상세 페이지로 이동 함수
+const goToDetail = (item) => {
+  if(item._type === 'report'){
+    window.open(`/fishing-report/${item.frId}`, '_blank')
+  } else if(item._type === 'diary'){
+    window.open(`/fishing-diary/${item.fdId}`, '_blank')
+  }
+}
 </script>
 
 <template>
@@ -61,6 +73,8 @@ const goToPage = (page) => {
           v-for="item in pagedList"
           :key="item._type + '-' + (item.frId || item.fdId)"
           class="combined-box"
+          @click="goToDetail(item)"
+          style="cursor: pointer;"
       >
         <!-- 썸네일 -->
         <div class="thumbnail-wrapper">
@@ -78,7 +92,6 @@ const goToPage = (page) => {
           </div>
         </div>
 
-        <p><strong>구분:</strong> {{ item._type === 'report' ? '조황정보' : '조행기' }}</p>
         <p><strong>제목:</strong> {{ item.title }}</p>
         <p><strong>상품명:</strong> 없음</p>
         <p><strong>작성자:</strong> {{ item.user?.uname }}</p>

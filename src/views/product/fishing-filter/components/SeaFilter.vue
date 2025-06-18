@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   filteredProducts: {
@@ -20,6 +21,8 @@ const paginatedProducts = computed(() =>
     props.filteredProducts.slice((currentPage.value - 1) * pageSize, currentPage.value * pageSize)
 )
 
+const router = useRouter()
+
 function prevPage() {
   if (currentPage.value > 1) currentPage.value--
 }
@@ -30,7 +33,7 @@ function nextPage() {
 
 function openDetail(product) {
   const url = `/products/${product.prodId}`
-  window.open(url, '_blank')  // 새 탭에서 열기
+  router.push(url) // 같은 탭에서 이동
 }
 </script>
 

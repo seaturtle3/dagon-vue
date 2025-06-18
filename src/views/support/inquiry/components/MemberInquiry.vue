@@ -8,11 +8,11 @@
       <form @submit.prevent="submitForm">
         <div class="form-group">
           <label>아이디</label>
-          <input type="text" :value="loginUser.uid" readonly class="readonly-input">
+          <input type="text" :value="userInfo.uid" readonly class="readonly-input">
         </div>
         <div class="form-group">
           <label>작성자 유형</label>
-          <input type="text" :value="loginUser.role === 'PARTNER' ? '파트너' : '일반회원'" readonly class="readonly-input">
+          <input type="text" :value="userInfo.role === 'PARTNER' ? '파트너' : '일반회원'" readonly class="readonly-input">
         </div>
         <div class="form-group">
           <label>문의 유형</label>
@@ -41,112 +41,107 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useInquiryStore } from '@/store/inquiries/inquiryStore';
+import { useAuthStore } from '@/store/login/loginStore';
+import { myPageAPI } from '@/api/mypage.js';
+import { inquiryApi } from '@/api/inquiry.js';
 
 const route = useRoute();
 const router = useRouter();
 const store = useInquiryStore();
+const authStore = useAuthStore();
 
-const inquiry = ref(null);
-const answerContent = ref('');
-
-onMounted(async () => {
-  const id = route.params.id;
-  await store.fetchInquiryById(id);
-  inquiry.value = store.selectedInquiry;
-  answerContent.value = inquiry.value?.answer || '';
+const userInfo = ref({
+  uid: '',
+  role: '',
+  uno: null
 });
 
-const submitAnswer = async () => {
-  await store.submitAnswer(inquiry.value.id, answerContent.value);
-  alert('답변이 저장되었습니다.');
-  router.push('/admin/inquiries');
+const form = ref({
+  title: '',
+  content: '',
+  inquiryType: '',
+  writerType: '',
+  receiverId: null
+});
+
+const inquiryTypes = {
+  USER: [
+    { value: 'PRODUCT', label: '상품 문의' },
+    { value: 'PARTNERSHIP', label: '제휴 문의' },
+    { value: 'SYSTEM', label: '시스템 문의' },
+    { value: 'RESERVATION', label: '예약 문의' },
+    { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
+  ],
+  PARTNER: [
+    { value: 'PRODUCT', label: '상품 문의' },
+    { value: 'SYSTEM', label: '시스템 문의' },
+    { value: 'RESERVATION', label: '예약 문의' },
+    { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
+  ]
 };
-</script>
 
-<script>
-import { inquiryApi } from '@/api/inquiry.js';
+const availableInquiryTypes = computed(() => {
+  return inquiryTypes[userInfo.value.role] || [];
+});
 
-export default {
-  name: 'Inquiry',
-  data() {
-    return {
-      // 실제 로그인된 사용자 정보 예시 (DB 컬럼 기반으로 구성)
-      loginUser: {
-        uno: 123, // => uno
-        uid: 'angler001', // => uid
-        nickname: '낚시꾼', // => nickname
-        role: 'PARTNER' // => role: USER or PARTNER
-      },
-      form: {
-        uid: '',
-        title: '',
-        content: '',
-        writerType: '',
-        inquiryType: '',
-        receiverId: null
-      },
-      inquiryTypes: {
-        USER: [
-          { value: 'PRODUCT', label: '상품 문의' },
-          { value: 'PARTNERSHIP', label: '제휴 문의' },
-          { value: 'SYSTEM', label: '시스템 문의' },
-          { value: 'RESERVATION', label: '예약 문의' },
-          { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
-        ],
-        PARTNER: [
-          { value: 'PRODUCT', label: '상품 문의' },
-          { value: 'SYSTEM', label: '시스템 문의' },
-          { value: 'RESERVATION', label: '예약 문의' },
-          { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
-        ]
-      }
+const fetchUserInfo = async () => {
+  try {
+    const response = await myPageAPI.getMyInfo();
+    userInfo.value = {
+      uid: response.data.uid,
+      role: response.data.role,
+      uno: response.data.uno
     };
-  },
-  computed: {
-    availableInquiryTypes() {
-      return this.inquiryTypes[this.form.writerType] || [];
-    }
-  },
-  mounted() {
-    // 로그인된 사용자 역할을 작성자 유형으로 자동 설정
-    this.form.writerType = this.loginUser.role;
-  },
-  methods: {
-    async submitForm() {
-      if (!this.form.writerType || !this.form.inquiryType || !this.form.title || !this.form.content) {
-        alert('모든 항목을 입력해주세요.');
-        return;
-      }
-
-      // 관리자 ID (예: 1)로 receiver 설정
-      this.form.receiverId = 1;
-
-      try {
-        await inquiryApi.createInquiry({
-          ...this.form,
-          writerId: this.loginUser.id
-        });
-        alert('문의가 정상 등록되었습니다.');
-        this.resetForm();
-      } catch (error) {
-        console.error('문의 저장 실패:', error);
-        alert('저장에 실패했습니다.');
-      }
-    },
-    resetForm() {
-      this.form = {
-        title: '',
-        content: '',
-        writerType: this.loginUser.role,
-        inquiryType: '',
-        receiverId: null
-      };
-    }
+    form.value.writerType = response.data.role;
+  } catch (error) {
+    console.error('사용자 정보 조회 실패:', error);
+    alert('사용자 정보를 불러오는데 실패했습니다.');
   }
 };
+
+const submitForm = async () => {
+  if (!form.value.inquiryType || !form.value.title || !form.value.content) {
+    alert('모든 항목을 입력해주세요.');
+    return;
+  }
+
+  try {
+    const inquiryData = {
+      ...form.value,
+      writerId: userInfo.value.uno,
+      writerType: userInfo.value.role,
+      status: '대기중',
+      createdAt: new Date().toISOString(),
+      userName: userInfo.value.uid
+    };
+
+    await inquiryApi.createInquiry(inquiryData);
+    alert('문의가 정상 등록되었습니다.');
+    resetForm();
+    
+    router.push('/admin/inquiries');
+  } catch (error) {
+    console.error('문의 저장 실패:', error);
+    alert('저장에 실패했습니다.');
+  }
+};
+
+const resetForm = () => {
+  form.value = {
+    title: '',
+    content: '',
+    inquiryType: '',
+    writerType: userInfo.value.role,
+    receiverId: null
+  };
+};
+
+onMounted(async () => {
+  await fetchUserInfo();
+});
 </script>
 
 <style scoped>
