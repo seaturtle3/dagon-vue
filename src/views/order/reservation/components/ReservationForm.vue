@@ -107,6 +107,34 @@
         </div>
       </div>
     </div>
+
+    <!-- 로그인 안내 모달 -->
+    <div v-if="showLoginModal" class="modal-overlay">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h2>로그인 필요</h2>
+        </div>
+        <div class="modal-body">
+          <p>예약 서비스를 이용하려면 로그인이 필요합니다.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" @click="goToLogin">로그인 페이지로 이동</button>
+        </div>
+      </div>
+    </div>
+
+    <ModalDialog
+      :show="showSuccessModal"
+      title="결제 성공"
+      :message="successMessage"
+      :onConfirm="goToReservations"
+    />
+    <ModalDialog
+      :show="showErrorModal"
+      title="오류"
+      :message="errorMessage"
+      :onConfirm="() => showErrorModal = false"
+    />
   </div>
 </template>
 
@@ -114,6 +142,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { myPageAPI } from '@/api/mypage.js'
+import ModalDialog from '@/components/common/ModalDialog.vue'
 
 const props = defineProps({
   product: {
@@ -126,6 +155,11 @@ const router = useRouter()
 const fishingAt = ref('')
 const numPerson = ref(1)
 const showModal = ref(false)
+const showLoginModal = ref(false)
+const showSuccessModal = ref(false)
+const successMessage = ref('')
+const showErrorModal = ref(false)
+const errorMessage = ref('')
 const userInfo = ref({
   uid: '',
   nickname: '',
@@ -161,9 +195,13 @@ const fetchUserInfo = async () => {
       phone: response.data.phone,
       email: response.data.email
     }
+    // 로그인 정보가 없으면 모달 표시
+    if (!userInfo.value.uid) {
+      showLoginModal.value = true
+    }
   } catch (error) {
     console.error('사용자 정보 요청 실패:', error)
-    alert('사용자 정보를 불러오는데 실패했습니다.')
+    showLoginModal.value = true
   }
 }
 
@@ -179,20 +217,26 @@ const closeModal = () => {
   showModal.value = false
 }
 
+const goToReservations = () => {
+  showSuccessModal.value = false
+  router.push('/mypage/reservations')
+}
+
 const requestPay = () => {
   if (!fishingAt.value) {
-    alert('출조일을 선택해주세요.')
+    errorMessage.value = '출조일을 선택해주세요.';
+    showErrorModal.value = true;
     return
   }
 
   if (!window.IMP) {
-    alert('결제 모듈이 로드되지 않았습니다.')
+    errorMessage.value = '결제 모듈이 로드되지 않았습니다.';
+    showErrorModal.value = true;
     return
   }
 
   const IMP = window.IMP
   IMP.init('imp64386158')
-
 
   IMP.request_pay(
       {
@@ -211,7 +255,8 @@ const requestPay = () => {
         if (rsp.success) {
           verifyPayment(rsp.imp_uid)
         } else {
-          alert('결제 실패: ' + rsp.error_msg)
+          errorMessage.value = '결제 실패: ' + rsp.error_msg;
+          showErrorModal.value = true;
         }
       }
   )
@@ -229,31 +274,32 @@ const verifyPayment = async (impUid) => {
       paidAt: new Date().toISOString() // paidAt (ISO string, 서버에서 LocalDateTime으로 변환)
     })
 
-    console.log("222222222->", response)
-
     if (response.status === 200) {
-      alert('결제가 완료되었습니다.')
-      await router.push('/mypage/reservations')
+      successMessage.value = '결제가 완료되었습니다.';
+      showSuccessModal.value = true;
     } else {
-      alert('결제 검증 실패: ' + response.data.message)
+      errorMessage.value = '결제 검증 실패: ' + response.data.message;
+      showErrorModal.value = true;
     }
   } catch (error) {
     if (error.response) {
-      // 서버가 400, 500 등 에러를 반환한 경우
-      alert('결제 실패: 서버 오류(' + error.response.status + ')');
+      errorMessage.value = '결제 실패: 서버 오류(' + error.response.status + ')';
     } else if (error.request) {
-      // 서버로부터 응답이 없는 경우
-      alert('서버로부터 응답이 없습니다.');
+      errorMessage.value = '서버로부터 응답이 없습니다.';
     } else {
-      // 기타 네트워크 오류 등
-      alert('요청 중 오류 발생: ' + error.message);
+      errorMessage.value = '요청 중 오류 발생: ' + error.message;
     }
+    showErrorModal.value = true;
   }
 }
 
 const onSubmit = () => {
   // 예약 등록 로직 구현 필요
   console.log('폼 제출')
+}
+
+const goToLogin = () => {
+  router.push('/login')
 }
 
 watch(

@@ -37,6 +37,21 @@
         </div>
       </form>
     </div>
+
+    <!-- 로그인 안내 모달 -->
+    <div v-if="showLoginModal" class="modal-overlay">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h2>로그인 필요</h2>
+        </div>
+        <div class="modal-body">
+          <p>문의 작성은 로그인 후 이용 가능합니다.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" @click="goToLogin">로그인 페이지로 이동</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -67,6 +82,8 @@ const form = ref({
   receiverId: null
 });
 
+const showLoginModal = ref(false)
+
 const inquiryTypes = {
   USER: [
     { value: 'PRODUCT', label: '상품 문의' },
@@ -96,9 +113,13 @@ const fetchUserInfo = async () => {
       uno: response.data.uno
     };
     form.value.writerType = response.data.role;
+    // 로그인 정보가 없으면 모달 표시
+    if (!userInfo.value.uid) {
+      showLoginModal.value = true;
+    }
   } catch (error) {
     console.error('사용자 정보 조회 실패:', error);
-    alert('사용자 정보를 불러오는데 실패했습니다.');
+    showLoginModal.value = true;
   }
 };
 
@@ -138,6 +159,10 @@ const resetForm = () => {
     receiverId: null
   };
 };
+
+const goToLogin = () => {
+  router.push('/login')
+}
 
 onMounted(async () => {
   await fetchUserInfo();

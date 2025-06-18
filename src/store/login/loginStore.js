@@ -128,6 +128,35 @@ export const useAuthStore = defineStore('auth', {
                 this.logout();
                 return false;
             }
+        },
+
+        // 토큰으로 사용자 정보 동기화 (OAuth 콜백 등에서 사용)
+        async getUserInfo() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                this.user = null;
+                this.isAuthenticated = false;
+                return;
+            }
+            try {
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                const userRes = await axios.get('/api/users/me');
+                this.user = userRes.data;
+                this.isAuthenticated = true;
+                // AdminAuthStore에도 동기화
+                const adminAuthStore = useAdminAuthStore();
+                adminAuthStore.setToken(token);
+                adminAuthStore.setUser({
+                    uid: userRes.data.uid,
+                    name: userRes.data.uname,
+                    profileImage: userRes.data.profileImg
+                });
+            } catch (err) {
+                this.user = null;
+                this.isAuthenticated = false;
+                this.clearAuthData();
+                throw err;
+            }
         }
     },
 });

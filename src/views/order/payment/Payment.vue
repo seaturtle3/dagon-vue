@@ -6,6 +6,8 @@
 </template>
 
 <script>
+import {BASE_URL} from "@/constants/baseUrl.js";
+
 export default {
   name: "Payments",
   mounted() {
@@ -43,7 +45,7 @@ export default {
             buyer_postcode: "12345",
 
             // ✅ 리디렉션 URL 추가
-            m_redirect_url: "http://localhost:5173/payments/result",
+            m_redirect_url: `${BASE_URL}/payments/result`,
           },
           function (rsp) {
             // 이 콜백은 리디렉션 방식에선 호출되지 않음 (무시됨)

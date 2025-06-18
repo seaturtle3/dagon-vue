@@ -59,6 +59,7 @@
 
 <script>
 import {partnerService} from '@/api/partner';
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 export default {
   name: 'PartnerInfo',
@@ -93,7 +94,7 @@ export default {
       if (!path) {
         return '/img/default-license.png';
       }
-      return `http://localhost:8095${path}`;
+      return `${BASE_URL}${path}`;
     },
     goToInquiry() {
       this.$router.push('/partner/inquiries');

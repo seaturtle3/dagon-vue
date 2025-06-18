@@ -1,4 +1,23 @@
 <template>
+  <ModalDialog
+    :show="showLoginModal"
+    title="로그인 필요"
+    message="회원 탈퇴는 로그인 후 이용 가능합니다."
+    confirmText="확인"
+    :onConfirm="goToLogin"
+  />
+  <ModalDialog
+    :show="showErrorModal"
+    title="오류"
+    :message="errorMessage"
+    :onConfirm="() => showErrorModal = false"
+  />
+  <ModalDialog
+    :show="showSuccessModal"
+    title="알림"
+    :message="successMessage"
+    :onConfirm="() => showSuccessModal = false"
+  />
   <div class="withdrawal-wrapper">
     <h2 class="withdrawal-title">회원 탈퇴</h2>
 
@@ -44,10 +63,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { myPageAPI } from '@/api/mypage.js';
 import { useAuthStore } from '@/store/login/loginStore.js';
+import ModalDialog from '@/components/common/ModalDialog.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -55,6 +75,17 @@ const authStore = useAuthStore();
 const password = ref('');
 const errorMessage = ref('');
 const isModalOpen = ref(false);
+const showLoginModal = ref(false);
+const showErrorModal = ref(false);
+const showSuccessModal = ref(false);
+const successMessage = ref('');
+
+onMounted(() => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showLoginModal.value = true;
+  }
+});
 
 const showConfirmModal = () => {
   if (!password.value) {
@@ -73,13 +104,18 @@ const confirmWithdrawal = async () => {
   try {
     await myPageAPI.withdrawMembership({ password: password.value });
     await authStore.logout();
-    alert('회원 탈퇴가 완료되었습니다.');
-    router.push('/');
+    successMessage.value = '회원 탈퇴가 완료되었습니다.';
+    showSuccessModal.value = true;
   } catch (error) {
     errorMessage.value = error.response?.data?.error || '회원 탈퇴 처리 중 오류가 발생했습니다.';
+    showErrorModal.value = true;
   } finally {
     closeModal();
   }
+};
+
+const goToLogin = () => {
+  router.push('/login');
 };
 </script>
 
@@ -193,15 +229,25 @@ const confirmWithdrawal = async () => {
 
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  padding: 1rem 1.2rem;
+  min-width: 180px;
+  max-width: 350px;
+  text-align: center;
+  margin: 0 auto;
 }
 
 .modal-box {
