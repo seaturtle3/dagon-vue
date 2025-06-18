@@ -85,7 +85,7 @@ function onPageChange(newPage) {
   width: 100%;
   height: 180px; /* 조금 더 커진 썸네일 */
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 10px 10px 0 0;
   margin-bottom: 12px;
 }
 
