@@ -1,6 +1,6 @@
 <script setup>
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js"
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { partnerService } from '@/api/partner'
 
 const props = defineProps({
@@ -13,6 +13,27 @@ const props = defineProps({
 // 신고 관련 상태
 const showReportForm = ref(false)
 const reportReason = ref('')
+
+// 현재 사용자 정보
+const currentUser = ref(null);
+
+// 현재 사용자가 상품 작성자인지 확인
+const isOwnProduct = computed(() => {
+  if (!currentUser.value || !props.product.user) return false;
+  return currentUser.value.uid === props.product.user.uid;
+});
+
+// 사용자 정보 초기화
+const initializeUserInfo = () => {
+  try {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      currentUser.value = JSON.parse(userInfo);
+    }
+  } catch (error) {
+    console.error('사용자 정보 파싱 실패:', error);
+  }
+};
 
 // console.log('ProductInfo props product:', props.product)
 
@@ -31,26 +52,39 @@ function onContactClick() {
 
 // 신고 폼 열기
 function openReportForm() {
+  // 자기 자신 신고 방지
+  if (isOwnProduct.value) {
+    alert('자기 자신의 상품은 신고할 수 없습니다.');
+    return;
+  }
+
+  // 이미 신고한 상품인지 확인
+  const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
+  if (reportedItems.some(item => item.id === props.product.prodId && item.type === 'product')) {
+    alert('이미 신고한 상품입니다.');
+    return;
+  }
+
   // prodId가 null이면 URL에서 ID 추출
   if (!props.product.prodId) {
-    const currentPath = window.location.pathname
-    const pathMatch = currentPath.match(/\/products\/(\d+)/)
+    const currentPath = window.location.pathname;
+    const pathMatch = currentPath.match(/\/products\/(\d+)/);
     if (pathMatch) {
-      const pathId = pathMatch[1]
-      props.product.prodId = parseInt(pathId)
+      const pathId = pathMatch[1];
+      props.product.prodId = parseInt(pathId);
     }
   }
   
   // 가능한 ID 필드들 확인
-  const possibleIdFields = ['prodId', 'id', 'productId', 'product_id']
-  const foundId = possibleIdFields.find(field => props.product[field] && props.product[field] !== null && props.product[field] !== undefined)
+  const possibleIdFields = ['prodId', 'id', 'productId', 'product_id'];
+  const foundId = possibleIdFields.find(field => props.product[field] && props.product[field] !== null && props.product[field] !== undefined);
   
   if (!foundId) {
-    alert('상품 ID를 찾을 수 없습니다. 상품 데이터를 확인해주세요.')
-    return
+    alert('상품 ID를 찾을 수 없습니다. 상품 데이터를 확인해주세요.');
+    return;
   }
   
-  showReportForm.value = true
+  showReportForm.value = true;
 }
 
 // 신고 폼 닫기
@@ -77,6 +111,11 @@ async function submitReport() {
 
   try {
     await partnerService.reportProduct(props.product.prodId, reportReason.value)
+    // 신고 성공 시 localStorage에 저장
+    const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
+    reportedItems.push({ id: props.product.prodId, type: 'product' });
+    localStorage.setItem('reportedItems', JSON.stringify(reportedItems));
+    
     alert('상품이 성공적으로 신고되었습니다.')
     closeReportForm()
   } catch (error) {
@@ -94,6 +133,11 @@ async function submitReport() {
     alert(errorMessage)
   }
 }
+
+// 컴포넌트 마운트 시 사용자 정보 초기화
+onMounted(() => {
+  initializeUserInfo();
+});
 </script>
 
 <template>

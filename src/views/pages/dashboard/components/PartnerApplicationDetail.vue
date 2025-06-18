@@ -94,6 +94,7 @@
 
 <script>
 import { partnerApplicationApi } from '@/api/admin.js';
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 
 
@@ -134,7 +135,7 @@ export default {
     getImageUrl(path) {
       if (!path) return '';
       if (path.startsWith('http')) return path;
-      return 'http://localhost:8095' + path;
+      return `${BASE_URL}` + path;
 
     },
     async handleApprove() {

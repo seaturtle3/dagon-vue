@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/login/loginStore.js';
 import axios from '@/lib/axios';
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 // 현재 보여줄 화면
 const currentView = ref('login');
@@ -106,7 +107,7 @@ const handleFindId = async () => {
   findIdLoading.value = true;
 
   try {
-    const response = await axios.get('/api/users/find-id', {
+    const response = await axios.get(`${BASE_URL}/api/users/find-id`, {
       params: { email: findIdEmail.value }
     });
 
@@ -147,7 +148,7 @@ const handleFindPassword = async () => {
   findPasswordLoading.value = true;
 
   try {
-    const response = await axios.post('/api/find-password', {
+    const response = await axios.post(`${BASE_URL}/api/find-password`, {
       uid: findPasswordId.value,
       uname: findPasswordName.value,
       email: findPasswordEmail.value
@@ -196,7 +197,7 @@ const handleChangePassword = async () => {
   changePasswordLoading.value = true;
 
   try {
-    const response = await axios.put('/api/password', {
+    const response = await axios.put(`${BASE_URL}/api/password`, {
       userId: changePasswordId.value,
       currentPassword: currentPassword.value,
       newPassword: newPassword.value
@@ -228,7 +229,7 @@ const goToRegister = () => {
 const handleKakaoLogin = () => {
   try {
     // 카카오 OAuth 인증 URL로 리다이렉트
-    const kakaoAuthUrl = 'http://localhost:8095/oauth2/authorization/kakao';
+    const kakaoAuthUrl = `${BASE_URL}/oauth2/authorization/kakao`;
     console.log('Redirecting to Kakao OAuth:', kakaoAuthUrl);
     window.location.href = kakaoAuthUrl;
   } catch (error) {

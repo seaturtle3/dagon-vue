@@ -75,9 +75,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { myPageAPI } from '@/api/mypage.js';
-import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const defaultProfileImage = '/img/default-profile.png';
+const API_BASE_URL = `${BASE_URL}`; // API 서버 기본 URL
 
 const isEditing = ref(false);
 const fileInput = ref(null);
@@ -104,7 +105,7 @@ const getProfileImageUrl = (imagePath) => {
   if (!imagePath) return defaultProfileImage;
   if (imagePath.startsWith('http')) return imagePath;
   if (imagePath.startsWith('blob:')) return imagePath;
-  return `${IMAGE_BASE_URL}/uploads/${imagePath}`;
+  return `${API_BASE_URL}/uploads/${imagePath}`;
 };
 
 onMounted(async () => {

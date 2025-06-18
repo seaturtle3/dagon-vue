@@ -62,6 +62,26 @@ const initializeUserInfo = () => {
 
 // 신고하기 버튼 클릭
 const openReportModal = (target, type) => {
+  // 자기 자신 신고 방지
+  if (type === 'diary' && isOwnDiary.value) {
+    alert('자기 자신의 게시글은 신고할 수 없습니다.');
+    return;
+  }
+  if (type === 'comment' && isOwnComment(target)) {
+    alert('자기 자신의 댓글은 신고할 수 없습니다.');
+    return;
+  }
+
+  // 이미 신고한 게시글/댓글인지 확인
+  const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
+  const itemId = type === 'diary' ? target.fdId : target.fdCommentId;
+  const itemType = type === 'diary' ? 'diary' : 'comment';
+  
+  if (reportedItems.some(item => item.id === itemId && item.type === itemType)) {
+    alert('이미 신고한 게시글/댓글입니다.');
+    return;
+  }
+
   reportTarget.value = target;
   reportType.value = type;
   showReportModal.value = true;
@@ -78,9 +98,20 @@ const submitReport = async () => {
   try {
     if (reportType.value === 'diary') {
       await partnerService.reportFishingPost(props.diary.fdId, reportReason.value);
+      // 신고 성공 시 localStorage에 저장
+      const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
+      reportedItems.push({ id: props.diary.fdId, type: 'diary' });
+      localStorage.setItem('reportedItems', JSON.stringify(reportedItems));
     } else if (reportType.value === 'comment') {
-      // 댓글 신고 API가 있다면 여기에 추가
-      console.log('댓글 신고:', reportTarget.value.fdCommentId, reportReason.value);
+      const commentId = reportTarget.value.fdCommentId || reportTarget.value.frCommentId;
+      if (!commentId) {
+        throw new Error('댓글 ID가 없습니다.');
+      }
+      await partnerService.reportFishingPostComment(commentId, reportReason.value);
+      // 신고 성공 시 localStorage에 저장
+      const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
+      reportedItems.push({ id: commentId, type: 'comment' });
+      localStorage.setItem('reportedItems', JSON.stringify(reportedItems));
     }
     
     alert('신고가 접수되었습니다.');
@@ -92,6 +123,8 @@ const submitReport = async () => {
     // 서버에서 받은 에러 메시지가 있으면 사용
     if (error.response?.data?.message) {
       alert(error.response.data.message);
+    } else if (error.message) {
+      alert(error.message);
     } else {
       alert('신고 처리 중 오류가 발생했습니다.');
     }

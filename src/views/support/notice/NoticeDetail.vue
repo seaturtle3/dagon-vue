@@ -29,18 +29,27 @@ const handleEdit = ()=>{
 
 const handleDelete = async ()=>{
   if(!confirm('정말 삭제하시겠습니까?')) return
-  await deleteNotice(route.params.id)
+  await deleteNotice(route.params.id, authStore.token)
   router.push('/notice')
 }
 
+const formatDate = (dateStr) => {
+  return new Date(dateStr).toLocaleDateString()
+}
 </script>
 
 <template>
   <div v-if="notice" class="notice-detail">
-    <BoardDetailBox :title="notice.title" :createdAt="notice.createdAt" :views="notice.views" />
+    <BoardDetailBox
+        :title="notice.title"
+        :createdAt="formatDate(notice.createdAt)"
+        :views="notice.views"
+    />
     <BoardContent :content="notice.content" />
-    <BoardDetailAction v-if="isAdmin" @edit="handleEdit" @delete="handleDelete" />
+    <BoardDetailAction @edit="handleEdit" @delete="handleDelete" />
   </div>
+
+
 </template>
 
 <style scoped>

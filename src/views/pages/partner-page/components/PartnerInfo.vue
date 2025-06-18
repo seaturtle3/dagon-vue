@@ -94,7 +94,7 @@ export default {
         return '/img/default-license.png';
       }
       const fileName = path.split(/[/\\\\]/).pop(); // 마지막 파일명만 추출
-      return `http://localhost:8095/uploads/${fileName}`;
+  return `http://localhost:8095/uploads/${fileName}`;
     },
     goToInquiry() {
       this.$router.push('/partner/inquiries');
@@ -106,28 +106,32 @@ export default {
 <style scoped>
 .partner-info {
   padding: 2rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #e3f2fd;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
-  color: var(--primary-color);
+  color: #1565c0;
   margin-bottom: 2rem;
-  font-size: 1.8rem;
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 .info-section {
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background-color: var(--background-color);
+  background-color: #ffffff;
   border-radius: 8px;
+  border: 1px solid #90caf9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 h3 {
-  color: var(--primary-dark);
-  margin-bottom: 1rem;
-  font-size: 1.3rem;
+  color: #1976d2;
+  margin-bottom: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 600;
 }
 
 .info-grid {
@@ -143,37 +147,43 @@ h3 {
 }
 
 label {
-  color: var(--text-color);
+  color: #1976d2;
   font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .value {
-  color: var(--text-color);
-  padding: 0.5rem;
-  background-color: white;
-  border-radius: 4px;
-  border: 1px solid var(--border-color);
+  color: #2c3e50;
+  padding: 0.8rem;
+  background-color: #f5f9ff;
+  border-radius: 6px;
+  border: 1px solid #90caf9;
+  font-size: 1rem;
 }
 
 .license-image {
   max-width: 500px;
   margin: 1rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .license-image img {
   width: 100%;
   height: auto;
-  border-radius: 4px;
-  border: 1px solid var(--border-color);
+  display: block;
 }
 
 .info-content {
-  padding: 1rem;
-  background-color: white;
-  border-radius: 4px;
-  border: 1px solid var(--border-color);
+  padding: 1.2rem;
+  background-color: #f5f9ff;
+  border-radius: 6px;
+  border: 1px solid #90caf9;
   min-height: 100px;
   white-space: pre-wrap;
+  color: #2c3e50;
+  line-height: 1.6;
 }
 
 .button-group {
@@ -218,6 +228,14 @@ label {
 
   .info-grid {
     grid-template-columns: 1fr;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  h3 {
+    font-size: 1.3rem;
   }
 
   .button-group {

@@ -47,21 +47,6 @@ export default {
 }
 </script>
 
-<style>
-:root {
-  --primary-color: #1e88e5;
-  --primary-light: #64b5f6;
-  --primary-dark: #1565c0;
-  --secondary-color: #4fc3f7;
-  --accent-color: #29b6f6;
-  --background-color: #e3f2fd;
-  --text-color: #2c3e50;
-  --sidebar-bg: #ffffff;
-  --hover-color: #e1f5fe;
-  --border-color: #bbdefb;
-}
-</style>
-
 <style scoped>
 .partner-page {
   display: flex;
@@ -70,12 +55,13 @@ export default {
 
 .sidebar {
   width: 250px;
-  background-color: #2c3e50;
-  color: white;
+  background-color: #ffffff;
+  color: #2c3e50;
   padding: 20px 0;
   position: fixed;
   height: 100vh;
   overflow-y: auto;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .logo {
@@ -87,26 +73,32 @@ export default {
 .logo h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: white;
+  color: #3498db;
+  font-weight: 600;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   padding: 15px 20px;
-  color: #ecf0f1;
+  color: #2c3e50;
   text-decoration: none;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  margin: 0 10px;
 }
 
 .nav-item i {
   margin-right: 10px;
   width: 20px;
   text-align: center;
+  color: #3498db;
 }
 
 .nav-item:hover {
-  background-color: #34495e;
+  background-color: #f0f7ff;
+  color: #3498db;
+  transform: translateX(5px);
 }
 
 .nav-item.router-link-active {
@@ -114,11 +106,15 @@ export default {
   color: white;
 }
 
+.nav-item.router-link-active i {
+  color: white;
+}
+
 .main-content {
   flex: 1;
   margin-left: 250px;
   padding: 20px;
-  background-color: #f5f6fa;
+  background-color: #f8f9fa;
 }
 
 /* 반응형 디자인 */
@@ -130,25 +126,17 @@ export default {
   .sidebar {
     width: 100%;
     padding: 1rem;
+    position: relative;
+    height: auto;
   }
 
   .main-content {
+    margin-left: 0;
     padding: 1rem;
   }
 }
 
 .withdrawal-link {
-  margin-top: auto;
-  color: #dc3545;
-}
-
-.withdrawal-link:hover {
-  background-color: #fff5f5;
-  color: #dc3545;
-}
-
-.withdrawal-link.router-link-active {
-  background-color: #dc3545;
-  color: white;
+  color: #e74c3c;
 }
 </style> 

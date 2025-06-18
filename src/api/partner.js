@@ -1,4 +1,5 @@
 import axiosInstance from './axios';
+import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const API_URL = '/api';
 
@@ -37,7 +38,7 @@ export const partnerService = {
         if (!filename) {
             return '/images/default-product.jpg';
         }
-        return `http://localhost:8095/uploads/${filename}`;
+        return `${IMAGE_BASE_URL}/${filename}`;
     },
 
     // 상품 등록 폼 데이터 생성
@@ -199,9 +200,29 @@ export const partnerService = {
         });
     },
 
+    // 조황정보 댓글 신고
+    reportFishingReportComment(commentId, reason) {
+        return axiosInstance.post(`${API_URL}/reports/fishing-report-comment/${commentId}`, reason, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'text/plain'
+            }
+        });
+    },
+
     // 조행기 신고
     reportFishingPost(fdId, reason) {
         return axiosInstance.post(`${API_URL}/reports/fishing-post/${fdId}`, reason, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'text/plain'
+            }
+        });
+    },
+
+    // 조행기 댓글 신고
+    reportFishingPostComment(commentId, reason) {
+        return axiosInstance.post(`${API_URL}/reports/fishing-post-comment/${commentId}`, reason, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'text/plain'
