@@ -2,6 +2,7 @@
 import {ref, computed} from 'vue'
 import {IMAGE_BASE_URL} from '@/constants/imageBaseUrl.js'
 import {useRouter} from "vue-router";
+import Pagination from "@/components/common-function/Pagination.vue";
 
 const props = defineProps({
   centers: {
@@ -103,11 +104,12 @@ const goToDetail = (item) => {
 
     <div v-else class="text-gray-500">표시할 조황정보나 조행기가 없습니다.</div>
 
-    <div class="pagination" v-if="totalPages > 1">
-      <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">이전</button>
-      <span>Page {{ currentPage }} / {{ totalPages }}</span>
-      <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">다음</button>
-    </div>
+    <Pagination
+      :page="currentPage"
+      :total-pages="totalPages"
+      :zero-based="false"
+      @page-change="goToPage"
+    />
   </div>
 </template>
 
