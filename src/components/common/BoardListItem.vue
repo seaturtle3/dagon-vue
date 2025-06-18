@@ -1,18 +1,14 @@
 <script setup>
-defineProps({
+const props = defineProps({
   number: [String, Number],
   title: String,
-  date: String,
-  onClick: Function
+  date: String
 })
-
-const handleClick = () => {
-  if (typeof onClick === 'function') onClick()
-}
+const emit = defineEmits(['click'])
 </script>
 
 <template>
-  <div class="row py-2 border-bottom list-item" @click="handleClick">
+  <div class="row py-2 border-bottom list-item" @click="$emit('click')">
     <div class="col-2 text-center">{{ number }}</div>
     <div class="col text-start">{{ title }}</div>
     <div class="col-3 text-center">{{ date }}</div>
