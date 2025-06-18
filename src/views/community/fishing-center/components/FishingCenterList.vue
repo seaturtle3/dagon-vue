@@ -92,7 +92,6 @@ const goToDetail = (item) => {
           </div>
         </div>
 
-        <p><strong>구분:</strong> {{ item._type === 'report' ? '조황정보' : '조행기' }}</p>
         <p><strong>제목:</strong> {{ item.title }}</p>
         <p><strong>상품명:</strong> 없음</p>
         <p><strong>작성자:</strong> {{ item.user?.uname }}</p>
@@ -114,7 +113,6 @@ const goToDetail = (item) => {
 .combined-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  grid-auto-rows: minmax(200px, auto);
   gap: 16px;
   padding: 10px 0;
   margin-bottom: 40px;

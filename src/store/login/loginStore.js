@@ -21,7 +21,7 @@ export const useAuthStore = defineStore('auth', {
         async login(uid, upw) {
             this.loading = true;
             this.error = null;
-
+            
             try {
                 // 1. 로그인 요청
                 const res = await axios.post('/api/auth/login', { uid, upw });
@@ -85,7 +85,7 @@ export const useAuthStore = defineStore('auth', {
         async checkAuth() {
             const token = localStorage.getItem('token');
             const userInfo = localStorage.getItem('userInfo');
-
+            
             if (!token || !userInfo) {
                 this.logout();
                 return false;
@@ -94,7 +94,7 @@ export const useAuthStore = defineStore('auth', {
             try {
                 axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 const userRes = await axios.get('/api/users/me');
-
+                
                 this.user = userRes.data;
                 this.isAuthenticated = true;
 
@@ -116,7 +116,7 @@ export const useAuthStore = defineStore('auth', {
             try {
                 const res = await axios.post('/api/auth/refresh');
                 const newToken = res.data.token;
-
+                
                 if (newToken) {
                     localStorage.setItem('token', newToken);
                     axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;

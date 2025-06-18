@@ -74,16 +74,6 @@
   </div>
 </template>
 
-<script setup>
-import {useRouter} from 'vue-router';
-
-const router = useRouter();
-
-const goToDetail = (id) => {
-  router.push({name: 'AdminInquiryDetail', params: {id}});
-};
-</script>
-
 <script>
 import {inquiryApi} from '@/api/inquiry'
 
@@ -180,8 +170,6 @@ export default {
         console.error('답변 저장 실패:', error);
         alert('답변 저장 중 오류가 발생했습니다.');
       }
-      // TODO: 답변 저장 API 호출
-      this.showReplyModal = false
     },
     changePage(page) {
       this.currentPage = page

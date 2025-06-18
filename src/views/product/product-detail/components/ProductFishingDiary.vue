@@ -68,7 +68,6 @@ const goToDetail = (diary) => {
 .item-box {
   border: 1px solid #aaa;
   border-radius: 6px;
-  padding: 12px;
   background-color: #f9f9f9;
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
   overflow: hidden;

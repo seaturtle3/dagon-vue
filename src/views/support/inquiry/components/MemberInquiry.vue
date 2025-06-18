@@ -121,7 +121,7 @@ const submitForm = async () => {
     await inquiryApi.createInquiry(inquiryData);
     alert('문의가 정상 등록되었습니다.');
     resetForm();
-
+    
     router.push('/admin/inquiries');
   } catch (error) {
     console.error('문의 저장 실패:', error);
