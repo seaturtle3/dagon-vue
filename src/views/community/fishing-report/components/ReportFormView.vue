@@ -19,25 +19,22 @@ function onThumbnailChange(event) {
 
 <template>
   <div class="detail-container editor-wrapper">
-    <h2 class="text-center mb-4 fw-bold">조황 등록</h2>
-    <hr class="my-4"/>
+    <h2 class="text-center mb-5 fw-bold">조황 등록</h2>
 
     <form @submit.prevent="emit('submit')">
       <!-- 제목 -->
-      <div class="mb-3">
-        <label class="form-label">제목</label>
-        <input v-model="dto.title" class="form-control" required />
+      <div class="mb-4">
+        <input v-model="dto.title" class="form-control" required placeholder="제목을 입력하세요" />
       </div>
 
-      <div class="mb-3">
+      <div class="mb-5">
         <label class="form-label">대표 썸네일 사진</label>
         <input type="file" accept="image/*" class="form-control" @change="onThumbnailChange" />
       </div>
 
       <!-- 내용 (Quill 에디터) -->
       <div class="mb-3">
-        <label class="form-label">내용</label>
-        <QuillEditor v-model="dto.content" class="quill-editor" />
+        <QuillEditor v-model="dto.content" placeholder="내용을 입력하세요" class="quill-editor" />
       </div>
 
       <!-- 사진 -->
