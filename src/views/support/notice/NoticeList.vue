@@ -85,7 +85,7 @@ onMounted(() => {
     <h2 class="center">공지사항</h2>
 
     <!-- 검색 (선택) -->
-    <BoardSearchBox v-model:search="search" @search="onSearch" />
+    <BoardSearchBox v-model:search="search" @search="onSearch"/>
 
     <!-- 공지사항 목록 -->
 
@@ -95,33 +95,33 @@ onMounted(() => {
       <div class="col-3 text-center">작성일</div>
     </div>
 
-      <div class="list-body">
-        <!-- 📌 상단 고정 공지 -->
-        <BoardListItem
-            v-for="notice in topNotices"
-            :key="'top-' + notice.noticeId"
-            :number="'공지'"
-            :title="notice.title"
-            :date="formatDate(notice.createdAt)"
-            :onClick="() => goToDetail(notice.noticeId)"
-        />
+    <div class="list-body">
+      <!-- 📌 상단 고정 공지 -->
+      <BoardListItem
+          v-for="notice in topNotices"
+          :key="'top-' + notice.noticeId"
+          :number="'공지'"
+          :title="notice.title"
+          :date="formatDate(notice.createdAt)"
+          @click="() => goToDetail(notice.noticeId)"
+      />
 
-        <!-- 일반 공지 -->
-        <BoardListItem
-            v-for="(notice, index) in normalNotices"
-            :key="'normal-' + notice.noticeId"
-            :number="page * size + index + 1"
-            :title="notice.title"
-            :date="formatDate(notice.createdAt)"
-            :onClick="() => goToDetail(notice.noticeId)"
-        />
-      </div>
+      <!-- 일반 공지 -->
+      <BoardListItem
+          v-for="(notice, index) in normalNotices"
+          :key="'normal-' + notice.noticeId"
+          :number="page * size + index + 1"
+          :title="notice.title"
+          :date="formatDate(notice.createdAt)"
+          @click="() => goToDetail(notice.noticeId)"
+      />
+    </div>
 
     <!-- 글쓰기버튼(관리자)-->
-    <BoardWriteButton to="/notice/write" label="공지 작성" />
+    <BoardWriteButton to="/notice/write" label="공지 작성"/>
 
     <!-- 페이징 -->
-    <BoardPagination :page="page" :totalPages="totalPages" @change="loadNotices" />
+    <BoardPagination :page="page" :totalPages="totalPages" @change="loadNotices"/>
   </div>
 </template>
 
@@ -141,5 +141,6 @@ onMounted(() => {
 
 .list-body {
   border-bottom: 1px solid #dee2e6;
+  margin-bottom: 20px;
 }
 </style>

@@ -46,13 +46,7 @@ const formatDate = (dateStr) => {
         :views="notice.views"
     />
     <BoardContent :content="notice.content" />
-    <BoardDetailAction
-        :showEditButton="isAdmin"
-        :showDeleteButton="isAdmin"
-        :showListButton="true"
-        @edit="handleEdit"
-        @delete="handleDelete"
-    />
+    <BoardDetailAction @edit="handleEdit" @delete="handleDelete" />
   </div>
 
 
