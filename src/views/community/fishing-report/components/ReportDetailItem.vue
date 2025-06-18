@@ -37,9 +37,19 @@ console.log('props 댓글 확인: ', props.report.comments)
 
       <!-- 우측 정보 -->
       <div class="info-section ms-md-4 mt-3 mt-md-0">
-        <p><strong>상품명:</strong> {{ report.product?.prodName || '없음' }}</p>
+        <p class="mb-3">
+          <router-link
+              v-if="report.product && report.product.prodId"
+              :to="`/products/${report.product.prodId}`"
+              class="text-blue-600 hover:underline"
+              style="font-size: 1.5rem;"
+          >
+            <strong>{{ report.product.prodName }}</strong>
+          </router-link>
+          <strong v-else style="font-size: 1.5rem;">없음</strong>
+        </p>
         <p><strong>작성자:</strong> {{ report.user?.uname || '익명' }}</p>
-        <p><strong>조행일자:</strong> {{ report.fishingAt || '날짜 없음' }}</p>
+        <p><strong>작성일:</strong> {{ report.fishingAt || '날짜 없음' }}</p>
       </div>
     </div>
 

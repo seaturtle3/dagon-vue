@@ -36,9 +36,19 @@ const props = defineProps({
 
       <!-- 우측 정보 -->
       <div class="info-section ms-md-4 mt-3 mt-md-0">
-        <p><strong>상품명:</strong> {{ diary.product?.prodName || '없음' }}</p>
+        <p class="mb-3">
+          <router-link
+              v-if="diary.product && diary.product.prodId"
+              :to="`/products/${diary.product.prodId}`"
+              class="text-blue-600 hover:underline"
+              style="font-size: 1.5rem;"
+          >
+            <strong>{{ diary.product.prodName }}</strong>
+          </router-link>
+          <strong v-else style="font-size: 1.5rem;">없음</strong>
+        </p>
         <p><strong>작성자:</strong> {{ diary.user?.uname || '익명' }}</p>
-        <p><strong>조행일자:</strong> {{ diary.fishingAt || '날짜 없음' }}</p>
+        <p><strong>작성일:</strong> {{ diary.fishingAt || '날짜 없음' }}</p>
       </div>
     </div>
 
