@@ -146,6 +146,7 @@ const routes = [
         path: '/products',
         children: [
             {path: '', component: () => import('@/views/product/all-products/ProductList.vue')},
+            {path: 'form', component: () => import('@/views/product/all-products/ProductForm.vue')},
             {path: 'sea', component: () => import('@/views/product/fishing-filter/Sea.vue')},
             {path: 'freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
             {

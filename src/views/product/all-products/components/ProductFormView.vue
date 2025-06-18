@@ -2,7 +2,6 @@
 import {reactive, watch, toRefs, onMounted, ref} from 'vue'
 import {createProduct} from "@/api/api.js";
 
-
 const file = ref(null)  // 파일 업로드 항목 추가
 
 const props = defineProps({
