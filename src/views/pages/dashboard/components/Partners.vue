@@ -73,7 +73,7 @@
           </div>
           <div class="detail-item">
             <label>사업자등록증:</label>
-            <img v-if="selectedPartner.licenseImg" :src="selectedPartner.licenseImg" class="license-img">
+            <img v-if="selectedPartner.licenseImg" :src="getLicenseImgUrl(selectedPartner.licenseImg)" class="license-img">
           </div>
           <div class="detail-item">
             <label>파트너 정보:</label>
@@ -93,8 +93,6 @@
 import { partnerApi } from '@/api/admin'
 
 
-
-
 export default {
   name: 'Partners',
   data() {
@@ -111,6 +109,15 @@ export default {
     }
   },
   methods: {
+
+
+    getLicenseImgUrl(path) {
+      if (!path) return '/img/default-license.png';
+      const fileName = path.split(/[/\\\\]/).pop();
+      return `http://localhost:8095/uploads/${fileName}`;
+    },
+
+
     async searchPartners() {
       this.error = null
       try {

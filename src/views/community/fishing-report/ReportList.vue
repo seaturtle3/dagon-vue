@@ -7,7 +7,6 @@ const store = useFishingReportStore()
 
 onMounted(async () => {
   await store.fetchReports()
-  console.log('-------------reports : ', store.reports)
 })
 </script>
 

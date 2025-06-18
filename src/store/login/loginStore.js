@@ -21,7 +21,7 @@ export const useAuthStore = defineStore('auth', {
         async login(uid, upw) {
             this.loading = true;
             this.error = null;
-
+            
             try {
                 // 1. 로그인 요청
                 const res = await axios.post('/api/auth/login', { uid, upw });
@@ -36,7 +36,8 @@ export const useAuthStore = defineStore('auth', {
                 localStorage.setItem('userInfo', JSON.stringify({
                     uid: res.data.uid,
                     uname: res.data.uname,
-                    profileImg: res.data.profileImg
+                    profileImg: res.data.profileImg,
+                    uno: res.data.uno
                 }));
 
                 // 3. 토큰을 Authorization 헤더에 설정
@@ -53,7 +54,8 @@ export const useAuthStore = defineStore('auth', {
                 adminAuthStore.setUser({
                     uid: userRes.data.uid,
                     name: userRes.data.uname,
-                    profileImage: userRes.data.profileImg
+                    profileImage: userRes.data.profileImg,
+                    uno: userRes.data.uno
                 });
 
                 return true;
@@ -85,7 +87,7 @@ export const useAuthStore = defineStore('auth', {
         async checkAuth() {
             const token = localStorage.getItem('token');
             const userInfo = localStorage.getItem('userInfo');
-
+            
             if (!token || !userInfo) {
                 this.logout();
                 return false;
@@ -94,14 +96,19 @@ export const useAuthStore = defineStore('auth', {
             try {
                 axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 const userRes = await axios.get('/api/users/me');
-
+                
                 this.user = userRes.data;
                 this.isAuthenticated = true;
 
                 // authStore에도 사용자 정보 업데이트
                 const adminAuthStore = useAdminAuthStore();
                 adminAuthStore.setToken(token);
-                adminAuthStore.setUser(JSON.parse(userInfo));
+                adminAuthStore.setUser({
+                    uid: userRes.data.uid,
+                    name: userRes.data.uname,
+                    profileImage: userRes.data.profileImg,
+                    uno: userRes.data.uno
+                });
 
                 return true;
             } catch (err) {
@@ -116,7 +123,7 @@ export const useAuthStore = defineStore('auth', {
             try {
                 const res = await axios.post('/api/auth/refresh');
                 const newToken = res.data.token;
-
+                
                 if (newToken) {
                     localStorage.setItem('token', newToken);
                     axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;

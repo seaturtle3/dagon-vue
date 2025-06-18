@@ -112,7 +112,7 @@ export default {
     viewReportDetail(frId) {
       if (frId) {
         sessionStorage.setItem('fishing-report-scroll', window.scrollY);
-        this.$router.push(`/partner/market-info/${frId}`);
+        this.$router.push(`/fishing-report/${frId}`);
       } else {
         alert('상세보기 ID가 올바르지 않습니다.');
       }

@@ -187,5 +187,25 @@ export const partnerService = {
                 'Content-Type': 'text/plain'
             }
         });
+    },
+
+    // 조황정보 신고
+    reportFishingReport(frId, reason) {
+        return axiosInstance.post(`${API_URL}/reports/fishing-report/${frId}`, reason, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'text/plain'
+            }
+        });
+    },
+
+    // 조행기 신고
+    reportFishingPost(fdId, reason) {
+        return axiosInstance.post(`${API_URL}/reports/fishing-post/${fdId}`, reason, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'text/plain'
+            }
+        });
     }
 };
