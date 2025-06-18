@@ -16,10 +16,7 @@ const images = ref([]) // File[]
 
 const loading = ref(false)
 const error = ref(null)
-
-function onFileChange(event) {
-  images.value = Array.from(event.target.files)
-}
+const thumbnail = ref(null)
 
 async function onSubmit() {
   loading.value = true
@@ -35,15 +32,36 @@ async function onSubmit() {
     loading.value = false
   }
 }
+
+function onThumbnailChange(file) {
+  thumbnail.value = file
+}
+
+function onFileChange(event) {
+  images.value = Array.from(event.target.files)
+}
+
+const formData = new FormData()
+formData.append('dto', new Blob([JSON.stringify(dto)], { type: 'application/json' }))
+
+if (thumbnail.value) {
+  formData.append('thumbnail', thumbnail.value)
+}
+
+images.value.forEach((file, idx) => {
+  formData.append('images', file)
+})
 </script>
 
 <template>
   <div class="center">
     <ReportFormView
         :dto="dto"
+        :thumbnail="thumbnail"
         :images="images"
         :loading="loading"
         :error="error"
+        @thumbnail-change="onThumbnailChange"
         @file-change="onFileChange"
         @submit="onSubmit"
     />
