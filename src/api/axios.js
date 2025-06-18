@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { BASE_URL } from '@/constants/baseUrl.js'
 
 // axios 인스턴스 생성
 const instance = axios.create({
-    baseURL: 'http://localhost:8095', // 스프링 부트 서버의 기본 주소
+    baseURL: `${BASE_URL}`, // 스프링 부트 서버의 기본 주소
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',

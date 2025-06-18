@@ -1,8 +1,8 @@
 import axios from 'axios'
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const api = axios.create({
-    baseURL: 'http://localhost:8095',
-    // baseURL: 'http://docs.yi.or.kr:8095',
+    baseURL: `${BASE_URL}`,
 })
 
 export default api
