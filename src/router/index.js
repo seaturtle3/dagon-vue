@@ -248,6 +248,8 @@ const routes = [
 
     {path: '/inquiry', component: () => import('@/views/support/inquiry/InquiryMain.vue')},
 
+    {path: '/memberInquiryModal', component: () => import('@views/support/inquiry/components/MemberInquiryModal.vue')},
+
     {
         path: '/partner/product/list',
         name: 'PartnerProductList',
