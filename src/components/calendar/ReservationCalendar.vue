@@ -1,6 +1,7 @@
 <template>
   <div class="calendar-container">
     <h2>예약 캘린더</h2>
+    <br>
 
     <div class="month-nav">
       <button class="month-control-btn" @click="prevMonth">< 이전</button>
@@ -37,68 +38,123 @@
       </button>
     </div>
 
-    <div class="slider" ref="sliderRef" @scroll="handleScroll">
-      <div v-if="!selectedDate">날짜를 선택하세요.</div>
-      <div v-else>
-        <div class="slider-header">
-          <h4>{{ formatDate(selectedDate) }} 예약자 ({{ reservations.length }}명)</h4>
-          <button class="btn-reserve" @click="alert('예약 화면으로 이동')">바로예약</button>
+    <div class="reservation-section" v-if="selectedDate">
+      <div class="selected-date-info">
+        <h4>{{ formatDate(selectedDate) }} 예약</h4>
+      </div>
+      
+      <div class="people-selection">
+        <h5>예약 인원을 선택해주세요</h5>
+        <div class="people-counter">
+          <div class="counter-item">
+            <label>성인</label>
+            <div class="counter-controls">
+              <button @click="decreaseAdult" :disabled="adultCount <= 0">-</button>
+              <span>{{ adultCount }}</span>
+              <button @click="increaseAdult" :disabled="adultCount >= 10">+</button>
+            </div>
+          </div>
         </div>
-        <div v-for="(resv, idx) in reservations" :key="idx" class="reservation">
-          <span>{{ idx + 1 }}. {{ resv.name }} ({{ resv.phone }})</span>
-          <button class="btn-reserve" @click="alert('예약 처리!')">바로 예약</button>
+        
+        <div class="total-info">
+          <p>총 인원: {{ totalPeople }}명</p>
+          <p v-if="totalPeople > 0">예상 금액: {{ estimatedPrice.toLocaleString() }}원</p>
+        </div>
+        
+        <div class="action-buttons">
+          <button 
+            class="btn-reserve" 
+            @click="goToPayment"
+            :disabled="totalPeople === 0"
+          >
+            결제하기
+          </button>
         </div>
       </div>
+    </div>
+    
+    <div v-else class="no-selection">
+      <p>날짜를 선택하세요.</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import ReservationCalendar from '@/components/calendar/ReservationCalendar.vue'
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router'
 
 const today = new Date();
 const currentYear = today.getFullYear();
 const currentMonth = ref(today.getMonth());
 const selectedDate = ref(null);
-const reservations = ref([]);
-const loading = ref(false);
-const sliderRef = ref(null);
+const adultCount = ref(0);
+const childCount = ref(0);
+const router = useRouter();
 
 const datesInMonth = ref([]);
 
-const formatDate = (date) => date.toISOString().split('T')[0];
+// 성인 1명당 50,000원, 아동 1명당 30,000원으로 가정
+const ADULT_PRICE = 50000;
+const CHILD_PRICE = 30000;
+
+const totalPeople = computed(() => adultCount.value + childCount.value);
+
+const estimatedPrice = computed(() => {
+  return (adultCount.value * ADULT_PRICE) + (childCount.value * CHILD_PRICE);
+});
+
+const formatDate = (date) => {
+  if (!date) return ''
+  // 날짜를 YYYY-MM-DD 형식으로 변환 (시간대 문제 해결)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 const isSelectedDate = (date) => {
   return selectedDate.value && formatDate(date) === formatDate(selectedDate.value);
 };
 
-const loadReservations = async (dateObj, reset = true) => {
-  if (loading.value) return;
-  loading.value = true;
-
-  const dateStr = formatDate(dateObj);
-  const res = await fetch(`/api/reservations?date=${dateStr}`);
-  const data = await res.json();
-
-  if (reset) {
-    reservations.value = data;
-  } else {
-    reservations.value.push(...data);
-  }
-  loading.value = false;
-};
-
 const selectMonth = (month) => {
   currentMonth.value = month;
   selectedDate.value = null;
+  resetCounts();
   generateDates();
 };
 
 const selectDate = (date) => {
-  selectedDate.value = date;
-  reservations.value = [];
-  loadReservations(date);
+  selectedDate.value = new Date(date);
+  resetCounts();
+};
+
+const resetCounts = () => {
+  adultCount.value = 0;
+  childCount.value = 0;
+};
+
+const increaseAdult = () => {
+  if (adultCount.value < 10) {
+    adultCount.value++;
+  }
+};
+
+const decreaseAdult = () => {
+  if (adultCount.value > 0) {
+    adultCount.value--;
+  }
+};
+
+const increaseChild = () => {
+  if (childCount.value < 10) {
+    childCount.value++;
+  }
+};
+
+const decreaseChild = () => {
+  if (childCount.value > 0) {
+    childCount.value--;
+  }
 };
 
 const prevMonth = () => {
@@ -106,7 +162,7 @@ const prevMonth = () => {
     currentMonth.value--;
     generateDates();
     selectedDate.value = null;
-    reservations.value = [];
+    resetCounts();
   }
 };
 
@@ -115,7 +171,7 @@ const nextMonth = () => {
     currentMonth.value++;
     generateDates();
     selectedDate.value = null;
-    reservations.value = [];
+    resetCounts();
   }
 };
 
@@ -135,14 +191,28 @@ const generateDates = () => {
   datesInMonth.value = days;
 };
 
-const handleScroll = () => {
-  const el = sliderRef.value;
-  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5 && selectedDate.value) {
-    const nextDate = new Date(selectedDate.value);
-    nextDate.setDate(nextDate.getDate() + 1);
-    selectedDate.value = nextDate;
-    loadReservations(nextDate, false);
+const goToPayment = () => {
+  if (totalPeople.value === 0) {
+    alert("예약 인원을 선택해주세요.");
+    return;
   }
+
+  // 날짜를 YYYY-MM-DD 형식으로 변환 (시간대 문제 해결)
+  const year = selectedDate.value.getFullYear();
+  const month = String(selectedDate.value.getMonth() + 1).padStart(2, '0');
+  const day = String(selectedDate.value.getDate()).padStart(2, '0');
+  const fishingAtStr = `${year}-${month}-${day}`;
+
+  router.push({
+    name: 'Payment',
+    query: {
+      fishingAt: fishingAtStr,
+      adultCount: adultCount.value,
+      childCount: childCount.value,
+      totalPeople: totalPeople.value,
+      estimatedPrice: estimatedPrice.value
+    }
+  });
 };
 
 onMounted(() => {
@@ -151,39 +221,145 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.bottom-buttons {
-  margin-top: 50px;
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
+.calendar-container {
+  width: 100%;
+  padding: 2rem;
+  background-color: #f8fafd;
+  border: 10px solid #ddd;
+  border-radius: 12px;
+  text-align: center;
 }
 
-.bottom-buttons button {
-  padding: 12px 24px;
-  color: black;
-  border: none;
-  border-radius: 30px;
-  font-size: 15px;
-  font-weight: 500;
+.calendar-container h2,
+.calendar-container h4,
+.calendar-container h5 {
+  text-align: center;
+}
+
+.no-selection {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.reservation-section {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.selected-date-info {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.people-selection {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.people-counter {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.counter-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.counter-item label {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.counter-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.counter-controls button {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #007BFF;
+  background: white;
+  color: #007BFF;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
 }
 
-.bottom-buttons button:hover {
-  background-color: #007BFF;
+.counter-controls button:hover:not(:disabled) {
+  background: #007BFF;
   color: white;
 }
 
-.bottom-buttons button.selected {
-  background-color: #007BFF;
-  color: white;
+.counter-controls button:disabled {
+  border-color: #ccc;
+  color: #ccc;
+  cursor: not-allowed;
 }
 
-body {
-  font-family: sans-serif;
-  padding: 20px;
+.counter-controls span {
+  font-size: 1.2rem;
+  font-weight: bold;
+  min-width: 30px;
+  text-align: center;
+}
+
+.total-info {
+  margin: 2rem 0;
+  padding: 1rem;
+  background: #e3f2fd;
+  border-radius: 8px;
+  border-left: 4px solid #007BFF;
+}
+
+.total-info p {
+  margin: 0.5rem 0;
+  font-weight: 600;
+}
+
+.action-buttons {
+  margin-top: 2rem;
+}
+
+.btn-reserve {
+  background: #007BFF;
+  color: white;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 150px;
+}
+
+.btn-reserve:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+}
+
+.btn-reserve:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .month-nav, .date-nav {
@@ -192,12 +368,13 @@ body {
   gap: 10px;
   margin-bottom: 30px;
   align-items: center;
+  justify-content: center;
 }
 
 .month-btn, .month-control-btn {
-  padding: 20px 30px;
+  padding: 15px 20px;
   border: none;
-  border-radius: 5px;
+  border-radius: 30px;
   cursor: pointer;
   background: #eee;
 }
@@ -218,13 +395,13 @@ body {
 .date-btn {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 10%;
   text-align: center;
   line-height: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 37.5px;
+  padding: 30px;
   border: none;
   cursor: pointer;
   background: #eee;
@@ -236,7 +413,6 @@ body {
   color: white;
 }
 
-/* 클릭(선택)된 상태 */
 .date-btn.selected {
   background-color: #007BFF;
   color: white;
@@ -249,40 +425,6 @@ body {
 
 .selected {
   background: #007BFF;
-  color: white;
-}
-
-.slider {
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 15px;
-  margin-top: 20px;
-  background: #f9f9f9;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.reservation {
-  border-bottom: 1px solid #ccc;
-  padding: 10px 0;
-}
-
-.reservation:last-child {
-  border-bottom: none;
-}
-
-.btn-reserve {
-  background: lightgray;
-  color: black;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  float: right;
-}
-
-.btn-reserve:hover {
-  background-color: #007BFF;
   color: white;
 }
 </style>

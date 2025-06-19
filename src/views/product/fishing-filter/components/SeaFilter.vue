@@ -3,6 +3,7 @@ import {ref, computed} from 'vue'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 import {useRouter} from 'vue-router'
 import Pagination from "@/components/common-function/Pagination.vue";
+import ReservationSchedule from '@views/order/reservation/components/ReservationSchedule.vue'
 
 const props = defineProps({
   filteredProducts: {
@@ -14,6 +15,32 @@ const props = defineProps({
 const router = useRouter()
 const currentPage = ref(1)
 const pageSize = 12
+
+// 출조 정보 확인 모달창 -여기부터-
+const showModal = ref(false)
+const filters = ref({})
+const selectedSchedule = ref({})
+
+// 필터 값 저장
+function handleFilterChange(val) {
+  filters.value = val
+}
+
+// 예약 클릭 시
+function openModal(schedule) {
+  selectedSchedule.value = schedule
+  showModal.value = true
+}
+
+// 예시용 예약 정보
+const sampleSchedule = {
+  price: 60000,
+  partnerName: '제주승강호',
+  contact: '010-1234-5678',
+  location: '제주특별자치도 제주시 애월읍 하귀12길 21-6',
+  note: '낚시대, 릴, 채비/미끼 등 유료 제공 (각 10,000원)'
+}
+// 출조 정보 확인 모달창 -여기까지-
 
 const totalPages = computed(() =>
     Math.ceil(props.filteredProducts.length / pageSize)
@@ -81,6 +108,13 @@ function openReservation(product) {
       :total-pages="totalPages"
       :zero-based="false"
       @page-change="onPageChange"
+  />
+
+  <ReservationSchedule
+      :show="showModal"
+      :selectedFilters="filters"
+      :scheduleInfo="selectedSchedule"
+      @close="showModal = false"
   />
 </template>
 
