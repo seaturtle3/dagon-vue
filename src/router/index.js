@@ -215,11 +215,24 @@ const routes = [
     },
 
     // community
-    {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
-    {path: '/community', component: () => import('@/views/community/Community.vue')},
+    { path: '/event', component: () => import('@/views/community/event/EventList.vue') },
+    {
+        path: '/event/write',
+        component: () => import('@/views/community/event/EventWrite.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/event/edit/:id',
+        component: () => import('@/views/community/event/EventWrite.vue'),
+        props: true,
+        meta: { requiresAuth: true }
+    },
+    { path: '/event/:id', component: () => import('@/views/community/event/EventDetail.vue'), props: true },
+
+    { path: '/community', component: () => import('@/views/community/Community.vue')},
 
     // support
-    {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
+    { path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
     {
         path: '/notice/write',
         component: () => import('@/views/support/notice/NoticeWrite.vue'),
