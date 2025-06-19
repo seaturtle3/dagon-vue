@@ -45,9 +45,12 @@ function onPageChange(newPage) {
     >
       <img :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
            alt="thumbnail" class="thumbnail"/>
-      <h5>{{ product.prodId }}</h5>
-      <h4>{{ product.prodName }}</h4>
-      <p class="address">{{ product.prodAddress }}</p>
+
+      <div>
+        <h5>{{ product.prodId }}</h5>
+        <h4>{{ product.prodName }}</h4>
+        <p class="address">{{ product.prodAddress }}</p>
+      </div>
     </div>
   </div>
 
@@ -71,10 +74,13 @@ function onPageChange(newPage) {
   border: 1px solid #ddd;
   border-radius: 16px;
   background: #fff;
-  text-align: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s;
   cursor: pointer;
+}
+
+.product-card > div {
+  padding-left: 5%;
 }
 
 .product-card:hover {
