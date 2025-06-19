@@ -213,6 +213,7 @@ const routes = [
         component: () => import('@/views/order/reservation/ReservationMain.vue'),
         props: true
     },
+    {path: '/reservation-calendar', component: () => import('@/components/calendar/ReservationCalendar.vue')},
 
     // community
     { path: '/event', component: () => import('@/views/community/event/EventList.vue') },
