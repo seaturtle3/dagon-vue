@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '@/lib/axios.js'
 
+
 export const useFishingReportStore = defineStore('fishingReport', {
     state: () => ({
         reports: [],
