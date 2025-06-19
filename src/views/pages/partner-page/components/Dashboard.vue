@@ -127,25 +127,49 @@ export default {
       this.error = null
 
       try {
+        // uno 결정: 쿼리스트링 > 토큰
+        let uno = this.$route.query.uno;
+        
+        // 쿼리스트링에 uno가 없으면 토큰에서 추출
+        if (!uno) {
+          const token = localStorage.getItem('token');
+          if (token) {
+            try {
+              const payload = JSON.parse(atob(token.split('.')[1]));
+              uno = payload.uno;
+            } catch (e) {
+              console.error('토큰 파싱 실패:', e);
+            }
+          }
+        }
+        
         // 예약 수 조회
-        const reservationResponse = await partnerService.getReservationCount()
+        console.log('🔍 예약 수 조회 API 호출:', uno);
+        const reservationResponse = await partnerService.getReservationCount(uno)
+        console.log('📊 예약 수 응답:', reservationResponse.data);
         this.reservationCount = reservationResponse.data
 
         // 전체 상품 수 조회
-        const productCountResponse = await partnerService.getProductCount()
+        console.log('🔍 상품 수 조회 API 호출:', uno);
+        const productCountResponse = await partnerService.getProductCount(uno)
+        console.log('📊 상품 수 응답:', productCountResponse.data);
         this.productCount = productCountResponse.data
 
         // 오늘 예약 수 조회
-        const todayReservationResponse = await partnerService.getTodayReservationCount()
+        console.log('🔍 오늘 예약 수 조회 API 호출:', uno);
+        const todayReservationResponse = await partnerService.getTodayReservationCount(uno)
+        console.log('📊 오늘 예약 수 응답:', todayReservationResponse.data);
         this.todayReservationCount = todayReservationResponse.data
 
         // 대기 문의 수 조회
-        const inquiryResponse = await partnerService.getUnansweredInquiryCount()
+        console.log('🔍 대기 문의 수 조회 API 호출:', uno);
+        const inquiryResponse = await partnerService.getUnansweredInquiryCount(uno)
+        console.log('📊 대기 문의 수 응답:', inquiryResponse.data);
         this.unansweredInquiryCount = inquiryResponse.data
 
         // 최근 예약 목록 조회
         try {
-          const recentReservationsResponse = await partnerService.getRecentReservations()
+          const recentReservationsResponse = await partnerService.getRecentReservations(uno)
           if (Array.isArray(recentReservationsResponse.data)) {
             this.recentReservations = recentReservationsResponse.data.map(reservation => ({
               reservationId: reservation.reservationId,

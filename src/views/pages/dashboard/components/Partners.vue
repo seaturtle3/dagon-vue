@@ -38,6 +38,7 @@
 
           <td>
             <button @click="viewPartnerDetails(partner.uno)" class="detail-btn">상세</button>
+            <button @click="goToPartnerDashboard(partner.uno)" class="update-btn">파트너 페이지</button>
             <button @click="deletePartner(partner.uno)" class="delete-btn">삭제</button>
           </td>
         </tr>
@@ -91,7 +92,7 @@
 
 <script>
 import { partnerApi } from '@/api/admin'
-
+import axios from '@/api/axios'
 
 export default {
   name: 'Partners',
@@ -109,14 +110,11 @@ export default {
     }
   },
   methods: {
-
-
     getLicenseImgUrl(path) {
       if (!path) return '/img/default-license.png';
       const fileName = path.split(/[/\\\\]/).pop();
       return `http://localhost:8095/uploads/${fileName}`;
     },
-
 
     async searchPartners() {
       this.error = null
@@ -197,6 +195,41 @@ export default {
     changePage(page) {
       this.currentPage = page
       this.searchPartners()
+    },
+    async goToPartnerDashboard(uno) {
+      try {
+        // 1. 백엔드에서 위임 토큰 요청
+        const response = await axios.post(`/api/admin/impersonate/partner/${uno}`);
+        
+        if (response.data.impersonatedToken) {
+          // 2. 위임 토큰을 localStorage에 저장
+          localStorage.setItem('token', response.data.impersonatedToken);
+          
+          // 3. 새 창에서 파트너 대시보드로 이동
+          window.open('/partner/dashboard', '_blank');
+          
+          console.log(`파트너 ${response.data.partnerName}(${uno}) 페이지로 이동`);
+        }
+      } catch (error) {
+        console.error('파트너 페이지 접근 실패:', error);
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              alert('로그인이 필요합니다.');
+              break;
+            case 403:
+              alert('관리자 권한이 필요합니다.');
+              break;
+            case 404:
+              alert('파트너를 찾을 수 없습니다.');
+              break;
+            default:
+              alert('파트너 페이지 접근에 실패했습니다.');
+          }
+        } else {
+          alert('파트너 페이지 접근에 실패했습니다.');
+        }
+      }
     }
   },
   created() {
