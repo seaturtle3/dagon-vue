@@ -213,6 +213,7 @@ const routes = [
         component: () => import('@/views/order/reservation/ReservationMain.vue'),
         props: true
     },
+    {path: '/reservation-calendar', component: () => import('@/components/calendar/ReservationCalendar.vue')},
 
     // community
     { path: '/event', component: () => import('@/views/community/event/EventList.vue') },
@@ -247,6 +248,8 @@ const routes = [
     {path: '/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'), props: true},
 
     {path: '/inquiry', component: () => import('@/views/support/inquiry/InquiryMain.vue')},
+
+    {path: '/memberInquiryModal', component: () => import('@views/support/inquiry/components/MemberInquiryModal.vue')},
 
     {
         path: '/partner/product/list',
