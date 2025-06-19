@@ -33,6 +33,11 @@ function openDetail(product) {
 function onPageChange(newPage) {
   currentPage.value = newPage
 }
+
+function openReservation(product) {
+  router.push(``)
+}
+
 </script>
 
 <template>
@@ -41,20 +46,36 @@ function onPageChange(newPage) {
         class="product-card"
         v-for="product in paginatedProducts"
         :key="product.prodId"
-        @click="openDetail(product)"
     >
-      <img
-          :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
-          alt="thumbnail" class="thumbnail"/>
-      <div>
-        <h5>{{ product.prodId }}</h5>
-        <h4>{{ product.prodName }}</h4>
+      <!-- 상품명 + 배경 -->
+      <div class="prod-name" @click="openDetail(product)">{{ product.prodName }}</div>
+
+      <!-- 썸네일 -->
+      <div class="thumbnail-wrapper">
+        <img
+            :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
+            alt="thumbnail"
+            class="thumbnail"
+        />
+      </div>
+
+      <!-- 본문 -->
+      <div class="content">
+        <p style="margin-bottom: 1%">어종 : </p>
+        <p style="margin-bottom: 1%">비용 : </p>
+        <p style="margin-bottom: 1%">시간 : </p>
         <p class="address">위치 : {{ product.prodAddress }}</p>
+      </div>
+
+      <!-- 하단 버튼 -->
+      <div class="card-footer">
+        <button @click.stop="openReservation(product)">
+          예약하기 (0/10)
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- 공통 Pagination 컴포넌트 사용 -->
   <Pagination
       :page="currentPage"
       :total-pages="totalPages"
@@ -66,8 +87,8 @@ function onPageChange(newPage) {
 <style scoped>
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* 넓게, 꽉 차게 */
-  gap: 32px; /* 카드 사이 간격 넓힘 */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 32px;
 }
 
 .product-card {
@@ -76,40 +97,63 @@ function onPageChange(newPage) {
   background: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s;
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }
 
-.product-card > div {
-  padding-left: 5%;
+.prod-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  background-color: cornflowerblue;
+  color: #ffffff;
+  padding: 12px 16px 8px 16px;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  cursor:pointer;
 }
 
-.product-card:hover {
-  transform: translateY(-4px);
+.thumbnail-wrapper {
+  position: relative;
 }
 
 .thumbnail {
   width: 100%;
-  height: 180px; /* 조금 더 커진 썸네일 */
+  height: 180px;
   object-fit: cover;
-  border-radius: 10px 10px 0 0;
-  margin-bottom: 12px;
+  border-radius: 0 0 10px 10px;
+  display: block;
+}
+
+.content {
+  padding: 16px 16px 0 16px;
 }
 
 .address {
   font-size: 0.9rem;
   color: #666;
+  margin-bottom: 5%;
+}
+
+.card-footer {
+  padding: 0 16px 16px;
+  margin-top: auto;
+  text-align: center;
 }
 
 button {
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #f8f8f8;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 2px solid #007bff;
+  background: #ffffff;
+  color: #007bff;
+  font-weight: bold;
+  font-size: 1rem;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+button:hover {
+  background: #e6f0ff;
 }
 </style>
