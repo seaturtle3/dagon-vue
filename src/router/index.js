@@ -246,6 +246,21 @@ const routes = [
     },
     {path: '/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'), props: true},
 
+
+    { path: '/faq', component: () => import('@/views/support/faq/FAQList.vue') },
+    {
+        path: '/faq/create',
+        component: () => import('@/views/support/faq/FAQWrite.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/faq/edit/:id',
+        component: () => import('@/views/support/faq/FAQWrite.vue'),
+        props: true,
+        meta: { requiresAuth: true }
+    },
+
+
     {path: '/inquiry', component: () => import('@/views/support/inquiry/InquiryMain.vue')},
 
     {
