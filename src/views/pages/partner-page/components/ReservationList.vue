@@ -29,9 +29,11 @@
         <div class="header-item">관리</div>
       </div>
 
-      <div v-for="reservation in filteredReservations" :key="reservation.reservationId" class="reservation-row" :class="{ 'deleted': reservation.deleted }">
+      <div v-for="reservation in filteredReservations" :key="reservation.reservationId" 
+        class="reservation-row"
+        :class="{ 'deleted': reservation.reservationStatus === 'CANCELED' }">
         <div class="row-item">
-          <span v-if="reservation.deleted" class="deleted-mark">
+          <span v-if="reservation.reservationStatus === 'CANCELED'" class="deleted-mark">
             <i class="fas fa-times"></i>
           </span>
           {{ reservation.productName || '상품명 없음' }}
@@ -307,12 +309,12 @@ export default {
 }
 
 .status-badge.paid {
-  background-color: #2ecc71;
+  background-color: #43a047;
   color: #fff;
 }
 
 .status-badge.canceled {
-  background-color: #e57373;
+  background-color: #e53935;
   color: #fff;
 }
 
