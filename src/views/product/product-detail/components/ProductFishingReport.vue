@@ -45,10 +45,9 @@ const goToDetail = (report) => {
           />
         </div>
         <div class="item-content">
-          <h4>제목: {{ report.title }}</h4>
-          <p>상품명: {{ report.product?.prodName }}</p>
-          <p>작성자: {{ report.user?.uname }}</p>
-          <p>날짜: {{ report.fishingAt ? report.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
+          <h3>{{ report.product?.prodName }}</h3>
+          <h5>{{ report.title }}</h5>
+          <p>{{ report.fishingAt ? report.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
         </div>
       </div>
     </div>
@@ -81,7 +80,7 @@ const goToDetail = (report) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 500px;
+  height: 400px;
   padding: 0; /* 패딩 제거 */
 }
 .item-content {
@@ -89,7 +88,7 @@ const goToDetail = (report) => {
   padding: 12px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: space-evenly;
 }
 
 .thumbnail-wrapper {

@@ -44,10 +44,9 @@ const goToDetail = (diary) => {
           />
         </div>
         <div class="item-content">
-          <h4>제목: {{ diary.title }}</h4>
-          <p>상품명: {{ diary.product?.prodName }}</p>
-          <p>작성자: {{ diary.user?.uname }}</p>
-          <p>날짜: {{ diary.fishingAt ? diary.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
+          <h3>{{ diary.product?.prodName }}</h3>
+          <h5>{{ diary.title }}</h5>
+          <small>{{ diary.fishingAt ? diary.fishingAt.slice(0, 10) : '날짜 없음' }}</small>
         </div>
       </div>
     </div>
@@ -73,7 +72,7 @@ const goToDetail = (diary) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 500px;
+  height: 400px;
   padding: 0; /* 패딩 제거 */
 }
 .item-content {
@@ -81,7 +80,7 @@ const goToDetail = (diary) => {
   padding: 12px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: space-evenly;
 }
 
 .thumbnail-wrapper {

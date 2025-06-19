@@ -17,7 +17,7 @@
     "@vueup/vue-quill": "^1.2.0",
     "axios": "^1.9.0",
     "axos": "^0.0.1",
-    "bootstrap": "^5.3.6",
+    "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",
     "chart.js": "^4.4.9",
     "jquery": "^3.7.1",

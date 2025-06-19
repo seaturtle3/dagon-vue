@@ -66,7 +66,7 @@ const goToDetail = (item) => {
 <template>
   <div>
     <h4 class="mb-3 font-bold text-lg">
-      전체 조황정보/조행기
+      <span>전체 조황정보/조행기 </span>
       <span class="count">({{ combinedList.length }})</span>
     </h4>
 
