@@ -55,6 +55,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
+import ReservationCalendar from '@/components/calendar/ReservationCalendar.vue'
 
 const today = new Date();
 const currentYear = today.getFullYear();
