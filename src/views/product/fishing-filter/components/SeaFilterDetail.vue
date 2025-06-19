@@ -1,12 +1,54 @@
+<script setup>
+import { ref, onMounted, watch, defineEmits } from 'vue'
+import axios from 'axios'
+import { useSeaFishingStore } from '@/store/product/fishing-filter/useSeaFilterStore.js'
+import Datepicker from 'vue3-datepicker'
+
+const emit = defineEmits(['update:filters'])
+const seaStore = useSeaFishingStore()
+
+const selectedDate = ref(new Date())
+const minDate = new Date() // 오늘 날짜
+
+// 실제 필터에서 보여줄 옵션들
+const filters = ref({
+  availableDates: [],
+  regions: [],
+  subType: [],
+  fishSpecies: []
+})
+
+// 사용자가 선택한 필터 값들
+const selected = ref({
+  date: '',
+  region: '',
+  subType: '',
+  species: ''
+})
+
+// 필터 옵션 불러오기
+onMounted(async () => {
+  const { data } = await axios.get('/api/product/sea/filters')
+  filters.value = data
+})
+
+// 선택된 값이 바뀔 때마다 필터된 상품 API 호출
+watch(selected, async (val) => {
+  emit('update:filters', val)
+  await seaStore.fetchFilteredProducts(val) // API 호출 이 타이밍에!
+}, { deep: true })
+</script>
+
 <template>
   <div class="sea-filter-detail">
     <div class="filter-row">
       <div class="filter-item">
         <label>날짜 : </label>
-        <select v-model="selected.date">
-          <option value="">전체</option>
-          <option v-for="d in filters.availableDates" :key="d" :value="d">{{ d }}</option>
-        </select>
+        <Datepicker
+            v-model="selectedDate"
+            format="yyyy-MM-dd"
+            :minDate="minDate"
+        />
       </div>
 
       <div class="filter-item">
@@ -19,9 +61,9 @@
 
       <div class="filter-item">
         <label>세부장소 : </label>
-        <select v-model="selected.location">
+        <select v-model="selected.subType">
           <option value="">전체</option>
-          <option v-for="l in filters.locations" :key="l" :value="l">{{ l }}</option>
+          <option v-for="l in filters.subTypes" :key="l" :value="l">{{ l }}</option>
         </select>
       </div>
 
@@ -35,36 +77,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, onMounted, watch, defineEmits } from 'vue'
-import axios from 'axios'
-
-const emit = defineEmits(['update:filters'])
-
-const filters = ref({
-  availableDates: [],
-  regions: [],
-  locations: [],
-  fishSpecies: [],
-})
-
-const selected = ref({
-  date: '',
-  region: '',
-  location: '',
-  species: '',
-})
-
-onMounted(async () => {
-  const { data } = await axios.get('/api/fishing-reports/sea/filters')
-  filters.value = data
-})
-
-watch(selected, (val) => {
-  emit('update:filters', val)
-}, { deep: true })
-</script>
 
 <style scoped>
 .sea-filter-detail {
