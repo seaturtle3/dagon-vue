@@ -172,7 +172,7 @@ export default {
 
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch(`${BASE_URL}/api/inquiries/${this.selectedInquiry.id}/answer`, {
+        const response = await fetch(`${BASE_URL}/api/inquiry/${this.selectedInquiry.id}/answer`, {
           method: "POST",
           headers: {
             'Content-Type': 'application/json',

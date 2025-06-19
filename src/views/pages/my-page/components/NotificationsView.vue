@@ -1,16 +1,25 @@
 <template>
   <ModalDialog
-    :show="showLoginModal"
+    :visible="showLoginModal"
     title="로그인 필요"
     message="알림 조회는 로그인 후 이용 가능합니다."
     confirmText="로그인 페이지로 이동"
     :onConfirm="goToLogin"
   />
   <ModalDialog
-    :show="showErrorModal"
+    :visible="showErrorModal"
     title="오류"
     :message="errorMessage"
     :onConfirm="() => showErrorModal = false"
+  />
+  <ModalDialog
+    :show="showConfirmModal"
+    title="알림 숨기기"
+    message="알림을 숨기면 복구할 수 없습니다. 계속하시겠습니까?"
+    confirmText="숨기기"
+    cancelText="취소"
+    :onConfirm="confirmHideNotification"
+    :onCancel="() => showConfirmModal = false"
   />
   <div class="notifications-container">
     <h2 class="page-title">내 알람</h2>
@@ -49,8 +58,13 @@
           <div class="notification-message">{{ notification.content }}</div>
           <div class="notification-time">{{ notification.time }}</div>
         </div>
-        <div class="notification-action">
-          <i class="fas fa-chevron-right"></i>
+        <div class="notification-actions">
+          <button class="btn-hide" @click="hideNotification(notification.id)" title="알림 숨기기">
+            <i class="fa-solid fa-x"></i>
+          </button>
+          <div class="notification-action">
+
+          </div>
         </div>
       </div>
 
@@ -66,15 +80,20 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { myPageAPI } from '@/api/mypage.js';
 import { useAuthStore } from '@/store/login/loginStore.js'; // 올바른 auth store import
 import ModalDialog from '@/components/common/ModalDialog.vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const authStore = useAuthStore();
 const selectedFilter = ref('all');
 const notifications = ref([]);
+const hiddenNotifications = ref(new Set(JSON.parse(localStorage.getItem('hiddenNotifications') || '[]')));
 const loading = ref(false);
 const isInitialized = ref(false);
 const showLoginModal = ref(false);
 const showErrorModal = ref(false);
 const errorMessage = ref('');
+const showConfirmModal = ref(false);
+const notificationToHide = ref(null);
 
 // 사용자 정보 초기화 확인
 const initializeUserInfo = async () => {
@@ -140,13 +159,15 @@ const fetchNotifications = async () => {
 };
 
 const filteredNotifications = computed(() => {
+  let filtered = notifications.value.filter(n => !hiddenNotifications.value.has(n.id));
+  
   if (selectedFilter.value === 'unread') {
-    return notifications.value.filter(n => !n.read);
+    return filtered.filter(n => !n.read);
   }
   if (selectedFilter.value === 'read') {
-    return notifications.value.filter(n => n.read);
+    return filtered.filter(n => n.read);
   }
-  return notifications.value;
+  return filtered;
 });
 
 const hasUnreadNotifications = computed(() => {
@@ -182,6 +203,41 @@ const markAllAsRead = async () => {
   } catch (error) {
     console.error('전체 읽음 처리 실패:', error);
   }
+};
+
+// 알림 숨기기 함수 수정
+const hideNotification = (id) => {
+  if (confirm('알림을 숨기면 복구할 수 없습니다. 계속하시겠습니까?')) {
+    hiddenNotifications.value.add(id);
+    localStorage.setItem('hiddenNotifications', JSON.stringify([...hiddenNotifications.value]));
+  }
+};
+
+// 알림 숨기기 확인 함수 추가
+const confirmHideNotification = () => {
+  if (notificationToHide.value) {
+    hiddenNotifications.value.add(notificationToHide.value);
+    localStorage.setItem('hiddenNotifications', JSON.stringify([...hiddenNotifications.value]));
+    notificationToHide.value = null;
+  }
+  showConfirmModal.value = false;
+};
+
+// 알림 숨기기 취소 함수 수정
+const showHiddenNotification = (id) => {
+  hiddenNotifications.value.delete(id);
+  // localStorage 업데이트
+  localStorage.setItem('hiddenNotifications', JSON.stringify([...hiddenNotifications.value]));
+};
+
+// 숨긴 알림 모두 보이기 함수 추가
+const showAllHiddenNotifications = () => {
+  hiddenNotifications.value.clear();
+  localStorage.setItem('hiddenNotifications', JSON.stringify([]));
+};
+
+const goToLogin = () => {
+  router.push('/login');
 };
 
 // 컴포넌트 마운트 시 초기화
@@ -256,16 +312,25 @@ watch(() => authStore.user, (newUser) => {
   outline: none;
 }
 
-.btn-text {
-  background: none;
-  border: none;
-  color: #1976d2;
+.notification-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: #1976d2;
 }
 
 .btn-text:hover {
@@ -355,6 +420,27 @@ watch(() => authStore.user, (newUser) => {
 .notification-time {
   color: #78909c;
   font-size: 0.85rem;
+}
+
+.notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-hide {
+  background: none;
+  border: none;
+  color: #78909c;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.btn-hide:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #f44336;
 }
 
 .notification-action {
