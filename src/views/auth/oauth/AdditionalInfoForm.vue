@@ -8,52 +8,63 @@
       </div>
 
       <div class="form-container">
-        <h2 class="form-title">추가 정보 입력</h2>
-        <p class="form-description">서비스 이용을 위해 추가 정보를 입력해주세요.</p>
-        
+        <h2 class="form-title">회원정보 입력 및 수정</h2>
         <form @submit.prevent="handleSubmit" class="additional-info-form">
+          <div class="profile-image" @click="triggerFileInput">
+            <img :src="getProfileImageUrl(userInfo.profile_image)" alt="프로필 이미지" />
+            <div class="image-upload-overlay">
+              <i class="fas fa-camera"></i>
+              <span>이미지 변경</span>
+            </div>
+            <input 
+              type="file" 
+              ref="fileInput" 
+              @change="handleImageChange" 
+              accept="image/*" 
+              style="display: none"
+            />
+          </div>
+
           <div class="form-group">
             <label>이름 *</label>
-            <div class="input-wrapper">
-              <input
-                v-model="uname"
-                type="text"
-                placeholder="이름을 입력하세요"
-                required
-                :disabled="loading"
-              />
-              <span class="input-icon">
-                <i class="fas fa-user"></i>
-              </span>
-            </div>
+            <input v-model="userInfo.uname" type="text" required :disabled="loading" />
+          </div>
+
+          <div class="form-group">
+            <label>닉네임 *</label>
+            <input v-model="userInfo.nickname" type="text" required :disabled="loading" />
+          </div>
+
+          <div class="form-group">
+            <label>이메일</label>
+            <input v-model="userInfo.email" type="email" disabled />
           </div>
 
           <div class="form-group">
             <label>전화번호 *</label>
-            <div class="input-wrapper">
-              <input
-                v-model="phone"
-                type="tel"
-                placeholder="010-0000-0000"
-                required
-                :disabled="loading"
-                @input="formatPhoneNumber"
-              />
-              <span class="input-icon">
-                <i class="fas fa-phone"></i>
-              </span>
+            <div class="input-group">
+              <select v-model="phoneNumbers.phone1" :disabled="loading">
+                <option value="010">010</option>
+                <option value="011">011</option>
+                <option value="016">016</option>
+                <option value="017">017</option>
+                <option value="018">018</option>
+                <option value="019">019</option>
+              </select>
+              <span class="input-group-text">-</span>
+              <input type="text" v-model="phoneNumbers.phone2" maxlength="4" :disabled="loading" />
+              <span class="input-group-text">-</span>
+              <input type="text" v-model="phoneNumbers.phone3" maxlength="4" :disabled="loading" />
             </div>
-            <small class="input-hint">하이픈(-) 없이 숫자만 입력해주세요.</small>
           </div>
 
-          <button type="submit" class="submit-button" :disabled="loading || !isFormValid">
+          <button type="submit" class="submit-button" :disabled="loading">
             <span v-if="loading" class="spinner"></span>
-            <span>{{ loading ? '처리 중...' : '완료' }}</span>
+            <span>{{ loading ? '처리 중...' : '수정 완료' }}</span>
           </button>
         </form>
       </div>
 
-      <!-- 에러 메시지 -->
       <div v-if="errorMessage" class="error-message">
         {{ errorMessage }}
       </div>
@@ -62,102 +73,108 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
+import { BASE_URL } from '@/constants/baseUrl.js';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/store/login/loginStore.js';
-import axios from '@/lib/axios';
+import axios from '@/lib/axios'; // 실제 axios 인스턴스 경로에 맞게 수정
+import { myPageAPI } from '@/api/mypage.js';
 
+const defaultProfileImage = '/img/default-profile.png';
+const API_BASE_URL = `${BASE_URL}`;
 const router = useRouter();
-const authStore = useAuthStore();
 
-// 폼 데이터
-const uname = ref('');
-const phone = ref('');
 const loading = ref(false);
 const errorMessage = ref('');
+const fileInput = ref(null);
+const selectedImage = ref(null);
 
-// 폼 유효성 검사
-const isFormValid = computed(() => {
-  return uname.value.trim() && phone.value.replace(/[^0-9]/g, '').length >= 10;
+const userInfo = ref({
+  uname: '',
+  nickname: '',
+  email: '',
+  profile_image: defaultProfileImage,
+  phone: ''
 });
 
-// 전화번호 포맷팅
-const formatPhoneNumber = () => {
-  // 숫자만 추출
-  const numbers = phone.value.replace(/[^0-9]/g, '');
-  
-  // 11자리 제한
-  if (numbers.length > 11) {
-    phone.value = numbers.slice(0, 11);
-  } else {
-    phone.value = numbers;
+const phoneNumbers = ref({
+  phone1: '010',
+  phone2: '',
+  phone3: ''
+});
+
+const getProfileImageUrl = (imagePath) => {
+  if (!imagePath) return defaultProfileImage;
+  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('blob:')) return imagePath;
+  return `${API_BASE_URL}/uploads/${imagePath}`;
+};
+
+const triggerFileInput = () => {
+  fileInput.value.click();
+};
+
+const handleImageChange = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    selectedImage.value = file;
+    userInfo.value.profile_image = URL.createObjectURL(file);
   }
 };
 
-// 추가 정보 제출
-const handleSubmit = async () => {
-  if (!isFormValid.value) {
-    errorMessage.value = '모든 필수 항목을 입력해주세요.';
-    return;
-  }
-
-  loading.value = true;
-  errorMessage.value = '';
-
+onMounted(async () => {
   try {
-    // 토큰 가져오기
-    const token = localStorage.getItem('tempToken');
-    if (!token) {
-      throw new Error('인증 토큰이 없습니다.');
-    }
-
-    // 추가 정보 업데이트 API 호출
-    const response = await axios.put('/api/users/additional-info', {
-      uname: uname.value.trim(),
-      phone: phone.value.replace(/[^0-9]/g, '')
-    }, {
+    const token = localStorage.getItem('token');
+    const response = await axios.post('/api/mypage', {}, {
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`
       }
     });
-
-    if (response.data.success) {
-      // 임시 토큰을 정식 토큰으로 변경
-      localStorage.removeItem('tempToken');
-      localStorage.setItem('token', token);
-      
-      // 사용자 정보 새로고침
-      try {
-        await authStore.getUserInfo();
-      } catch (err) {
-        console.warn('사용자 정보 조회 실패:', err);
+    userInfo.value = {
+      uname: response.data.uname || '',
+      nickname: response.data.nickname || '',
+      email: response.data.email || '',
+      profile_image: response.data.profile_image || defaultProfileImage,
+      phone: response.data.phone || ''
+    };
+    // 전화번호 파싱
+    if (response.data.phone) {
+      const phone = response.data.phone.replace(/-/g, '');
+      if (phone.length >= 10) {
+        phoneNumbers.value = {
+          phone1: phone.substring(0, 3),
+          phone2: phone.substring(3, 7),
+          phone3: phone.substring(7)
+        };
       }
-
-      // 홈페이지로 리다이렉트
-      router.push('/');
-    } else {
-      throw new Error(response.data.message || '추가 정보 저장에 실패했습니다.');
     }
   } catch (error) {
-    console.error('추가 정보 저장 실패:', error);
-    if (error.response && error.response.data) {
-      errorMessage.value = error.response.data;
-    } else {
-      errorMessage.value = '추가 정보 저장에 실패했습니다. 다시 시도해주세요.';
+    errorMessage.value = '회원 정보를 불러오지 못했습니다.';
+  }
+});
+
+const handleSubmit = async () => {
+  loading.value = true;
+  errorMessage.value = '';
+  try {
+    const formData = new FormData();
+    formData.append('uname', userInfo.value.uname);
+    formData.append('nickname', userInfo.value.nickname);
+    formData.append('email', userInfo.value.email);
+    formData.append('phone1', phoneNumbers.value.phone1);
+    formData.append('phone2', phoneNumbers.value.phone2);
+    formData.append('phone3', phoneNumbers.value.phone3);
+    if (selectedImage.value) {
+      formData.append('profileImage', selectedImage.value);
     }
+    await myPageAPI.updateMyInfo(formData);
+    router.push('/');
+  } catch (error) {
+    console.error('회원정보 수정 에러:', error, error.response);
+    errorMessage.value = error.response?.data?.error || '회원정보 수정에 실패했습니다.';
   } finally {
     loading.value = false;
   }
 };
-
-// 컴포넌트 마운트 시 토큰 확인
-onMounted(() => {
-  const token = localStorage.getItem('tempToken');
-  if (!token) {
-    // 임시 토큰이 없으면 로그인 페이지로 리다이렉트
-    router.push('/login?error=no_temp_token');
-  }
-});
 </script>
 
 <style scoped>
@@ -166,34 +183,36 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f0f2f5;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f8fafc 100%);
 }
 
 .additional-info-box {
   width: 100%;
-  max-width: 500px;
-  padding: 3rem 2rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 420px;
+  padding: 2.5rem 2rem 2rem 2rem;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.10);
+  position: relative;
 }
 
 .logo-section {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .logo {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #1a73e8;
+  margin-bottom: 0.2rem;
+  color: #1976d2;
+  letter-spacing: 2px;
 }
 
 .subtitle {
-  color: #666;
+  color: #90caf9;
   font-size: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-container {
@@ -201,96 +220,140 @@ onMounted(() => {
 }
 
 .form-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
   text-align: center;
+  color: #1976d2;
+  letter-spacing: 1px;
 }
 
-.form-description {
-  color: #666;
-  text-align: center;
-  margin-bottom: 2rem;
-  font-size: 0.9rem;
+.profile-image {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 1.5rem auto;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.13);
+  cursor: pointer;
+  border: 3px solid #90caf9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  transition: border-color 0.2s;
+}
+.profile-image:hover {
+  border-color: #1976d2;
+}
+.profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.image-upload-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(25, 118, 210, 0.55);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+.profile-image:hover .image-upload-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+.image-upload-overlay i {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
 }
 
 .additional-info-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.2rem;
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
-
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #333;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 1rem;
 }
-
-.input-wrapper {
-  position: relative;
-}
-
-.input-wrapper input {
+.form-group input,
+.form-group select {
   width: 100%;
-  padding: 0.75rem;
-  padding-right: 2.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid #bbdefb;
+  border-radius: 7px;
   font-size: 1rem;
-  transition: border-color 0.2s ease;
+  background: #f8fafc;
+  transition: border-color 0.2s;
 }
-
-.input-wrapper input:focus {
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #1976d2;
   outline: none;
-  border-color: #1a73e8;
 }
-
-.input-wrapper input:disabled {
-  background-color: #f5f5f5;
-  cursor: not-allowed;
+.form-group input:disabled {
+  background: #f0f2f5;
+  color: #aaa;
 }
-
-.input-icon {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #999;
-  font-size: 1rem;
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
 }
-
-.input-hint {
-  font-size: 0.8rem;
-  color: #666;
-  margin-top: 0.25rem;
+.input-group select,
+.input-group input {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.input-group select {
+  max-width: 90px;
+}
+.input-group input[type="text"] {
+  max-width: 110px;
+  text-align: center;
+}
+.input-group-text {
+  color: #1976d2;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0 4px;
 }
 
 .submit-button {
-  padding: 0.75rem;
-  background: #1a73e8;
+  padding: 0.85rem;
+  background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 7px;
+  font-size: 1.1rem;
+  font-weight: 700;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: background-color 0.2s ease;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+  transition: background 0.2s, transform 0.2s;
 }
-
 .submit-button:hover:not(:disabled) {
-  background: #1557b0;
+  background: linear-gradient(90deg, #1565c0 60%, #42a5f5 100%);
+  transform: translateY(-2px);
 }
-
 .submit-button:disabled {
-  background: #ccc;
+  background: #b0bec5;
   cursor: not-allowed;
 }
 
@@ -304,14 +367,15 @@ onMounted(() => {
 }
 
 .error-message {
-  margin-top: 1rem;
-  padding: 0.75rem;
+  margin-top: 1.2rem;
+  padding: 0.85rem;
   background-color: #fff2f0;
-  border: 1px solid #ffccc7;
-  border-radius: 4px;
-  color: #ff4d4f;
-  font-size: 0.875rem;
+  border: 1.5px solid #ffbdbd;
+  border-radius: 6px;
+  color: #e53935;
+  font-size: 0.97rem;
   text-align: center;
+  font-weight: 500;
 }
 
 @keyframes spin {
@@ -319,7 +383,6 @@ onMounted(() => {
     transform: rotate(360deg);
   }
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -328,6 +391,30 @@ onMounted(() => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .additional-info-box {
+    padding: 1.2rem 0.5rem 1.5rem 0.5rem;
+    max-width: 98vw;
+  }
+  .profile-image {
+    width: 80px;
+    height: 80px;
+  }
+  .form-title {
+    font-size: 1.05rem;
+  }
+  .input-group {
+    flex-direction: row;
+    gap: 0.3rem;
+  }
+  .input-group select {
+    max-width: 70px;
+  }
+  .input-group input[type="text"] {
+    max-width: 70px;
   }
 }
 </style> 
