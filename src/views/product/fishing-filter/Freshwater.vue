@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from 'vue'
-import {useFreshwaterFishingStore} from '@/store/product/fishing-filter/useFreshwaterFilterStore.js'
-import FreshwaterFilter from "@/views/product/fishing-filter/components/FreshwaterFilter.vue"
+import {useFreshwaterFishingStore} from '@/store/product/fishing-filter/useFreshwaterProdStore.js'
+import FreshwaterProd from "@/views/product/fishing-filter/components/FreshwaterProd.vue"
 
 const store = useFreshwaterFishingStore()
 
@@ -15,7 +15,7 @@ onMounted(async () => {
     <div style="margin-bottom: 3%">
       <h4>민물낚시</h4>
     </div>
-    <FreshwaterFilter :filteredProducts="store.products"/>
+    <FreshwaterProd :filteredProducts="store.products"/>
   </div>
 </template>
 
