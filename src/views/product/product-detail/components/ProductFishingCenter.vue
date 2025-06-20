@@ -52,61 +52,66 @@ const goToDetail = (item) => {
 </script>
 
 <template>
-  <div v-if="store.loading">로딩중...</div>
-  <div v-else-if="store.error" class="text-red-500">{{ store.error }}</div>
-  <div v-else>
+  <div class="list-container">
+    <div v-if="store.loading">로딩중...</div>
+    <div v-else-if="store.error" class="text-red-500">{{ store.error }}</div>
+    <div v-else>
 
-    <h2 class="mb-3 font-bold text-lg">
-      조황정보/조행기 <span class="count">({{ totalCount }})</span>
-    </h2>
+      <h2 class="mb-3 font-bold text-lg">
+        조황정보/조행기 <span class="count">({{ totalCount }})</span>
+      </h2>
 
-    <section v-if="combinedList.length > 0">
-      <div class="combined-grid">
-        <div
-            v-for="center in combinedList"
-            :key="center._type + '-' + (center.frId || center.fdId)"
-            class="combined-box"
-            @click="goToDetail(center)"
-            style="cursor: pointer"
-        >
-          <!-- 뱃지 -->
+      <section v-if="combinedList.length > 0">
+        <div class="combined-grid">
           <div
-              class="badge"
-              :class="center._type === 'diary' ? 'badge-diary' : 'badge-report'"
+              v-for="center in combinedList"
+              :key="center._type + '-' + (center.frId || center.fdId)"
+              class="combined-box"
+              @click="goToDetail(center)"
+              style="cursor: pointer"
           >
-            {{ center._type === 'report' ? '조황정보' : '조행기' }}
-          </div>
+            <!-- 뱃지 -->
+            <div
+                class="badge"
+                :class="center._type === 'diary' ? 'badge-diary' : 'badge-report'"
+            >
+              {{ center._type === 'report' ? '조황정보' : '조행기' }}
+            </div>
 
-          <!-- 썸네일 -->
-          <div v-if="center.thumbnailUrl" class="thumbnail-wrapper">
-            <img
-                class="thumbnail"
-                :src="`${IMAGE_BASE_URL}/${center._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${center.thumbnailUrl}`"
-                alt="썸네일"
-            />
-          </div>
+            <!-- 썸네일 -->
+            <div v-if="center.thumbnailUrl" class="thumbnail-wrapper">
+              <img
+                  class="thumbnail"
+                  :src="`${IMAGE_BASE_URL}/${center._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${center.thumbnailUrl}`"
+                  alt="썸네일"
+              />
+            </div>
 
-          <!-- 텍스트 영역 -->
-          <div class="combined-content">
-            <h3>{{ center.product?.prodName }}</h3>
-            <h5>{{ center.title }}</h5>
-            <small>{{ center.fishingAt ? center.fishingAt.slice(0, 10) : '날짜 없음' }}</small>
+            <!-- 텍스트 영역 -->
+            <div class="combined-content">
+              <h3>{{ center.product?.prodName }}</h3>
+              <h5>{{ center.title }}</h5>
+              <small>{{ center.fishingAt ? center.fishingAt.slice(0, 10) : '날짜 없음' }}</small>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
-    <div v-else class="text-gray-500">표시할 조황정보나 조행기가 없습니다.</div>
+      </section>
+      <div v-else class="text-gray-500">표시할 조황정보나 조행기가 없습니다.</div>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.list-container {
+  width: 80%;
+  margin: 0 auto;
+}
+
 .combined-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-auto-rows: minmax(150px, auto);
   gap: 16px;
-  max-height: calc(150px * 5 + 16px * 4);
-  overflow-y: auto;
   padding: 10px 0;
 }
 

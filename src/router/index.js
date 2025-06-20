@@ -201,7 +201,12 @@ const routes = [
 
 
     // order
-    {path: '/payments', component: () => import('@/views/order/payment/Payment.vue')},
+    {path: '/payments', name: 'Payment', component: () => import('@/views/order/payment/Payment.vue')},
+    {
+        path: '/payments/result',
+        name: 'PaymentResult',
+        component: () => import('@/views/order/reservation/components/PaymentResult.vue')
+    },
     {
         path: '/reservation-confirm',
         component: () => import('@/views/order/reservation/components/ReservationConfirm.vue')
@@ -213,6 +218,12 @@ const routes = [
         component: () => import('@/views/order/reservation/ReservationMain.vue'),
         props: true
     },
+    // {
+    //     path: '/order/reservation/form',
+    //     name: 'ReservationForm',
+    //     component: () => import('@/views/order/reservation/components/ReservationForm.vue'),
+    //     props: route => ({ fishingAt: route.query.fishingAt }) // 💡 쿼리로 전달받음
+    // },
     {path: '/reservation-calendar', component: () => import('@/components/calendar/ReservationCalendar.vue')},
 
     // community

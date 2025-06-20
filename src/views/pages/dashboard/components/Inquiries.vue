@@ -2,6 +2,11 @@
   <div class="inquiries">
     <h1>1:1 문의 관리</h1>
 
+    <div class="expand-controls">
+      <button @click="expandAllCategories" title="전체 펼치기"><span class="expand-icon">▼</span></button>
+      <button @click="collapseAllCategories" title="전체 접기"><span class="expand-icon">▲</span></button>
+    </div>
+
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="제목 또는 작성자로 검색">
       <select v-model="statusFilter">
@@ -13,37 +18,43 @@
     </div>
 
     <div class="inquiries-list">
-      <div v-for="inquiry in inquiries" :key="inquiry.id" class="inquiry-item">
-        <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
-
-          <span class="inquiry-status" :class="inquiry.status">{{ inquiry.status }}</span>
-          <h3>{{ inquiry.title }}</h3>
-          <span class="inquiry-author">{{ inquiry.author }}</span>
-          <span class="inquiry-date">{{ formatDate(inquiry.createdAt) }}</span>
-          <span class="inquiry-toggle">{{ expandedInquiries.includes(inquiry.id) ? '▼' : '▶' }}</span>
+      <div v-for="(inquiries, category) in groupedInquiries" :key="category" class="category-group">
+        <div class="category-header" @click="toggleCategory(category)">
+          <span class="category-toggle">{{ expandedCategories.includes(category) ? '▼' : '▶' }}</span>
+          <span class="category-title">{{ category }}</span>
+          <span class="category-count">({{ inquiries.length }})</span>
         </div>
-        <!-- 문의 상세 펼침 영역 -->
-        <div v-if="expandedInquiries.includes(inquiry.id)" class="inquiry-content">
-          <div class="inquiry-message">
-            <h4>문의 내용</h4>
-            <p>{{ inquiry.content }}</p>
-          </div>
-          <!-- 답변이 있을 경우 -->
-          <div v-if="inquiry.answerContent" class="inquiry-reply">
-            <h4>답변</h4>
-            <p class="reply-label">[관리자 답변]</p>
-            <p class="reply-content">{{ inquiry.answerContent }}</p>
-            <p class="reply-date">{{ formatDate(inquiry.answeredAt) }}</p>
-
-            <!-- 답변이 있을 경우 -->
-            <div class="reply-actions">
-              <button @click="editReply(inquiry.id)">수정</button>
-              <button @click="deleteReply(inquiry.id)">삭제</button>
+        <div v-if="expandedCategories.includes(category)" class="category-inquiries">
+          <div v-for="inquiry in inquiries" :key="inquiry.id" class="inquiry-item">
+            <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
+              <span class="inquiry-status" :class="inquiry.status">{{ inquiry.status }}</span>
+              <h3>{{ inquiry.title }}</h3>
+              <span class="inquiry-author">{{ inquiry.author }}</span>
+              <span class="inquiry-date">{{ formatDate(inquiry.createdAt) }}</span>
+              <span class="inquiry-toggle">{{ expandedInquiries.includes(inquiry.id) ? '▼' : '▶' }}</span>
             </div>
-          </div>
-          <!-- 답변이 없을 경우 -->
-          <div v-else class="inquiry-actions">
-            <button @click="openReplyModal(inquiry.id)">답변하기</button>
+            <!-- 문의 상세 펼침 영역 -->
+            <div v-if="expandedInquiries.includes(inquiry.id)" class="inquiry-content">
+              <div class="inquiry-message">
+                <h4>문의 내용</h4>
+                <p>{{ inquiry.content }}</p>
+              </div>
+              <!-- 답변이 있을 경우 -->
+              <div v-if="inquiry.answerContent" class="inquiry-reply">
+                <h4>답변</h4>
+                <p class="reply-label">[관리자 답변]</p>
+                <p class="reply-content">{{ inquiry.answerContent }}</p>
+                <p class="reply-date">{{ formatDate(inquiry.answeredAt) }}</p>
+                <div class="reply-actions">
+                  <button @click="editReply(inquiry.id)">수정</button>
+                  <button @click="deleteReply(inquiry.id)">삭제</button>
+                </div>
+              </div>
+              <!-- 답변이 없을 경우 -->
+              <div v-else class="inquiry-actions">
+                <button @click="openReplyModal(inquiry.id)">답변하기</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -85,6 +96,7 @@ export default {
       statusFilter: '',
       inquiries: [],
       expandedInquiries: [],
+      expandedCategories: [],
       currentPage: 1,
       totalPages: 1,
       itemsPerPage: 10,
@@ -99,27 +111,54 @@ export default {
       }
     }
   },
+  computed: {
+    groupedInquiries() {
+      // category 필드가 없으면 제목의 앞글자(혹은 앞 단어)로 분류
+      const groups = {};
+      for (const inquiry of this.inquiries) {
+        let category = inquiry.category;
+        if (!category) {
+          const title = inquiry.title ? inquiry.title.trim() : '';
+          if (title.startsWith('파트너')) category = '파트너 문의';
+          else if (title.startsWith('예약')) category = '예약 문의';
+          else if (title.startsWith('결제')) category = '결제 문의';
+          else if (title.startsWith('포인트')) category = '포인트 문의';
+          else category = '기타';
+        }
+        if (!groups[category]) groups[category] = [];
+        groups[category].push(inquiry);
+      }
+      return groups;
+    }
+  },
   methods: {
     async searchInquiries() {
       try {
         const params = {
-          keyword: this.searchQuery || '', // 검색어가 없으면 빈 문자열
-          status: this.statusFilter || '', // 필터가 없으면 전체
-          page: this.currentPage - 1, // Spring은 0-based paging
+          keyword: this.searchQuery || '',
+          status: this.statusFilter || '',
+          page: this.currentPage - 1,
           size: this.itemsPerPage
         };
-
         const response = await inquiryApi.getInquiryList(params);
-        this.inquiries = response.data.content;  // content는 Spring의 Page 객체 기준
-        console.log(this.inquiries)
+        this.inquiries = response.data.content;
         this.totalPages = response.data.totalPages;
+        // 카테고리 펼침 상태 초기화 (처음엔 모두 닫힘)
+        this.expandedCategories = [];
       } catch (error) {
         console.error('문의 목록 조회 실패:', error);
         alert('문의 목록 조회 중 오류가 발생했습니다.');
       }
     },
+    toggleCategory(category) {
+      const idx = this.expandedCategories.indexOf(category);
+      if (idx === -1) {
+        this.expandedCategories.push(category);
+      } else {
+        this.expandedCategories.splice(idx, 1);
+      }
+    },
     toggleInquiry(id) {
-      console.log("Toggle inquiry ID:", id);
       const index = this.expandedInquiries.indexOf(id)
       if (index === -1) {
         this.expandedInquiries.push(id)
@@ -152,7 +191,6 @@ export default {
         console.error('답변 삭제 실패:', error);
         alert('답변 삭제 중 오류가 발생했습니다.');
       }
-      // TODO: 답변 삭제 API 호출
     },
     async submitReply() {
       try {
@@ -165,7 +203,7 @@ export default {
           alert('답변이 등록되었습니다.');
         }
         this.showReplyModal = false;
-        await this.searchInquiries(); // 목록 새로고침
+        await this.searchInquiries();
       } catch (error) {
         console.error('답변 저장 실패:', error);
         alert('답변 저장 중 오류가 발생했습니다.');
@@ -174,7 +212,8 @@ export default {
     changePage(page) {
       this.currentPage = page
       this.searchInquiries()
-    }, formatDate(dateStr) {
+    },
+    formatDate(dateStr) {
       if (!dateStr) return '';
       const date = new Date(dateStr);
       const year = date.getFullYear();
@@ -183,18 +222,53 @@ export default {
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
       return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`;
+    },
+    expandAllCategories() {
+      this.expandedCategories = Object.keys(this.groupedInquiries);
+    },
+    collapseAllCategories() {
+      this.expandedCategories = [];
     }
   },
   created() {
     this.searchInquiries()
   }
-
 }
 </script>
 
 <style scoped>
 .inquiries {
   padding: 1rem;
+}
+
+.expand-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.expand-controls button {
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.expand-controls button:hover {
+  background-color: #0056b3;
+}
+
+.expand-icon {
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
 .search-bar {
@@ -230,6 +304,38 @@ export default {
   flex-direction: column;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.category-group {
+  margin-bottom: 2rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  cursor: pointer;
+  background: #e3eafc;
+  font-weight: bold;
+  font-size: 1.1rem;
+  border-radius: 8px 8px 0 0;
+}
+.category-toggle {
+  font-size: 1.3rem;
+  color: #007bff;
+}
+.category-title {
+  flex: 1;
+}
+.category-count {
+  color: #007bff;
+  font-weight: 600;
+}
+.category-inquiries {
+  padding: 0.5rem 1rem 1rem 1rem;
 }
 
 .inquiry-item {

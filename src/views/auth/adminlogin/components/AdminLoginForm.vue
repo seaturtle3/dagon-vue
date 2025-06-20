@@ -38,8 +38,8 @@ export default {
   data() {
     return {
       loginForm: {
-        aid: '',
-        apw: ''
+        aid: 'admin',
+        apw: '1111'
       }
     };
   },

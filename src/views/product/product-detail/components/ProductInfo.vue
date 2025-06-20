@@ -231,9 +231,6 @@ onMounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  max-height: 400px; /* 썸네일 높이와 동일하게 설정 */
-  overflow-y: auto; /* 내용이 많으면 스크롤 */
-  padding-right: 8px; /* 스크롤 생겨도 오른쪽 여백 생기게 */
   padding-left: 30px; /* 썸네일과 간격 */
 }
 
