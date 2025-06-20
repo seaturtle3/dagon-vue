@@ -1,9 +1,9 @@
 <script setup>
 import {onMounted, ref} from 'vue'
-import {useFreshwaterFishingStore} from '@/store/product/fishing-filter/useFreshwaterProdStore.js'
+import {useFreshwaterProdStore} from '@/store/product/fishing-filter/useFreshwaterProdStore.js'
 import FreshwaterProd from "@/views/product/fishing-filter/components/FreshwaterProd.vue"
 
-const store = useFreshwaterFishingStore()
+const store = useFreshwaterProdStore()
 
 onMounted(async () => {
   await store.fetchProducts()
