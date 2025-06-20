@@ -24,10 +24,11 @@ const goToDetail = () => {
         :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
         alt="썸네일"
     />
-    <h4>제목: {{ diary.title }}</h4>
-    <p>상품명: {{ diary.product?.prodName }}</p>
-    <p>작성자: {{ diary.user?.uname }}</p>
-    <p>날짜: {{ diary.fishingAt || '날짜 없음' }}</p>
+    <div class="content">
+      <strong>{{ diary.product?.prodName }}</strong>
+      <h6>{{ diary.title }}</h6>
+      <small>{{ diary.fishingAt || '날짜 없음' }}</small>
+    </div>
   </div>
 </template>
 
@@ -50,9 +51,12 @@ const goToDetail = () => {
   height: 60%;
   object-fit: cover;
   object-position: center;
-  border-radius: 6px;
   margin-bottom: 8px;
   display: block;
   flex-shrink: 0;
+}
+
+.content {
+  padding: 8px 12px;
 }
 </style>

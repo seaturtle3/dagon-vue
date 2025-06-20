@@ -144,13 +144,6 @@ import { useRouter } from 'vue-router'
 import { myPageAPI } from '@/api/mypage.js'
 import ModalDialog from '@/components/common/ModalDialog.vue'
 
-const props = defineProps({
-  product: {
-    type: Object,
-    required: true
-  }
-})
-
 const router = useRouter()
 const fishingAt = ref('')
 const numPerson = ref(1)
@@ -312,8 +305,23 @@ watch(
   { immediate: true }
 )
 
+const props = defineProps({
+  product: {
+    type: Object,
+    required: true
+  },
+  fishingAt: {
+    type: String,
+    default: ''
+  }
+})
+
 onMounted(() => {
   fetchUserInfo()
+
+  if (props.fishingAt) {
+    fishingAt.value = props.fishingAt
+  }
 })
 </script>
 

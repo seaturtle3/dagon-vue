@@ -2,10 +2,12 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductDetailStore } from '@/store/product/product-detail/useProductDetailStore.js'
+
 import ProductInfo from '@/views/product/product-detail/components/ProductInfo.vue'
 import ProductFishingCenter from '@/views/product/product-detail/components/ProductFishingCenter.vue'
 import ProductFishingReport from '@/views/product/product-detail/components/ProductFishingReport.vue'
 import ProductFishingDiary from '@/views/product/product-detail/components/ProductFishingDiary.vue'
+import ReservationCalendar from '@/components/calendar/ReservationCalendar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,8 +15,8 @@ const prodId = route.params.prodId
 const store = useProductDetailStore()
 const product = computed(() => store.product)
 
-const activeTab = ref('조황센터')
-const activeSubTab = ref('전체')
+const activeTab = ref('info')
+const activeSubTab = ref('center')
 
 onMounted(() => {
   store.fetchProductDetail(prodId)
@@ -26,157 +28,278 @@ onUnmounted(() => {
 
 const setTab = (tab) => {
   activeTab.value = tab
-  if (tab === '조황센터') {
-    activeSubTab.value = '전체'
+  if (tab === 'info') {
+    activeSubTab.value = 'center'
   }
-  goToReservation()
-}
-
-const goToReservation = () => {
-  router.push(`/reservation/${prodId}`)
 }
 </script>
 
 <template>
-  <div class="center">
-    <ProductInfo v-if="product" :product="product" />
-
-    <div class="main">
-      <!-- 상위 탭 -->
-      <div class="top-nav">
-        <button
-            class="nav-btn"
-            :class="{ active: activeTab === '조황센터' }"
-            @click="setTab('조황센터')"
-        >
-          조황센터
-        </button>
-        <button
-            class="nav-btn"
-            :class="{ active: activeTab === '결제하기' }"
-            @click="setTab('결제하기')"
-        >
-          결제하기
-        </button>
-      </div>
-
-      <!-- 하위 탭 -->
-      <div v-if="activeTab === '조황센터'" class="sub-nav">
-        <button
-            class="sub-btn"
-            :class="{ active: activeSubTab === '전체' }"
-            @click="activeSubTab = '전체'"
-        >
-          전체
-        </button>
-        <button
-            class="sub-btn"
-            :class="{ active: activeSubTab === '조황정보' }"
-            @click="activeSubTab = '조황정보'"
-        >
-          조황정보
-        </button>
-        <button
-            class="sub-btn"
-            :class="{ active: activeSubTab === '조행기' }"
-            @click="activeSubTab = '조행기'"
-        >
-          조행기
-        </button>
-      </div>
+  <div class="product-detail-container">
+    <!-- 상품 정보 섹션 -->
+    <div class="product-info-section">
+      <ProductInfo v-if="product" :product="product" />
     </div>
 
-    <!-- 콘텐츠 영역 -->
-    <div v-if="activeTab === '조황센터'">
-      <ProductFishingCenter v-if="activeSubTab === '전체'" />
-      <ProductFishingReport v-if="activeSubTab === '조황정보'" />
-      <ProductFishingDiary v-if="activeSubTab === '조행기'" />
+    <!-- 메인 콘텐츠 영역 -->
+    <div class="main-content">
+      <!-- 탭 네비게이션 -->
+      <div class="tab-navigation">
+        <div class="tab-list">
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'info' }"
+            @click="setTab('info')"
+          >
+            <span class="tab-icon">📊</span>
+            <span class="tab-text">조황정보</span>
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'reservation' }"
+            @click="setTab('reservation')"
+          >
+            <span class="tab-icon">📅</span>
+            <span class="tab-text">예약하기</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 서브 탭 (조황정보 탭에서만 표시) -->
+      <div v-if="activeTab === 'info'" class="sub-tab-navigation">
+        <div class="sub-tab-list">
+          <button
+            class="sub-tab-button"
+            :class="{ active: activeSubTab === 'center' }"
+            @click="activeSubTab = 'center'"
+          >
+            전체보기
+          </button>
+          <button
+            class="sub-tab-button"
+            :class="{ active: activeSubTab === 'report' }"
+            @click="activeSubTab = 'report'"
+          >
+            조황정보
+          </button>
+          <button
+            class="sub-tab-button"
+            :class="{ active: activeSubTab === 'diary' }"
+            @click="activeSubTab = 'diary'"
+          >
+            조행기
+          </button>
+        </div>
+      </div>
+
+      <!-- 탭 콘텐츠 -->
+      <div class="tab-content">
+        <!-- 조황정보 탭 콘텐츠 -->
+        <div v-if="activeTab === 'info'" class="info-content">
+          <div v-if="activeSubTab === 'center'" class="content-section">
+            <h3 class="section-title">전체 조황 정보</h3>
+            <ProductFishingCenter />
+          </div>
+          <div v-if="activeSubTab === 'report'" class="content-section">
+            <h3 class="section-title">조황 정보</h3>
+            <ProductFishingReport />
+          </div>
+          <div v-if="activeSubTab === 'diary'" class="content-section">
+            <h3 class="section-title">조행기</h3>
+            <ProductFishingDiary />
+          </div>
+        </div>
+
+        <!-- 예약하기 탭 콘텐츠 -->
+        <div v-if="activeTab === 'reservation'" class="reservation-content">
+          <div class="content-section">
+            <h3 class="section-title">예약 캘린더</h3>
+            <ReservationCalendar />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
-
 <style scoped>
-.center {
-  width: 80%;
-  margin: 4% auto;
+.product-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f9fa;
 }
 
-.main{
-  width: 100%;
-  margin: 5% 0;
-}
-
-/* 상위 버튼 */
-.top-nav {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.nav-btn {
-  flex: 1;
-  padding: 12px;
-  font-size: 1.1rem;
-  background-color: #e0e0e0; /* 연한 회색 */
-  color: #333;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.nav-btn.active {
-  background-color: #2c3e70; /* 딥 블루 */
-  color: white;
-  box-shadow: 0 2px 6px rgba(58, 129, 241, 0.6);
-}
-
-/* 하위 버튼 */
-.sub-nav {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-  gap: 12px;
+.product-info-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
+  overflow: hidden;
 }
 
-.sub-btn {
+.main-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* 탭 네비게이션 */
+.tab-navigation {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.tab-list {
+  display: flex;
+  gap: 0;
+}
+
+.tab-button {
   flex: 1;
-  padding: 10px;
-  font-size: 1rem;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.sub-btn.active {
-  background-color: #3a81f1; /* 세련된 파란색 */
-  color: white;
-  box-shadow: 0 3px 8px rgba(106, 79, 156, 0.5);
-}
-
-.reservation-btn {
-  display: block;
-  width: 200px;
-  margin: 20px auto;
-  padding: 15px 30px;
-  font-size: 1.2rem;
-  background-color: #2c3e70;
-  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  background: transparent;
   border: none;
-  border-radius: 8px;
+  border-bottom: 3px solid transparent;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.reservation-btn:hover {
-  background-color: #1a237e;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(44, 62, 112, 0.3);
+.tab-button:hover {
+  background: #e9ecef;
+  color: #495057;
 }
-</style>
+
+.tab-button.active {
+  background: white;
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+.tab-icon {
+  font-size: 24px;
+}
+
+.tab-text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 서브 탭 네비게이션 */
+.sub-tab-navigation {
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+  padding: 0 20px;
+}
+
+.sub-tab-list {
+  display: flex;
+  gap: 0;
+}
+
+.sub-tab-button {
+  flex: 1;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sub-tab-button:hover {
+  color: #495057;
+  background: #f8f9fa;
+}
+
+.sub-tab-button.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+  background: #f8f9fa;
+}
+
+/* 탭 콘텐츠 */
+.tab-content {
+  padding: 0;
+}
+
+.content-section {
+  padding: 24px;
+}
+
+.section-title {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #212529;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 12px;
+}
+
+.info-content, .reservation-content {
+  /* min-height: 400px; */
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .product-detail-container {
+    padding: 12px;
+  }
+  
+  .tab-button {
+    padding: 16px 12px;
+  }
+  
+  .tab-icon {
+    font-size: 20px;
+  }
+  
+  .tab-text {
+    font-size: 12px;
+  }
+  
+  .sub-tab-button {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  
+  .content-section {
+    padding: 16px;
+  }
+  
+  .section-title {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tab-list {
+    flex-direction: column;
+  }
+  
+  .sub-tab-list {
+    flex-direction: column;
+  }
+  
+  .tab-button, .sub-tab-button {
+    border-bottom: none;
+    border-right: 2px solid transparent;
+  }
+  
+  .tab-button.active, .sub-tab-button.active {
+    border-bottom: none;
+    border-right-color: #007bff;
+  }
+}
+</style> 

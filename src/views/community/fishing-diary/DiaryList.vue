@@ -13,7 +13,7 @@ onMounted(async () => {
 
 <template>
   <div class="center">
-    <h1>조행기</h1>
+    <h4>조행기</h4>
     <DiaryListView v-if="store.diaries.length" :diaries="store.diaries" />
     <p v-else>조행기를 불러오는 중입니다...</p>
   </div>

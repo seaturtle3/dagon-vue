@@ -2,7 +2,7 @@
   <div class="product-list">
     <div class="header">
       <h1 class="page-title">상품 관리</h1>
-      <button class="register-button" @click="$router.push('/partner/product/register')">
+      <button class="register-button" @click="goToProductForm">
         상품 등록
       </button>
     </div>
@@ -373,7 +373,10 @@ export default {
         const errorMessage = error.response?.data?.message || '제품 신고에 실패했습니다. 다시 시도해주세요.';
         alert(errorMessage);
       }
-    }
+    },
+    goToProductForm() {
+      this.$router.push('/partner/product/register');
+    },
   },
   mounted() {
     this.loadProducts();
@@ -384,9 +387,9 @@ export default {
 <style scoped>
 .product-list {
   padding: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: #f8f9fa;
+  width: 100%;
+  margin: 0;
+  background-color: #e3f2fd;
   border-radius: 12px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
@@ -402,7 +405,7 @@ export default {
 
 .page-title {
   margin: 0;
-  color: #1a237e;
+  color: #1565c0;
   font-size: 2.5rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -411,7 +414,7 @@ export default {
 
 .register-button {
   padding: 12px 24px;
-  background-color: #1a237e;
+  background-color: #1976d2;
   color: white;
   border: none;
   border-radius: 8px;
@@ -422,7 +425,7 @@ export default {
 }
 
 .register-button:hover {
-  background-color: #283593;
+  background-color: #1565c0;
   transform: translateY(-2px);
 }
 
@@ -435,6 +438,7 @@ export default {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border: 1px solid #90caf9;
 }
 
 .search-box {
@@ -461,7 +465,7 @@ export default {
 
 .search-button {
   padding: 12px 24px;
-  background: #1a237e;
+  background-color: #1976d2;
   color: white;
   border: none;
   border-radius: 6px;
@@ -474,7 +478,7 @@ export default {
 }
 
 .search-button:hover {
-  background: #283593;
+  background-color: #1565c0;
   transform: translateY(-2px);
 }
 
@@ -501,13 +505,13 @@ export default {
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 25px;
   margin-bottom: 30px;
 }
 
 .product-card {
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.08);
   overflow: hidden;
@@ -552,11 +556,11 @@ export default {
 }
 
 .type-badge.sea {
-  background-color: #1a237e;
+  background-color: #3498db;
 }
 
 .type-badge.freshwater {
-  background-color: #2e7d32;
+  background-color: #2ecc71;
 }
 
 .product-info {
@@ -608,14 +612,14 @@ export default {
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.95rem;
-  background-color: #dc3545;
+  background-color: #e57373;
   color: white;
   font-weight: 600;
   transition: all 0.3s ease;
 }
 
 .delete-button:hover {
-  background-color: #c82333;
+  background-color: #ef5350;
   transform: translateY(-2px);
 }
 
@@ -626,7 +630,7 @@ export default {
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.95rem;
-  background-color: #007bff; /* 파란색 계열 */
+  background-color: #3498db;
   color: white;
   font-weight: 600;
   transition: all 0.3s ease;
@@ -634,7 +638,7 @@ export default {
 }
 
 .report-button:hover {
-  background-color: #0056b3;
+  background-color: #2980b9;
   transform: translateY(-2px);
 }
 
@@ -744,14 +748,14 @@ export default {
 }
 
 /* 반응형 조정 추가 */
-@media (max-width: 768px) {
-  .create-report-form-container .form-actions {
-    flex-direction: column; /* 모바일에서 버튼 세로 정렬 */
-    gap: 8px;
+@media (max-width: 992px) {
+  .product-list {
+    padding: 20px;
   }
-  .create-report-form-container .submit-button,
-  .create-report-form-container .cancel-button {
-    width: 100%; /* 버튼 너비 100% */
+  
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
   }
 }
 
@@ -807,14 +811,14 @@ export default {
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.95rem;
-  background-color: #28a745;
+  background-color: #2ecc71;
   color: white;
   font-weight: 600;
   transition: all 0.3s ease;
 }
 
 .restore-button:hover {
-  background-color: #218838;
+  background-color: #27ae60;
   transform: translateY(-2px);
 }
 
@@ -895,5 +899,17 @@ export default {
 
 .report-product-form-container .cancel-button:hover {
   background-color: #5a6268;
+}
+
+.status-badge {
+  &.active {
+    background-color: #1976d2;
+  }
+  &.inactive {
+    background-color: #90caf9;
+  }
+  &.sold-out {
+    background-color: #e57373;
+  }
 }
 </style> 

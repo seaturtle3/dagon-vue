@@ -152,7 +152,7 @@ const fetchNotifications = async () => {
   // localStorage 전체 확인
   console.log('localStorage 전체 키들:', Object.keys(localStorage))
   
-  // 사용자 정보가 없으면 localStorage에서 가져오기 시도
+  // 사용자 정보가 없으면 localStorage 에서 가져오기 시도
   let userInfo = authStore.user
   if (!userInfo) {
     try {
@@ -264,22 +264,22 @@ const markAllAsRead = async () => {
 
 // 클릭 외부 감지
 const handleClickOutside = async (event) => {
-  console.log('클릭 이벤트 발생:', event.target)
+  // console.log('클릭 이벤트 발생:', event.target)
   const dropdown = event.target.closest('.notification-dropdown')
-  console.log('드롭다운 요소:', dropdown)
+  // console.log('드롭다운 요소:', dropdown)
   
   if (!dropdown) {
-    console.log('드롭다운 외부 클릭 - 닫기')
+    // console.log('드롭다운 외부 클릭 - 닫기')
     showNotificationDropdown.value = false
     await nextTick()
-    console.log('드롭다운 상태 업데이트 완료:', showNotificationDropdown.value)
+    // console.log('드롭다운 상태 업데이트 완료:', showNotificationDropdown.value)
   }
 }
 
 // ESC 키로 드롭다운 닫기
 const handleKeyDown = (event) => {
   if (event.key === 'Escape' && showNotificationDropdown.value) {
-    console.log('ESC 키 - 드롭다운 닫기')
+    // console.log('ESC 키 - 드롭다운 닫기')
     showNotificationDropdown.value = false
   }
 }

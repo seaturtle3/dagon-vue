@@ -4,17 +4,17 @@
       <h2>대시보드</h2>
       <p class="last-updated">마지막 업데이트: {{ formatDate(new Date()) }}</p>
     </div>
-    
+
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
       <p>데이터를 불러오는 중입니다...</p>
     </div>
-    
+
     <div v-else-if="error" class="error">
       <p>{{ error }}</p>
       <button @click="loadDashboardData" class="retry-button">다시 시도</button>
     </div>
-    
+
     <div v-else>
       <div class="stats-grid">
         <div class="stat-card">
@@ -62,20 +62,22 @@
             전체 보기
           </button>
         </div>
-        
+
         <div v-if="recentReservations.length === 0" class="no-data">
           <i class="fas fa-calendar-times"></i>
           <p>최근 예약이 없습니다.</p>
         </div>
-        
+
         <div v-else class="reservation-list">
-          <div v-for="reservation in sortedRecentReservations" 
-               :key="reservation.reservationId" 
-               class="reservation-card">
+          <div v-for="reservation in sortedRecentReservations"
+               :key="reservation.reservationId"
+               class="reservation-card"
+               :class="{ 'cancelled': reservation.status === 'CANCELLED' || reservation.status === 'CANCELED' }">
             <div class="reservation-info">
               <div class="reservation-header">
                 <h4>{{ reservation.productName }}</h4>
-                <span :class="['status-badge', getStatusClass(reservation.status)]">
+                <span v-if="reservation.status === 'CANCELLED' || reservation.status === 'CANCELED'" class="status-badge status-cancelled">❌ 취소됨</span>
+                <span v-else :class="['status-badge', getStatusClass(reservation.status)]">
                   {{ getStatusText(reservation.status) }}
                 </span>
               </div>
@@ -85,7 +87,7 @@
                 <p><i class="fas fa-clock"></i> {{ formatDate(reservation.fishingAt) }}</p>
               </div>
             </div>
-            <button @click="viewReservation(reservation.reservationId)" 
+            <button @click="viewReservation(reservation.reservationId)"
                     class="view-button">
               상세보기
             </button>
@@ -97,7 +99,7 @@
 </template>
 
 <script>
-import { partnerService } from '@/api/partner'
+import {partnerService} from '@/api/partner'
 
 export default {
   name: 'Dashboard',
@@ -115,35 +117,59 @@ export default {
   computed: {
     sortedRecentReservations() {
       return [...this.recentReservations]
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 3)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 3)
     }
   },
   methods: {
     async loadDashboardData() {
       this.loading = true
       this.error = null
-      
+
       try {
+        // uno 결정: 쿼리스트링 > 토큰
+        let uno = this.$route.query.uno;
+        
+        // 쿼리스트링에 uno가 없으면 토큰에서 추출
+        if (!uno) {
+          const token = localStorage.getItem('token');
+          if (token) {
+            try {
+              const payload = JSON.parse(atob(token.split('.')[1]));
+              uno = payload.uno;
+            } catch (e) {
+              console.error('토큰 파싱 실패:', e);
+            }
+          }
+        }
+        
         // 예약 수 조회
-        const reservationResponse = await partnerService.getReservationCount()
+        console.log('🔍 예약 수 조회 API 호출:', uno);
+        const reservationResponse = await partnerService.getReservationCount(uno)
+        console.log('📊 예약 수 응답:', reservationResponse.data);
         this.reservationCount = reservationResponse.data
 
         // 전체 상품 수 조회
-        const productCountResponse = await partnerService.getProductCount()
+        console.log('🔍 상품 수 조회 API 호출:', uno);
+        const productCountResponse = await partnerService.getProductCount(uno)
+        console.log('📊 상품 수 응답:', productCountResponse.data);
         this.productCount = productCountResponse.data
 
         // 오늘 예약 수 조회
-        const todayReservationResponse = await partnerService.getTodayReservationCount()
+        console.log('🔍 오늘 예약 수 조회 API 호출:', uno);
+        const todayReservationResponse = await partnerService.getTodayReservationCount(uno)
+        console.log('📊 오늘 예약 수 응답:', todayReservationResponse.data);
         this.todayReservationCount = todayReservationResponse.data
 
         // 대기 문의 수 조회
-        const inquiryResponse = await partnerService.getUnansweredInquiryCount()
+        console.log('🔍 대기 문의 수 조회 API 호출:', uno);
+        const inquiryResponse = await partnerService.getUnansweredInquiryCount(uno)
+        console.log('📊 대기 문의 수 응답:', inquiryResponse.data);
         this.unansweredInquiryCount = inquiryResponse.data
 
         // 최근 예약 목록 조회
         try {
-          const recentReservationsResponse = await partnerService.getRecentReservations()
+          const recentReservationsResponse = await partnerService.getRecentReservations(uno)
           if (Array.isArray(recentReservationsResponse.data)) {
             this.recentReservations = recentReservationsResponse.data.map(reservation => ({
               reservationId: reservation.reservationId,
@@ -188,19 +214,19 @@ export default {
     getStatusText(status) {
       if (!status) return '상태 없음'
       const statusMap = {
-        'PENDING': '대기중',
-        'CONFIRMED': '확정',
-        'CANCELLED': '취소됨',
-        'COMPLETED': '완료'
+        'PENDING': '대기',
+        'PAID': '결제완료',
+        'CANCELED': '취소됨',
+        'CANCELLED': '취소됨'
       }
       return statusMap[status] || status
     },
     getStatusClass(status) {
       const statusClassMap = {
         'PENDING': 'status-pending',
-        'CONFIRMED': 'status-confirmed',
-        'CANCELLED': 'status-cancelled',
-        'COMPLETED': 'status-completed'
+        'PAID': 'status-paid',
+        'CANCELED': 'status-cancelled',
+        'CANCELLED': 'status-cancelled'
       }
       return statusClassMap[status] || ''
     },
@@ -262,8 +288,18 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #c82333;
+  font-weight: bold;
 }
 
 .error {
@@ -272,7 +308,7 @@ export default {
   padding: 32px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .retry-button {
@@ -302,7 +338,7 @@ export default {
   background: white;
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   gap: 20px;
@@ -345,7 +381,7 @@ export default {
   background: white;
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .section-header {
@@ -403,11 +439,40 @@ export default {
   border-radius: 8px;
   border: 1px solid #e9ecef;
   transition: all 0.3s;
+  position: relative;
 }
 
 .reservation-card:hover {
   transform: translateX(5px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.reservation-card.cancelled::before {
+  content: '❌';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  color: rgba(200, 35, 51, 0.2);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.reservation-card.cancelled {
+  opacity: 0.7;
+  background: #fff5f5;
+  border: 1px solid #f8d7da;
+}
+
+.reservation-card.cancelled .reservation-info {
+  position: relative;
+  z-index: 2;
+}
+
+.reservation-card.cancelled .view-button {
+  position: relative;
+  z-index: 2;
 }
 
 .reservation-info {
@@ -440,7 +505,7 @@ export default {
   color: #856404;
 }
 
-.status-confirmed {
+.status-paid {
   background-color: #d4edda;
   color: #155724;
 }
@@ -448,11 +513,6 @@ export default {
 .status-cancelled {
   background-color: #f8d7da;
   color: #721c24;
-}
-
-.status-completed {
-  background-color: #cce5ff;
-  color: #004085;
 }
 
 .reservation-details {

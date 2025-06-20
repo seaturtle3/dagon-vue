@@ -9,7 +9,7 @@ const emit = defineEmits(['search'])
 </script>
 
 <template>
-  <div class="search-form">
+  <div class="search-form" v-if="search">
     <select v-model="search.type">
       <option value="title">제목</option>
       <option value="content">내용</option>

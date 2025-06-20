@@ -56,6 +56,16 @@ export default {
     }
   },
   methods: {
+    getUnoFromToken(token) {
+      if (!token) return null;
+      try {
+        const payload = token.split('.')[1];
+        const decoded = JSON.parse(atob(payload));
+        return decoded.uno;
+      } catch (e) {
+        return null;
+      }
+    },
     async handleWithdrawal() {
       if (!this.isAllConfirmed) {
         alert('모든 확인사항에 동의해주세요.');
@@ -68,7 +78,12 @@ export default {
 
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${BASE_URL}/api/partner/my_page/${this.$store.state.user.uno}`, {
+        const uno = this.getUnoFromToken(token);
+        if (!uno) {
+          alert('유저 정보를 확인할 수 없습니다.');
+          return;
+        }
+        const response = await fetch(`${BASE_URL}/api/partner/my_page/${uno}`, {
           method: "DELETE",
           headers: {
             'Authorization': `Bearer ${token}`

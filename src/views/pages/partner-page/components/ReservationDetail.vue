@@ -7,7 +7,7 @@
 
     <div v-if="reservation" class="detail-card">
       <div class="status-section">
-        <h2>{{ reservation.productName }}</h2>
+        <h2>{{ reservation.productName || '상품명 없음' }}</h2>
         <span :class="['status-badge', (reservation.reservationStatus || '').toLowerCase()]">
           {{ getStatusText(reservation.reservationStatus) }}
         </span>
@@ -70,7 +70,12 @@ export default {
       try {
         const reservationId = this.$route.params.id;
         const response = await partnerService.getReservationDetail(reservationId);
-        this.reservation = response.data;
+        console.log('예약 상세 API 응답:', response.data);
+        this.reservation = {
+          ...response.data,
+          productName: response.data.prod_name || '상품명 없음'
+        };
+        console.log('매핑된 예약 상세:', this.reservation);
       } catch (error) {
         console.error('예약 상세 정보 로딩 실패:', error);
         alert('예약 정보를 불러오는데 실패했습니다.');
@@ -98,6 +103,8 @@ export default {
       });
     },
     getStatusText(status) {
+  
+      
       if (!status) return '상태 없음';
       
       const statusMap = {

@@ -29,12 +29,14 @@
         <div class="header-item">관리</div>
       </div>
 
-      <div v-for="reservation in filteredReservations" :key="reservation.reservationId" class="reservation-row" :class="{ 'deleted': reservation.deleted }">
+      <div v-for="reservation in filteredReservations" :key="reservation.reservationId" 
+        class="reservation-row"
+        :class="{ 'deleted': reservation.reservationStatus === 'CANCELED' }">
         <div class="row-item">
-          {{ reservation.productName || '상품명 없음' }}
-          <span v-if="reservation.deleted" class="deleted-mark">
-            <i class="fas fa-times"></i> 비공개
+          <span v-if="reservation.reservationStatus === 'CANCELED'" class="deleted-mark">
+            <i class="fas fa-times"></i>
           </span>
+          {{ reservation.productName || '상품명 없음' }}
         </div>
         <div class="row-item">{{ reservation.userName }}</div>
         <div class="row-item">{{ formatDate(reservation.fishingAt) }}</div>
@@ -98,7 +100,12 @@ export default {
     async loadReservations() {
       try {
         const response = await partnerService.getPartnerReservations();
-        this.reservations = response.data;
+        console.log('예약 목록 API 응답:', response.data);
+        this.reservations = response.data.map(reservation => ({
+          ...reservation,
+          productName: reservation.prod_name || '상품명 없음'
+        }));
+        console.log('매핑된 예약 목록:', this.reservations);
       } catch (error) {
         console.error('예약 목록 로딩 실패:', error);
         alert('예약 목록을 불러오는데 실패했습니다.');
@@ -160,16 +167,16 @@ export default {
 <style scoped>
 .reservation-list {
   padding: 30px;
-  max-width: 1400px;
-  margin: 0 auto;
-  background-color: #f8f9fa;
+  width: 100%;
+  margin: 0;
+  background-color: #e3f2fd;
   border-radius: 12px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .page-title {
   margin-bottom: 40px;
-  color: #1a237e;
+  color: #1565c0;
   font-size: 2.5rem;
   font-weight: 700;
   text-align: center;
@@ -187,6 +194,7 @@ export default {
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   gap: 20px;
+  border: 1px solid #90caf9;
 }
 
 .search-box {
@@ -213,7 +221,7 @@ export default {
 
 .search-button {
   padding: 12px 24px;
-  background: #1a237e;
+  background-color: #1976d2;
   color: white;
   border: none;
   border-radius: 6px;
@@ -226,7 +234,7 @@ export default {
 }
 
 .search-button:hover {
-  background: #283593;
+  background-color: #1565c0;
   transform: translateY(-2px);
 }
 
@@ -247,7 +255,7 @@ export default {
 }
 
 .reservation-table {
-  background: white;
+  background: #ffffff;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.08);
   overflow: hidden;
@@ -296,18 +304,18 @@ export default {
 }
 
 .status-badge.pending {
-  background: #fff3e0;
-  color: #ef6c00;
+  background-color: #64b5f6;
+  color: #fff;
 }
 
 .status-badge.paid {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background-color: #43a047;
+  color: #fff;
 }
 
 .status-badge.canceled {
-  background: #ffebee;
-  color: #c62828;
+  background-color: #e53935;
+  color: #fff;
 }
 
 .actions {
@@ -326,22 +334,22 @@ export default {
 }
 
 .cancel-button {
-  background: #dc3545;
+  background-color: #e74c3c;
   color: white;
 }
 
 .cancel-button:hover {
-  background: #c82333;
+  background-color: #c0392b;
   transform: translateY(-2px);
 }
 
 .detail-button {
-  background: #1a237e;
+  background-color: #3498db;
   color: white;
 }
 
 .detail-button:hover {
-  background: #283593;
+  background-color: #2980b9;
   transform: translateY(-2px);
 }
 
