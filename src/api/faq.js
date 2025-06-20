@@ -3,10 +3,8 @@ import axios from 'axios'
 // ✅ 사용자용
 export const fetchFaqCategories = () => axios.get('/api/faq/categories')
 
-export const fetchFaqList = (page = 0, size = 10) =>
-    axios.get('/api/faq', {
-        params: { page, size }
-    })
+export const fetchFaqList = (params) =>
+    axios.get('/api/faq', { params })
 
 
 

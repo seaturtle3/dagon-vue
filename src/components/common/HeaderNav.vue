@@ -422,7 +422,7 @@ const menuItems = ref([
     open: false,
     children: [
       {label: '공지사항', link: '/notice'},
-      {label: '자주묻는질문', link: '/faq'},
+      {label: 'FAQ', link: '/faq'},
       {label: '1:1 문의', link: '/inquiry'}
     ]
   }
