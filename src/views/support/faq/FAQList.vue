@@ -63,6 +63,10 @@ function handleEdit(id) {
   router.push(`/faq/edit/${id}`)
 }
 
+function goToEdit(id) {
+  router.push(`/faq/edit/${id}`)
+}
+
 async function handleDelete(id) {
   if (confirm('정말 삭제하시겠습니까?')) {
     await deleteFaq(id)
@@ -153,7 +157,14 @@ async function handleDelete(id) {
 
 
           <div v-if="isAdmin" class="text-end mt-2">
-            <button class="btn btn-sm btn-outline-primary me-2" @click="handleEdit(faq.faqId)">수정</button>
+            <button
+                v-if="isAdmin"
+                class="btn btn-sm me-2 btn-outline-primary"
+                @click="goToEdit(faq.faqId)"
+            >
+              수정
+            </button>
+
             <button class="btn btn-sm btn-outline-danger" @click="handleDelete(faq.faqId)">삭제</button>
           </div>
         </div>

@@ -9,8 +9,19 @@ export const fetchFaqList = (params) =>
 
 
 // ✅ 관리자용
-export const createFaq = (data) => axios.post('/api/admin/faq', data)
-export const updateFaq = (id, data) => axios.put(`/api/admin/faq/${id}`, data)
-export const deleteFaq = (id) => axios.delete(`/api/admin/faq/${id}`)
-export const fetchAdminFaqCategories = () => axios.get('/api/admin/faq-categories')
+export const updateFaq = (id, data) =>
+    axios.put(`/api/admin/faq/${id}`, data, {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
 
+export const createFaq = (data) =>
+    axios.post(`/api/admin/faq`, data, {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+export const deleteFaq = (id) => axios.delete(`/api/admin/faq/${id}`)
+export const fetchFaqDetail = (id) => axios.get(`/api/admin/faq/${id}`) // ← 이 부분 추가
+export const fetchAdminFaqCategories = () => axios.get('/api/admin/faq-categories')
