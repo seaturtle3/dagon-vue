@@ -13,8 +13,8 @@ onMounted(async () => {
 const productStore = useSeaProdStore()
 const products = computed(() => productStore.products)
 
-const onFilterChange = async ({ region }) => {
-  await productStore.fetchFilteredProducts({ region })
+const onFilterChange = async (filter) => {
+  await productStore.fetchFilteredProducts(filter)
 }
 </script>
 
@@ -25,7 +25,7 @@ const onFilterChange = async ({ region }) => {
     </div>
 
     <div class="filter-detail-wrapper">
-      <SeaFilter @update:filters="onFilterChange" />
+      <SeaFilter @update:filter="onFilterChange" />
     </div>
 
     <SeaProd :seaProducts="products"/>

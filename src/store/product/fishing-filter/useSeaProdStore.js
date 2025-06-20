@@ -30,7 +30,7 @@ export const useSeaProdStore = defineStore('seaProdStore', {
         async fetchFilteredProducts({ region = '', subType = '', species = '' } = {}) {
             this.loading = true
             try {
-                const res = await api.get('/api/product/get-all/sea/detail', {
+                const res = await api.get('/api/product/get-all/sea/filter', {
                     params: { region, subType, species }
                 })
                 this.products = res.data // 이건 List<ProductDTO> 반환이라고 가정
