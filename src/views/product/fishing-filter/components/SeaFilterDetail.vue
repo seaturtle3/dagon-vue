@@ -2,17 +2,12 @@
 import { ref, onMounted, watch, defineEmits } from 'vue'
 import axios from 'axios'
 import { useSeaFishingStore } from '@/store/product/fishing-filter/useSeaFilterStore.js'
-import Datepicker from 'vue3-datepicker'
 
 const emit = defineEmits(['update:filters'])
 const seaStore = useSeaFishingStore()
 
-const selectedDate = ref(new Date())
-const minDate = new Date() // 오늘 날짜
-
 // 실제 필터에서 보여줄 옵션들
 const filters = ref({
-  availableDates: [],
   regions: [],
   subType: [],
   fishSpecies: []
@@ -20,7 +15,6 @@ const filters = ref({
 
 // 사용자가 선택한 필터 값들
 const selected = ref({
-  date: '',
   region: '',
   subType: '',
   species: ''
@@ -42,14 +36,6 @@ watch(selected, async (val) => {
 <template>
   <div class="sea-filter-detail">
     <div class="filter-row">
-      <div class="filter-item">
-        <label>날짜 : </label>
-        <Datepicker
-            v-model="selectedDate"
-            format="yyyy-MM-dd"
-            :minDate="minDate"
-        />
-      </div>
 
       <div class="filter-item">
         <label>지역 : </label>
