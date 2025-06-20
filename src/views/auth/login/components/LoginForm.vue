@@ -9,8 +9,8 @@ import {BASE_URL} from "@/constants/baseUrl.js";
 const currentView = ref('login');
 
 // 로그인 관련 상태
-const username = ref('');
-const password = ref('');
+const username = ref('user001');
+const password = ref('1111');
 const errorMessage = ref('');
 const successMessage = ref('');
 const authStore = useAuthStore();
