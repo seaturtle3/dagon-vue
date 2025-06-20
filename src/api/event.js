@@ -1,7 +1,7 @@
-import axios from 'axios'
+import api from '@/lib/axios'
 
 export const createEvent = async (eventData, token) => {
-    const res = await axios.post('/api/admin/event', eventData, {
+    const res = await api.post('/api/admin/event', eventData, {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -10,7 +10,7 @@ export const createEvent = async (eventData, token) => {
 }
 
 export const updateEvent = async (id, eventData, token) => {
-    const res = await axios.post(`/api/admin/event/${id}`, eventData, {
+    const res = await api.post(`/api/admin/event/${id}`, eventData, {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -19,12 +19,12 @@ export const updateEvent = async (id, eventData, token) => {
 }
 
 export const fetchEventById = async (id) => {
-    const res = await axios.get(`/api/event/${id}`)
+    const res = await api.get(`/api/event/${id}`)
     return res.data
 }
 
 export const deleteEvent = async (id, token) => {
-    await axios.delete(`/api/admin/event/${id}`, {
+    await api.delete(`/api/admin/event/${id}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }

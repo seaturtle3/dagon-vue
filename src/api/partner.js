@@ -1,4 +1,4 @@
-import axiosInstance from './axios';
+import api from '@/lib/axios';
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const API_URL = '/api';
@@ -6,12 +6,12 @@ const API_URL = '/api';
 export const partnerService = {
     // 파트너 정보 조회
     getPartnerInfo() {
-        return axiosInstance.post(`${API_URL}/mypage`);
+        return api.post(`${API_URL}/mypage`);
     },
 
     // 파트너 상품 목록 조회
     getPartnerProducts() {
-        return axiosInstance.get(`${API_URL}/partner/product/my-products`, {
+        return api.get(`${API_URL}/partner/product/my-products`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -21,7 +21,7 @@ export const partnerService = {
     // 파트너 상품 등록
     registerProduct(productData) {
         // FormData인 경우 Content-Type을 자동으로 설정하도록 함
-        return axiosInstance.post(`${API_URL}/product/create`, productData, {
+        return api.post(`${API_URL}/product/create`, productData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -30,7 +30,7 @@ export const partnerService = {
 
     // 파트너 상품 상세 조회
     getProductDetail(prodId) {
-        return axiosInstance.get(`${API_URL}/partner/product/${prodId}`);
+        return api.get(`${API_URL}/partner/product/${prodId}`);
     },
 
     // 상품 썸네일 URL 가져오기
@@ -59,7 +59,7 @@ export const partnerService = {
 
     // 파트너 상품 삭제
     deleteProduct(prodId) {
-        return axiosInstance.delete(`${API_URL}/partner/product/delete/${prodId}`, {
+        return api.delete(`${API_URL}/partner/product/delete/${prodId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -68,71 +68,71 @@ export const partnerService = {
 
     // 파트너 예약 목록 조회
     getPartnerReservations() {
-        return axiosInstance.get(`${API_URL}/reservation/partner`);
+        return api.get(`${API_URL}/reservation/partner`);
     },
 
     // 예약 취소
     cancelReservation(reservationId) {
-        return axiosInstance.delete(`${API_URL}/reservation/${reservationId}`);
+        return api.delete(`${API_URL}/reservation/${reservationId}`);
     },
 
     // 예약 상세 조회
     getReservationDetail(reservationId) {
-        return axiosInstance.get(`${API_URL}/reservation/${reservationId}`);
+        return api.get(`${API_URL}/reservation/${reservationId}`);
     },
 
     // 조황정보 목록 조회
     getFishingReports(prodId = null) {
         if (prodId) {
-            return axiosInstance.get(`${API_URL}/fishing-report/mine/${prodId}`);
+            return api.get(`${API_URL}/fishing-report/mine/${prodId}`);
         } else {
-            return axiosInstance.get(`${API_URL}/fishing-report/mine`);
+            return api.get(`${API_URL}/fishing-report/mine`);
         }
     },
 
     // 조황정보 상세 조회
     getFishingReportDetail(frId) {
-        return axiosInstance.get(`${API_URL}/fishing-report/${frId}`);
+        return api.get(`${API_URL}/fishing-report/${frId}`);
     },
 
     // 조황정보 생성
     createFishingReport(reportData) {
-        return axiosInstance.post(`${API_URL}/fishing-report`, reportData);
+        return api.post(`${API_URL}/fishing-report`, reportData);
     },
 
     // 조황정보 업데이트
     updateFishingReport(frId, reportData) {
-        return axiosInstance.put(`${API_URL}/fishing-report/${frId}`, reportData);
+        return api.put(`${API_URL}/fishing-report/${frId}`, reportData);
     },
 
     // 조황정보 삭제
     deleteFishingReport(frId) {
-        return axiosInstance.delete(`${API_URL}/fishing-report/${frId}`);
+        return api.delete(`${API_URL}/fishing-report/${frId}`);
     },
 
     // 파트너 대시보드 예약 수 조회
     getReservationCount(uno) {
-        return axiosInstance.get(`${API_URL}/partner/dashboard/reservation-count?uno=${uno}`);
+        return api.get(`${API_URL}/partner/dashboard/reservation-count?uno=${uno}`);
     },
 
     // 파트너 대시보드 상품 수 조회
     getProductCount(uno) {
-        return axiosInstance.get(`${API_URL}/partner/dashboard/product-count?uno=${uno}`);
+        return api.get(`${API_URL}/partner/dashboard/product-count?uno=${uno}`);
     },
 
     // 파트너 대시보드 오늘 예약 수 조회
     getTodayReservationCount(uno) {
-        return axiosInstance.get(`${API_URL}/partner/dashboard/today-reservation-count?uno=${uno}`);
+        return api.get(`${API_URL}/partner/dashboard/today-reservation-count?uno=${uno}`);
     },
 
     // 파트너 대시보드 대기 문의 수 조회
     getUnansweredInquiryCount(uno) {
-        return axiosInstance.get(`${API_URL}/partner/dashboard/unanswered-inquiry-count?uno=${uno}`);
+        return api.get(`${API_URL}/partner/dashboard/unanswered-inquiry-count?uno=${uno}`);
     },
 
     // 파트너 대시보드 최근 예약 목록 조회
     getRecentReservations(uno) {
-        return axiosInstance.get(`${API_URL}/partner/dashboard/recent-reservations?uno=${uno}`);
+        return api.get(`${API_URL}/partner/dashboard/recent-reservations?uno=${uno}`);
     },
 
     // 상품 등록 처리
@@ -164,7 +164,7 @@ export const partnerService = {
 
     // 파트너 상품 복구
     restoreProduct(prodId) {
-        return axiosInstance.put(`${API_URL}/partner/product/restore/${prodId}`, {}, {
+        return api.put(`${API_URL}/partner/product/restore/${prodId}`, {}, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -173,7 +173,7 @@ export const partnerService = {
 
     // 파트너의 모든 상품 목록 조회 (공개/비공개 포함)
     getPartnerAllProducts() {
-        return axiosInstance.get(`${API_URL}/partner/product/all`, {
+        return api.get(`${API_URL}/partner/product/all`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -182,7 +182,7 @@ export const partnerService = {
 
     // 상품 신고
     reportProduct(prodId, reason) {
-        return axiosInstance.post(`${API_URL}/reports/product/${prodId}`, reason, {
+        return api.post(`${API_URL}/reports/product/${prodId}`, reason, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'text/plain'
@@ -192,7 +192,7 @@ export const partnerService = {
 
     // 조황정보 신고
     reportFishingReport(frId, reason) {
-        return axiosInstance.post(`${API_URL}/reports/fishing-report/${frId}`, reason, {
+        return api.post(`${API_URL}/reports/fishing-report/${frId}`, reason, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'text/plain'
@@ -202,7 +202,7 @@ export const partnerService = {
 
     // 조황정보 댓글 신고
     reportFishingReportComment(commentId, reason) {
-        return axiosInstance.post(`${API_URL}/reports/fishing-report-comment/${commentId}`, reason, {
+        return api.post(`${API_URL}/reports/fishing-report-comment/${commentId}`, reason, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'text/plain'
@@ -212,7 +212,7 @@ export const partnerService = {
 
     // 조행기 신고
     reportFishingPost(fdId, reason) {
-        return axiosInstance.post(`${API_URL}/reports/fishing-post/${fdId}`, reason, {
+        return api.post(`${API_URL}/reports/fishing-post/${fdId}`, reason, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'text/plain'
@@ -222,7 +222,7 @@ export const partnerService = {
 
     // 조행기 댓글 신고
     reportFishingPostComment(commentId, reason) {
-        return axiosInstance.post(`${API_URL}/reports/fishing-post-comment/${commentId}`, reason, {
+        return api.post(`${API_URL}/reports/fishing-post-comment/${commentId}`, reason, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'text/plain'

@@ -1,5 +1,4 @@
-import api from './axios';
-import axios from "axios";
+import api from "@/lib/axios";
 
 export const myPageAPI = {
     // 내 정보 조회

@@ -23,10 +23,11 @@
       <div class="filter-box">
         <select v-model="searchParams.category" @change="handleSearch">
           <option value="">전체 카테고리</option>
-          <option value="이용방법">이용방법</option>
-          <option value="예약">예약</option>
-          <option value="결제">결제</option>
-          <option value="기타">기타</option>
+          <option value="일반회원">일반회원</option>
+          <option value="파트너">파트너</option>
+          <option value="관리자">관리자</option>
+          <option value="예약관련">예약관련</option>
+          <option value="결제관련">결제관련</option>
         </select>
         <select v-model="searchParams.isActive" @change="handleSearch">
           <option value="">전체</option>
@@ -122,10 +123,11 @@
             <label>카테고리 *</label>
             <select v-model="faqForm.category" required>
               <option value="">카테고리를 선택하세요</option>
-              <option value="이용방법">이용방법</option>
-              <option value="예약">예약</option>
-              <option value="결제">결제</option>
-              <option value="기타">기타</option>
+              <option value="일반회원">일반회원</option>
+              <option value="파트너">파트너</option>
+              <option value="관리자">관리자</option>
+              <option value="예약관련">예약관련</option>
+              <option value="결제관련">결제관련</option>
             </select>
           </div>
           
@@ -272,17 +274,19 @@ export default {
       loading.value = true
       try {
         const categoryNameToIdMap = {
-          '이용방법': 1,
-          '예약': 2,
-          '결제': 3,
-          '기타': 4
+          '일반회원': 1,
+          '파트너': 2,
+          '관리자': 3,
+          '예약관련': 4,
+          '결제관련': 5,
         }
         
         const categoryIdToNameMap = {
-          1: '이용방법',
-          2: '예약',
-          3: '결제',
-          4: '기타'
+          1: '일반회원',
+          2: '파트너',
+          3: '관리자',
+          4: '예약관련',
+          5: '결제관련',
         }
 
         const apiParams = {

@@ -1,6 +1,6 @@
 <script setup>
 import {reactive, watch, toRefs, onMounted, ref} from 'vue'
-import {createProduct} from "@/api/api.js";
+import {createProduct} from "@/api/product.js";
 
 const file = ref(null)  // 파일 업로드 항목 추가
 

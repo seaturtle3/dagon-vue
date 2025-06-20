@@ -55,7 +55,7 @@
           <div class="faq-answer">
             <div class="answer-content">{{ faq.answer }}</div>
             <div class="faq-meta">
-              <span class="category-tag">{{ faq.category }}</span>
+              <span class="category-tag">{{ faq.categoryName }}</span>
               <span class="update-date">{{ formatDate(faq.createdAt) }}</span>
             </div>
           </div>
@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { fetchFAQs } from '@/api/faqApi.js'
 
 // 상태 관리
@@ -106,14 +106,19 @@ const selectedCategory = ref('all')
 const expandedItems = ref([])
 const loading = ref(false)
 
-// 카테고리 데이터
+// 카테고리 데이터 (ID와 이름 매핑)
 const categories = ref([
   { id: 'all', name: '전체' },
-  { id: '이용방법', name: '이용방법' },
-  { id: '예약', name: '예약' },
-  { id: '결제', name: '결제' },
-  { id: '기타', name: '기타' }
+  { id: 1, name: '일반회원' },
+  { id: 2, name: '파트너' },
+  { id: 3, name: '관리자' },
+  { id: 4, name: '예약관련' },
+  { id: 5, name: '결제관련' },
 ])
+const categoryIdToNameMap = {
+  4: '예약관련',
+  5: '결제관련',
+}
 
 // FAQ 데이터
 const faqs = ref([])
@@ -127,35 +132,52 @@ const loadFAQs = async () => {
       size: 100 // 충분한 수의 FAQ를 가져오기 위해
     }
     
+    // 선택된 카테고리가 'all'이 아니면 파라미터에 추가
+    if (selectedCategory.value !== 'all') {
+      params.categoryId = selectedCategory.value
+    } else {
+      params.categoryId = null // '전체'일 경우 null 또는 undefined로 설정
+    }
+
     const response = await fetchFAQs(params)
-    faqs.value = response.data.content || response.data || []
+    const faqData = response.data.content || response.data || []
+
+    // API 응답 데이터에 categoryName 추가
+    faqs.value = faqData.map(faq => ({
+      ...faq,
+      categoryName: categoryIdToNameMap[faq.categoryId] || '기타'
+    }))
+
   } catch (error) {
     console.error('FAQ 목록 로드 실패:', error)
     // 에러 시 기본 데이터 표시
     faqs.value = [
       {
         faqId: 1,
-        category: '이용방법',
+        categoryId: 1,
         question: '어떻게 예약하나요?',
         answer: '홈페이지에서 원하는 날짜와 시간을 선택하여 예약할 수 있습니다. 예약 페이지에서 선사와 날짜를 선택한 후 결제를 진행하시면 됩니다.',
         createdAt: '2024-01-15',
-        isActive: true
+        isActive: true,
+        categoryName: '이용방법'
       },
       {
         faqId: 2,
-        category: '예약',
+        categoryId: 2,
         question: '예약 취소는 언제까지 가능한가요?',
         answer: '예약 취소는 출발 24시간 전까지 가능합니다. 24시간 이내 취소 시 환불이 제한될 수 있습니다.',
         createdAt: '2024-01-20',
-        isActive: true
+        isActive: true,
+        categoryName: '예약'
       },
       {
         faqId: 3,
-        category: '결제',
+        categoryId: 3,
         question: '어떤 결제 방법을 지원하나요?',
         answer: '신용카드, 계좌이체, 간편결제(카카오페이, 네이버페이)를 지원합니다.',
         createdAt: '2024-01-25',
-        isActive: true
+        isActive: true,
+        categoryName: '결제'
       }
     ]
   } finally {
@@ -166,11 +188,6 @@ const loadFAQs = async () => {
 // 필터링된 FAQ 목록
 const filteredFAQs = computed(() => {
   let filtered = faqs.value
-
-  // 카테고리 필터링
-  if (selectedCategory.value !== 'all') {
-    filtered = filtered.filter(faq => faq.category === selectedCategory.value)
-  }
 
   // 검색어 필터링
   if (searchQuery.value.trim()) {
@@ -194,11 +211,10 @@ const toggleFAQ = (id) => {
   }
 }
 
-// 카테고리 이름 가져오기
-const getCategoryName = (categoryId) => {
-  const category = categories.value.find(cat => cat.id === categoryId)
-  return category ? category.name : categoryId
-}
+// 카테고리 선택 시 FAQ 다시 로드
+watch(selectedCategory, () => {
+  loadFAQs()
+})
 
 // 날짜 포맷팅
 const formatDate = (dateString) => {

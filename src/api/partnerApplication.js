@@ -1,8 +1,8 @@
-import axios from './axios';
+import api from '@/lib/axios';
 
 // 파트너 신청 등록 (이미지 포함)
 export const registerPartnerApplication = (formData) => {
-  return axios.post('/api/partners/register', formData, {
+  return api.post('/api/partners/register', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
 };
