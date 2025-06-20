@@ -23,4 +23,10 @@ onMounted(async () => {
   width: 80%;
   margin: 5% auto;
 }
+.note-modal, .note-dialog {
+  z-index: 3001 !important;
+}
+.note-modal-backdrop {
+  z-index: 3000 !important;
+}
 </style>

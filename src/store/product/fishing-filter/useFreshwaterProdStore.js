@@ -28,3 +28,6 @@ export const useFreshwaterProdStore = defineStore('freshwaterProd', {
         }
     }
 })
+
+export class useFreshwaterFishingStore {
+}

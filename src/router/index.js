@@ -140,6 +140,11 @@ const routes = [
                 path: 'market-info/:id',
                 component: () => import('@/views/pages/partner-page/components/FishingReportDetail.vue')
             },
+            {
+                path: 'market-info/create/:prodId',
+                name: 'ReportCreate',
+                component: () => import('@/views/pages/partner-page/components/ReportCreateView.vue')
+            },
             {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')}
         ]
     },
