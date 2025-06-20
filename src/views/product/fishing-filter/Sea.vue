@@ -1,14 +1,21 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useSeaFishingStore } from '@/store/product/fishing-filter/useSeaFilterStore.js'
+import {computed, onMounted, ref} from 'vue'
+import { useSeaProdStore } from '@/store/product/fishing-filter/useSeaProdStore.js'
+import SeaProd from "@/views/product/fishing-filter/components/SeaProd.vue";
 import SeaFilter from "@/views/product/fishing-filter/components/SeaFilter.vue";
-import SeaFilterDetail from "@/views/product/fishing-filter/components/SeaFilterDetail.vue";
 
-const store = useSeaFishingStore()
+const store = useSeaProdStore()
 
 onMounted(async () => {
   await store.fetchProducts()
 })
+
+const productStore = useSeaProdStore()
+const products = computed(() => productStore.products)
+
+const onFilterChange = async ({ region }) => {
+  await productStore.fetchFilteredProducts({ region })
+}
 </script>
 
 <template>
@@ -18,10 +25,11 @@ onMounted(async () => {
     </div>
 
     <div class="filter-detail-wrapper">
-      <SeaFilterDetail @update:filters="onFiltersChanged" />
+      <SeaFilter @update:filters="onFilterChange" />
     </div>
 
-    <SeaFilter :filteredProducts="store.products" />
+    <SeaProd :seaProducts="products"/>
+
   </div>
 </template>
 

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '@/lib/axios.js'
 
-export const useSeaFishingStore = defineStore('seaFilterStore', {
+export const useSeaProdStore = defineStore('seaProdStore', {
     state: () => ({
         products: [],
         page: 0,
@@ -27,11 +27,11 @@ export const useSeaFishingStore = defineStore('seaFilterStore', {
             }
         },
 
-        async fetchFilteredProducts({ date = '', region = '', subType = '', species = '' } = {}) {
+        async fetchFilteredProducts({ region = '', subType = '', species = '' } = {}) {
             this.loading = true
             try {
                 const res = await api.get('/api/product/get-all/sea/detail', {
-                    params: { date, region, subType, species }
+                    params: { region, subType, species }
                 })
                 this.products = res.data // 이건 List<ProductDTO> 반환이라고 가정
             } catch (error) {
