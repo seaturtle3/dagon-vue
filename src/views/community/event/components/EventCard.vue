@@ -68,7 +68,7 @@ const formattedPeriod = computed(() => {
 }
 
 .event-card:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .thumbnail-wrapper {

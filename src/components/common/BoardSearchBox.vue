@@ -9,14 +9,16 @@ const emit = defineEmits(['search'])
 </script>
 
 <template>
-  <div class="search-form" v-if="search">
-    <select v-model="search.type">
+  <div class="mb-3 d-flex gap-2 justify-content-center" v-if="search">
+    <select v-model="search.type" class="form-select w-auto">
       <option value="title">제목</option>
       <option value="content">내용</option>
       <option value="title+content">제목+내용</option>
     </select>
-    <input v-model="search.keyword" placeholder="검색어 입력" />
-    <button @click="emit('search')">검색</button>
+    <input v-model="search.keyword"
+           class="form-control w-25"
+           placeholder="검색어 입력" />
+    <button class="btn btn-outline-secondary" @click="emit('search')">검색</button>
   </div>
 </template>
 

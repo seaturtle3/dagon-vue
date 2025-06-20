@@ -59,7 +59,7 @@ const handleStatusChange = (newStatus) => {
 </script>
 
 <template>
-  <div class="event-list center">
+  <div class="center">
     <h2 class="center-title">이벤트</h2>
 
     <!-- 🔍 검색박스 -->
