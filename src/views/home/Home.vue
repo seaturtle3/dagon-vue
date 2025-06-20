@@ -41,15 +41,14 @@ const recommendedProducts = computed(() => {
   <Banner />
   <div class="home">
     <SideButtons />
+    
+    <!-- 공지사항 섹션 -->
+    <div class="notice-section">
+      <NoticeBox />
+    </div>
+    
     <PopularList :reports="reportStore.reports" />
     <RecommendationList :products="recommendedProducts" />
-
-    <div class="row mb-5 mt-5">
-      <div>
-        <NoticeBox />
-      </div>
-    </div>
-
   </div>
 </template>
 
@@ -57,5 +56,9 @@ const recommendedProducts = computed(() => {
 .home {
   width: 80%;
   margin: 0 auto;
+}
+
+.notice-section {
+  margin: 2rem 0;
 }
 </style>

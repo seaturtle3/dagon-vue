@@ -1,7 +1,6 @@
-
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from '@/api/axios.js'
+import axios from '@/lib/axios.js'
 import { useAdminAuthStore } from '@/store/auth/auth.js'  // 경로 맞춰줘
 
 const props = defineProps({

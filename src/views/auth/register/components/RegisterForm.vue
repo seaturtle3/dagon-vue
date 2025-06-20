@@ -174,7 +174,7 @@
 </template>
 
 <script>
-import api from '@/api/axios';
+import api from '@/lib/axios';
 
 export default {
   name: 'RegisterForm',
@@ -300,84 +300,201 @@ document.head.appendChild(fontAwesomeScript);
 </script>
 
 <style scoped>
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+
 .register-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  background: #ffffff;
   padding: 20px;
   position: relative;
-  background: #f1f3f5;
+}
+
+.register-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23f0f0f0" opacity="0.3"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  pointer-events: none;
 }
 
 .register-form {
-  background: white;
-  padding: 4rem 6rem;
+  background: #ffffff;
+  padding: 3rem 4rem;
   width: 100%;
-  max-width: 1000px;
+  max-width: 800px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 1;
+  border: 1px solid #e2e8f0;
+}
+
+.register-form::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+  border-radius: 20px;
+  z-index: -1;
+  opacity: 0.1;
 }
 
 h2 {
-  color: #1a1a1a;
-  font-weight: 600;
-  font-size: 3rem;
-  margin-bottom: 1.5rem;
+  color: #2d3748;
+  font-weight: 700;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-label {
-  font-weight: 500;
-  color: #495057;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
   display: block;
 }
 
+.input-group {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.input-group:focus-within {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+}
+
 .input-group-text {
-  background-color: white;
-  border-right: none;
-  padding: 0.9rem;
-  font-size: 1rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: white;
+  padding: 1rem;
+  font-size: 1.1rem;
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.form-control {
-  border-left: none;
-  background-color: white;
-  padding: 0.9rem;
+.form-control, .form-select {
+  border: none;
+  background: #f8fafc;
+  padding: 1rem;
   font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
-.form-select {
-  background-color: white;
-  padding: 0.9rem;
-  font-size: 1rem;
+.form-control:focus, .form-select:focus {
+  background: white;
+  box-shadow: none;
+  outline: none;
+}
+
+.form-control::placeholder {
+  color: #a0aec0;
 }
 
 .btn-primary {
-  background-color: #1a73e8;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   border: none;
-  padding: 0.9rem;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: all 0.3s;
-  margin-top: 1rem;
-  border-radius: 7px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  margin-top: 2rem;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:disabled {
+  background: #cbd5e0;
+  transform: none;
+  box-shadow: none;
 }
 
 .form-text {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  color: #718096;
   margin-top: 0.5rem;
+}
+
+.text-danger {
+  color: #e53e3e !important;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: block;
 }
 
 .text-center a {
   font-size: 1rem;
-  color: #666;
+  color: #667eea;
   text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.text-center a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+/* 애니메이션 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.register-form {
+  animation: fadeInUp 0.6s ease-out;
 }
 
 /* 반응형 디자인 */
@@ -385,6 +502,35 @@ h2 {
   .register-form {
     padding: 2rem;
     margin: 1rem;
+    border-radius: 15px;
+  }
+  
+  h2 {
+    font-size: 2rem;
+  }
+  
+  .input-group-text {
+    padding: 0.875rem;
+    font-size: 1rem;
+  }
+  
+  .form-control, .form-select {
+    padding: 0.875rem;
+  }
+  
+  .btn-primary {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-form {
+    padding: 1.5rem;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
   }
 }
 </style>

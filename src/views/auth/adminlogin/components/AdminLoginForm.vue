@@ -31,7 +31,8 @@
 </template>
 
 <script>
-import axios from '@/api/axios';
+import axios from '@/lib/axios';
+import { useAdminAuthStore } from '@/store/auth/auth.js';
 
 export default {
   name: 'AdminLoginForm',
@@ -48,17 +49,20 @@ export default {
       try {
         const response = await axios.post('/api/admin/login', this.loginForm);
         if (response.data) {
-          // 토큰 저장
+          // Pinia store를 사용하여 토큰 저장
+          const authStore = useAdminAuthStore();
           const token = response.data.token;
-          localStorage.setItem('token', token);
+          authStore.setToken(token);
           
           // axios 헤더에 토큰 설정
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
+          console.log('로그인 성공, 토큰 저장됨:', token);
           alert('로그인 성공');
           this.$router.push('/admin/dashboard');
         }
       } catch (error) {
+        console.error('로그인 실패:', error);
         if (error.response && error.response.status === 401) {
           alert('아이디 또는 비밀번호가 일치하지 않습니다.');
         } else {

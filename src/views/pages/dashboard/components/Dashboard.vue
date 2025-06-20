@@ -111,7 +111,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios'
+import axios from '@/lib/axios'
 import Chart from 'chart.js/auto'
 
 export default {

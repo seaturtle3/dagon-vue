@@ -2,7 +2,8 @@
 import { ref, onMounted, watch, defineEmits } from 'vue'
 import axios from 'axios'
 import { useSeaFishingStore } from '@/store/product/fishing-filter/useSeaFilterStore.js'
-import Datepicker from 'vue3-datepicker'
+import VueDatePicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 const emit = defineEmits(['update:filters'])
 const seaStore = useSeaFishingStore()
@@ -44,10 +45,13 @@ watch(selected, async (val) => {
     <div class="filter-row">
       <div class="filter-item">
         <label>날짜 : </label>
-        <Datepicker
+        <VueDatePicker
             v-model="selectedDate"
+            :min-date="minDate"
             format="yyyy-MM-dd"
-            :minDate="minDate"
+            :enable-time-picker="false"
+            :auto-apply="true"
+            class="date-picker"
         />
       </div>
 
@@ -124,6 +128,28 @@ watch(selected, async (val) => {
 
 .filter-item select:hover,
 .filter-item select:focus {
+  border-color: #3366cc;
+  outline: none;
+  box-shadow: 0 0 6px #7aa9f7;
+}
+
+.date-picker {
+  min-width: 150px;
+}
+
+.date-picker :deep(.dp__input) {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #4a90e2;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #2c3e50;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.date-picker :deep(.dp__input:hover),
+.date-picker :deep(.dp__input:focus) {
   border-color: #3366cc;
   outline: none;
   box-shadow: 0 0 6px #7aa9f7;

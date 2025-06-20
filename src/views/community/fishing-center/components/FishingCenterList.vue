@@ -56,9 +56,9 @@ const goToPage = (page) => {
 // 상세 페이지로 이동 함수
 const goToDetail = (item) => {
   if (item._type === 'report') {
-    window.open(`/fishing-report/${item.frId}`, '_blank')
+    router.push(`/fishing-report/${item.frId}`)
   } else if (item._type === 'diary') {
-    window.open(`/fishing-diary/${item.fdId}`, '_blank')
+    router.push(`/fishing-diary/${item.fdId}`)
   }
 }
 </script>

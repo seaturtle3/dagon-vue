@@ -7,6 +7,7 @@ const routes = [
     // auth
     {path: '/login', component: () => import('@/views/auth/login/Login.vue')},
     {path: '/register', component: () => import('@/views/auth/register/components/RegisterForm.vue')},
+    {path: '/signup', component: () => import('@/views/auth/register/components/RegisterForm.vue')},
     {path: '/admin/login', component: () => import('@/views/auth/adminlogin/AdminLogin.vue')},
     {path: '/admin/register', component: () => import('@/views/auth/adminregister/AdminRegister.vue')},
     {path: '/oauth/callback', component: () => import('@/views/auth/oauth/OAuthCallback.vue')},
@@ -244,21 +245,17 @@ const routes = [
     { path: '/community', component: () => import('@/views/community/Community.vue')},
 
     // support
-    { path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
-    {
-        path: '/notice/write',
-        component: () => import('@/views/support/notice/NoticeWrite.vue'),
-        meta: {requiresAuth: true}
-    },
-    {
-        path: '/notice/edit/:id',
-        component: () => import('@/views/support/notice/NoticeWrite.vue'),
-        props: true,
-        meta: {requiresAuth: true}
-    },
-    {path: '/notice/:id', component: () => import('@/views/support/notice/NoticeDetail.vue'), props: true},
-
+    {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
     {path: '/inquiry', component: () => import('@/views/support/inquiry/InquiryMain.vue')},
+    {path: '/faq', component: () => import('@/views/support/faq/FAQ.vue')},
+    {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
+    {
+        path: '/notice/:id',
+        name: 'NoticeDetail',
+        component: () => import('@/views/support/notice/NoticeDetail.vue'),
+        props: true,
+        meta: { noCache: true }
+    },
 
     {path: '/memberInquiryModal', component: () => import('@views/support/inquiry/components/MemberInquiryModal.vue')},
 

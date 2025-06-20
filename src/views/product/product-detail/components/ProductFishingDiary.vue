@@ -1,10 +1,11 @@
 <script setup>
 import {computed, onMounted} from 'vue'
-import {useRoute} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import {useProductFishingDiaryStore} from '@/store/product/product-detail/useProductFishingDiaryStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const route = useRoute()
+const router = useRouter()
 const store = useProductFishingDiaryStore()
 
 onMounted(() => {
@@ -16,7 +17,7 @@ onMounted(() => {
 const diaryCount = computed(() => store.diary?.length || 0)
 
 const goToDetail = (diary) => {
-  window.open(`/fishing-diary/${diary.fdId}`, '_blank')
+  router.push(`/fishing-diary/${diary.fdId}`)
 }
 </script>
 

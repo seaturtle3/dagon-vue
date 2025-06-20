@@ -20,7 +20,7 @@ const topReports = computed(() =>
 )
 
 const goToDetail = (report) => {
-  window.open(`/fishing-report/${report.frId}`, '_blank')
+  router.push(`/fishing-report/${report.frId}`)
 }
 </script>
 
@@ -84,8 +84,7 @@ const goToDetail = (report) => {
 
 .report-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-auto-rows: minmax(220px, auto);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
 }
 
@@ -96,13 +95,15 @@ const goToDetail = (report) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  width: 150px;
+  height: auto;
 }
 
 .thumbnail {
-  width: 100%;
-  height: 60%;
+  width: 150px;
+  height: 150px;
   object-fit: cover;
+  border-radius: 8px 8px 0 0;
 }
 
 .report-info {

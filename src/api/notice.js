@@ -1,21 +1,8 @@
 // notice.js
 // 공지사항 API
-export const getNotices = (page = 0, size = 5, searchDTO = {}) => {
-    return new Promise((resolve) => {
-        // 예시 데이터
-        const exampleData = {
-            data: {
-                content: [
-                    { id: 1, title: '공지사항 테스트 1' },
-                    { id: 2, title: '공지사항 테스트 2' },
-                    { id: 3, title: '공지사항 테스트 3' },
-                    { id: 4, title: '공지사항 테스트 4' },
-                    { id: 5, title: '공지사항 테스트 5' },
-                ]
-            }
-        };
-        setTimeout(() => resolve(exampleData), 500); // 비동기 흉내 내기
-    });
+import apiClient from './axios.js';
+
+export const getNotices = (page = 0, size = 10, searchDTO = {}) => {
     return apiClient.get('/notices', {
         params: {
             page,
@@ -28,4 +15,29 @@ export const getNotices = (page = 0, size = 5, searchDTO = {}) => {
 // 개별 공지사항 상세 보기
 export const getNoticeById = (id) => {
     return apiClient.get(`/notices/${id}`);
+};
+
+// 공지사항 작성 (관리자용)
+export const createNotice = (noticeData) => {
+    return apiClient.post('/notices', noticeData);
+};
+
+// 공지사항 수정 (관리자용)
+export const updateNotice = (id, noticeData) => {
+    return apiClient.put(`/notices/${id}`, noticeData);
+};
+
+// 공지사항 삭제 (관리자용)
+export const deleteNotice = (id) => {
+    return apiClient.delete(`/notices/${id}`);
+};
+
+// 공지사항 고정/해제 (관리자용)
+export const toggleNoticeTop = (id) => {
+    return apiClient.patch(`/notices/${id}/toggle-top`);
+};
+
+// 공지사항 긴급/해제 (관리자용)
+export const toggleNoticeUrgent = (id) => {
+    return apiClient.patch(`/notices/${id}/toggle-urgent`);
 };

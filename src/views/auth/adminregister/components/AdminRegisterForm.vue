@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios';
+import axios from '@/lib/axios';
 
 export default {
   name: 'AdminRegisterForm',

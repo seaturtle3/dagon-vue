@@ -1,5 +1,6 @@
 <script setup>
 import { defineProps } from 'vue'
+import { useRouter } from 'vue-router'
 import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
 
 const props = defineProps({
@@ -9,9 +10,10 @@ const props = defineProps({
   }
 })
 
+const router = useRouter()
+
 function openDetail(productId) {
-  const url = `/products/${productId}`
-  window.open(url, '_blank')
+  router.push(`/products/${productId}`)
 }
 </script>
 
