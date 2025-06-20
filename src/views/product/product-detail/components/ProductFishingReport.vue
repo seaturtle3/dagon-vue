@@ -21,49 +21,53 @@ const goToDetail = (report) => {
 </script>
 
 <template>
-  <div v-if="store.loading">로딩중...</div>
-  <div v-else-if="store.error">{{ store.error }}</div>
-  <div v-else>
+  <div class="list-container">
+    <div v-if="store.loading">로딩중...</div>
+    <div v-else-if="store.error">{{ store.error }}</div>
+    <div v-else>
 
-    <h2 class="mb-3 font-bold text-lg">
-      조황정보 <span class="count">({{ reportCount }})</span>
-    </h2>
+      <h2 class="mb-3 font-bold text-lg">
+        조황정보 <span class="count">({{ reportCount }})</span>
+      </h2>
 
-    <div v-if="store.report.length > 0" class="report-grid">
-      <div
-          v-for="(report, index) in store.report.slice(0, 15)"
-          :key="report.frId"
-          class="item-box"
-          @click="goToDetail(report)"
-          style="cursor: pointer;"
-      >
-        <div class="thumbnail-wrapper">
-          <img
-              class="thumbnail"
-              :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
-              alt="썸네일"
-          />
-        </div>
-        <div class="item-content">
-          <h4>제목: {{ report.title }}</h4>
-          <p>상품명: {{ report.product?.prodName }}</p>
-          <p>작성자: {{ report.user?.uname }}</p>
-          <p>날짜: {{ report.fishingAt ? report.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
+      <div v-if="store.report.length > 0" class="report-grid">
+        <div
+            v-for="(report, index) in store.report.slice(0, 15)"
+            :key="report.frId"
+            class="item-box"
+            @click="goToDetail(report)"
+            style="cursor: pointer;"
+        >
+          <div class="thumbnail-wrapper">
+            <img
+                class="thumbnail"
+                :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+                alt="썸네일"
+            />
+          </div>
+          <div class="item-content">
+            <h3>{{ report.product?.prodName }}</h3>
+            <h5>{{ report.title }}</h5>
+            <p>{{ report.fishingAt ? report.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
+          </div>
         </div>
       </div>
+      <!-- <div v-else>조황정보가 없습니다.</div> -->
     </div>
-    <!-- <div v-else>조황정보가 없습니다.</div> -->
   </div>
 </template>
 
 <style scoped>
+.list-container {
+  width: 80%;
+  margin: 0 auto;
+}
+
 .report-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* 3열 */
   grid-auto-rows: minmax(150px, auto); /* 각 행 최소 높이 150px */
   gap: 16px; /* 박스 간 간격 */
-  max-height: calc(150px * 5 + 16px * 4); /* 5행 높이 + 간격 */
-  overflow-y: auto; /* 넘칠 시 스크롤 */
   border-radius: 8px;
 }
 
@@ -81,7 +85,7 @@ const goToDetail = (report) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 500px;
+  height: 400px;
   padding: 0; /* 패딩 제거 */
 }
 .item-content {
@@ -89,7 +93,7 @@ const goToDetail = (report) => {
   padding: 12px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: space-evenly;
 }
 
 .thumbnail-wrapper {

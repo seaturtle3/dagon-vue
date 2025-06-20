@@ -29,7 +29,6 @@
         </div>
         <div class="level-icon">
           <!-- 레벨별 이모티콘 -->
-          <span v-if="pointInfo.level === 'BRONZE'">🥉</span>
           <span v-else-if="pointInfo.level === 'SILVER'">🥈</span>
           <span v-else-if="pointInfo.level === 'GOLD'">🥇</span>
           <span v-else-if="pointInfo.level === 'PLATINUM'">💎</span>

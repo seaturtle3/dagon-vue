@@ -1,22 +1,16 @@
 <template>
   <ModalDialog
-    :show="showLoginModal"
+    :visible="showLoginModal"
     title="로그인 필요"
     message="회원 탈퇴는 로그인 후 이용 가능합니다."
     confirmText="확인"
     :onConfirm="goToLogin"
   />
   <ModalDialog
-    :show="showErrorModal"
+    :visible="showErrorModal"
     title="오류"
     :message="errorMessage"
-    :onConfirm="() => showErrorModal = false"
-  />
-  <ModalDialog
-    :show="showSuccessModal"
-    title="알림"
-    :message="successMessage"
-    :onConfirm="() => showSuccessModal = false"
+    :onConfirm="closeErrorModal"
   />
   <div class="withdrawal-wrapper">
     <h2 class="withdrawal-title">회원 탈퇴</h2>
@@ -49,8 +43,8 @@
       </div>
     </div>
 
-    <div v-if="isModalOpen" class="modal-overlay">
-      <div class="modal-box">
+    <div v-if="isModalOpen" class="modal-overlay" @click="closeModal">
+      <div class="modal-box" @click.stop>
         <h3>정말 탈퇴하시겠습니까?</h3>
         <p>이 작업은 되돌릴 수 없습니다.</p>
         <div class="modal-actions">
@@ -68,6 +62,7 @@ import { useRouter } from 'vue-router';
 import { myPageAPI } from '@/api/mypage.js';
 import { useAuthStore } from '@/store/login/loginStore.js';
 import ModalDialog from '@/components/common/ModalDialog.vue';
+import { adminAuth } from '@/api/admin.js';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -77,8 +72,6 @@ const errorMessage = ref('');
 const isModalOpen = ref(false);
 const showLoginModal = ref(false);
 const showErrorModal = ref(false);
-const showSuccessModal = ref(false);
-const successMessage = ref('');
 
 onMounted(() => {
   const token = localStorage.getItem('token');
@@ -100,17 +93,26 @@ const closeModal = () => {
   isModalOpen.value = false;
 };
 
+const closeErrorModal = () => {
+  showErrorModal.value = false;
+  errorMessage.value = '';
+};
+
 const confirmWithdrawal = async () => {
   try {
-    await myPageAPI.withdrawMembership({ password: password.value });
-    await authStore.logout();
-    successMessage.value = '회원 탈퇴가 완료되었습니다.';
-    showSuccessModal.value = true;
+    await myPageAPI.deleteAccount(password.value);
+    adminAuth.logout();
+    router.push('/login');
   } catch (error) {
-    errorMessage.value = error.response?.data?.error || '회원 탈퇴 처리 중 오류가 발생했습니다.';
+    console.error('회원 탈퇴 에러:', error, error.response);
+    if (error.response?.status === 400) {
+      errorMessage.value = '비밀번호가 일치하지 않습니다.';
+    } else {
+      errorMessage.value = error.response?.data?.error || '회원 탈퇴 처리 중 오류가 발생했습니다.';
+    }
     showErrorModal.value = true;
   } finally {
-    closeModal();
+    isModalOpen.value = false;
   }
 };
 
@@ -237,17 +239,7 @@ const goToLogin = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.modal-content {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
-  padding: 1rem 1.2rem;
-  min-width: 180px;
-  max-width: 350px;
-  text-align: center;
-  margin: 0 auto;
+  cursor: pointer;
 }
 
 .modal-box {
@@ -258,6 +250,7 @@ const goToLogin = () => {
   width: 90%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   text-align: center;
+  cursor: default;
 }
 
 .modal-box h3 {

@@ -172,7 +172,7 @@ export default {
 
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch(`${BASE_URL}/api/inquiries/${this.selectedInquiry.id}/answer`, {
+        const response = await fetch(`${BASE_URL}/api/inquiry/${this.selectedInquiry.id}/answer`, {
           method: "POST",
           headers: {
             'Content-Type': 'application/json',
@@ -227,16 +227,16 @@ export default {
 <style scoped>
 .inquiry-list {
   padding: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: #f8f9fa;
+  width: 100%;
+  margin: 0;
+  background-color: #e3f2fd;
   border-radius: 12px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .page-title {
   margin-bottom: 40px;
-  color: #1a237e;
+  color: #1565c0;
   font-size: 2.5rem;
   font-weight: 700;
   text-align: center;
@@ -253,6 +253,7 @@ export default {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border: 1px solid #90caf9;
 }
 
 .search-box {
@@ -279,7 +280,7 @@ export default {
 
 .search-button {
   padding: 12px 24px;
-  background-color: #1a237e;
+  background-color: #1976d2;
   color: white;
   border: none;
   border-radius: 6px;
@@ -290,7 +291,7 @@ export default {
 }
 
 .search-button:hover {
-  background-color: #283593;
+  background-color: #1565c0;
   transform: translateY(-2px);
 }
 
@@ -318,7 +319,7 @@ export default {
 }
 
 .table-container {
-  background: white;
+  background: #ffffff;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.08);
   overflow: hidden;
@@ -357,18 +358,18 @@ tr:last-child td {
 }
 
 .status-badge.pending {
-  background-color: #fff3e0;
-  color: #ef6c00;
+  background-color: #64b5f6;
+  color: #fff;
 }
 
 .status-badge.completed {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: #1976d2;
+  color: #fff;
 }
 
 .view-button {
   padding: 8px 16px;
-  background-color: #1a237e;
+  background-color: #1976d2;
   color: white;
   border: none;
   border-radius: 6px;
@@ -379,7 +380,7 @@ tr:last-child td {
 }
 
 .view-button:hover {
-  background-color: #283593;
+  background-color: #1565c0;
   transform: translateY(-2px);
 }
 
@@ -434,7 +435,7 @@ tr:last-child td {
 }
 
 .modal-content {
-  background: white;
+  background: #ffffff;
   padding: 2.5rem;
   border-radius: 12px;
   width: 90%;
@@ -511,27 +512,31 @@ tr:last-child td {
 }
 
 .submit-button {
-  background-color: #1a237e;
+  background-color: #1976d2;
   color: white;
 }
 
 .submit-button:hover {
-  background-color: #283593;
+  background-color: #1565c0;
   transform: translateY(-2px);
 }
 
 .close-button {
-  background-color: #e0e0e0;
-  color: #333;
+  background-color: #90caf9;
+  color: #1565c0;
 }
 
 .close-button:hover {
-  background-color: #ccc;
+  background-color: #64b5f6;
   transform: translateY(-2px);
 }
 
 /* Responsive adjustments */
 @media (max-width: 992px) {
+  .inquiry-list {
+    padding: 20px;
+  }
+  
   .filter-section {
     flex-direction: column;
     align-items: stretch;

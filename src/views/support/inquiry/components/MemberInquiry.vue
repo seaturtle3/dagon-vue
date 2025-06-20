@@ -35,7 +35,18 @@
           <button type="submit">등록</button>
           <button type="button" @click="resetForm">초기화</button>
         </div>
-      </form>
+        </form>
+      <div class="inquiry-container">
+        <!-- 기존 코드 생략 -->
+
+        <!-- 문의 등록 모달 -->
+        <MemberInquiryModal
+            v-if="showModal"
+            :inquiry="submittedData"
+            @close="closeModal"
+            @reset-form="resetForm"
+        />
+      </div>
     </div>
 
     <!-- 로그인 안내 모달 -->
@@ -62,6 +73,7 @@ import { useInquiryStore } from '@/store/inquiries/inquiryStore';
 import { useAuthStore } from '@/store/login/loginStore';
 import { myPageAPI } from '@/api/mypage.js';
 import { inquiryApi } from '@/api/inquiry.js';
+import MemberInquiryModal from './MemberInquiryModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -123,32 +135,57 @@ const fetchUserInfo = async () => {
   }
 };
 
+const showModal = ref(false);
+const submittedData = ref(null); // 작성된 문의 데이터
+
+const openModal = (data) => {
+  submittedData.value = data;
+  showModal.value = true;
+};
+
+const closeModal = () => {
+  showModal.value = false;
+  submittedData.value = null;
+};
+
 const submitForm = async () => {
   if (!form.value.inquiryType || !form.value.title || !form.value.content) {
     alert('모든 항목을 입력해주세요.');
     return;
   }
 
-  try {
-    const inquiryData = {
-      ...form.value,
-      writerId: userInfo.value.uno,
-      writerType: userInfo.value.role,
-      status: '대기중',
-      createdAt: new Date().toISOString(),
-      userName: userInfo.value.uid
-    };
+  const inquiryData = {
+    ...form.value,
+    writerId: userInfo.value.uno,
+    writerType: userInfo.value.role,
+    status: '대기중',
+    createdAt: new Date().toISOString(),
+    userName: userInfo.value.uid
+  };
 
-    await inquiryApi.createInquiry(inquiryData);
-    alert('문의가 정상 등록되었습니다.');
-    resetForm();
-    
-    router.push('/admin/inquiries');
-  } catch (error) {
-    console.error('문의 저장 실패:', error);
-    alert('저장에 실패했습니다.');
-  }
+  openModal(inquiryData); // ✅ 모달 열기
 };
+
+//   try {
+//     const inquiryData = {
+//       ...form.value,
+//       writerId: userInfo.value.uno,
+//       writerType: userInfo.value.role,
+//       status: '대기중',
+//       createdAt: new Date().toISOString(),
+//       userName: userInfo.value.uid
+//     };
+//
+//     await inquiryApi.createInquiry(inquiryData);
+//     alert('문의가 정상 등록되었습니다.');
+//     resetForm();
+//
+//     router.push('/admin/inquiries');
+//   } catch (error) {
+//     console.error('문의 저장 실패:', error);
+//     alert('저장에 실패했습니다.');
+//   }
+// };
 
 const resetForm = () => {
   form.value = {
@@ -167,6 +204,7 @@ const goToLogin = () => {
 onMounted(async () => {
   await fetchUserInfo();
 });
+
 </script>
 
 <style scoped>
