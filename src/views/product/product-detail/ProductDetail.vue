@@ -15,6 +15,7 @@ const product = computed(() => store.product)
 
 const activeTab = ref('조황센터')
 const activeSubTab = ref('전체')
+const activeReservationTab = ref('예약하기')
 
 onMounted(() => {
   store.fetchProductDetail(prodId)
@@ -29,12 +30,12 @@ const setTab = (tab) => {
   if (tab === '조황센터') {
     activeSubTab.value = '전체'
   }
-  goToReservation()
+//   goToReservation()
 }
 
-const goToReservation = () => {
-  router.push(`/reservation/${prodId}`)
-}
+// const goToReservation = () => {
+//   router.push(`/reservation/${prodId}`)
+// }
 </script>
 
 <template>
@@ -53,11 +54,12 @@ const goToReservation = () => {
         </button>
         <button
             class="nav-btn"
-            :class="{ active: activeTab === '결제하기' }"
-            @click="setTab('결제하기')"
+            :class="{ active: activeReservationTab === '예약하기' }"
+            @click="setTab('예약하기')"
         >
-          결제하기
+          예약하기
         </button>
+
       </div>
 
       <!-- 하위 탭 -->

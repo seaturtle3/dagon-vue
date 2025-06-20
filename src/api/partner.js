@@ -111,28 +111,28 @@ export const partnerService = {
     },
 
     // 파트너 대시보드 예약 수 조회
-    getReservationCount() {
-        return axiosInstance.get(`${API_URL}/partner/dashboard/reservation-count`);
+    getReservationCount(uno) {
+        return axiosInstance.get(`${API_URL}/partner/dashboard/reservation-count?uno=${uno}`);
     },
 
     // 파트너 대시보드 상품 수 조회
-    getProductCount() {
-        return axiosInstance.get(`${API_URL}/partner/dashboard/product-count`);
+    getProductCount(uno) {
+        return axiosInstance.get(`${API_URL}/partner/dashboard/product-count?uno=${uno}`);
     },
 
     // 파트너 대시보드 오늘 예약 수 조회
-    getTodayReservationCount() {
-        return axiosInstance.get(`${API_URL}/partner/dashboard/today-reservation-count`);
+    getTodayReservationCount(uno) {
+        return axiosInstance.get(`${API_URL}/partner/dashboard/today-reservation-count?uno=${uno}`);
     },
 
     // 파트너 대시보드 대기 문의 수 조회
-    getUnansweredInquiryCount() {
-        return axiosInstance.get(`${API_URL}/partner/dashboard/unanswered-inquiry-count`);
+    getUnansweredInquiryCount(uno) {
+        return axiosInstance.get(`${API_URL}/partner/dashboard/unanswered-inquiry-count?uno=${uno}`);
     },
 
     // 파트너 대시보드 최근 예약 목록 조회
-    getRecentReservations() {
-        return axiosInstance.get(`${API_URL}/partner/dashboard/recent-reservations`);
+    getRecentReservations(uno) {
+        return axiosInstance.get(`${API_URL}/partner/dashboard/recent-reservations?uno=${uno}`);
     },
 
     // 상품 등록 처리

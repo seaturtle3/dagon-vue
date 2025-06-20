@@ -2,7 +2,7 @@
   <div class="product-list">
     <div class="header">
       <h1 class="page-title">상품 관리</h1>
-      <button class="register-button" @click="$router.push('/partner/product/register')">
+      <button class="register-button" @click="goToProductForm">
         상품 등록
       </button>
     </div>
@@ -373,7 +373,10 @@ export default {
         const errorMessage = error.response?.data?.message || '제품 신고에 실패했습니다. 다시 시도해주세요.';
         alert(errorMessage);
       }
-    }
+    },
+    goToProductForm() {
+      this.$router.push('/partner/product/register');
+    },
   },
   mounted() {
     this.loadProducts();

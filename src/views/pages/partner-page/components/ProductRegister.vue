@@ -212,7 +212,16 @@ export default {
     }
   },
   mounted() {
-    // No need to call checkAuth() as it's handled by the interceptor
+    // 기본값 자동 세팅
+    if (!this.localForm.prodRegion && this.regions.length > 0) {
+      this.localForm.prodRegion = this.regions[0].name;
+    }
+    if (!this.localForm.mainType && this.mainTypes.length > 0) {
+      this.localForm.mainType = this.mainTypes[0].name;
+    }
+    if (!this.localForm.subType && this.subTypes.length > 0) {
+      this.localForm.subType = this.subTypes[0].name;
+    }
   }
 }
 </script>

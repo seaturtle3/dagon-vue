@@ -88,10 +88,9 @@ const goToDetail = (item) => {
 
           <!-- 텍스트 영역 -->
           <div class="combined-content">
-            <h4>제목: {{ center.title }}</h4>
-            <p><strong>상품명:</strong> {{ center.product?.prodName }}</p>
-            <p><strong>작성자:</strong> {{ center.user?.uname }}</p>
-            <p><strong>날짜:</strong> {{ center.fishingAt ? center.fishingAt.slice(0, 10) : '날짜 없음' }}</p>
+            <h3>{{ center.product?.prodName }}</h3>
+            <h5>{{ center.title }}</h5>
+            <small>{{ center.fishingAt ? center.fishingAt.slice(0, 10) : '날짜 없음' }}</small>
           </div>
         </div>
       </div>
@@ -138,7 +137,7 @@ strong {
   padding: 12px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: space-evenly;
 }
 .combined-content p {
   margin: 0;

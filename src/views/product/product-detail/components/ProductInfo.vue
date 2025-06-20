@@ -168,9 +168,9 @@ onMounted(() => {
           </div>
         </div>
 
-        <p>지역: {{ props.product.prodRegion }}</p>
-        <p>메인타입: {{ props.product.mainType }}</p>
-        <p>서브타입: {{ props.product.subType }}</p>
+        <p>지역: {{ props.product.prodRegionKorean }}</p>
+        <p>장소: {{ props.product.mainTypeKorean }}</p>
+        <p>세부 장소: {{ props.product.subTypeKorean }}</p>
         <p>최대인원: {{ props.product.maxPerson }}</p>
         <p>최소인원: {{ props.product.minPerson }}</p>
         <p>배 무게: {{ props.product.weight }}</p>

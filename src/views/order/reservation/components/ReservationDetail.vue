@@ -179,4 +179,4 @@ onMounted(() => {
   background-color: #1a237e;
   transform: translateY(-2px);
 }
-</style> 
+</style>
