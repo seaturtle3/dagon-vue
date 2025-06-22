@@ -140,102 +140,71 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="detail-container">
+  <div class="detail-container card-style">
     <!-- 제목 -->
-    <h2 class="text-center mb-4 fw-bold">{{ report.title }}</h2>
-
-    <!-- 구분선 -->
-    <hr class="my-4"/>
-
-    <!-- 썸네일 + 정보 -->
-    <div class="d-flex flex-column flex-md-row align-items-start mb-4 position-relative">
-      <!-- 신고하기 버튼 -->
-      <span
-          v-if="!isOwnReport"
-          class="position-absolute top-0 end-0 text-danger small"
-          style="cursor: pointer; background-color: #f8d7da; padding: 1px 2px; border-radius: 4px;"
-          @click="openReportModal(report, 'report')"
-      >
-      신고하기
+    <h2 class="detail-title">{{ report.title }}</h2>
+    <div class="meta-row">
+      <span class="meta-item">
+        <i class="fa fa-user"></i> {{ report.user?.uname || '익명' }}
       </span>
-      <!-- 썸네일 -->
+      <span class="meta-item">
+        <i class="fa fa-calendar"></i> {{ report.fishingAt || '날짜 없음' }}
+      </span>
+      <span class="meta-item">
+        <i class="fa fa-tag"></i>
+        <router-link
+          v-if="report.product && report.product.prodId"
+          :to="`/products/${report.product.prodId}`"
+          class="product-link"
+        >
+          {{ report.product.prodName }}
+        </router-link>
+        <span v-else>없음</span>
+      </span>
+    </div>
+
+    <div class="thumbnail-section">
       <img
-          class="thumbnail rounded"
-          :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
-          alt="썸네일"
+        class="thumbnail-img"
+        :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+        alt="썸네일"
       />
-
-      <!-- 우측 정보 -->
-      <div class="info-section ms-md-4 mt-3 mt-md-0">
-        <p class="mb-3">
-          <router-link
-              v-if="report.product && report.product.prodId"
-              :to="`/products/${report.product.prodId}`"
-              class="text-blue-600 hover:underline"
-              style="font-size: 1.5rem;"
-          >
-            <strong>{{ report.product.prodName }}</strong>
-          </router-link>
-          <strong v-else style="font-size: 1.5rem;">없음</strong>
-        </p>
-        <p><strong>작성자:</strong> {{ report.user?.uname || '익명' }}</p>
-        <p><strong>작성일:</strong> {{ report.fishingAt || '날짜 없음' }}</p>
-      </div>
     </div>
 
-    <!-- 조황 내용 -->
-    <div class="content mb-4">
-      <p class="content-text">{{ report.content }}</p>
+    <div class="content-section">
+      <div class="content-text" v-html="report.content"></div>
     </div>
 
-    <!-- 추가 이미지 예시 (필요시 확장 가능) -->
-    <div v-if="report.imageUrls && report.imageUrls.length" class="report-images mt-3">
-      <h5 class="fw-semibold mb-2">사진</h5>
-      <div class="d-flex flex-wrap gap-3">
+    <div v-if="report.imageUrls && report.imageUrls.length" class="report-images">
+      <h5 class="section-label">추가 사진</h5>
+      <div class="image-list">
         <img
-            v-for="(img, index) in report.imageUrls"
-            :key="index"
-            :src="`${IMAGE_BASE_URL}/fishing-report/${img}`"
-            class="extra-image rounded"
-            alt="조황 사진"
+          v-for="(img, index) in report.imageUrls"
+          :key="index"
+          :src="`${IMAGE_BASE_URL}/fishing-report/${img}`"
+          class="extra-image"
+          alt="조황 사진"
         />
       </div>
     </div>
-  </div>
 
-  <!-- 댓글 박스 -->
-  <div class="comment-box p-4 mt-5 rounded">
-    <h5 class="mb-3 fw-semibold">댓글</h5>
-    <div v-if="report.comments && report.comments.length">
-      <div
+    <div class="comment-box">
+      <h5 class="section-label">댓글</h5>
+      <div v-if="report.comments && report.comments.length">
+        <div
           v-for="(comment, index) in report.comments"
           :key="comment.frCommentId"
-          class="mb-2 position-relative"
-      >
-        <!-- 우측 상단 신고 버튼 -->
-        <span
-            v-if="!isOwnComment(comment)"
-            class="position-absolute top-0 end-0 text-danger small"
-            style="cursor: pointer; background-color: #f8d7da; padding: 1px 3px; border-radius: 4px; margin: 8px;"
-            @click="openReportModal(comment, 'comment')"
+          class="comment-item"
         >
-          신고하기
-        </span>
-
-        <!-- 댓글 작성자 -->
-        <p class="text-muted mb-1">{{ comment.user?.uname || '익명' }}</p>
-
-        <!-- 작성 시간 -->
-        <small class="text-secondary">{{ comment.createdAt }}</small>
-
-        <!-- 댓글 내용 -->
-        <p class="mb-0 mt-1">{{ comment.comment }}</p>
-
-        <hr class="my-2" v-if="index < report.comments.length - 1"/>
+          <div class="comment-meta">
+            <span class="comment-user">{{ comment.user?.uname || '익명' }}</span>
+            <span class="comment-date">{{ comment.createdAt }}</span>
+          </div>
+          <div class="comment-content">{{ comment.comment }}</div>
+        </div>
       </div>
+      <div v-else class="no-comment">아직 등록된 댓글이 없습니다.</div>
     </div>
-
-    <p class="text-muted" v-else>아직 등록된 댓글이 없습니다.</p>
   </div>
 
   <!-- 신고 모달 -->
@@ -266,47 +235,167 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.detail-container {
-  max-width: 900px;
-  margin: 0 auto;
-  background-color: #ffffff;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.detail-container.card-style {
+  max-width: 1040px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 36px 32px 32px 32px;
+  position: relative;
 }
-
-.thumbnail {
-  width: 300px;
+.detail-title {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.meta-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 18px;
+  color: #666;
+  font-size: 1rem;
+}
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.product-link {
+  color: #1976d2;
+  text-decoration: underline;
+  font-weight: 500;
+}
+.thumbnail-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+.thumbnail-img {
+  width: 340px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1.5px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+}
+.content-section {
+  margin-bottom: 32px;
+  padding: 24px 18px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  min-height: 120px;
+  font-size: 1.08rem;
+  color: #222;
+  line-height: 1.7;
+  word-break: break-all;
+  overflow-x: auto;
+}
+.content-text {
+  min-height: 80px;
+}
+.content-text img {
+  max-width: 100%;
   height: auto;
-  object-fit: cover;
-  border: 1px solid #ccc;
+  display: block;
+  margin: 18px auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
 }
-
-.info-section p {
-  margin-bottom: 0.4rem;
+.section-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin-bottom: 10px;
 }
-
-.content .content-text {
-  white-space: pre-line;
-  line-height: 10;
+.report-images {
+  margin-bottom: 32px;
 }
-
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
 .extra-image {
-  width: 180px;
-  height: 120px;
+  width: 140px;
+  height: 100px;
   object-fit: cover;
-  border: 1px solid #ddd;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.07);
 }
-
 .comment-box {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  max-width: 900px;
-  margin: 0 auto; /* 중앙 정렬 */
+  background: #f4f7fb;
+  border-radius: 10px;
+  padding: 22px 18px;
+  margin-top: 18px;
+  border: 1.5px solid #e3f2fd;
 }
-
-.user-name > p {
-  margin-bottom: 0;
+.comment-item {
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.comment-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.98rem;
+  color: #1976d2;
+  margin-bottom: 4px;
+}
+.comment-user {
+  font-weight: 600;
+}
+.comment-date {
+  color: #888;
+  font-size: 0.93rem;
+}
+.comment-content {
+  color: #222;
+  font-size: 1.05rem;
+  margin-left: 2px;
+}
+.no-comment {
+  color: #888;
+  text-align: center;
+  padding: 18px 0 6px 0;
+}
+@media (max-width: 1100px) {
+  .detail-container.card-style {
+    max-width: 98vw;
+    padding: 18px 4vw 18px 4vw;
+  }
+}
+@media (max-width: 600px) {
+  .detail-title {
+    font-size: 1.3rem;
+  }
+  .meta-row {
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.98rem;
+    align-items: flex-start;
+  }
+  .thumbnail-img {
+    height: 120px;
+  }
+  .content-section {
+    padding: 12px 4px;
+    font-size: 0.98rem;
+  }
+  .image-list {
+    gap: 6px;
+  }
+  .extra-image {
+    width: 80px;
+    height: 60px;
+  }
+  .comment-box {
+    padding: 10px 4px;
+  }
 }
 
 /* 모달 스타일 */

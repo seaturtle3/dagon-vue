@@ -7,4 +7,11 @@ export const createProduct = (formData) => {
             'Content-Type': 'multipart/form-data'
         }
     });
+};
+
+// 상품명 키워드로 검색 (신규 API)
+export const getProductsByKeyword = (keyword) => {
+    return api.get('/api/product/search', {
+        params: { keyword, page: 0, size: 20 }
+    });
 }; 

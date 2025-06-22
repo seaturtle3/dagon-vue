@@ -1,10 +1,13 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import axios from '@/lib/axios.js'
 import { useAdminAuthStore } from '@/store/auth/auth.js'
 import { useAuthStore } from '@/store/login/loginStore.js'
 import { useRouter } from 'vue-router'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
+import { useProductListStore } from '@/store/product/all-products/useProductListStore.js'
+import { getProductsByKeyword } from '@/api/product.js'
+import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
 
 const props = defineProps({
   dto: Object,
@@ -36,6 +39,14 @@ const formData = ref({
 
 const adminAuthStore = useAdminAuthStore()
 const authStore = useAuthStore()
+const productListStore = useProductListStore()
+const selectedProduct = ref(null)
+const productSearch = ref('')
+const productOptions = ref([])
+const productSearchLoading = ref(false)
+const highlightedIndex = ref(-1)
+const productInputRef = ref(null)
+const fishingReportStore = useFishingReportStore()
 
 // 날씨 옵션
 const weatherOptions = [
@@ -67,10 +78,13 @@ const fishSpeciesOptions = [
 ]
 
 const isFormValid = computed(() => {
-  return formData.value.title && 
-         formData.value.content && 
-         formData.value.fishingAt &&
-         formData.value.location
+  return (
+    formData.value.title &&
+    formData.value.content &&
+    formData.value.fishingAt &&
+    formData.value.location &&
+    selectedProduct.value
+  )
 })
 
 // 토큰 검증 및 갱신
@@ -166,126 +180,54 @@ onMounted(async () => {
   checkTokenStatus()
   
   // RichTextEditor는 컴포넌트에서 자동으로 초기화됩니다
+  await productListStore.fetchProducts()
 })
 
 async function onSubmit() {
   if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 장소)')
+    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 장소, 상품)')
     return
   }
-
-  // 이미지 필수 검증 (백엔드 요구사항)
-  if (images.value.length === 0) {
-    alert('이미지는 최소 1장 이상 업로드해주세요.')
-    return
+  if (!formData.value.fishingAt) {
+    alert('낚시 날짜를 입력하세요.');
+    return;
   }
+  // if (images.value.length === 0) {
+  //   alert('이미지는 최소 1장 이상 업로드해주세요.')
+  //   return
+  // }
 
-  // 제출 전 토큰 재검증
-  const tokenValid = await validateAndRefreshToken()
-  if (!tokenValid) {
-    return
+  const submitFormData = new FormData()
+  const dtoToSend = {
+    title: formData.value.title,
+    content: formData.value.content,
+    prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
+    fishingAt: formData.value.fishingAt,
+    imageFileName: thumbnailFile.value ? thumbnailFile.value.name : null,
+    product: selectedProduct.value ? {
+      prodId: selectedProduct.value.prodId,
+      prodName: selectedProduct.value.prodName
+    } : null,
+    user: null,
+    comments: [],
+    images: [],
+    thumbnailUrl: null
   }
-
+  submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' }))
+  const allImages = []
+  if (thumbnailFile.value) {
+    allImages.push(thumbnailFile.value)
+  }
+  allImages.push(...images.value)
+  allImages.forEach(file => {
+    submitFormData.append('images', file)
+  })
   try {
-    const submitFormData = new FormData()
-
-    // DTO 데이터 준비 (백엔드에서 @RequestPart("dto")로 직접 받음)
-    const dtoToSend = {
-      title: formData.value.title,
-      content: formData.value.content,
-      fishingAt: formData.value.fishingAt,
-      location: formData.value.location,
-      weather: formData.value.weather,
-      temperature: formData.value.temperature,
-      waterTemperature: formData.value.waterTemperature,
-      fishingMethod: formData.value.fishingMethod,
-      catchInfo: formData.value.catchInfo,
-      imageFileName: null,
-      thumbnailUrl: null,
-      images: [],
-      user: null,
-      comments: []
-    }
-
-    console.log('전송할 조황정보 데이터:', dtoToSend)
-    
-    // @RequestPart("dto")에 맞게 DTO 객체 추가 (JSON Blob이 아닌 직접 객체)
-    submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { 
-      type: 'application/json' 
-    }))
-
-    // @RequestPart("images")에 맞게 이미지들 추가 (썸네일 + 추가 이미지 모두 포함)
-    const allImages = []
-    
-    // 썸네일이 있으면 추가
-    if (thumbnailFile.value) {
-      allImages.push(thumbnailFile.value)
-    }
-    
-    // 추가 이미지들 추가
-    allImages.push(...images.value)
-    
-    // 모든 이미지를 images 파트에 추가
-    allImages.forEach(file => {
-      submitFormData.append('images', file)
-    })
-
-    // FormData 내용 확인 (디버깅용)
-    console.log('FormData 내용:')
-    for (let [key, value] of submitFormData.entries()) {
-      if (value instanceof File) {
-        console.log(`${key}:`, value.name, value.type, value.size)
-      } else {
-        console.log(`${key}:`, value)
-      }
-    }
-
-    // 현재 유효한 토큰 가져오기
-    const token = localStorage.getItem('token')
-    if (!token) {
-      throw new Error('로그인 토큰이 없습니다.')
-    }
-
-    const res = await axios.post('/api/fishing-report/create', submitFormData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    console.log('조황정보 등록 성공:', res.data)
+    await fishingReportStore.createFishingReport(submitFormData)
     alert('조황정보가 성공적으로 등록되었습니다!')
-    
-    // 조황정보 목록 페이지로 이동
     router.push('/fishing-report')
-    
-    emit('submit-success', res.data)
   } catch (err) {
-    console.error('조황정보 등록 실패:', err)
-    
-    // 백엔드 에러 메시지 처리
-    if (err.response?.data) {
-      const errorMessage = err.response.data
-      if (typeof errorMessage === 'string') {
-        alert(`등록 실패: ${errorMessage}`)
-        return
-      }
-    }
-    
-    // JWT 관련 오류 처리
-    if (err.response?.status === 401 || err.response?.status === 500) {
-      const errorMessage = err.response?.data?.message || err.message
-      if (errorMessage.includes('JWT') || errorMessage.includes('signature')) {
-        console.log('JWT 서명 오류 감지')
-        
-        // 토큰을 초기화하지 않고 사용자에게 알림
-        alert('인증에 문제가 있습니다. 페이지를 새로고침하거나 다시 로그인해주세요.')
-        return
-      }
-    }
-    
     alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.')
-    emit('submit-error', err)
   }
 }
 
@@ -310,7 +252,59 @@ function resetForm() {
   }
   images.value = []
   thumbnailFile.value = null
+  selectedProduct.value = null
   // RichTextEditor는 v-model로 자동으로 초기화됩니다
+}
+
+watch(productSearch, async (newVal) => {
+  if (newVal && newVal.length >= 2) {
+    productSearchLoading.value = true
+    try {
+      const res = await getProductsByKeyword(newVal)
+      productOptions.value = res.data.content || []
+    } catch (e) {
+      productOptions.value = []
+    } finally {
+      productSearchLoading.value = false
+    }
+  } else {
+    productOptions.value = []
+  }
+})
+
+function onProductInputKeydown(e) {
+  if (productOptions.value.length === 0) return
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    highlightedIndex.value = (highlightedIndex.value + 1) % productOptions.value.length
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    highlightedIndex.value = (highlightedIndex.value - 1 + productOptions.value.length) % productOptions.value.length
+  } else if (e.key === 'Enter') {
+    if (highlightedIndex.value >= 0 && highlightedIndex.value < productOptions.value.length) {
+      selectedProduct.value = productOptions.value[highlightedIndex.value]
+      productSearch.value = selectedProduct.value.prodName
+      productOptions.value = []
+      highlightedIndex.value = -1
+    }
+  } else if (e.key === 'Escape') {
+    productOptions.value = []
+    highlightedIndex.value = -1
+  }
+}
+
+watch(productOptions, (newVal) => {
+  if (newVal.length > 0) highlightedIndex.value = 0
+  else highlightedIndex.value = -1
+})
+
+// 상품 자동완성 입력란 포커스 아웃 시 선택박스 닫기
+function onProductInputBlur(e) {
+  // blur 직후 클릭 이벤트로 선택이 안되는 문제 방지 (setTimeout)
+  setTimeout(() => {
+    productOptions.value = []
+    highlightedIndex.value = -1
+  }, 120)
 }
 </script>
 
@@ -359,6 +353,34 @@ function resetForm() {
               placeholder="낚시한 장소를 입력하세요"
               required 
             />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="position:relative;">
+            <label class="form-label required">상품 선택</label>
+            <input
+              v-model="productSearch"
+              type="text"
+              class="form-control"
+              placeholder="상품명을 입력하세요 (2글자 이상)"
+              autocomplete="off"
+              ref="productInputRef"
+              @keydown="onProductInputKeydown"
+              @blur="onProductInputBlur"
+            />
+            <div v-if="productSearchLoading" style="color: #1976d2; font-size: 0.9em;">검색 중...</div>
+            <ul v-if="productOptions.length > 0" class="autocomplete-list">
+              <li v-for="(option, idx) in productOptions" :key="option.prodId"
+                  @mousedown.prevent="selectedProduct = option; productSearch = option.prodName; productOptions = []; highlightedIndex = -1"
+                  :class="['autocomplete-item', { highlighted: idx === highlightedIndex }]">
+                {{ option.prodName }}
+              </li>
+            </ul>
+            <div v-if="selectedProduct" class="selected-product-info">
+              선택된 상품: <strong>{{ selectedProduct.prodName }}</strong>
+              <button type="button" @click="selectedProduct = null; productSearch = ''" style="margin-left:8px; color:#f44336; background:none; border:none; cursor:pointer;">선택 취소</button>
+            </div>
           </div>
         </div>
       </div>
@@ -546,6 +568,7 @@ function resetForm() {
 
 .form-group {
   margin-bottom: 20px;
+  position: relative;
 }
 
 .form-label {
@@ -685,5 +708,35 @@ function resetForm() {
   .btn {
     width: 100%;
   }
+}
+
+.autocomplete-list {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 180px;
+  overflow-y: auto;
+  position: absolute;
+  z-index: 10;
+  width: 100%;
+  min-width: 120px;
+  left: 0;
+  top: 100%;
+  box-sizing: border-box;
+}
+.autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.autocomplete-item.highlighted, .autocomplete-item:hover {
+  background: #e3f2fd;
+}
+.selected-product-info {
+  margin-top: 8px;
+  color: #1976d2;
+  font-size: 0.95em;
 }
 </style>
