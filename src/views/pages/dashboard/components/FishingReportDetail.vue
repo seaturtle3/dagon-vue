@@ -15,6 +15,40 @@
       </div>
     </div>
 
+    <!-- 네비게이션 바 -->
+    <div class="navigation-bar">
+      <button 
+        @click="goToPrevious" 
+        :disabled="!hasPrevious || navigationLoading"
+        class="nav-btn nav-prev"
+        title="이전 조황정보 (←)"
+      >
+        <i v-if="navigationLoading" class="fas fa-spinner fa-spin"></i>
+        <i v-else class="fas fa-chevron-left"></i>
+        <span class="nav-text">이전</span>
+      </button>
+      
+      <div class="nav-info">
+        <span class="current-position">{{ currentIndex + 1 }} / {{ totalCount }}</span>
+        <span class="report-title">{{ report?.title || '로딩 중...' }}</span>
+        <div class="keyboard-hints">
+          <span class="hint">← → 키로 이동</span>
+          <span class="hint">← Backspace로 목록</span>
+        </div>
+      </div>
+      
+      <button 
+        @click="goToNext" 
+        :disabled="!hasNext || navigationLoading"
+        class="nav-btn nav-next"
+        title="다음 조황정보 (→)"
+      >
+        <span class="nav-text">다음</span>
+        <i v-if="navigationLoading" class="fas fa-spinner fa-spin"></i>
+        <i v-else class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
     <div v-if="loading" class="loading">
       <i class="fas fa-spinner fa-spin"></i> 로딩 중...
     </div>
@@ -96,16 +130,36 @@
       </div>
 
       <!-- 댓글 섹션 -->
-      <div v-if="report.comments && report.comments.length > 0" class="comments-section">
-        <h3>댓글 ({{ report.comments.length }}개)</h3>
-        <div class="comments-list">
-          <div v-for="comment in report.comments" :key="comment.id" class="comment-item">
+      <div class="comments-section">
+        <h3>댓글 ({{ report.comments?.length || 0 }}개)</h3>
+        
+        <div v-if="report.comments && report.comments.length > 0" class="comments-list">
+          <div v-for="comment in report.comments" :key="comment.frCommentId || comment.id || comment.frCommentId" class="comment-item">
             <div class="comment-header">
-              <span class="comment-author">{{ comment.user?.nickname || '알 수 없음' }}</span>
+              <div class="comment-author-info">
+                <span class="comment-author">{{ comment.user?.nickname || comment.user?.uname || comment.user?.name || '알 수 없음' }}</span>
+                <span v-if="comment.user?.uid || comment.user?.uno" class="comment-user-id">
+                  (ID: {{ comment.user.uid || comment.user.uno }})
+                </span>
+              </div>
               <span class="comment-date">{{ formatDateTime(comment.createdAt) }}</span>
             </div>
-            <div class="comment-content">{{ comment.content }}</div>
+            <div class="comment-content">{{ comment.comment || comment.content || comment.text }}</div>
+            <div class="comment-actions">
+              <button 
+                @click="deleteComment(comment.frCommentId || comment.id)" 
+                class="btn-delete-comment"
+                title="댓글 삭제"
+              >
+                <i class="fas fa-trash"></i> 삭제
+              </button>
+            </div>
           </div>
+        </div>
+        
+        <div v-else class="no-comments">
+          <i class="fas fa-comments"></i>
+          <p>등록된 댓글이 없습니다.</p>
         </div>
       </div>
 
@@ -155,11 +209,24 @@
         </div>
       </div>
     </div>
+
+    <!-- 댓글 삭제 확인 모달 -->
+    <div v-if="showCommentDeleteModal" class="modal-overlay" @click="closeCommentDeleteModal">
+      <div class="modal-content" @click.stop>
+        <h3>댓글 삭제</h3>
+        <p>정말로 이 댓글을 삭제하시겠습니까?</p>
+        <p class="warning">이 작업은 되돌릴 수 없습니다.</p>
+        <div class="modal-actions">
+          <button @click="confirmDeleteComment" class="btn-delete">삭제</button>
+          <button @click="closeCommentDeleteModal" class="btn-cancel">취소</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '@/lib/axios'
 
@@ -173,7 +240,66 @@ const showImageModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedImage = ref(null)
 
+// 댓글 관련 상태
+const showCommentDeleteModal = ref(false)
+const commentToDelete = ref(null)
+
+// 네비게이션 관련 상태
+const allReports = ref([])
+const currentIndex = ref(0)
+const totalCount = ref(0)
+const navigationLoading = ref(false)
+
+// 계산된 속성
+const hasPrevious = computed(() => currentIndex.value > 0)
+const hasNext = computed(() => currentIndex.value < totalCount.value - 1)
+
 // 메서드
+const loadAllReports = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      throw new Error('인증 토큰이 없습니다.')
+    }
+
+    // 네비게이션을 위한 간단한 조황정보 목록만 가져오기
+    const response = await axios.get('/api/fishing-report/get-all', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      params: {
+        page: 0,
+        size: 1000, // 충분히 큰 수로 설정하여 모든 조황정보 가져오기
+        sort: 'frId,desc' // 최신순으로 정렬
+      }
+    })
+
+    let responseData = response.data
+    
+    if (responseData && responseData.content) {
+      allReports.value = responseData.content
+      totalCount.value = responseData.totalElements
+    } else if (Array.isArray(responseData)) {
+      allReports.value = responseData
+      totalCount.value = responseData.length
+    } else {
+      allReports.value = []
+      totalCount.value = 0
+    }
+
+    // 현재 조황정보의 인덱스 찾기
+    const currentFrId = parseInt(route.params.frId)
+    currentIndex.value = allReports.value.findIndex(r => r.frId === currentFrId)
+    
+    if (currentIndex.value === -1) {
+      currentIndex.value = 0
+    }
+  } catch (error) {
+    console.error('조황정보 목록 로드 실패:', error)
+    // 네비게이션 실패 시에도 상세 정보는 로드할 수 있도록 에러를 숨김
+  }
+}
+
 const loadReport = async () => {
   loading.value = true
   try {
@@ -189,11 +315,34 @@ const loadReport = async () => {
     })
 
     report.value = response.data
+    
+    // 댓글 데이터 디버깅
+    console.log('조황정보 상세 데이터:', report.value)
+    console.log('댓글 데이터:', report.value?.comments)
+    console.log('댓글 개수:', report.value?.comments?.length)
   } catch (error) {
     console.error('조황정보 로드 실패:', error)
     alert('조황정보를 불러오는데 실패했습니다.')
   } finally {
     loading.value = false
+  }
+}
+
+const goToPrevious = async () => {
+  if (hasPrevious.value && allReports.value[currentIndex.value - 1]) {
+    navigationLoading.value = true
+    const prevReport = allReports.value[currentIndex.value - 1]
+    await router.push(`/admin/fishing-reports/${prevReport.frId}`)
+    navigationLoading.value = false
+  }
+}
+
+const goToNext = async () => {
+  if (hasNext.value && allReports.value[currentIndex.value + 1]) {
+    navigationLoading.value = true
+    const nextReport = allReports.value[currentIndex.value + 1]
+    await router.push(`/admin/fishing-reports/${nextReport.frId}`)
+    navigationLoading.value = false
   }
 }
 
@@ -256,10 +405,106 @@ const formatDateTime = (dateString) => {
   return new Date(dateString).toLocaleString('ko-KR')
 }
 
+// 라우트 변경 감지
+const handleRouteChange = async () => {
+  if (allReports.value.length > 0) {
+    const currentFrId = parseInt(route.params.frId)
+    currentIndex.value = allReports.value.findIndex(r => r.frId === currentFrId)
+    if (currentIndex.value === -1) {
+      currentIndex.value = 0
+    }
+  }
+  await loadReport()
+}
+
 // 컴포넌트 마운트 시 데이터 로드
-onMounted(() => {
-  loadReport()
+onMounted(async () => {
+  await loadAllReports()
+  await loadReport()
+  
+  // 키보드 이벤트 리스너 추가
+  document.addEventListener('keydown', handleKeydown)
 })
+
+// 컴포넌트 언마운트 시 이벤트 리스너 제거
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+
+// 키보드 이벤트 핸들러
+const handleKeydown = (event) => {
+  // ESC 키로 모달 닫기
+  if (event.key === 'Escape') {
+    if (showImageModal.value) {
+      closeImageModal()
+    }
+    if (showDeleteModal.value) {
+      closeDeleteModal()
+    }
+    return
+  }
+  
+  // 모달이 열려있으면 다른 키보드 이벤트 무시
+  if (showImageModal.value || showDeleteModal.value) {
+    return
+  }
+  
+  // 왼쪽 화살표 키: 이전 조황정보
+  if (event.key === 'ArrowLeft' && hasPrevious.value && !navigationLoading.value) {
+    event.preventDefault()
+    goToPrevious()
+  }
+  
+  // 오른쪽 화살표 키: 다음 조황정보
+  if (event.key === 'ArrowRight' && hasNext.value && !navigationLoading.value) {
+    event.preventDefault()
+    goToNext()
+  }
+  
+  // Backspace 키: 목록으로 돌아가기
+  if (event.key === 'Backspace' && !event.target.matches('input, textarea')) {
+    event.preventDefault()
+    goBack()
+  }
+}
+
+// 라우트 변경 감지
+import { watch } from 'vue'
+watch(() => route.params.frId, handleRouteChange)
+
+const deleteComment = (commentId) => {
+  commentToDelete.value = commentId
+  showCommentDeleteModal.value = true
+}
+
+const confirmDeleteComment = async () => {
+  if (!commentToDelete.value) return
+  
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      throw new Error('인증 토큰이 없습니다.')
+    }
+
+    await axios.delete(`/api/fishing-report/comment/${commentToDelete.value}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    alert('댓글이 삭제되었습니다.')
+    await loadReport() // 조황정보 다시 로드하여 댓글 목록 업데이트
+    closeCommentDeleteModal()
+  } catch (error) {
+    console.error('댓글 삭제 실패:', error)
+    alert('댓글 삭제에 실패했습니다.')
+  }
+}
+
+const closeCommentDeleteModal = () => {
+  showCommentDeleteModal.value = false
+  commentToDelete.value = null
+}
 </script>
 
 <style scoped>
@@ -271,7 +516,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .header h2 {
@@ -322,6 +567,102 @@ onMounted(() => {
 
 .btn-delete:hover {
   background: #c0392b;
+}
+
+/* 네비게이션 바 */
+.navigation-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #3498db;
+  background: white;
+  color: #3498db;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-width: 100px;
+  justify-content: center;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #3498db;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.nav-btn:disabled {
+  border-color: #bdc3c7;
+  color: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.nav-btn:disabled .fa-spinner {
+  color: #bdc3c7;
+}
+
+.nav-prev {
+  border-radius: 6px 0 0 6px;
+}
+
+.nav-next {
+  border-radius: 0 6px 6px 0;
+}
+
+.nav-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  margin: 0 1rem;
+}
+
+.current-position {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  font-weight: 600;
+}
+
+.report-title {
+  font-size: 1rem;
+  color: #2c3e50;
+  font-weight: 600;
+  max-width: 400px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.keyboard-hints {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: #95a5a6;
+  background: #f8f9fa;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
 }
 
 .loading,
@@ -468,6 +809,33 @@ onMounted(() => {
   font-size: 0.7rem;
 }
 
+.comments-section {
+  padding: 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+.comments-section:last-child {
+  border-bottom: none;
+}
+
+.comments-section h3 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comments-section h3::before {
+  content: '\f075';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  color: #3498db;
+}
+
 .comments-list {
   display: flex;
   flex-direction: column;
@@ -475,32 +843,112 @@ onMounted(() => {
 }
 
 .comment-item {
-  padding: 1rem;
+  padding: 1.5rem;
   background: #f8f9fa;
   border-radius: 8px;
   border-left: 4px solid #3498db;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.comment-item:hover {
+  background: #e9ecef;
+  transform: translateX(4px);
 }
 
 .comment-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.comment-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .comment-author {
   font-weight: 600;
   color: #2c3e50;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comment-user-id {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  font-weight: normal;
 }
 
 .comment-date {
   font-size: 0.8rem;
   color: #7f8c8d;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .comment-content {
   color: #2c3e50;
-  line-height: 1.5;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.btn-delete-comment {
+  padding: 0.25rem 0.75rem;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.btn-delete-comment:hover {
+  background: #c0392b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+}
+
+.no-comments {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #7f8c8d;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+}
+
+.no-comments i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+  color: #95a5a6;
+}
+
+.no-comments p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #7f8c8d;
 }
 
 .stats-grid {
@@ -671,6 +1119,29 @@ onMounted(() => {
     justify-content: center;
   }
   
+  .navigation-bar {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .nav-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .nav-text {
+    display: none;
+  }
+  
+  .report-title {
+    max-width: 100%;
+  }
+  
+  .keyboard-hints {
+    display: none;
+  }
+  
   .info-grid {
     grid-template-columns: 1fr;
   }
@@ -681,6 +1152,33 @@ onMounted(() => {
   
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .comment-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .comment-date {
+    align-self: flex-end;
+  }
+  
+  .comment-content {
+    font-size: 0.9rem;
+  }
+  
+  .btn-delete-comment {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .comments-section {
+    padding: 1rem;
+  }
+  
+  .comment-item {
+    padding: 1rem;
   }
 }
 </style> 
