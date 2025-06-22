@@ -27,8 +27,6 @@ const formData = ref({
   waterTemperature: '',
   fishingMethod: '',
   catchInfo: '',
-  productId: null,
-  productName: '',
   imageFileName: '',
   thumbnailUrl: '',
   images: [],
@@ -172,7 +170,7 @@ onMounted(async () => {
 
 async function onSubmit() {
   if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요.')
+    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 장소)')
     return
   }
 
@@ -202,8 +200,6 @@ async function onSubmit() {
       waterTemperature: formData.value.waterTemperature,
       fishingMethod: formData.value.fishingMethod,
       catchInfo: formData.value.catchInfo,
-      product: formData.value.productId ? { prodId: formData.value.productId } : null,
-      prodName: formData.value.productName || null,
       imageFileName: null,
       thumbnailUrl: null,
       images: [],
