@@ -16,9 +16,20 @@ const pageSize = 8
 const productListStore = useProductListStore()
 const reportStore = useFishingReportStore()
 
-onMounted(() => {
-  centerStore.fetchFishingCenterData()
-  productListStore.fetchProducts()
+onMounted(async () => {
+  try {
+    // 조황센터 데이터 로드
+    await centerStore.fetchFishingCenterData()
+  } catch (error) {
+    console.error('Home.vue - 조황센터 데이터 로드 실패:', error)
+  }
+  
+  try {
+    // 상품 데이터 로드
+    await productListStore.fetchProducts()
+  } catch (error) {
+    console.error('Home.vue - 상품 데이터 로드 실패:', error)
+  }
 })
 
 const paginatedProducts = computed(() => {

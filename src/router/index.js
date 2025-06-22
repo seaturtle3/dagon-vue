@@ -80,6 +80,21 @@ const routes = [
                 meta: {requiresAuth: true}
             },
             {
+                path: 'fishing-reports',
+                component: () => import('@/views/pages/dashboard/components/FishingReports.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'fishing-reports/:frId/edit',
+                component: () => import('@/views/pages/dashboard/components/FishingReportEdit.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'fishing-reports/:frId',
+                component: () => import('@/views/pages/dashboard/components/FishingReportDetail.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
                 path: 'faq',
                 component: () => import('@/views/pages/dashboard/components/FAQ.vue'),
                 meta: {requiresAuth: true}
@@ -176,6 +191,7 @@ const routes = [
         path: '/fishing-report',
         children: [
             {path: '', component: () => import('@/views/community/fishing-report/ReportList.vue')},
+            {path: 'create', component: () => import('@/views/community/fishing-report/ReportForm.vue')},
             {path: 'form', component: () => import('@/views/community/fishing-report/ReportForm.vue')},
             {
                 path: ':frId',

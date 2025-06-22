@@ -1,9 +1,13 @@
 <script setup>
-import {ref} from 'vue'
+import {ref, onMounted} from 'vue'
+import { useRouter } from 'vue-router'
 import ReportFormView from "@/views/community/fishing-report/components/ReportFormView.vue";
 import {useFishingReportStore} from "@/store/fishing-center/useFishingReportStore.js";
+import { useAuthStore } from '@/store/login/loginStore.js'
 
+const router = useRouter()
 const fishingReportStore = useFishingReportStore()
+const authStore = useAuthStore()
 
 const dto = ref({
   title: '',
@@ -17,6 +21,16 @@ const images = ref([]) // File[]
 const loading = ref(false)
 const error = ref(null)
 const thumbnail = ref(null)
+
+// 로그인 상태 확인
+onMounted(async () => {
+  const isLoggedIn = await authStore.checkAuth()
+  if (!isLoggedIn) {
+    alert('조황정보 등록은 로그인 후 이용 가능합니다.')
+    router.push('/login')
+    return
+  }
+})
 
 async function onSubmit() {
   loading.value = true

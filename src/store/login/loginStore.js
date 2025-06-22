@@ -121,19 +121,52 @@ export const useAuthStore = defineStore('auth', {
         // 토큰 갱신
         async refreshToken() {
             try {
-                const res = await axios.post('/api/auth/refresh');
-                const newToken = res.data.token;
+                console.log('토큰 갱신 시도...')
+                
+                // 현재 토큰이 있는지 확인
+                const currentToken = localStorage.getItem('token')
+                if (!currentToken) {
+                    console.log('갱신할 토큰이 없습니다.')
+                    return false
+                }
+
+                console.log('현재 토큰:', currentToken.substring(0, 20) + '...')
+
+                // 토큰 갱신 요청
+                const res = await axios.post('/api/auth/refresh', {}, {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                })
+                
+                console.log('토큰 갱신 응답:', res.data)
+                
+                const newToken = res.data.token
                 
                 if (newToken) {
-                    localStorage.setItem('token', newToken);
-                    axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-                    return true;
+                    console.log('토큰 갱신 성공')
+                    localStorage.setItem('token', newToken)
+                    axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
+                    
+                    // adminAuthStore도 업데이트
+                    const adminAuthStore = useAdminAuthStore()
+                    adminAuthStore.setToken(newToken)
+                    
+                    return true
+                } else {
+                    console.log('새 토큰을 받지 못했습니다.')
+                    return false
                 }
-                return false;
             } catch (err) {
-                console.error('토큰 갱신 실패', err);
-                this.logout();
-                return false;
+                console.error('토큰 갱신 실패:', err)
+                console.error('에러 응답:', err.response?.data)
+                
+                // 401 에러가 아닌 경우에만 로그아웃
+                if (err.response?.status !== 401) {
+                    this.logout()
+                }
+                
+                return false
             }
         },
 

@@ -41,6 +41,10 @@
           <i class="fa-solid fa-paper-plane"></i>
           <span>공지사항</span>
         </router-link>
+        <router-link to="/admin/fishing-reports" class="nav-item" active-class="nav-item-active">
+          <i class="fas fa-fish"></i>
+          <span>조황정보 관리</span>
+        </router-link>
         <router-link to="/admin/faq" class="nav-item" active-class="nav-item-active">
           <i class="fas fa-question-circle"></i>
           <span>FAQ</span>

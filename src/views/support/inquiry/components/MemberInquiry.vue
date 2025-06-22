@@ -118,19 +118,27 @@ const availableInquiryTypes = computed(() => {
 
 const fetchUserInfo = async () => {
   try {
+    console.log('사용자 정보 조회 시작...');
     const response = await myPageAPI.getMyInfo();
+    console.log('사용자 정보 응답:', response.data);
+    
     userInfo.value = {
       uid: response.data.uid,
       role: response.data.role,
       uno: response.data.uno
     };
     form.value.writerType = response.data.role;
+    
+    console.log('설정된 사용자 정보:', userInfo.value);
+    
     // 로그인 정보가 없으면 모달 표시
     if (!userInfo.value.uid) {
+      console.warn('사용자 ID가 없습니다. 로그인 모달을 표시합니다.');
       showLoginModal.value = true;
     }
   } catch (error) {
     console.error('사용자 정보 조회 실패:', error);
+    console.error('에러 응답:', error.response?.data);
     showLoginModal.value = true;
   }
 };
@@ -154,6 +162,13 @@ const submitForm = async () => {
     return;
   }
 
+  // writerId가 제대로 설정되었는지 확인
+  if (!userInfo.value.uno) {
+    console.error('사용자 ID가 없습니다:', userInfo.value);
+    alert('사용자 정보를 가져올 수 없습니다. 다시 로그인해주세요.');
+    return;
+  }
+
   const inquiryData = {
     ...form.value,
     writerId: userInfo.value.uno,
@@ -162,6 +177,9 @@ const submitForm = async () => {
     createdAt: new Date().toISOString(),
     userName: userInfo.value.uid
   };
+
+  console.log('문의 데이터 준비:', inquiryData);
+  console.log('사용자 정보:', userInfo.value);
 
   openModal(inquiryData); // ✅ 모달 열기
 };

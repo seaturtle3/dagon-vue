@@ -34,11 +34,19 @@ const emit = defineEmits(['close', 'reset-form']);
 
 const submit = async () => {
   try {
-    await inquiryApi.createInquiry({
-      ...props.inquiry,
-      status: '대기중',
-      createdAt: new Date().toISOString()
-    });
+    // 전송할 데이터 준비
+    const inquiryData = {
+      title: props.inquiry.title,
+      content: props.inquiry.content,
+      inquiryType: props.inquiry.inquiryType,
+      writerType: props.inquiry.writerType,
+      writerId: props.inquiry.writerId,
+      status: '대기중'
+    };
+
+    console.log('전송할 문의 데이터:', inquiryData);
+    
+    await inquiryApi.createInquiry(inquiryData);
 
     alert('문의가 정상 등록되었습니다.');
 
@@ -47,7 +55,18 @@ const submit = async () => {
 
   } catch (error) {
     console.error('문의 저장 실패:', error);
-    alert('저장에 실패했습니다.');
+    console.error('에러 응답:', error.response?.data);
+    console.error('에러 상태:', error.response?.status);
+    console.error('에러 헤더:', error.response?.headers);
+    
+    // 사용자에게 더 구체적인 에러 메시지 표시
+    if (error.response?.data?.message) {
+      alert(`저장에 실패했습니다: ${error.response.data.message}`);
+    } else if (error.response?.status === 400) {
+      alert('입력 데이터에 문제가 있습니다. 모든 필수 항목을 확인해주세요.');
+    } else {
+      alert('저장에 실패했습니다.');
+    }
   }
 };
 </script>
