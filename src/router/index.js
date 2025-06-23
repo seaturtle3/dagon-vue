@@ -164,9 +164,18 @@ const routes = [
             },
             {
                 path: 'market-info/:id',
-                component: () => import('@/views/pages/partner-page/components/FishingReportDetail.vue')
+                component: () => import('@/views/pages/partner-page/components/FishingReportDetail.vue'),
+                props: route => ({ fr_id: route.params.id })
             },
-            {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')}
+            {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')},
+            {
+                path: 'fishing-diaries',
+                component: () => import('@/views/pages/partner-page/components/FishingDiaryList.vue')
+            },
+            {
+                path: 'fishing-diaries/:fd_id',
+                component: () => import('@/views/pages/partner-page/components/FishingDiaryDetail.vue')
+            },
         ]
     },
 
