@@ -4,6 +4,9 @@ import AdminLayout from '../views/pages/dashboard/AdminLayout.vue'
 const routes = [
     {path: '/', component: () => import('@/views/home/Home.vue')},
 
+    // multtae
+    {path: '/multtae', component: () => import('@/views/multtae/MulttaeView.vue')},
+
     // auth
     {path: '/login', component: () => import('@/views/auth/login/Login.vue')},
     {path: '/register', component: () => import('@/views/auth/register/components/RegisterForm.vue')},
