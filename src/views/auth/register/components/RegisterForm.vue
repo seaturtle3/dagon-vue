@@ -259,16 +259,20 @@ export default {
     },
     async handleSubmit() {
       try {
-        const formData = new FormData();
-        formData.append('uid', this.formData.uid);
-        formData.append('upw', this.formData.upw);
-        formData.append('uname', this.formData.uname);
-        formData.append('email', `${this.formData.emailId}@${this.formData.emailDomain === 'custom' ? this.formData.customEmailDomain : this.formData.emailDomain}`);
-        formData.append('phone1', this.formData.phone1);
-        formData.append('phone2', this.formData.phone2);
-        formData.append('phone3', this.formData.phone3);
+        const params = new URLSearchParams();
+        params.append('uid', this.formData.uid);
+        params.append('upw', this.formData.upw);
+        params.append('uname', this.formData.uname);
+        params.append('email', `${this.formData.emailId}@${this.formData.emailDomain === 'custom' ? this.formData.customEmailDomain : this.formData.emailDomain}`);
+        params.append('phone1', this.formData.phone1);
+        params.append('phone2', this.formData.phone2);
+        params.append('phone3', this.formData.phone3);
 
-        const response = await api.post('/api/users/register', formData);
+        const response = await api.post('/api/users/register', params, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        });
         
         if (response.data === "회원가입 성공") {
           alert('회원가입이 완료되었습니다.');
