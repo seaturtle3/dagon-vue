@@ -7,7 +7,6 @@ import { getProductsByKeyword } from '@/api/product.js'
 import { useFishingDiaryStore } from '@/store/fishing-center/useFishingDiaryStore.js'
 
 const router = useRouter()
-const images = ref([])
 const thumbnailFile = ref(null)
 const formData = ref({
   title: '',
@@ -21,6 +20,7 @@ const productSearch = ref('')
 const productOptions = ref([])
 const productSearchLoading = ref(false)
 const fishingDiaryStore = useFishingDiaryStore()
+const error = ref('')
 
 const isFormValid = computed(() => {
   return (
@@ -38,14 +38,6 @@ function onThumbnailChange(event) {
   }
 }
 
-function onFileChange(event) {
-  images.value = Array.from(event.target.files)
-}
-
-function removeImage(index) {
-  images.value.splice(index, 1)
-}
-
 function removeThumbnail() {
   thumbnailFile.value = null
 }
@@ -59,35 +51,37 @@ onMounted(async () => {
 
 async function onSubmit() {
   if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요. (상품, 제목, 내용, 방문 날짜)')
+    error.value = '필수 항목을 모두 입력해주세요. (상품, 제목, 내용, 방문 날짜)'
     return
   }
-
+  error.value = ''
   const submitFormData = new FormData()
-  const dtoToSend = {
-    title: formData.value.title,
-    content: formData.value.content,
-    fishingAt: formData.value.fishingAt,
-    product: {
-      prodId: selectedProduct.value.prodId,
-    }
-  }
-  submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' }))
-  
+  submitFormData.append(
+    'dto',
+    new Blob([
+      JSON.stringify({
+        title: formData.value.title,
+        content: formData.value.content,
+        fishingAt: formData.value.fishingAt, // yyyy-MM-dd
+        product: {
+          prodId: selectedProduct.value?.prodId
+        }
+      })
+    ], { type: 'application/json' })
+  )
   if (thumbnailFile.value) {
     submitFormData.append('images', thumbnailFile.value)
   }
-  images.value.forEach(file => {
-    submitFormData.append('images', file)
-  })
-
+  // 디버깅: FormData 내용 확인
+  for (let pair of submitFormData.entries()) {
+    console.log(pair[0], pair[1]);
+  }
   try {
-    // 스토어 액션 이름은 createFishingDiary로 가정합니다.
     await fishingDiaryStore.createFishingDiary(submitFormData) 
     alert('조행기가 성공적으로 등록되었습니다!')
     router.push('/fishing-diary')
   } catch (err) {
-    alert('조행기 등록에 실패했습니다. 다시 시도해주세요.')
+    error.value = '조행기 등록에 실패했습니다. 다시 시도해주세요.'
     console.error(err)
   }
 }
@@ -101,7 +95,7 @@ function resetForm() {
   selectedProduct.value = null
   productSearch.value = ''
   thumbnailFile.value = null
-  images.value = []
+  error.value = ''
 }
 
 watch(productSearch, async (newQuery) => {
@@ -109,9 +103,8 @@ watch(productSearch, async (newQuery) => {
     productSearchLoading.value = true
     try {
       const response = await getProductsByKeyword(newQuery)
-      productOptions.value = response.data
+      productOptions.value = response.data.content || []
     } catch (error) {
-      console.error('Error fetching products:', error)
       productOptions.value = []
     } finally {
       productSearchLoading.value = false
@@ -126,182 +119,299 @@ function selectProduct(product) {
   productSearch.value = product.prodName
   productOptions.value = []
 }
-
 </script>
 
 <template>
-  <div class="-form-container">
-    <h1 class="form-title">조행기 작성</h1>
-    <form @submit.prevent="onSubmit" class="form">
-      <!-- 상품 검색 -->
-      <div class="form-group product-search-group">
-        <label for="product-search">상품 검색</label>
-        <input
-            id="product-search"
-            v-model="productSearch"
-            type="text"
-            placeholder="후기를 남길 상품을 검색하세요"
-            class="form-input"
-        />
-        <div v-if="productSearchLoading" class="loading-spinner"></div>
-        <ul v-if="productOptions.length > 0" class="product-options-list">
-          <li
-              v-for="product in productOptions"
-              :key="product.prodId"
-              @click="selectProduct(product)"
-          >
-            {{ product.prodName }}
-          </li>
-        </ul>
-        <div v-if="selectedProduct" class="selected-product-info">
-          선택된 상품: <strong>{{ selectedProduct.prodName }}</strong>
+  <div class="report-form-container">
+    <div class="form-header">
+      <h2 class="form-title">✍️ 조행기 작성</h2>
+      <p class="form-subtitle">나만의 낚시 경험을 공유해보세요!</p>
+    </div>
+    <form @submit.prevent="onSubmit" class="report-form">
+      <!-- 기본 정보 섹션 -->
+      <div class="form-section">
+        <h3 class="section-title">📝 기본 정보</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">제목</label>
+            <input id="title" v-model="formData.title" type="text" class="form-control" placeholder="조행기 제목을 입력하세요" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">방문 날짜</label>
+            <input id="fishing-at" v-model="formData.fishingAt" type="date" class="form-control" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="position:relative;">
+            <label class="form-label required">상품 선택</label>
+            <input
+              v-model="productSearch"
+              type="text"
+              class="form-control"
+              placeholder="상품명을 입력하세요"
+              autocomplete="off"
+              @input="error = ''"
+            />
+            <div v-if="productSearchLoading" style="color: #1976d2; font-size: 0.9em;">검색 중...</div>
+            <ul v-if="productOptions.length > 0" class="autocomplete-list">
+              <li v-for="product in productOptions" :key="product.prodId"
+                  @mousedown.prevent="selectProduct(product)"
+                  class="autocomplete-item">
+                {{ product.prodName }}
+              </li>
+            </ul>
+            <div v-if="selectedProduct" class="selected-product-info">
+              선택된 상품: <strong>{{ selectedProduct.prodName }}</strong>
+              <button type="button" @click="selectedProduct = null; productSearch = ''" style="margin-left:8px; color:#f44336; background:none; border:none; cursor:pointer;">선택 취소</button>
+            </div>
+          </div>
         </div>
       </div>
-
-      <!-- 제목 -->
-      <div class="form-group">
-        <label for="title">제목</label>
-        <input id="title" v-model="formData.title" type="text" placeholder="제목을 입력하세요" class="form-input" />
-      </div>
-
-      <!-- 방문 날짜 -->
-      <div class="form-group">
-        <label for="fishing-at">방문 날짜</label>
-        <input id="fishing-at" v-model="formData.fishingAt" type="date" class="form-input" />
-      </div>
-
-      <!-- 내용 -->
-      <div class="form-group">
-        <label>내용</label>
-        <RichTextEditor v-model="formData.content" />
-      </div>
-
-      <!-- 썸네일 -->
-      <div class="form-group">
-        <label for="thumbnail-upload">썸네일 이미지</label>
-        <input id="thumbnail-upload" type="file" @change="onThumbnailChange" accept="image/*" class="form-input-file" />
-        <div v-if="thumbnailFile" class="thumbnail-preview">
-          <span>{{ thumbnailFile.name }}</span>
-          <button @click="removeThumbnail" type="button" class="remove-btn">&times;</button>
+      <!-- 이미지 업로드 섹션 -->
+      <div class="form-section">
+        <h3 class="section-title">📸 이미지 업로드</h3>
+        <div class="form-group">
+          <label class="form-label">대표 썸네일</label>
+          <input id="thumbnail-upload" type="file" @change="onThumbnailChange" accept="image/*" class="form-control" />
+          <div v-if="thumbnailFile" class="file-preview">
+            <span>{{ thumbnailFile.name }}</span>
+            <button @click="removeThumbnail" type="button" class="remove-btn">삭제</button>
+          </div>
         </div>
       </div>
-
-      <!-- 버튼 -->
+      <!-- 내용 작성 섹션 -->
+      <div class="form-section">
+        <h3 class="section-title">📝 상세 내용</h3>
+        <div class="form-group">
+          <label class="form-label required">조행기 내용</label>
+          <RichTextEditor v-model="formData.content" editor-id="fishing-diary-editor" />
+        </div>
+      </div>
+      <!-- 에러 메시지 -->
+      <div v-if="error" class="error-message">
+        {{ error }}
+      </div>
+      <!-- 버튼 그룹 -->
       <div class="form-actions">
-        <button type="submit" class="submit-btn" :disabled="!isFormValid">등록하기</button>
-        <button type="button" @click="resetForm" class="reset-btn">초기화</button>
+        <button type="button" @click="resetForm" class="btn btn-secondary">
+          초기화
+        </button>
+        <button type="submit" :disabled="!isFormValid" class="btn btn-primary">
+          조행기 등록
+        </button>
       </div>
     </form>
   </div>
 </template>
 
 <style scoped>
-.form-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.report-form-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e3f2fd;
 }
 
 .form-title {
-  text-align: center;
-  color: #333;
-  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 8px;
+}
+
+.form-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.form-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #1976d2;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-  color: #555;
-}
-
-.form-input, .form-input-file {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.product-search-group {
+  margin-bottom: 20px;
   position: relative;
 }
 
-.product-options-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  position: absolute;
-  background-color: white;
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-label.required::after {
+  content: ' *';
+  color: #f44336;
+}
+
+.form-control {
   width: 100%;
-  z-index: 10;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
 }
 
-.product-options-list li {
-  padding: 0.5rem;
-  cursor: pointer;
+.form-control:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
-.product-options-list li:hover {
-  background-color: #f0f0f0;
+.form-group :deep(.note-editor) {
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
-.selected-product-info {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background-color: #e9f5ff;
+.form-group :deep(.note-editor:focus-within) {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.file-preview {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f5f5f5;
   border-radius: 4px;
+}
+
+.remove-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.remove-btn:hover {
+  background: #d32f2f;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border-left: 4px solid #f44336;
 }
 
 .form-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #e3f2fd;
 }
 
-.submit-btn, .reset-btn {
-  padding: 0.75rem 1.5rem;
+.btn {
+  padding: 12px 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #1976d2;
   color: white;
-  cursor: pointer;
 }
 
-.submit-btn {
-  background-color: #007bff;
+.btn-primary:hover:not(:disabled) {
+  background: #1565c0;
+  transform: translateY(-2px);
 }
 
-.submit-btn:disabled {
-  background-color: #ccc;
+.btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.reset-btn {
-  background-color: #6c757d;
+.btn-secondary {
+  background: #6c757d;
+  color: white;
 }
 
-.thumbnail-preview, .image-preview-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem;
-  background-color: #f8f9fa;
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .form-actions {
+    flex-direction: column;
+  }
+  .btn {
+    width: 100%;
+  }
+}
+
+.autocomplete-list {
+  background: #fff;
+  border: 1px solid #e0e0e0;
   border-radius: 4px;
-  margin-top: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 180px;
+  overflow-y: auto;
+  position: absolute;
+  z-index: 10;
+  width: 100%;
+  min-width: 120px;
+  left: 0;
+  top: 100%;
+  box-sizing: border-box;
 }
-
-.remove-btn {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
+.autocomplete-item {
+  padding: 8px 12px;
   cursor: pointer;
-  color: #dc3545;
+}
+.autocomplete-item.highlighted, .autocomplete-item:hover {
+  background: #e3f2fd;
+}
+.selected-product-info {
+  margin-top: 8px;
+  color: #1976d2;
+  font-size: 0.95em;
 }
 </style> 

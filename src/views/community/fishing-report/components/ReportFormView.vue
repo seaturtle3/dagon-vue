@@ -22,7 +22,6 @@ const formData = ref({
   title: '',
   content: '',
   fishingAt: '',
-  location: '',
   imageFileName: '',
   thumbnailUrl: '',
   images: [],
@@ -46,7 +45,6 @@ const isFormValid = computed(() => {
     formData.value.title &&
     formData.value.content &&
     formData.value.fishingAt &&
-    formData.value.location &&
     selectedProduct.value
   )
 })
@@ -185,7 +183,7 @@ function onProductInputBlur(e) {
 
 async function onSubmit() {
   if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 장소, 상품)')
+    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 상품)')
     return
   }
   if (!formData.value.fishingAt) {
@@ -198,7 +196,6 @@ async function onSubmit() {
     title: formData.value.title,
     content: formData.value.content,
     fishingAt: formData.value.fishingAt,
-    location: formData.value.location,
     prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
     product: selectedProduct.value ? {
       prodId: selectedProduct.value.prodId,
@@ -228,7 +225,6 @@ function resetForm() {
     title: '',
     content: '',
     fishingAt: '',
-    location: '',
     imageFileName: '',
     thumbnailUrl: '',
     images: [],
@@ -273,17 +269,6 @@ function resetForm() {
               v-model="formData.fishingAt" 
               type="date" 
               class="form-control" 
-              required 
-            />
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label required">낚시 장소</label>
-            <input 
-              v-model="formData.location" 
-              type="text" 
-              class="form-control" 
-              placeholder="낚시한 장소를 입력하세요"
               required 
             />
           </div>
