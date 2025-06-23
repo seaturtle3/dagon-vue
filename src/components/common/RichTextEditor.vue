@@ -15,25 +15,27 @@ const emit = defineEmits(['update:modelValue'])
 
 onMounted(() => {
   $(`#${props.editorId}`).summernote({
-    height: 300,
+    height: 500,
     placeholder: '내용을 입력하세요',
     callbacks: {
       onChange: (contents) => {
         emit('update:modelValue', contents)
       },
       onImageUpload: async (files) => {
-        const formData = new FormData()
-        formData.append('image', files[0])
-        try {
-          const res = await fetch('/api/images/upload', {
-            method: 'POST',
-            body: formData
-          })
-          const path = await res.text()
-          const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL
-          $(`#${props.editorId}`).summernote('insertImage', `${baseUrl}/${path}`)
-        } catch (e) {
-          console.error('이미지 업로드 실패', e)
+        for (const file of files) {
+          const formData = new FormData()
+          formData.append('image', file)
+          try {
+            const res = await fetch('/api/images/upload', {
+              method: 'POST',
+              body: formData
+            })
+            const path = await res.text()
+            const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL
+            $(`#${props.editorId}`).summernote('insertImage', `${baseUrl}/${path}`)
+          } catch (e) {
+            console.error('이미지 업로드 실패', e)
+          }
         }
       }
     }

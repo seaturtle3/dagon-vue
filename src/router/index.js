@@ -202,7 +202,6 @@ const routes = [
         children: [
             {path: '', component: () => import('@/views/community/fishing-report/ReportList.vue')},
             {path: 'create', component: () => import('@/views/community/fishing-report/ReportForm.vue')},
-            {path: 'form', component: () => import('@/views/community/fishing-report/ReportForm.vue')},
             {
                 path: ':frId',
                 name: 'ReportDetail',
@@ -216,7 +215,7 @@ const routes = [
         path: '/fishing-diary',
         children: [
             {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
-            // {path: 'form', component: () => import('@/views/community/fishing-diary/DiaryList/DiaryForm.vue')},
+            {path: 'create', component: () => import('@/views/community/fishing-diary/DiaryForm.vue')},
             {
                 path: ':fdId',
                 name: 'DiaryDetail',

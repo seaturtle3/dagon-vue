@@ -130,9 +130,9 @@ function selectProduct(product) {
 </script>
 
 <template>
-  <div class="report-form-container">
+  <div class="-form-container">
     <h1 class="form-title">조행기 작성</h1>
-    <form @submit.prevent="onSubmit" class="report-form">
+    <form @submit.prevent="onSubmit" class="form">
       <!-- 상품 검색 -->
       <div class="form-group product-search-group">
         <label for="product-search">상품 검색</label>
@@ -186,18 +186,6 @@ function selectProduct(product) {
         </div>
       </div>
 
-      <!-- 본문 이미지 -->
-      <div class="form-group">
-        <label for="images-upload">본문 이미지</label>
-        <input id="images-upload" type="file" multiple @change="onFileChange" accept="image/*" class="form-input-file" />
-        <div v-if="images.length > 0" class="image-previews">
-          <div v-for="(image, index) in images" :key="index" class="image-preview-item">
-            <span>{{ image.name }}</span>
-            <button @click="removeImage(index)" type="button" class="remove-btn">&times;</button>
-          </div>
-        </div>
-      </div>
-
       <!-- 버튼 -->
       <div class="form-actions">
         <button type="submit" class="submit-btn" :disabled="!isFormValid">등록하기</button>
@@ -208,7 +196,7 @@ function selectProduct(product) {
 </template>
 
 <style scoped>
-.report-form-container {
+.form-container {
   max-width: 800px;
   margin: 2rem auto;
   padding: 2rem;
