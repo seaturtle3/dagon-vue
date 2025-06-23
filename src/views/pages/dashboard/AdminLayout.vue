@@ -45,6 +45,10 @@
           <i class="fas fa-fish"></i>
           <span>조황정보 관리</span>
         </router-link>
+        <router-link to="/admin/fishing-diaries" class="nav-item" active-class="nav-item-active">
+          <i class="fas fa-book-open"></i>
+          <span>조행기 관리</span>
+        </router-link>
         <router-link to="/admin/faq" class="nav-item" active-class="nav-item-active">
           <i class="fas fa-question-circle"></i>
           <span>FAQ</span>

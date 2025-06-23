@@ -85,6 +85,16 @@ const routes = [
                 meta: {requiresAuth: true}
             },
             {
+                path: 'fishing-diaries',
+                component: () => import('@/views/pages/dashboard/components/FishingDiaries.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'fishing-diaries/:fdId',
+                component: () => import('@/views/pages/dashboard/components/FishingDiaryDetail.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
                 path: 'fishing-reports/:frId/edit',
                 component: () => import('@/views/pages/dashboard/components/FishingReportEdit.vue'),
                 meta: {requiresAuth: true}
