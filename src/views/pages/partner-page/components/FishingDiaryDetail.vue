@@ -1,7 +1,7 @@
 <template>
   <div class="fishing-diary-detail">
     <div class="header">
-      <h2>조황정보 상세</h2>
+      <h2>조행기 상세</h2>
       <div class="header-actions">
         <button @click="goBack" class="btn-back">
           <i class="fas fa-question-circle"></i>
@@ -19,8 +19,8 @@
     <div v-else-if="error" class="error">
       {{ error }}
     </div>
-    <div v-else-if="!report" class="error">
-      조황정보를 찾을 수 없습니다.
+    <div v-else-if="!diary" class="error">
+      조행기 정보를 찾을 수 없습니다.
     </div>
     <div v-else class="detail-content">
       <!-- 기본 정보 섹션 -->
@@ -29,19 +29,19 @@
         <div class="info-grid">
           <div class="info-item">
             <label>제목</label>
-            <span>{{ report.title }}</span>
+            <span>{{ diary.title }}</span>
           </div>
           <div class="info-item">
             <label>작성자</label>
-            <span>{{ report.user?.nickname || report.user?.uname || '알 수 없음' }}</span>
+            <span>{{ diary.user?.nickname || diary.user?.uname || '알 수 없음' }}</span>
           </div>
           <div class="info-item">
             <label>작성일</label>
-            <span>{{ formatDateTime(report.createdAt) }}</span>
+            <span>{{ formatDateTime(diary.createdAt) }}</span>
           </div>
           <div class="info-item">
-            <label>조황 날짜</label>
-            <span>{{ formatDate(report.fishingAt) }}</span>
+            <label>낚시 날짜</label>
+            <span>{{ formatDate(diary.fishingAt) }}</span>
           </div>
         </div>
       </div>
@@ -49,14 +49,14 @@
       <!-- 내용 섹션 -->
       <div class="content-section">
         <h3>상세 내용</h3>
-        <div class="content-body" v-html="report.content"></div>
+        <div class="content-body" v-html="diary.content"></div>
       </div>
 
       <!-- 이미지 섹션 -->
-      <div v-if="report.images && report.images.length > 0" class="images-section">
-        <h3>이미지 ({{ report.images.length }}장)</h3>
+      <div v-if="diary.images && diary.images.length > 0" class="images-section">
+        <h3>이미지 ({{ diary.images.length }}장)</h3>
         <div class="image-gallery">
-          <div v-for="image in report.images" :key="image.id || image.imageUrl" class="image-item">
+          <div v-for="image in diary.images" :key="image.id || image.imageUrl" class="image-item">
             <img :src="image.imageUrl" :alt="image.imageName" @click="openImageModal(image)">
             <div class="image-info">
               <span class="image-name">{{ image.imageName }}</span>
@@ -67,9 +67,9 @@
 
       <!-- 댓글 섹션 -->
       <div class="comments-section">
-        <h3>댓글 ({{ report.comments?.length || 0 }}개)</h3>
-        <div v-if="report.comments && report.comments.length > 0" class="comments-list">
-          <div v-for="comment in report.comments" :key="comment.frCommentId || comment.id" class="comment-item">
+        <h3>댓글 ({{ diary.comments?.length || 0 }}개)</h3>
+        <div v-if="diary.comments && diary.comments.length > 0" class="comments-list">
+          <div v-for="comment in diary.comments" :key="comment.fdCommentId || comment.id" class="comment-item">
             <div class="comment-header">
               <div class="comment-author-info">
                 <span class="comment-author">{{ comment.user?.nickname || comment.user?.uname || '알 수 없음' }}</span>
@@ -82,7 +82,7 @@
             <div class="comment-content">{{ comment.comment || comment.content || comment.text }}</div>
             <div class="comment-actions">
               <button
-                @click="openReportModal(comment.frCommentId || comment.id)"
+                @click="openReportModal(comment.user.uno)"
                 class="btn-report-comment"
                 :aria-label="'댓글 신고'"
                 :disabled="reporting"
@@ -113,6 +113,19 @@
       </div>
     </div>
 
+    <!-- 삭제 확인 모달 -->
+    <div v-if="showDeleteModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>조행기 삭제</h3>
+        <p>정말로 이 조행기를 삭제하시겠습니까?</p>
+        <p class="warning">이 작업은 되돌릴 수 없습니다.</p>
+        <div class="modal-actions">
+          <button @click="confirmDelete" class="btn-delete">삭제</button>
+          <button @click="showDeleteModal = false" class="btn-cancel">취소</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 댓글 신고 모달 -->
     <div v-if="showReportModal" class="modal-overlay">
       <div class="modal-content">
@@ -133,39 +146,20 @@
         </div>
       </div>
     </div>
-
-    <!-- 삭제 확인 모달 -->
-    <div v-if="showDeleteModal" class="modal-overlay">
-      <div class="modal-content">
-        <h3>조황정보 삭제</h3>
-        <p>정말로 이 조황정보를 삭제하시겠습니까?</p>
-        <p class="warning">이 작업은 되돌릴 수 없습니다.</p>
-        <div class="modal-actions">
-          <button @click="confirmDelete" class="btn-delete">삭제</button>
-          <button @click="showDeleteModal = false" class="btn-cancel">취소</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { partnerService } from '@/api/partner.js';
 
-// props로 fr_id를 받음
-const props = defineProps({
-  fr_id: {
-    type: [String, Number],
-    required: true
-  }
-});
-
+const route = useRoute();
 const router = useRouter();
-const report = ref(null);
+const diary = ref(null);
 const loading = ref(true);
 const error = ref(null);
+const showDeleteModal = ref(false);
 const showImageModal = ref(false);
 const selectedImage = ref(null);
 
@@ -175,22 +169,20 @@ const commentToReport = ref(null);
 const reportReason = ref("");
 const reporting = ref(false);
 
-// 삭제 관련 상태
-const showDeleteModal = ref(false);
-
 onMounted(async () => {
-  await fetchReport();
+  console.log('route.params:', route.params);
+  console.log('route.params.fd_id:', route.params.fd_id);
+  await fetchDiary();
 });
 
-async function fetchReport() {
+async function fetchDiary() {
   loading.value = true;
   error.value = null;
   try {
-    // route.params.fr_id 대신 props.fr_id 사용
-    const response = await partnerService.getFishingReportDetail(props.fr_id);
-    report.value = response.data;
+    const response = await partnerService.getFishingDiaryById(route.params.fd_id);
+    diary.value = response.data;
   } catch (err) {
-    console.error('조황정보 상세 조회 실패:', err);
+    console.error('조행기 상세 조회 실패:', err);
     error.value = err.message || '알 수 없는 오류 발생';
   } finally {
     loading.value = false;
@@ -199,6 +191,20 @@ async function fetchReport() {
 
 function goBack() {
   router.back();
+}
+
+async function confirmDelete() {
+  if (!diary.value) return;
+  try {
+    await partnerService.deleteFishingDiary(diary.value.frId || diary.value.fdId);
+    alert('조행기가 삭제되었습니다.');
+    router.push('/partner/fishing-diaries');
+  } catch (err) {
+    console.error('조행기 삭제 실패:', err);
+    alert('조행기 삭제에 실패했습니다.');
+  } finally {
+    showDeleteModal.value = false;
+  }
 }
 
 function openImageModal(image) {
@@ -226,19 +232,23 @@ function formatDateTime(dateString) {
 }
 
 // 댓글 신고
-function openReportModal(commentId) {
-  commentToReport.value = commentId;
+function openReportModal(id) {
+  console.log('openReportModal 호출, id:', id);
+  commentToReport.value = id;
   reportReason.value = "";
   showReportModal.value = true;
+  console.log('신고 대상 id:', commentToReport.value);
 }
 async function confirmReportComment() {
+  console.log('신고 사유 값:', reportReason.value, '| 타입:', typeof reportReason.value, '| 길이:', reportReason.value.length, '| 신고 대상:', commentToReport.value);
   if (!commentToReport.value || !reportReason.value.trim()) {
     alert('신고 사유를 입력해 주세요.');
     return;
   }
   reporting.value = true;
   try {
-    await partnerService.reportFishingReportComment(commentToReport.value, reportReason.value);
+    console.log('API 호출: reportFishingPostComment(', commentToReport.value, ',', reportReason.value, ')');
+    await partnerService.reportFishingPostComment(commentToReport.value, reportReason.value);
     alert('댓글이 신고되었습니다.');
     closeReportModal();
   } catch (err) {
@@ -253,25 +263,10 @@ function closeReportModal() {
   commentToReport.value = null;
   reportReason.value = "";
 }
-
-async function confirmDelete() {
-  if (!report.value?.frId && !props.fr_id) return;
-  try {
-    await partnerService.deleteFishingReport(report.value?.frId || props.fr_id);
-    alert('조황정보가 삭제되었습니다.');
-    router.push('/partner/market-info');
-  } catch (error) {
-    console.error('조황정보 삭제 실패:', error);
-    alert('조황정보 삭제에 실패했습니다.');
-  } finally {
-    showDeleteModal.value = false;
-  }
-}
 </script>
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
-/* FishingDiaryDetail.vue 스타일 복사 */
 .fishing-diary-detail {
   padding: 1rem;
 }
@@ -289,7 +284,8 @@ async function confirmDelete() {
   display: flex;
   gap: 0.5rem;
 }
-.btn-back {
+.btn-back,
+.btn-delete {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
@@ -298,11 +294,20 @@ async function confirmDelete() {
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
+}
+.btn-back {
   background: #95a5a6;
   color: white;
 }
 .btn-back:hover {
   background: #7f8c8d;
+}
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+}
+.btn-delete:hover {
+  background: #c0392b;
 }
 .loading,
 .error {
@@ -587,7 +592,7 @@ async function confirmDelete() {
   color: #7f8c8d;
   font-size: 0.9rem;
 }
-/* 신고 모달 */
+/* 삭제 모달 */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -611,6 +616,10 @@ async function confirmDelete() {
   margin-top: 0;
   color: #2c3e50;
 }
+.warning {
+  color: #e74c3c;
+  font-weight: 600;
+}
 .modal-actions {
   display: flex;
   gap: 1rem;
@@ -623,6 +632,13 @@ async function confirmDelete() {
   border-radius: 4px;
   cursor: pointer;
   font-weight: 600;
+}
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+}
+.btn-delete:hover {
+  background: #c0392b;
 }
 .btn-cancel {
   background: #95a5a6;

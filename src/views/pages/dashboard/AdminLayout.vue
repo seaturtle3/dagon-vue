@@ -42,11 +42,11 @@
           <span>공지사항</span>
         </router-link>
         <router-link to="/admin/fishing-reports" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-fish"></i>
+          <i class="fas fa-chart-bar"></i>
           <span>조황정보 관리</span>
         </router-link>
         <router-link to="/admin/fishing-diaries" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-book-open"></i>
+          <i class="fas fa-building"></i>
           <span>조행기 관리</span>
         </router-link>
         <router-link to="/admin/faq" class="nav-item" active-class="nav-item-active">

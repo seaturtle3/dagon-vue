@@ -38,6 +38,7 @@
             <span class="product-name">{{ report.prodName || '상품 정보 없음' }}</span>
           </div>
           <div class="report-actions">
+            <button class="detail-button" @click.stop="viewReportDetail(report.frId)">상세보기</button>
             <button class="delete-button" @click.stop="deleteReport(report.frId)">삭제</button>
           </div>
         </div>
@@ -112,7 +113,7 @@ export default {
     viewReportDetail(frId) {
       if (frId) {
         sessionStorage.setItem('fishing-report-scroll', window.scrollY);
-        this.$router.push(`/fishing-report/${frId}`);
+        this.$router.push(`/partner/market-info/${frId}`);
       } else {
         alert('상세보기 ID가 올바르지 않습니다.');
       }
@@ -371,6 +372,23 @@ export default {
   margin-top: 10px;
   display: flex;
   justify-content: flex-end;
+}
+
+.detail-button {
+  padding: 6px 12px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+.detail-button:hover {
+  background-color: #1565c0;
+  transform: translateY(-2px);
 }
 
 .delete-button {
