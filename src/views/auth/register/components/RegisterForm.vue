@@ -256,7 +256,7 @@ export default {
       } else {
         this.validationErrors.phone = '';
       }
-    },
+    }, 
     async handleSubmit() {
       try {
         const params = new URLSearchParams();
