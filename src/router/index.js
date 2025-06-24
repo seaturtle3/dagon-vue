@@ -167,12 +167,17 @@ const routes = [
             },
             {
                 path: 'market-info/:id',
-                component: () => import('@/views/pages/partner-page/components/FishingReportDetail.vue')
+                component: () => import('@/views/pages/partner-page/components/FishingReportDetail.vue'),
+                props: route => ({ fr_id: route.params.id })
+            },
+            {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')},
+            {
+                path: 'fishing-diaries',
+                component: () => import('@/views/pages/partner-page/components/FishingDiaryList.vue')
             },
             {
-                path: 'market-info/create/:prodId',
-                name: 'ReportCreate',
-                component: () => import('@/views/pages/partner-page/components/ReportCreateView.vue')
+                path: 'fishing-diaries/:fd_id',
+                component: () => import('@/views/pages/partner-page/components/FishingDiaryDetail.vue')
             },
             {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')}
         ]
@@ -210,6 +215,7 @@ const routes = [
         children: [
             {path: '', component: () => import('@/views/community/fishing-report/ReportList.vue')},
             {path: 'create', component: () => import('@/views/community/fishing-report/ReportForm.vue')},
+            {path: 'form', component: () => import('@/views/community/fishing-report/ReportForm.vue')},
             {
                 path: ':frId',
                 name: 'ReportDetail',
@@ -223,7 +229,7 @@ const routes = [
         path: '/fishing-diary',
         children: [
             {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
-            {path: 'create', component: () => import('@/views/community/fishing-diary/DiaryForm.vue')},
+            // {path: 'form', component: () => import('@/views/community/fishing-diary/DiaryList/DiaryForm.vue')},
             {
                 path: ':fdId',
                 name: 'DiaryDetail',

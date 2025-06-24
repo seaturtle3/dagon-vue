@@ -2,327 +2,474 @@
   <div class="fishing-report-manager">
     <div class="header">
       <h2 class="page-title">조황정보 관리</h2>
-      <div class="header-actions">
-        <button @click="goToAddReport" class="btn btn-primary">
-          <i class="fas fa-plus"></i> 조황정보 등록
-        </button>
-        <div class="search-box">
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="제목으로 검색..."
-            @keyup.enter="applyFilters"
-          >
-          <button @click="applyFilters" class="search-btn">
-            <i class="fas fa-search"></i>
-          </button>
+    </div>
+
+    <div class="filter-section">
+      <div class="search-box">
+        <input type="text" v-model="searchQuery" placeholder="조황정보 제목을 입력하세요">
+        <button class="search-button" @click="searchReports"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      
+      <div class="filter-options">
+        <select v-model="typeFilter" @change="filterReports">
+          <option value="all">전체</option>
+          <!-- 필요한 경우 조황정보 유형 필터 추가 (예: 바다/민물) -->
+        </select>
+      </div>
+    </div>
+
+    <div class="fishing-report-grid">
+      <div v-if="reports.length === 0" class="no-reports-grid">
+        등록된 조황정보가 없습니다.
+      </div>
+      <div v-for="report in filteredReports" :key="report.frId" class="report-card" @click="goToPublicDetail(report.frId)">
+        <div class="report-image">
+          <img :src="getThumbnailUrl(report.thumbnailUrl)" :alt="report.title" @error="handleImageError">
+          <span class="date-badge">
+            {{ formatDate(report.fishingAt) }}
+          </span>
+        </div>
+        
+        <div class="report-info">
+          <h3 class="report-title">제목:{{ report.title }}</h3>
+          <p class="report-content-preview">내용:{{ report.content.slice(0, 50) }}...</p>
+          <div class="product-info">
+            <span class="product-label">상품:</span>
+            <span class="product-name">{{ report.prodName || '상품 정보 없음' }}</span>
+          </div>
+          <div class="report-actions">
+            <button class="detail-button" @click.stop="viewReportDetail(report.frId)">상세보기</button>
+            <button class="delete-button" @click.stop="deleteReport(report.frId)">삭제</button>
+          </div>
         </div>
       </div>
     </div>
-
-    <div class="table-container">
-      <table class="reports-table">
-        <thead>
-          <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>낚시 날짜</th>
-            <th>상품명</th>
-            <th>등록일</th>
-            <th>관리</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="loading">
-            <td colspan="6" class="text-center">
-              <div class="loading-spinner"></div>
-              로딩 중...
-            </td>
-          </tr>
-          <tr v-else-if="reports.length === 0">
-            <td colspan="6" class="text-center">조회된 조황정보가 없습니다.</td>
-          </tr>
-          <tr v-for="report in reports" :key="report.frId">
-            <td>{{ report.frId }}</td>
-            <td class="title-cell" @click="goToDetail(report.frId)">
-                <span class="title">{{ report.title }}</span>
-                <span v-if="report.thumbnailUrl" class="has-image" title="이미지 있음">
-                  <i class="fas fa-image"></i>
-                </span>
-            </td>
-            <td>{{ formatDate(report.fishingAt) }}</td>
-            <td>{{ report.prodName || '-' }}</td>
-            <td>{{ formatDateTime(report.createdAt) }}</td>
-            <td class="actions">
-              <button @click.stop="editReport(report.frId)" class="btn btn-edit">수정</button>
-              <button @click.stop="confirmDelete(report.frId)" class="btn btn-delete">삭제</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 페이지네이션 -->
-    <div class="pagination-container" v-if="totalPages > 1">
-        <button 
-          @click="changePage(currentPage - 1)" 
-          :disabled="currentPage === 1"
-          class="page-btn"
-        >
-          이전
-        </button>
-        <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-        <button 
-          @click="changePage(currentPage + 1)" 
-          :disabled="currentPage === totalPages"
-          class="page-btn"
-        >
-          다음
-        </button>
-      </div>
-
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, computed, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { partnerService } from '@/api/partner.js';
-import { getCurrentUser } from '@/api/user.js';
-import BoardSearchBox from '@/components/common/BoardSearchBox.vue';
-import BoardPagination from '@/components/common/BoardPagination.vue';
+<script>
+import { partnerService } from '@/api/partner';
 
-const router = useRouter();
-const reports = ref([]);
-const currentPage = ref(1);
-const totalPages = ref(1);
-const searchType = ref('title');
-const searchKeyword = ref('');
-const partnerId = ref(null);
-const loading = ref(false);
-const error = ref(null);
-
-const fetchReports = async () => {
-  loading.value = true;
-  error.value = null;
-  try {
-    const response = await partnerService.getFishingReports(
-      currentPage.value - 1,
-      10,
-      searchType.value,
-      searchKeyword.value
-    );
-    reports.value = response.data.content || [];
-    totalPages.value = response.data.totalPages || 1;
-  } catch (err) {
-    console.error('조황 정보를 불러오는 중 오류가 발생했습니다.', err);
-    error.value = '조황 정보를 불러오는 데 실패했습니다.';
-    reports.value = [];
-  } finally {
-    loading.value = false;
-  }
-};
-
-const fetchCurrentUser = async () => {
-  try {
-    const response = await getCurrentUser();
-    partnerId.value = response.data.uno;
-  } catch (err) {
-    console.error('현재 사용자 정보를 가져오는 중 오류가 발생했습니다.', err);
-    error.value = '사용자 정보를 가져오는 데 실패했습니다.';
-  }
-};
-
-const handleSearch = (search) => {
-  currentPage.value = 1;
-  searchType.value = search.type;
-  searchKeyword.value = search.keyword;
-  fetchReports();
-};
-
-const handlePageChange = (page) => {
-  currentPage.value = page;
-  fetchReports();
-};
-
-const goToAddReport = () => {
-  console.log("새 조황정보 추가 페이지로 이동");
-};
-
-const goToDetail = (reportId) => {
-  if (reportId) {
-    console.log(`상세 보기 페이지로 이동: ${reportId}`);
-  }
-};
-
-const editReport = (reportId) => {
-    // 수정 페이지로 이동하는 로직
-    console.log(`수정 페이지로 이동: ${reportId}`);
-};
-
-const confirmDelete = async (reportId) => {
-  if (confirm('정말로 이 조황정보를 삭제하시겠습니까?')) {
-    try {
-      await partnerService.deleteFishingReport(reportId);
-      alert('조황정보가 삭제되었습니다.');
-      // 현재 페이지의 아이템이 모두 삭제되었을 경우, 이전 페이지로 이동
-      if (reports.value.length === 1 && currentPage.value > 1) {
-        currentPage.value--;
+export default {
+  name: 'FishingReportManager',
+  props: {
+    prodId: {
+      type: [String, Number],
+      default: null
+    }
+  },
+  data() {
+    return {
+      reports: [],
+      loading: true,
+      error: null,
+      searchQuery: '',
+      typeFilter: 'all',
+      filteredReports: [],
+      selectedStatus: 'ALL'
+    };
+  },
+  watch: {
+    searchQuery: 'applyFilters',
+    typeFilter: 'applyFilters',
+    reports: 'applyFilters'
+  },
+  methods: {
+    getThumbnailUrl(filename) {
+      const url = partnerService.getThumbnailUrl(filename);
+      return url;
+    },
+    handleImageError(event) {
+      event.target.src = '/images/default-product.jpg';
+    },
+    async loadFishingReports() {
+      try {
+        console.log('조황정보 로딩 시작, prodId:', this.prodId);
+        const response = await partnerService.getFishingReports(this.prodId);
+        console.log('조황정보 응답 데이터:', response.data);
+        this.reports = response.data.map(report => ({
+          ...report,
+          productName: report.prodName || '상품 정보 없음'
+        }));
+        this.applyFilters();
+      } catch (error) {
+        console.error('조황정보 로딩 실패:', error);
+        alert('조황정보를 불러오지 못했습니다.');
       }
-      await fetchReports();
-    } catch (err) {
-      console.error('조황정보 삭제 실패:', err);
-      alert('조황정보 삭제에 실패했습니다.');
+    },
+    applyFilters() {
+      this.filteredReports = this.reports.filter(report => {
+        const matchesSearch = report.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+            report.content.toLowerCase().includes(this.searchQuery.toLowerCase());
+        return matchesSearch;
+      });
+    },
+    searchReports() {
+      this.applyFilters();
+    },
+    filterReports() {
+      this.applyFilters();
+    },
+    viewReportDetail(frId) {
+      if (frId) {
+        sessionStorage.setItem('fishing-report-scroll', window.scrollY);
+        this.$router.push(`/partner/market-info/${frId}`);
+      } else {
+        alert('상세보기 ID가 올바르지 않습니다.');
+      }
+    },
+    formatDate(dateString) {
+      if (!dateString) return '-';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    },
+    async deleteReport(frId) {
+      if (!confirm('정말로 이 조황정보를 삭제하시겠습니까?')) {
+        return;
+      }
+      
+      try {
+        await partnerService.deleteFishingReport(frId);
+        alert('조황정보가 삭제되었습니다.');
+        await this.loadFishingReports(); // 목록 새로고침
+      } catch (error) {
+        console.error('조황정보 삭제 실패:', error);
+        alert('조황정보 삭제에 실패했습니다.');
+      }
+    },
+    goToPublicDetail(frId) {
+      if (frId) {
+        this.$router.push(`/fishing-report/${frId}`);
+      } else {
+        alert('상세보기 ID가 올바르지 않습니다.');
+      }
     }
+  },
+  mounted() {
+    this.loadFishingReports().then(() => {
+      const savedScroll = sessionStorage.getItem('fishing-report-scroll');
+      if (savedScroll) {
+        window.scrollTo({ top: parseInt(savedScroll), behavior: 'smooth' });
+        sessionStorage.removeItem('fishing-report-scroll');
+      }
+    });
   }
 };
-
-const formatDate = (dateString) => {
-  if (!dateString) return '-';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('ko-KR');
-};
-
-const formatDateTime = (dateString) => {
-  if (!dateString) return '-';
-  const date = new Date(dateString);
-  return date.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
-
-onMounted(() => {
-  fetchReports();
-  fetchCurrentUser();
-});
-
-watch([() => searchType.value, () => searchKeyword.value], () => {
-    // 검색어가 변경되면 첫 페이지부터 다시 검색
-    if (currentPage.value !== 1) {
-        currentPage.value = 1;
-    }
-    fetchReports();
-});
-
 </script>
+
 
 <style scoped>
 .fishing-report-manager {
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  width: 100%;
+  margin: 0;
+  background-color: #e3f2fd;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
+
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
 }
+
 .page-title {
-  font-size: 1.8rem;
-  font-weight: 600;
+  margin: 0;
+  color: #1565c0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
-.header-actions {
+
+.filter-section {
   display: flex;
-  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  gap: 20px;
+  border: 1px solid #90caf9;
 }
+
 .search-box {
   display: flex;
+  gap: 10px;
+  flex: 1;
+  max-width: 500px;
 }
+
 .search-box input {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px 0 0 4px;
-}
-.search-btn {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ccc;
-  border-left: none;
-  background-color: #f0f0f0;
-  cursor: pointer;
-  border-radius: 0 4px 4px 0;
-}
-.table-container {
-  overflow-x: auto;
-}
-.reports-table {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   width: 100%;
-  border-collapse: collapse;
-  text-align: center;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
-.reports-table th, .reports-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #e0e0e0;
+
+.search-box input:focus {
+  border-color: #1a237e;
+  box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+  outline: none;
 }
-.reports-table th {
-  background-color: #f5f7fa;
-  font-weight: 500;
-}
-.title-cell {
-  cursor: pointer;
-  text-align: left;
-}
-.title-cell:hover .title {
-  text-decoration: underline;
-}
-.has-image {
-  margin-left: 0.5rem;
-  color: #3498db;
-}
-.actions .btn {
-  padding: 0.3rem 0.6rem;
-  margin: 0 0.2rem;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  cursor: pointer;
-}
-.btn-edit {
-  background-color: #3498db;
+
+.search-button {
+  padding: 12px 24px;
+  background-color: #1976d2;
   color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
 }
-.btn-delete {
-  background-color: #e74c3c;
-  color: white;
+
+.search-button:hover {
+  background-color: #1565c0;
+  transform: translateY(-2px);
 }
-.pagination-container {
+
+.filter-options {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 1.5rem;
+  gap: 15px;
 }
-.page-btn {
-  padding: 0.5rem 1rem;
-  margin: 0 0.5rem;
-  border: 1px solid #ccc;
-  background-color: #fff;
+
+.filter-options select {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  min-width: 150px;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
-.page-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
+
+.filter-options select:focus {
+  border-color: #1a237e;
+  box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+  outline: none;
 }
-.page-info {
-  margin: 0 1rem;
+
+.fishing-report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  margin-bottom: 30px;
 }
-.loading-spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 2rem auto;
+
+.report-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  border: 1px solid #e0e0e0;
 }
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+
+.report-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
 }
-.text-center {
+
+.report-image {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.report-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: #f5f5f5;
+  transition: transform 0.3s ease;
+}
+
+.report-card:hover .report-image img {
+  transform: scale(1.05);
+}
+
+.date-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: white;
+  font-weight: 600;
+  background-color: rgba(25, 118, 210, 0.8);
+}
+
+.report-info {
+  padding: 20px;
+}
+
+.report-title {
+  margin: 0 0 10px;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-content-preview {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.4;
+  height: 4.2em; /* 3 lines of text */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.no-reports-grid {
+  text-align: center;
+  padding: 80px;
+  color: #666;
+  font-size: 1.3rem;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px dashed #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  grid-column: 1 / -1; /* Take full width in grid */
+}
+
+.product-info {
+  margin-top: 10px;
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.product-label {
+  font-weight: 600;
+  color: #1a237e;
+  margin-right: 8px;
+}
+
+.product-name {
+  color: #333;
+}
+
+.report-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.detail-button {
+  padding: 6px 12px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+.detail-button:hover {
+  background-color: #1565c0;
+  transform: translateY(-2px);
+}
+
+.delete-button {
+  padding: 6px 12px;
+  background-color: #e57373;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.delete-button:hover {
+  background-color: #ef5350;
+  transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .fishing-report-manager {
+    padding: 20px;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .search-box {
+    max-width: 100%;
+  }
+
+  .filter-options {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .fishing-report-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .report-image {
+    height: 180px;
+  }
+
+  .report-title {
+    font-size: 1.3rem;
+  }
+
+  .report-content-preview {
+    height: 3.6em; /* 3 lines of text */
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 15px;
     text-align: center;
+  }
+
+  .fishing-report-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-card {
+    margin-bottom: 20px;
+  }
 }
 </style> 
