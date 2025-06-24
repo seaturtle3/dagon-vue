@@ -13,7 +13,7 @@ const props = defineProps({
 console.log('ReportCard ID:', props.report?.frId)
 
 const goToDetail = () => {
-  window.open(`/fishing-report/${props.report.frId}`)
+  router.push(`/fishing-report/${props.report.frId}`)
 }
 </script>
 
@@ -22,7 +22,24 @@ const goToDetail = () => {
        @click="goToDetail">
     <img
         class="thumbnail"
-        :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+        :src="
+          report.images && report.images.length
+            ? (
+                report.images[0].imageData
+                  ? `data:image/jpeg;base64,${report.images[0].imageData}`
+                  : (report.images[0].image_data
+                      ? `data:image/jpeg;base64,${report.images[0].image_data}`
+                      : (report.images[0].imageUrl
+                          ? report.images[0].imageUrl
+                          : (report.images[0].image_url
+                              ? report.images[0].image_url
+                              : '/images/no-image.png'
+                            )
+                        )
+                    )
+              )
+            : '/images/no-image.png'
+        "
     />
     <div class="content">
       <strong>{{ report.product?.prodName }}</strong>

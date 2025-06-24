@@ -1,14 +1,33 @@
 <script setup>
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, onUnmounted } from 'vue'
 import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
 import ReportListView from "@/views/community/fishing-report/components/ReportListView.vue";
 
 const router = useRouter()
 const store = useFishingReportStore()
 
+const handleScroll = () => {
+  const scrollY = window.scrollY || window.pageYOffset
+  const viewportHeight = window.innerHeight
+  const fullHeight = document.documentElement.scrollHeight
+
+  if (
+    scrollY + viewportHeight + 100 >= fullHeight &&
+    !store.loading &&
+    store.currentPage + 1 < store.totalPages
+  ) {
+    store.fetchReports(store.currentPage + 1, store.pageSize)
+  }
+}
+
 onMounted(async () => {
-  await store.fetchReports()
+  if (store.reports.length === 0) {
+    await store.fetchReports(0, store.pageSize)
+  }
+  window.addEventListener('scroll', handleScroll)
+})
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 
 const goToCreateReport = () => {
@@ -24,7 +43,7 @@ const goToCreateReport = () => {
         ✏️ 조황정보 등록
       </button>
     </div>
-    
+
     <ReportListView v-if="store.reports.length" :reports="store.reports" />
     <div v-else class="loading-message">
       <p>조황 정보를 불러오는 중입니다...</p>
@@ -85,11 +104,11 @@ const goToCreateReport = () => {
     gap: 15px;
     text-align: center;
   }
-  
+
   .page-title {
     font-size: 1.5rem;
   }
-  
+
   .create-btn {
     width: 100%;
   }

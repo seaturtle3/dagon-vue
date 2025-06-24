@@ -194,7 +194,7 @@ const confirmDelete = async () => {
     <div class="thumbnail-section">
       <img
         class="thumbnail-img"
-        :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+        :src="`${IMAGE_BASE_URL}${report.thumbnailUrl}`"
         alt="썸네일"
       />
     </div>
@@ -209,7 +209,7 @@ const confirmDelete = async () => {
         <img
           v-for="(img, index) in report.imageUrls"
           :key="index"
-          :src="`${IMAGE_BASE_URL}/fishing-report/${img}`"
+          :src="`${IMAGE_BASE_URL}${img}`"
           class="extra-image"
           alt="조황 사진"
         />

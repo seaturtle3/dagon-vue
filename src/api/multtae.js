@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:8095'
+const BASE_URL = ''
 
 // 물때 정보 조회 (오늘) - stationCode 파라미터 필요
 export const getMulttaeData = async (stationCode = 'DT_0001') => {
