@@ -161,6 +161,27 @@ const confirmDelete = async () => {
     }
   }
 };
+
+const showImageModal = ref(false);
+const modalImageIndex = ref(0);
+
+function openImageModal(index) {
+  modalImageIndex.value = index;
+  showImageModal.value = true;
+}
+function closeImageModal() {
+  showImageModal.value = false;
+}
+function prevImage() {
+  if (modalImageIndex.value > 0) {
+    modalImageIndex.value--;
+  }
+}
+function nextImage() {
+  if (modalImageIndex.value < (props.report.images.length - 1)) {
+    modalImageIndex.value++;
+  }
+}
 </script>
 
 <template>
@@ -194,7 +215,24 @@ const confirmDelete = async () => {
     <div class="thumbnail-section">
       <img
         class="thumbnail-img"
-        :src="`${IMAGE_BASE_URL}${report.thumbnailUrl}`"
+        :src="
+          report.images && report.images.length
+            ? (
+                report.images[0].imageData
+                  ? `data:image/jpeg;base64,${report.images[0].imageData}`
+                  : (report.images[0].image_data
+                      ? `data:image/jpeg;base64,${report.images[0].image_data}`
+                      : (report.images[0].imageUrl
+                          ? report.images[0].imageUrl
+                          : (report.images[0].image_url
+                              ? report.images[0].image_url
+                              : '/images/no-image.png'
+                            )
+                        )
+                    )
+              )
+            : '/images/no-image.png'
+        "
         alt="썸네일"
       />
     </div>
@@ -203,16 +241,58 @@ const confirmDelete = async () => {
       <div class="content-text" v-html="report.content"></div>
     </div>
 
-    <div v-if="report.imageUrls && report.imageUrls.length" class="report-images">
+    <div v-if="report.images && report.images.length" class="report-images">
       <h5 class="section-label">추가 사진</h5>
       <div class="image-list">
         <img
-          v-for="(img, index) in report.imageUrls"
+          v-for="(img, index) in report.images"
           :key="index"
-          :src="`${IMAGE_BASE_URL}${img}`"
+          :src="
+            img.imageData
+              ? `data:image/jpeg;base64,${img.imageData}`
+              : (img.image_data
+                  ? `data:image/jpeg;base64,${img.image_data}`
+                  : (img.imageUrl
+                      ? img.imageUrl
+                      : (img.image_url
+                          ? img.image_url
+                          : '/images/no-image.png'
+                        )
+                    )
+                )
+          "
           class="extra-image"
           alt="조황 사진"
+          @click="openImageModal(index)"
+          style="cursor:pointer"
         />
+      </div>
+    </div>
+
+    <!-- 이미지 모달 -->
+    <div v-if="showImageModal" class="modal-overlay" @click.self="closeImageModal">
+      <div class="modal-image-content">
+        <button v-if="modalImageIndex > 0" class="modal-nav-btn left" @click.stop="prevImage">&#8592;</button>
+        <img
+          :src="
+            report.images[modalImageIndex].imageData
+              ? `data:image/jpeg;base64,${report.images[modalImageIndex].imageData}`
+              : (report.images[modalImageIndex].image_data
+                  ? `data:image/jpeg;base64,${report.images[modalImageIndex].image_data}`
+                  : (report.images[modalImageIndex].imageUrl
+                      ? report.images[modalImageIndex].imageUrl
+                      : (report.images[modalImageIndex].image_url
+                          ? report.images[modalImageIndex].image_url
+                          : '/images/no-image.png'
+                        )
+                    )
+                )
+          "
+          class="modal-large-image"
+          alt="큰 조황 사진"
+        />
+        <button v-if="modalImageIndex < report.images.length - 1" class="modal-nav-btn right" @click.stop="nextImage">&#8594;</button>
+        <button class="modal-close-btn" @click="closeImageModal">×</button>
       </div>
     </div>
 
@@ -429,70 +509,70 @@ const confirmDelete = async () => {
 /* 모달 스타일 */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-  z-index: 1050;
+  z-index: 2000;
 }
-
-.modal-content {
-  background: white;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
+.modal-image-content {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px 48px;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-large-image {
+  max-width: 80vw;
   max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
 }
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.modal-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.modal-body {
-  padding: 1rem;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding: 1rem;
-  border-top: 1px solid #dee2e6;
-}
-
-.btn-close {
+.modal-close-btn {
+  position: absolute;
+  top: 8px; right: 16px;
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 2.2rem;
+  color: #333;
   cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
+  z-index: 10;
+}
+.modal-close-btn:hover {
+  color: #1976d2;
+}
+.modal-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(25, 118, 210, 0.8);
+  color: #fff;
+  border: none;
+  font-size: 2.5rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.2s;
 }
-
-.btn-close:hover {
-  background-color: #f8f9fa;
-  border-radius: 4px;
+.modal-nav-btn.left {
+  left: 8px;
 }
-
+.modal-nav-btn.right {
+  right: 8px;
+}
+.modal-nav-btn:hover {
+  background: #1565c0;
+}
 .detail-actions {
   display: flex;
   justify-content: flex-end;
