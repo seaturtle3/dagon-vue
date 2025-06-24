@@ -145,6 +145,7 @@ import { useAuthStore } from '@/store/login/loginStore.js';
 import { myPageAPI } from '@/api/mypage.js';
 import { partnerService } from '@/api/partner.js';
 import axios from 'axios';
+import { useUserStore } from '@/store/inquiries/userStore.js';
 
 export default {
   name: "Payments",
@@ -170,6 +171,8 @@ export default {
   async mounted() {
     // Auth store 초기화
     this.authStore = useAuthStore();
+
+    console.log('authStore.user:', this.authStore.user);
     
     // 로그인 상태 확인 및 사용자 정보 동기화
     await this.checkAuthStatus();
@@ -182,8 +185,13 @@ export default {
       totalPeople: parseInt(this.$route.query.totalPeople) || 0,
       estimatedPrice: parseInt(this.$route.query.estimatedPrice) || 0,
       prodId: this.$route.query.prodId || '',
-      prodName: this.$route.query.prodName || ''
-    };
+      prodName: this.$route.query.prodName || '',
+      prodAddress: this.$route.query.prodAddress || '',
+      prodPostcode: this.$route.query.prodPostcode || '',
+      optionId: this.$route.query.optionId || '',
+      optionName: this.$route.query.optionName || '',
+      optionPrice: this.$route.query.optionPrice || 0,
+    }
 
     // prodId가 있으면 상품 상세 정보 DB에서 가져오기
     if (this.reservationInfo.prodId) {
@@ -348,6 +356,9 @@ export default {
         return;
       }
 
+      const userStore = useUserStore();
+      const uid = userStore.user?.uid;
+
       IMP.request_pay(
           {
             pg: "html5_inicis.INIpayTest",
@@ -358,8 +369,8 @@ export default {
             buyer_email: this.userInfo.buyer_email,
             buyer_name: this.userInfo.buyer_name,
             buyer_tel: this.userInfo.buyer_tel,
-            buyer_addr: "서울시 강남구",
-            buyer_postcode: "12345",
+            buyer_addr: this.reservationInfo.prodAddress,
+            buyer_postcode: this.reservationInfo.prodPostcode,
             m_redirect_url: `${BASE_URL}/payments/result`,
           },
           (rsp) => {
@@ -436,7 +447,8 @@ export default {
           // 화면 표시용
           productName: this.reservationInfo.prodName,
           optionName: this.reservationInfo.optionName || '',
-          userName: this.userInfo.buyer_name
+          userName: this.userInfo.buyer_name, 
+          uid: 'user001',
         };
 
         console.log("예약 정보 전체:", JSON.stringify(reservationData, null, 2));

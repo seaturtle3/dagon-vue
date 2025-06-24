@@ -19,9 +19,6 @@ const activeTab = ref('info')
 const activeSubTab = ref('center')
 const selectedOptionId = ref(null)
 
-
-
-
 onMounted(async () => {
   await store.fetchProductDetail(prodId)
   console.log('onMounted product:', store.product)
@@ -32,7 +29,6 @@ watch(product, (val) => {
     selectedOptionId.value = val.options[0].option_id
   }
 })
-
 
 onUnmounted(() => {
   store.clearProduct()
@@ -126,16 +122,6 @@ const setTab = (tab) => {
         <div v-if="activeTab === 'reservation'" class="reservation-content">
           <div class="content-section">
             <h3 class="section-title">예약 캘린더</h3>
-            <div v-if="store.product ">
-              <select v-model="selectedOptionId">
-                <option v-for="option in product.options" :key="option.option_id" :value="option.option_id">
-                  {{ option.option_name }} ({{ option.price }}원)
-                </option>
-              </select>
-            </div>
-            <div v-else>
-              옵션 정보가 없습니다.
-            </div>
             <ReservationCalendar :product="product" :option-id="selectedOptionId" />
           </div>
         </div>
@@ -323,5 +309,20 @@ const setTab = (tab) => {
     border-bottom: none;
     border-right-color: #007bff;
   }
+}
+
+.go-payment-btn {
+  margin-left: 12px;
+  padding: 8px 18px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.go-payment-btn:hover {
+  background: #1251a3;
 }
 </style> 

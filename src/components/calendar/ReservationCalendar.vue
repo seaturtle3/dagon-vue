@@ -56,6 +56,25 @@
           </div>
         </div>
         
+        <div v-if="props.product && props.product.options && props.product.options.length" class="option-select-section">
+          <div>
+            <p>localOptionId: {{ localOptionId }}</p>
+            <p>options: {{ props.product && props.product.options ? props.product.options.length : 0 }}</p>
+          </div>
+          <label for="optionSelect"><b>옵션 선택</b></label>
+          <select
+            id="optionSelect"
+            v-model="localOptionId"
+            :key="props.product && props.product.options ? props.product.options.map(o => o.id).join(',') : ''"
+            @change="e => console.log('[select change]', e.target.value, localOptionId)"
+            style="margin-left: 12px;"
+          >
+            <option v-for="option in props.product.options" :key="option.id" :value="String(option.price)">
+              {{ option.optName || option.option_name }} ({{ option.price ? option.price.toLocaleString() + '원' : '-' }})
+            </option>
+          </select>
+        </div>
+        
         <div class="total-info">
           <p>총 인원: {{ totalPeople }}명</p>
           <p v-if="totalPeople > 0">예상 금액: {{ estimatedPrice.toLocaleString() }}원</p>
@@ -80,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router'
 
 const today = new Date();
@@ -99,8 +118,19 @@ const CHILD_PRICE = 50;
 
 const totalPeople = computed(() => adultCount.value + childCount.value);
 
+const localOptionId = ref('');
+
 const estimatedPrice = computed(() => {
-  return (adultCount.value * ADULT_PRICE) + (childCount.value * CHILD_PRICE);
+  let base = (adultCount.value * ADULT_PRICE) + (childCount.value * CHILD_PRICE);
+  let optionPrice = localOptionId;
+  if (props.product && props.product.options && localOptionId) {
+    const selected = props.product.options.find(
+      o => String(o.id) === String(localOptionId)
+    );
+    if (selected && selected.price != null) optionPrice = Number(selected.price);
+  }
+  // base와 optionPrice 모두 숫자임을 보장
+  return Number(base) + Number(optionPrice.value);
 });
 
 const formatDate = (date) => {
@@ -191,9 +221,45 @@ const generateDates = () => {
   datesInMonth.value = days;
 };
 
-// product 정보를 props로 받음
 const props = defineProps({
-  product: { type: Object, required: false, default: null }
+  product: { type: Object, required: false, default: null },
+  optionId: { type: [String, Number], required: false, default: null },
+});
+
+const emit = defineEmits(['update:optionId']);
+
+watch(
+  () => props.product && props.product.options,
+  (options) => {
+    if (
+      options &&
+      Array.isArray(options) &&
+      options.length > 0
+    ) {
+      localOptionId.value = String(options[0].id);
+      console.log('[초기 세팅] localOptionId:', localOptionId.value);
+    }
+  },
+  { immediate: true }
+);
+
+// watch(localOptionId, (val) => {
+//   const selected = props.product?.options?.find(
+//     o =>{
+//       console.log('o.id:', o, 'val:', val);
+//       return String(o.price) === String(val)
+//     }
+//   );
+//   console.log('[옵션 변경] localOptionId:', val, 'selected:', selected, 'selected.price:', selected?.price, 'adultCount:', adultCount.value, 'childCount:', childCount.value);
+//   emit('update:optionId', val);
+// });
+
+watch([adultCount, childCount], () => {
+  console.log('[인원 변경] adultCount:', adultCount.value, 'childCount:', childCount.value, 'estimatedPrice:', estimatedPrice.value);
+});
+
+watch(estimatedPrice, (val) => {
+  console.log('[금액 변경] estimatedPrice:', val);
 });
 
 const goToPayment = () => {
@@ -219,7 +285,8 @@ const goToPayment = () => {
       estimatedPrice: estimatedPrice.value,
       prodId: props.product?.prodId || '',
       prodName: props.product?.prodName || '',
-      prodAddress: props.product?.prodAddress || ''
+      prodAddress: props.product?.prodAddress || '',
+      optionId: localOptionId.value
     }
   });
 };
@@ -435,5 +502,10 @@ onMounted(() => {
 .selected {
   background: #007BFF;
   color: white;
+}
+
+.option-select-section {
+  margin-top: 24px;
+  margin-bottom: 12px;
 }
 </style>

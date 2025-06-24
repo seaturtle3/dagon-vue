@@ -229,6 +229,27 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- 옵션 정보 표 -->
+    <div v-if="props.product.options && props.product.options.length" class="option-table-section">
+      <h3>상품 옵션 정보</h3>
+      <table class="option-table">
+        <thead>
+          <tr>
+            <th>옵션명</th>
+            <th>옵션 설명</th>
+            <th>가격</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="option in props.product.options" :key="option.option_id">
+            <td>{{ option.optName || option.option_name }}</td>
+            <td>{{ option.optDescription || option.option_description }}</td>
+            <td>{{ option.price ? option.price.toLocaleString() + '원' : '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- 신고 모달 -->
     <div v-if="showReportForm" class="report-overlay">
       <div class="report-modal">
@@ -430,6 +451,29 @@ onMounted(() => {
 
 .cancel-button:hover {
   background-color: #5a6268;
+}
+
+.option-table-section {
+  margin-top: 32px;
+}
+.option-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  background: #f8f9fa;
+}
+.option-table th, .option-table td {
+  border: 1px solid #e0e0e0;
+  padding: 10px 12px;
+  text-align: center;
+}
+.option-table th {
+  background: #e3eafc;
+  color: #1a237e;
+  font-weight: 600;
+}
+.option-table-section h3 {
+  text-align: center;
 }
 </style>
 
