@@ -229,6 +229,7 @@ const routes = [
         path: '/fishing-diary',
         children: [
             {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
+            {path: 'create', component: () => import('@/views/community/fishing-diary/DiaryForm.vue')},
             {
                 path: ':fdId',
                 name: 'DiaryDetail',
