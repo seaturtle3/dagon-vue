@@ -5,7 +5,6 @@ import { useRouter } from 'vue-router'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import { getProductsByKeyword } from '@/api/product.js'
 import { useFishingDiaryStore } from '@/store/fishing-center/useFishingDiaryStore.js'
-import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
 
 const router = useRouter()
 const thumbnailFile = ref(null)
@@ -22,7 +21,6 @@ const productOptions = ref([])
 const productSearchLoading = ref(false)
 const fishingDiaryStore = useFishingDiaryStore()
 const error = ref('')
-const fishingReportStore = useFishingReportStore()
 
 const isFormValid = computed(() => {
   return (
@@ -121,39 +119,16 @@ function selectProduct(product) {
   productSearch.value = product.prodName
   productOptions.value = []
 }
-
-function goToEditReport(frId) {
-  router.push(`/fishing-report/form/${frId}`);
-}
-
-function goToEdit() {
-  router.push(`/fishing-report/form/${frId}`);
-}
-
-function confirmDelete() {
-  if (confirm('정말 삭제하시겠습니까?')) {
-    try {
-      await fishingReportStore.deleteFishingReport(frId)
-      alert('삭제되었습니다.')
-      router.push('/fishing-report')
-    } catch (e) {
-      alert('삭제에 실패했습니다.')
-    }
-  }
-}
 </script>
 
 <template>
-  <div class="report-form-container">
+  <div class="form-container">
     <div class="form-header">
       <h2 class="form-title">✍️ 조행기 작성</h2>
       <p class="form-subtitle">나만의 낚시 경험을 공유해보세요!</p>
     </div>
-    <div class="detail-actions" v-if="isOwnReport">
-      <button class="btn btn-edit" @click="goToEdit">수정</button>
-      <button class="btn btn-delete" @click="confirmDelete">삭제</button>
-    </div>
-    <form @submit.prevent="onSubmit" class="report-form">
+
+    <form @submit.prevent="onSubmit">
       <!-- 기본 정보 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📝 기본 정보</h3>
@@ -233,7 +208,7 @@ function confirmDelete() {
 </template>
 
 <style scoped>
-.report-form-container {
+.form-container {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
