@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import { getProductsByKeyword } from '@/api/product.js'
 import { useFishingDiaryStore } from '@/store/fishing-center/useFishingDiaryStore.js'
+import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
 
 const router = useRouter()
 const thumbnailFile = ref(null)
@@ -21,6 +22,7 @@ const productOptions = ref([])
 const productSearchLoading = ref(false)
 const fishingDiaryStore = useFishingDiaryStore()
 const error = ref('')
+const fishingReportStore = useFishingReportStore()
 
 const isFormValid = computed(() => {
   return (
@@ -119,6 +121,26 @@ function selectProduct(product) {
   productSearch.value = product.prodName
   productOptions.value = []
 }
+
+function goToEditReport(frId) {
+  router.push(`/fishing-report/form/${frId}`);
+}
+
+function goToEdit() {
+  router.push(`/fishing-report/form/${frId}`);
+}
+
+function confirmDelete() {
+  if (confirm('정말 삭제하시겠습니까?')) {
+    try {
+      await fishingReportStore.deleteFishingReport(frId)
+      alert('삭제되었습니다.')
+      router.push('/fishing-report')
+    } catch (e) {
+      alert('삭제에 실패했습니다.')
+    }
+  }
+}
 </script>
 
 <template>
@@ -126,6 +148,10 @@ function selectProduct(product) {
     <div class="form-header">
       <h2 class="form-title">✍️ 조행기 작성</h2>
       <p class="form-subtitle">나만의 낚시 경험을 공유해보세요!</p>
+    </div>
+    <div class="detail-actions" v-if="isOwnReport">
+      <button class="btn btn-edit" @click="goToEdit">수정</button>
+      <button class="btn btn-delete" @click="confirmDelete">삭제</button>
     </div>
     <form @submit.prevent="onSubmit" class="report-form">
       <!-- 기본 정보 섹션 -->
@@ -413,5 +439,27 @@ function selectProduct(product) {
   margin-top: 8px;
   color: #1976d2;
   font-size: 0.95em;
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.btn-edit, .btn-delete {
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.btn-edit {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+}
+.btn-delete {
+  background: #f44336;
+  color: #fff;
+  border: none;
 }
 </style> 
