@@ -122,13 +122,13 @@ function selectProduct(product) {
 </script>
 
 <template>
-  <div class="report-form-container">
+  <div class="form-container">
     <div class="form-header">
       <h2 class="form-title">✍️ 조행기 작성</h2>
       <p class="form-subtitle">나만의 낚시 경험을 공유해보세요!</p>
     </div>
 
-    <form @submit.prevent="onSubmit" class="report-form">
+    <form @submit.prevent="onSubmit">
       <!-- 기본 정보 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📝 기본 정보</h3>
@@ -208,7 +208,7 @@ function selectProduct(product) {
 </template>
 
 <style scoped>
-.report-form-container {
+.form-container {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
