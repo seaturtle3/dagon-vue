@@ -87,7 +87,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="detail-section">
             <h3>회원 정보</h3>
             <div class="detail-grid">
@@ -105,7 +105,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="detail-section">
             <h3>파트너 정보</h3>
             <div class="detail-grid">
@@ -123,27 +123,27 @@
               </div>
             </div>
           </div>
-          
+
           <div class="detail-section">
             <h3>예약 관리</h3>
             <div class="action-buttons">
-              <button 
-                v-if="selectedReservation.status === '예약대기'" 
-                class="btn-approve" 
+              <button
+                v-if="selectedReservation.status === '예약대기'"
+                class="btn-approve"
                 @click="approveReservation(selectedReservation.id)"
               >
                 예약 승인
               </button>
-              <button 
-                v-if="selectedReservation.status === '예약대기'" 
-                class="btn-reject" 
+              <button
+                v-if="selectedReservation.status === '예약대기'"
+                class="btn-reject"
                 @click="rejectReservation(selectedReservation.id)"
               >
                 예약 거절
               </button>
-              <button 
-                v-if="selectedReservation.status === '예약확정'" 
-                class="btn-complete" 
+              <button
+                v-if="selectedReservation.status === '예약확정'"
+                class="btn-complete"
                 @click="completeReservation(selectedReservation.id)"
               >
                 이용완료 처리
@@ -457,7 +457,7 @@ export default {
           status: '예약대기'
         }
       ]
-      
+
       // 총 페이지 수 계산
       this.totalPages = Math.ceil(this.allReservations.length / this.itemsPerPage);
       // 현재 페이지가 총 페이지 수를 초과하면 마지막 페이지로 설정
@@ -474,25 +474,25 @@ export default {
       try {
       // TODO: 예약 승인 API 호출
         console.log('예약 승인:', reservationId);
-        
+
         // 실제 API 호출 시 아래 주석 해제
         // const response = await this.$http.put(`/api/reservations/${reservationId}/approve`);
-        
+
         // 성공 메시지 표시
         alert('예약이 승인되었습니다.');
-        
+
         // 해당 예약의 상태를 업데이트
         const reservation = this.allReservations.find(r => r.id === reservationId);
         if (reservation) {
           reservation.status = '예약확정';
         }
-        
+
         // 모달 닫기
         this.closeDetailModal();
-        
+
         // 목록 새로고침 (실제 API 사용 시)
         // this.searchReservations();
-        
+
       } catch (error) {
         console.error('예약 승인 실패:', error);
         alert('예약 승인에 실패했습니다.');
@@ -502,25 +502,25 @@ export default {
       try {
       // TODO: 예약 거절 API 호출
         console.log('예약 거절:', reservationId);
-        
+
         // 실제 API 호출 시 아래 주석 해제
         // const response = await this.$http.put(`/api/reservations/${reservationId}/reject`);
-        
+
         // 성공 메시지 표시
         alert('예약이 거절되었습니다.');
-        
+
         // 해당 예약의 상태를 업데이트
         const reservation = this.allReservations.find(r => r.id === reservationId);
         if (reservation) {
           reservation.status = '예약취소';
         }
-        
+
         // 모달 닫기
         this.closeDetailModal();
-        
+
         // 목록 새로고침 (실제 API 사용 시)
         // this.searchReservations();
-        
+
       } catch (error) {
         console.error('예약 거절 실패:', error);
         alert('예약 거절에 실패했습니다.');
@@ -564,25 +564,25 @@ export default {
       // TODO: 이용완료 처리 API 호출
       try {
         console.log('이용완료 처리:', reservationId);
-        
+
         // 실제 API 호출 시 아래 주석 해제
         // const response = await this.$http.put(`/api/reservations/${reservationId}/complete`);
-        
+
         // 성공 메시지 표시
         alert('이용완료 처리가 완료되었습니다.');
-        
+
         // 해당 예약의 상태를 업데이트
         const reservation = this.allReservations.find(r => r.id === reservationId);
         if (reservation) {
           reservation.status = '이용완료';
         }
-        
+
         // 모달 닫기
         this.closeDetailModal();
-        
+
         // 목록 새로고침 (실제 API 사용 시)
         // this.searchReservations();
-        
+
       } catch (error) {
         console.error('이용완료 처리 실패:', error);
         alert('이용완료 처리에 실패했습니다.');
@@ -839,4 +839,4 @@ export default {
   background-color: #f8f9fa;
   color: #333;
 }
-</style> 
+</style>

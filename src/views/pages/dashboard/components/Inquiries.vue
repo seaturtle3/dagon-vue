@@ -2,6 +2,11 @@
   <div class="inquiries">
     <h1>1:1 문의 관리</h1>
 
+    <div class="expand-controls">
+      <button @click="expandAllCategories" title="전체 펼치기"><span class="expand-icon">▼</span></button>
+      <button @click="collapseAllCategories" title="전체 접기"><span class="expand-icon">▲</span></button>
+    </div>
+
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="제목 또는 작성자로 검색">
       <select v-model="statusFilter">
@@ -14,8 +19,8 @@
 
     <!-- 문의 유형별 탭 -->
     <div class="inquiry-tabs">
-      <button 
-        v-for="type in inquiryTypes" 
+      <button
+        v-for="type in inquiryTypes"
         :key="type.value"
         :class="['tab-button', { active: selectedType === type.value }]"
         @click="selectType(type.value)"
@@ -126,7 +131,7 @@ export default {
         'RESERVATION': [],
         'RESERVATION_CANCEL': []
       };
-      
+
       for (const inquiry of this.inquiries) {
         const type = inquiry.inquiryType || this.getInquiryTypeFromTitle(inquiry.title);
         if (groups[type]) {
@@ -139,7 +144,7 @@ export default {
     },
     filteredInquiries() {
       let filtered = this.inquiries;
-      
+
       // 문의 유형 필터링
       if (this.selectedType) {
         filtered = filtered.filter(inquiry => {
@@ -147,21 +152,21 @@ export default {
           return type === this.selectedType;
         });
       }
-      
+
       // 검색어 필터링
       if (this.searchQuery) {
         const query = this.searchQuery.toLowerCase();
-        filtered = filtered.filter(inquiry => 
+        filtered = filtered.filter(inquiry =>
           inquiry.title.toLowerCase().includes(query) ||
           (inquiry.userName || inquiry.author || '').toLowerCase().includes(query)
         );
       }
-      
+
       // 상태 필터링
       if (this.statusFilter) {
         filtered = filtered.filter(inquiry => inquiry.status === this.statusFilter);
       }
-      
+
       return filtered;
     },
     paginatedInquiries() {
@@ -190,14 +195,14 @@ export default {
         // const response = await inquiryApi.getInquiryList(params);
         // this.inquiries = response.data.content;
         // this.totalPages = response.data.totalPages;
-        
+
         // 임시 데이터 생성
         const generatedData = this.generateInquiryData();
-        
+
         // store의 데이터와 생성된 데이터 합치기
         const storeData = this.inquiryStore ? this.inquiryStore.inquiries : [];
         this.inquiries = [...storeData, ...generatedData];
-        
+
         // 펼침 상태 초기화
         this.expandedInquiries = [];
       } catch (error) {
@@ -235,7 +240,7 @@ export default {
         // await inquiryApi.deleteReply(inquiryId);
         // alert('답변이 삭제되었습니다.');
         // this.searchInquiries();
-        
+
         // 임시 처리 - 실제 데이터 업데이트
         const inquiry = this.inquiries.find(i => i.id === inquiryId);
         if (inquiry) {
@@ -244,7 +249,7 @@ export default {
           inquiry.answeredAt = null;
         alert('답변이 삭제되었습니다.');
         }
-        
+
       } catch (error) {
         console.error('답변 삭제 실패:', error);
         alert('답변 삭제 중 오류가 발생했습니다.');
@@ -253,7 +258,7 @@ export default {
     async submitReply() {
       try {
         const {inquiryId, content} = this.replyForm;
-        
+
         // TODO: 실제 API 호출 시 아래 주석 해제
         // if (this.editingReply) {
         //   await inquiryApi.updateReply(inquiryId, {answerContent: content});
@@ -262,7 +267,7 @@ export default {
         //   await inquiryApi.createReply(inquiryId, {answerContent: content});
         //   alert('답변이 등록되었습니다.');
         // }
-        
+
         // 임시 처리 - 실제 데이터 업데이트
         const inquiry = this.inquiries.find(i => i.id === inquiryId);
         if (inquiry) {
@@ -276,13 +281,13 @@ export default {
           alert('답변이 등록되었습니다.');
           }
         }
-        
+
         this.showReplyModal = false;
         this.replyForm = { inquiryId: null, content: '' };
-        
+
         // 목록 새로고침 (실제 API 사용 시)
         // await this.searchInquiries();
-        
+
       } catch (error) {
         console.error('답변 저장 실패:', error);
         alert('답변 저장 중 오류가 발생했습니다.');
@@ -331,7 +336,7 @@ export default {
     generateInquiryData() {
       const data = [];
       let id = 1;
-      
+
       // 상품 문의 데이터 (30개)
       const productInquiries = [
         { title: '낚시대 추천 부탁드립니다', content: '초보자에게 적합한 낚시대를 추천해주세요. 바다낚시용으로 사용할 예정이고, 예산은 20만원 정도입니다.' },
@@ -524,11 +529,11 @@ export default {
       allInquiries.forEach((inquiry, index) => {
         const createdAt = new Date();
         createdAt.setDate(createdAt.getDate() - Math.floor(Math.random() * 30)); // 최근 30일 내
-        
+
         const status = Math.random() < 0.5 ? '대기중' : '답변완료';
         const answerContent = status === '답변완료' ? `${inquiry.title}에 대한 답변입니다. 문의해주셔서 감사합니다.` : null;
         const answeredAt = status === '답변완료' ? new Date(createdAt.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString() : null;
-        
+
         data.push({
           id: id++,
           title: inquiry.title,
@@ -552,7 +557,7 @@ export default {
   mounted() {
     // store 초기화
     this.inquiryStore = useInquiryStore()
-    
+
     // 라우터 쿼리 파라미터에서 문의 유형 확인
     const queryType = this.$route.query.type;
     if (queryType && this.inquiryTypes.some(type => type.value === queryType)) {
