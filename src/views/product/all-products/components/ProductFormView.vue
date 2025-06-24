@@ -2,8 +2,8 @@
 import {reactive, watch, toRefs, onMounted, ref} from 'vue'
 import {createProduct} from "@/api/product.js";
 
-const file = ref(null)  // 파일 업로드 항목 추가
-const imagePreview = ref(null) // 이미지 미리보기
+const files = ref([])  // 여러 파일 업로드 지원
+const imagePreviews = ref([]) // 여러 이미지 미리보기
 
 const props = defineProps({
   form: Object,
@@ -37,22 +37,44 @@ onMounted(() => {
 })
 
 function onFileChange(event) {
-  const uploadedFile = event.target.files[0]
-  if (uploadedFile) {
-    file.value = uploadedFile
-    
-    // 이미지 미리보기 생성
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      imagePreview.value = e.target.result
+  const uploadedFiles = Array.from(event.target.files)
+  
+  uploadedFiles.forEach(file => {
+    if (file && file.type.startsWith('image/')) {
+      // 파일 크기 체크 (5MB 제한)
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
+        return
+      }
+      
+      // 이미지 미리보기 생성
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        imagePreviews.value.push({
+          id: Date.now() + Math.random(),
+          url: e.target.result,
+          file: file,
+          name: file.name
+        })
+      }
+      reader.readAsDataURL(file)
+      
+      files.value.push(file)
     }
-    reader.readAsDataURL(uploadedFile)
+  })
+}
+
+function removeImage(imageId) {
+  const index = imagePreviews.value.findIndex(img => img.id === imageId)
+  if (index > -1) {
+    imagePreviews.value.splice(index, 1)
+    files.value.splice(index, 1)
   }
 }
 
-function removeImage() {
-  file.value = null
-  imagePreview.value = null
+function removeAllImages() {
+  files.value = []
+  imagePreviews.value = []
 }
 
 async function submit() {
@@ -65,8 +87,9 @@ async function submit() {
       new Blob([JSON.stringify(productJson)], {type: "application/json"})
   )
 
-  if (file.value) {
-    formData.append("thumbnailFile", file.value)
+  // 현재는 첫 번째 이미지만 전송 (백엔드가 단일 이미지만 지원)
+  if (files.value.length > 0) {
+    formData.append("thumbnailFile", files.value[0])
   }
 
   try {
@@ -85,8 +108,8 @@ async function submit() {
   <div class="product-form-container">
     <!-- 페이지 헤더 -->
     <div class="page-header">
-      <h1 class="page-title">배 상품 등록</h1>
-      <p class="page-subtitle">새로운 배 상품을 등록해보세요</p>
+      <h1 class="page-title">선박 상품 등록</h1>
+      <p class="page-subtitle">새로운 선박 상품을 등록해보세요</p>
     </div>
 
     <form @submit.prevent="submit" class="product-form">
@@ -95,28 +118,72 @@ async function submit() {
         <!-- 이미지 업로드 영역 -->
         <div class="image-upload-section">
           <div class="upload-container">
-            <div v-if="!imagePreview" class="upload-placeholder">
+            <!-- 이미지 갤러리 -->
+            <div v-if="imagePreviews.length > 0" class="image-gallery">
+              <div class="gallery-header">
+                <h4 class="gallery-title">
+                  <i class="fas fa-images"></i>
+                  업로드된 이미지 ({{ imagePreviews.length }}장)
+                </h4>
+                <button type="button" @click="removeAllImages" class="clear-all-btn">
+                  <i class="fas fa-trash"></i>
+                  모두 삭제
+                </button>
+              </div>
+              
+              <div class="gallery-grid">
+                <div 
+                  v-for="(image, index) in imagePreviews" 
+                  :key="image.id"
+                  class="gallery-item"
+                  :class="{ 'main-image': index === 0 }"
+                >
+                  <img :src="image.url" :alt="image.name" class="gallery-image" />
+                  <div class="image-overlay">
+                    <div class="image-actions">
+                      <button 
+                        type="button" 
+                        @click="removeImage(image.id)" 
+                        class="remove-btn"
+                        :title="'이미지 삭제'"
+                      >
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                    <div v-if="index === 0" class="main-badge">
+                      <i class="fas fa-star"></i>
+                      대표
+                    </div>
+                  </div>
+                  <div class="image-info">
+                    <span class="image-name">{{ image.name }}</span>
+                    <span class="image-size">{{ (image.file.size / 1024 / 1024).toFixed(1) }}MB</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 업로드 플레이스홀더 -->
+            <div v-else class="upload-placeholder">
               <div class="upload-icon">
                 <i class="fas fa-cloud-upload-alt"></i>
               </div>
               <p class="upload-text">대표 이미지를 업로드하세요</p>
-              <p class="upload-hint">JPG, PNG 파일만 가능합니다</p>
+              <p class="upload-hint">JPG, PNG 파일만 가능합니다 (최대 5MB)</p>
+              <p class="upload-hint">여러 장 업로드 가능 (첫 번째가 대표 이미지)</p>
             </div>
-            <div v-else class="image-preview-container">
-              <img :src="imagePreview" alt="미리보기" class="image-preview" />
-              <button type="button" @click="removeImage" class="remove-image-btn">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
+
             <input 
               type="file" 
               accept="image/*" 
               @change="onFileChange" 
               class="file-input"
               id="imageUpload"
+              multiple
             />
             <label for="imageUpload" class="upload-label">
-              {{ imagePreview ? '이미지 변경' : '이미지 선택' }}
+              <i class="fas fa-plus"></i>
+              {{ imagePreviews.length > 0 ? '이미지 추가' : '이미지 선택' }}
             </label>
           </div>
         </div>
@@ -211,7 +278,7 @@ async function submit() {
               step="0.01" 
               type="number" 
               class="form-input"
-              placeholder="배 무게 (톤)"
+              placeholder="선박 무게 (톤)"
             />
           </div>
 
@@ -221,7 +288,7 @@ async function submit() {
               v-model="localForm.prodAddress" 
               type="text" 
               class="form-input"
-              placeholder="배가 위치한 주소"
+              placeholder="선박이 위치한 주소"
             />
           </div>
         </div>
@@ -231,7 +298,7 @@ async function submit() {
           <textarea 
             v-model="localForm.prodDescription" 
             class="form-textarea"
-            placeholder="배에 대한 상세한 설명을 입력하세요"
+            placeholder="선박에 대한 상세한 설명을 입력하세요"
             rows="4"
           ></textarea>
         </div>
@@ -247,24 +314,25 @@ async function submit() {
         </div>
 
         <div class="form-group full-width">
+          <label class="form-label">공지 사항</label>
+          <textarea
+              v-model="localForm.prodNotice"
+              class="form-textarea"
+              placeholder="고객에게 알려야 할 중요한 공지사항을 입력하세요"
+              rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-group full-width">
           <label class="form-label">이벤트</label>
-          <textarea 
-            v-model="localForm.prodEvent" 
+          <textarea
+            v-model="localForm.prodEvent"
             class="form-textarea"
             placeholder="진행 중인 이벤트나 특별한 혜택이 있다면 입력하세요"
             rows="3"
           ></textarea>
         </div>
 
-        <div class="form-group full-width">
-          <label class="form-label">공지 사항</label>
-          <textarea 
-            v-model="localForm.prodNotice" 
-            class="form-textarea"
-            placeholder="고객에게 알려야 할 중요한 공지사항을 입력하세요"
-            rows="3"
-          ></textarea>
-        </div>
       </div>
 
       <!-- 제출 버튼 -->
@@ -328,9 +396,10 @@ async function submit() {
 .image-upload-section {
   padding: 40px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   background: linear-gradient(135deg, #f7fafc, #edf2f7);
+  min-height: 500px;
 }
 
 .upload-container {
@@ -369,41 +438,159 @@ async function submit() {
 .upload-hint {
   font-size: 0.9rem;
   color: #718096;
-  margin: 0;
+  margin: 4px 0;
 }
 
-.image-preview-container {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.image-preview {
+/* 이미지 갤러리 */
+.image-gallery {
   width: 100%;
-  height: 300px;
+}
+
+.gallery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 10px;
+}
+
+.gallery-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gallery-title i {
+  color: #4299e1;
+}
+
+.clear-all-btn {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.2s;
+}
+
+.clear-all-btn:hover {
+  background: #c53030;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.gallery-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: white;
+  transition: transform 0.2s;
+}
+
+.gallery-item:hover {
+  transform: translateY(-2px);
+}
+
+.gallery-item.main-image {
+  border: 3px solid #4299e1;
+}
+
+.gallery-image {
+  width: 100%;
+  height: 120px;
   object-fit: cover;
 }
 
-.remove-image-btn {
+.image-overlay {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+.gallery-item:hover .image-overlay {
+  opacity: 1;
+}
+
+.image-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.remove-btn {
   background: rgba(220, 38, 38, 0.9);
   color: white;
   border: none;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 0.7rem;
   transition: background-color 0.2s;
 }
 
-.remove-image-btn:hover {
+.remove-btn:hover {
   background: rgba(220, 38, 38, 1);
+}
+
+.main-badge {
+  background: rgba(66, 153, 225, 0.9);
+  color: white;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+}
+
+.image-info {
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 6px 8px;
+  font-size: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.image-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.image-size {
+  opacity: 0.8;
 }
 
 .file-input {
@@ -411,7 +598,9 @@ async function submit() {
 }
 
 .upload-label {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 16px;
   padding: 12px 24px;
   background: linear-gradient(135deg, #4299e1, #3182ce);
@@ -620,6 +809,10 @@ async function submit() {
   
   .form-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
   
   .image-upload-section,

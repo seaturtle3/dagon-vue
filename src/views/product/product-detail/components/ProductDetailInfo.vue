@@ -35,7 +35,7 @@ const initializeUserInfo = () => {
   }
 };
 
-// console.log('ProductInfo props product:', props.product)
+// console.log('ProductDetailInfo props product:', props.product)
 
 function formatDate(dateStr) {
   const date = new Date(dateStr)
@@ -237,7 +237,6 @@ onMounted(() => {
         <div class="boat-detail-grid">
           <div class="boat-detail-item">
             <div class="boat-detail-label">
-<!--              <i class="fas fa-weight-hanging"></i>-->
               선박 무게
             </div>
             <div class="boat-detail-value">{{ props.product.weight }}</div>
@@ -245,7 +244,6 @@ onMounted(() => {
 
           <div class="boat-detail-item">
             <div class="boat-detail-label">
-<!--              <i class="fas fa-map-marked-alt"></i>-->
               선박 주소
             </div>
             <div class="boat-detail-value">{{ props.product.prodAddress }}</div>
@@ -254,13 +252,31 @@ onMounted(() => {
 
         <div class="boat-description">
           <div class="description-label">
-<!--            <i class="fas fa-info-circle"></i>-->
             상세 설명
           </div>
           <div class="description-content">
             {{ props.product.prodDescription }}
           </div>
         </div>
+
+        <div class="boat-description">
+          <div class="description-label">
+            공지사항
+          </div>
+          <div class="description-content">
+            {{ props.product.prodNotice }}
+          </div>
+        </div>
+
+        <div class="boat-description">
+          <div class="description-label">
+            이벤트
+          </div>
+          <div class="description-content">
+            {{ props.product.prodEvent }}
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -538,7 +554,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 3%;
 }
 
 .boat-detail-item {
@@ -575,6 +591,7 @@ onMounted(() => {
   border-radius: 12px;
   padding: 24px;
   border: 1px solid #e2e8f0;
+  margin-bottom: 3%;
 }
 
 .description-label {
