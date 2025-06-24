@@ -25,7 +25,7 @@ function goToProductForm() {
   <div class="container my-4">
 
     <div class="d-flex justify-content-between align-items-center mb-5">
-      <h4 class="m-0">모든 배 리스트</h4>
+      <h4 class="m-0">모든 선박 리스트</h4>
       <button
           type="button"
           class="btn btn-secondary"
