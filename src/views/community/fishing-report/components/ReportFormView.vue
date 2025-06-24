@@ -18,21 +18,14 @@ const props = defineProps({
 const emit = defineEmits(['thumbnail-change', 'file-change', 'submit-success', 'submit-error'])
 
 const router = useRouter()
-const images = ref([])
 const thumbnailFile = ref(null)
 const formData = ref({
   title: '',
   content: '',
   fishingAt: '',
   location: '',
-  weather: '',
-  temperature: '',
-  waterTemperature: '',
-  fishingMethod: '',
-  catchInfo: '',
   imageFileName: '',
   thumbnailUrl: '',
-  images: [],
   user: null,
   comments: []
 })
@@ -47,35 +40,6 @@ const productSearchLoading = ref(false)
 const highlightedIndex = ref(-1)
 const productInputRef = ref(null)
 const fishingReportStore = useFishingReportStore()
-
-// 날씨 옵션
-const weatherOptions = [
-  { value: 'SUNNY', label: '맑음' },
-  { value: 'CLOUDY', label: '흐림' },
-  { value: 'RAINY', label: '비' },
-  { value: 'SNOWY', label: '눈' },
-  { value: 'WINDY', label: '바람' }
-]
-
-// 낚시 방법 옵션
-const fishingMethodOptions = [
-  { value: 'ROD', label: '대물낚시' },
-  { value: 'SPINNING', label: '스피닝' },
-  { value: 'FLY', label: '플라이낚시' },
-  { value: 'NET', label: '그물' },
-  { value: 'TRAP', label: '통발' }
-]
-
-// 어종 옵션
-const fishSpeciesOptions = [
-  { value: 'BASS', label: '배스' },
-  { value: 'CRAPPIE', label: '블루길' },
-  { value: 'CATFISH', label: '메기' },
-  { value: 'CARP', label: '잉어' },
-  { value: 'TROUT', label: '송어' },
-  { value: 'SALMON', label: '연어' },
-  { value: 'OTHER', label: '기타' }
-]
 
 const isFormValid = computed(() => {
   return (
@@ -144,16 +108,6 @@ function onThumbnailChange(event) {
   }
 }
 
-function onFileChange(event) {
-  const files = Array.from(event.target.files)
-  images.value = files
-  emit('file-change', event)
-}
-
-function removeImage(index) {
-  images.value.splice(index, 1)
-}
-
 function removeThumbnail() {
   thumbnailFile.value = null
 }
@@ -210,18 +164,12 @@ async function onSubmit() {
     } : null,
     user: null,
     comments: [],
-    images: [],
     thumbnailUrl: null
   }
   submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' }))
-  const allImages = []
   if (thumbnailFile.value) {
-    allImages.push(thumbnailFile.value)
+    submitFormData.append('images', thumbnailFile.value)
   }
-  allImages.push(...images.value)
-  allImages.forEach(file => {
-    submitFormData.append('images', file)
-  })
   try {
     await fishingReportStore.createFishingReport(submitFormData)
     alert('조황정보가 성공적으로 등록되었습니다!')
@@ -237,20 +185,13 @@ function resetForm() {
     content: '',
     fishingAt: '',
     location: '',
-    weather: '',
-    temperature: '',
-    waterTemperature: '',
-    fishingMethod: '',
-    catchInfo: '',
     productId: null,
     productName: '',
     imageFileName: '',
     thumbnailUrl: '',
-    images: [],
     user: null,
     comments: []
   }
-  images.value = []
   thumbnailFile.value = null
   selectedProduct.value = null
   // RichTextEditor는 v-model로 자동으로 초기화됩니다
@@ -385,70 +326,6 @@ function onProductInputBlur(e) {
         </div>
       </div>
 
-      <!-- 날씨 정보 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">🌤️ 날씨 정보</h3>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">날씨</label>
-            <select v-model="formData.weather" class="form-control">
-              <option value="">날씨를 선택하세요</option>
-              <option v-for="option in weatherOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">기온 (°C)</label>
-            <input
-              v-model="formData.temperature"
-              type="number"
-              class="form-control"
-              placeholder="기온을 입력하세요"
-            />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">수온 (°C)</label>
-            <input
-              v-model="formData.waterTemperature"
-              type="number"
-              class="form-control"
-              placeholder="수온을 입력하세요"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- 낚시 정보 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">🎯 낚시 정보</h3>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">낚시 방법</label>
-            <select v-model="formData.fishingMethod" class="form-control">
-              <option value="">낚시 방법을 선택하세요</option>
-              <option v-for="option in fishingMethodOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">어종</label>
-            <select v-model="formData.catchInfo" class="form-control">
-              <option value="">잡은 어종을 선택하세요</option>
-              <option v-for="option in fishSpeciesOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       <!-- 이미지 업로드 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📸 이미지 업로드</h3>
@@ -464,23 +341,6 @@ function onProductInputBlur(e) {
           <div v-if="thumbnailFile" class="file-preview">
             <span>선택된 파일: {{ thumbnailFile.name }}</span>
             <button type="button" @click="removeThumbnail" class="remove-btn">삭제</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">추가 이미지</label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            class="form-control"
-            @change="onFileChange"
-          />
-          <div v-if="images.length > 0" class="file-list">
-            <div v-for="(file, index) in images" :key="index" class="file-item">
-              <span>{{ file.name }}</span>
-              <button type="button" @click="removeImage(index)" class="remove-btn">삭제</button>
-            </div>
           </div>
         </div>
       </div>

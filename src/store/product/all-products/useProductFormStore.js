@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
+import { createProduct } from '@/api/product.js'
 import api from '@/lib/axios.js'
+
 
 export const useProductFormStore = defineStore('productForm', {
     state: () => ({
@@ -16,12 +18,27 @@ export const useProductFormStore = defineStore('productForm', {
             prodEvent: '',
             prodNotice: ''
         },
+        thumbnailFiles: [], // ✅ 이미지 첨부용
         showForm: false
     }),
     actions: {
         async submitForm() {
             try {
-                const res = await api.post('/api/product/create', this.form)
+                const formData = new FormData()
+
+                // 👇 JSON payload를 Blob으로 감싸기 (백엔드에서 @RequestPart("product")로 받기 위함)
+                formData.append(
+                    'product',
+                    new Blob([JSON.stringify(this.form)], { type: 'application/json' })
+                )
+
+                // 👇 썸네일 이미지들 추가
+                this.thumbnailFiles.forEach((file) => {
+                    formData.append('thumbnailFiles', file)
+                })
+
+                // 👇 앞에서 만든 createProduct 함수 호출
+                const res = await createProduct(formData)
                 alert('등록 성공: ID ' + res.data)
                 this.resetForm()
             } catch (err) {
@@ -43,6 +60,7 @@ export const useProductFormStore = defineStore('productForm', {
                 prodEvent: '',
                 prodNotice: ''
             }
+            this.thumbnailFiles = []
         },
         toggleForm() {
             this.showForm = !this.showForm

@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductDetailStore } from '@/store/product/product-detail/useProductDetailStore.js'
 
-import ProductInfo from '@/views/product/product-detail/components/ProductInfo.vue'
+import ProductDetailInfo from '@/views/product/product-detail/components/ProductDetailInfo.vue'
 import ProductFishingCenter from '@/views/product/product-detail/components/ProductFishingCenter.vue'
 import ProductFishingReport from '@/views/product/product-detail/components/ProductFishingReport.vue'
 import ProductFishingDiary from '@/views/product/product-detail/components/ProductFishingDiary.vue'
@@ -38,7 +38,7 @@ const setTab = (tab) => {
   <div class="product-detail-container">
     <!-- 상품 정보 섹션 -->
     <div class="product-info-section">
-      <ProductInfo v-if="product" :product="product" />
+      <ProductDetailInfo v-if="product" :product="product" />
     </div>
 
     <!-- 메인 콘텐츠 영역 -->
@@ -127,7 +127,6 @@ const setTab = (tab) => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  background-color: #f8f9fa;
 }
 
 .product-info-section {
@@ -136,6 +135,7 @@ const setTab = (tab) => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
   overflow: hidden;
+  margin-top: 5%;
 }
 
 .main-content {

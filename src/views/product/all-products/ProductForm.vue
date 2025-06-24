@@ -9,7 +9,6 @@ const enumStore = useProductEnumStore()
 
 onMounted(async () => {
   await enumStore.loadEnums()
-  console.log('productEnumStore:', enumStore.regions, enumStore.mainTypes, enumStore.subTypes)
 })
 
 
