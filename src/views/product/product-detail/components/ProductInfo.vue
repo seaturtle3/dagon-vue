@@ -141,64 +141,163 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <div class="mb-5" style="text-align: center">
-      <h2>배 상품 상세페이지</h2>
+  <div class="product-detail-container">
+    <!-- 페이지 헤더 -->
+    <div class="page-header">
+      <h1 class="page-title">배 상품 상세정보</h1>
+      <div class="breadcrumb">
+        <span>홈</span>
+        <span class="separator">></span>
+        <span>상품</span>
+        <span class="separator">></span>
+        <span>{{ props.product.prodName }}</span>
+      </div>
     </div>
 
-    <div class="info-container">
+    <!-- 메인 상품 정보 -->
+    <div class="product-main-info">
       <!-- 썸네일 영역 -->
-      <div class="thumbnail-wrapper">
-        <img
+      <div class="thumbnail-section">
+        <div class="thumbnail-container">
+          <img
             :src="`${IMAGE_BASE_URL}/${props.product.prodThumbnail}`"
-            class="thumbnail"
-            alt="썸네일"
-        />
+            class="product-thumbnail"
+            alt="상품 썸네일"
+          />
+          <div class="thumbnail-overlay">
+            <div class="zoom-icon">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- 텍스트 정보 영역 -->
-      <div class="info-text">
-        <div class="title-row">
-          <h1 class="title">{{ props.product.prodName }}</h1>
-          <div class="button-group">
-            <button @click="onContactClick" class="inquiry-button">1:1 문의</button>
-            <button @click="openReportForm" class="report-button">
-              <i class="fas fa-flag"></i> 신고
+      <!-- 상품 기본 정보 -->
+      <div class="product-info-section">
+        <div class="product-header">
+          <h2 class="product-title">{{ props.product.prodName }}</h2>
+          <div class="action-buttons">
+            <button @click="onContactClick" class="btn btn-primary">
+              <i class="fas fa-comments"></i>
+              1:1 문의
+            </button>
+            <button @click="openReportForm" class="btn btn-danger">
+              <i class="fas fa-flag"></i>
+              신고
             </button>
           </div>
         </div>
 
-        <p>지역: {{ props.product.prodRegionKorean }}</p>
-        <p>장소: {{ props.product.mainTypeKorean }}</p>
-        <p>세부 장소: {{ props.product.subTypeKorean }}</p>
-        <p>최대인원: {{ props.product.maxPerson }}</p>
-        <p>최소인원: {{ props.product.minPerson }}</p>
-        <p>배 무게: {{ props.product.weight }}</p>
-        <p>배 주소: {{ props.product.prodAddress }}</p>
-        <p>배 정보: {{ props.product.prodDescription }}</p>
-        <p>등록일: {{ formatDate(props.product.createdAt) }}</p>
+        <div class="product-details">
+          <div class="detail-item">
+            <div class="detail-label">
+              <i class="fas fa-map-marker-alt"></i>
+              지역
+            </div>
+            <div class="detail-value">{{ props.product.prodRegionKorean }}</div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-label">
+              <i class="fas fa-anchor"></i>
+              장소
+            </div>
+            <div class="detail-value">{{ props.product.mainTypeKorean }}</div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-label">
+              <i class="fas fa-map-pin"></i>
+              세부 장소
+            </div>
+            <div class="detail-value">{{ props.product.subTypeKorean }}</div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-label">
+              <i class="fas fa-users"></i>
+              최대 인원
+            </div>
+            <div class="detail-value">{{ props.product.maxPerson }}명</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 배 정보 박스 -->
+    <div class="boat-info-box">
+      <div class="boat-info-header">
+        <h3 class="boat-info-title">
+          <i class="fas fa-ship"></i>
+          배 정보
+        </h3>
+      </div>
+      
+      <div class="boat-info-content">
+        <div class="boat-detail-grid">
+          <div class="boat-detail-item">
+            <div class="boat-detail-label">
+<!--              <i class="fas fa-weight-hanging"></i>-->
+              배 무게
+            </div>
+            <div class="boat-detail-value">{{ props.product.weight }}</div>
+          </div>
+
+          <div class="boat-detail-item">
+            <div class="boat-detail-label">
+<!--              <i class="fas fa-map-marked-alt"></i>-->
+              배 주소
+            </div>
+            <div class="boat-detail-value">{{ props.product.prodAddress }}</div>
+          </div>
+        </div>
+
+        <div class="boat-description">
+          <div class="description-label">
+<!--            <i class="fas fa-info-circle"></i>-->
+            상세 설명
+          </div>
+          <div class="description-content">
+            {{ props.product.prodDescription }}
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- 신고 모달 -->
-    <div v-if="showReportForm" class="report-overlay">
-      <div class="report-modal">
-        <h3>{{ props.product.prodName }} 신고</h3>
-        <form @submit.prevent="submitReport">
+    <div v-if="showReportForm" class="modal-overlay" @click="closeReportForm">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas fa-flag"></i>
+            {{ props.product.prodName }} 신고
+          </h3>
+          <button @click="closeReportForm" class="modal-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <form @submit.prevent="submitReport" class="modal-body">
           <div class="form-group">
-            <label for="reportReason">신고 사유</label>
+            <label for="reportReason" class="form-label">신고 사유</label>
             <textarea
               id="reportReason"
               v-model="reportReason"
               required
-              placeholder="신고 사유를 입력해주세요"
+              placeholder="신고 사유를 상세히 입력해주세요"
               rows="4"
+              class="form-textarea"
             ></textarea>
           </div>
 
-          <div class="form-actions">
-            <button type="submit" class="submit-button">신고하기</button>
-            <button type="button" class="cancel-button" @click="closeReportForm">취소</button>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" @click="closeReportForm">
+              취소
+            </button>
+            <button type="submit" class="btn btn-danger">
+              <i class="fas fa-flag"></i>
+              신고하기
+            </button>
           </div>
         </form>
       </div>
@@ -207,175 +306,426 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.info-container {
-  display: flex;
-  flex-direction: row;
-  gap: 24px;
-  align-items: flex-start;
-  width: 100%; /* 전체 폭 차지 */
+.product-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.thumbnail-wrapper {
-  flex: 0 0 60%;
-  display: flex;
+/* 페이지 헤더 */
+.page-header {
+  margin-bottom: 30px;
+  text-align: center;
 }
 
-.thumbnail {
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a365d;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.breadcrumb {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #718096;
+}
+
+.separator {
+  color: #cbd5e0;
+}
+
+/* 메인 상품 정보 */
+.product-main-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+/* 썸네일 섹션 */
+.thumbnail-section {
+  position: relative;
+}
+
+.thumbnail-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px 0 0 16px;
+}
+
+.product-thumbnail {
   width: 100%;
+  height: 500px;
   object-fit: cover;
-  border-radius: 8px;
-  height: 400px; /* 고정 높이 */
+  transition: transform 0.3s ease;
 }
 
-.info-text {
-  flex: 1;
+.thumbnail-container:hover .product-thumbnail {
+  transform: scale(1.05);
+}
+
+.thumbnail-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.1);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail-container:hover .thumbnail-overlay {
+  opacity: 1;
+}
+
+.zoom-icon {
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #2d3748;
+}
+
+/* 상품 정보 섹션 */
+.product-info-section {
+  padding: 40px;
   display: flex;
   flex-direction: column;
-  padding-left: 30px; /* 썸네일과 간격 */
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0; /* 기본 h1 마진 제거 */
-  line-height: 1.2; /* 글자 위아래 높이 안정화 */
-}
-
-/* 🔥 타이틀과 버튼을 수평 정렬 */
-.title-row {
-  display: flex;
   justify-content: space-between;
-  align-items: baseline;
+}
+
+.product-header {
+  margin-bottom: 30px;
+}
+
+.product-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4299e1, #3182ce);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #3182ce, #2c5282);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #f56565, #e53e3e);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #e53e3e, #c53030);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+
+/* 상품 상세 정보 */
+.product-details {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: #f7fafc;
+  border-radius: 12px;
+  border-left: 4px solid #4299e1;
+}
+
+.detail-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 100px;
+}
+
+.detail-label i {
+  color: #4299e1;
+  width: 16px;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: #2d3748;
+  margin-left: auto;
+}
+
+/* 배 정보 박스 */
+.boat-info-box {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.boat-info-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 24px 32px;
+  color: white;
+}
+
+.boat-info-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.boat-info-title i {
+  font-size: 1.3rem;
+}
+
+.boat-info-content {
+  padding: 32px;
+}
+
+.boat-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.boat-detail-item {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background: #f7fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.boat-detail-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 120px;
+}
+
+.boat-detail-label i {
+  color: #667eea;
+  width: 18px;
+}
+
+.boat-detail-value {
+  font-weight: 500;
+  color: #2d3748;
+  margin-left: auto;
+}
+
+.boat-description {
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+.description-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #4a5568;
   margin-bottom: 16px;
 }
 
-.button-group {
-  display: flex;
-  gap: 10px;
-  align-items: center;
+.description-label i {
+  color: #667eea;
 }
 
-.inquiry-button {
-  background-color: white; /* Tailwind: blue-200 */
-  padding: 6px 14px; /* 약간 줄여서 중앙 정렬 느낌 맞춤 */
-  font-size: 0.9rem;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+.description-content {
+  color: #2d3748;
+  line-height: 1.6;
+  font-size: 1.5rem;
 }
 
-.inquiry-button:hover {
-  background-color: #93c5fd; /* Tailwind: blue-300 */
-}
-
-.report-button {
-  background-color: #dc3545; /* 빨간색 */
-  color: white;
-  padding: 6px 14px;
-  font-size: 0.9rem;
-  border-radius: 8px;
-  transition: background-color 0.2s;
-  border: none;
-  cursor: pointer;
-}
-
-.report-button:hover {
-  background-color: #c82333;
-}
-
-.report-button i {
-  margin-right: 4px;
-}
-
-/* 신고 모달 스타일 */
-.report-overlay {
+/* 모달 스타일 */
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
-.report-modal {
+.modal-content {
   background: white;
-  padding: 30px;
-  border-radius: 10px;
+  border-radius: 16px;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  overflow: hidden;
 }
 
-.report-modal h3 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: #1a237e;
-  font-size: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #333;
-}
-
-.form-group textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  resize: vertical;
-}
-
-.form-group textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
-  outline: none;
-}
-
-.form-actions {
+.modal-header {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  background: linear-gradient(135deg, #f56565, #e53e3e);
+  color: white;
 }
 
-.submit-button,
-.cancel-button {
-  padding: 10px 20px;
-  font-size: 1rem;
+.modal-title {
+  font-size: 1.3rem;
   font-weight: 600;
-  border-radius: 6px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-close {
+  background: none;
   border: none;
+  color: white;
+  font-size: 1.2rem;
   cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
   transition: background-color 0.2s;
 }
 
-.submit-button {
-  background-color: #dc3545;
+.modal-close:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.modal-body {
+  padding: 32px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.form-textarea:focus {
+  border-color: #4299e1;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-secondary {
+  background: #718096;
   color: white;
 }
 
-.submit-button:hover {
-  background-color: #c82333;
+.btn-secondary:hover {
+  background: #4a5568;
+  transform: translateY(-1px);
 }
 
-.cancel-button {
-  background-color: #6c757d;
-  color: white;
-}
-
-.cancel-button:hover {
-  background-color: #5a6268;
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .product-main-info {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .thumbnail-container {
+    border-radius: 16px;
+  }
+  
+  .product-info-section {
+    padding: 24px;
+  }
+  
+  .boat-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .btn {
+    justify-content: center;
+  }
 }
 </style>
 
