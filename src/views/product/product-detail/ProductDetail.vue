@@ -127,7 +127,7 @@ const setTab = (tab) => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  background-color: #f8f9fa;
+  //background-color: #f8f9fa;
 }
 
 .product-info-section {
@@ -136,6 +136,7 @@ const setTab = (tab) => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
   overflow: hidden;
+  margin-top: 5%;
 }
 
 .main-content {
