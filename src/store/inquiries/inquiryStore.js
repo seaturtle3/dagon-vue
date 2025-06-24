@@ -72,6 +72,11 @@ export const useInquiryStore = defineStore('inquiryStore', () => {
         }
     }
 
+    function addNewInquiry(inquiry) {
+        // 새로운 문의를 배열의 맨 앞에 추가
+        inquiries.value.unshift(inquiry)
+    }
+
     return {
         showForm,
         form,
@@ -81,7 +86,7 @@ export const useInquiryStore = defineStore('inquiryStore', () => {
         toggleForm,
         fetchInquiries,
         editInquiry,
-        saveInquiry
-
+        saveInquiry,
+        addNewInquiry
     }
 })

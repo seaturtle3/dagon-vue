@@ -82,12 +82,15 @@ export const partnerService = {
     },
 
     // 조황정보 목록 조회
-    getFishingReports(prodId = null) {
-        if (prodId) {
-            return api.get(`${API_URL}/fishing-report/mine/${prodId}`);
-        } else {
-            return api.get(`${API_URL}/fishing-report/mine`);
-        }
+    getFishingReports(page = 0, size = 10, type = '', keyword = '') {
+        return api.get(`${API_URL}/fishing-report/mine`, {
+            params: {
+                page,
+                size,
+                type,
+                keyword
+            }
+        });
     },
 
     // 조황정보 상세 조회
