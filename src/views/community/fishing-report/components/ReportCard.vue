@@ -22,7 +22,7 @@ const goToDetail = () => {
        @click="goToDetail">
     <img
         class="thumbnail"
-        :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+        :src="report.image_data ? `data:image/jpeg;base64,${report.image_data}` : `${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
     />
     <div class="content">
       <strong>{{ report.product?.prodName }}</strong>
