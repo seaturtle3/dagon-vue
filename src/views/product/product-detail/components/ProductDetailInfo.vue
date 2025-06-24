@@ -144,7 +144,7 @@ onMounted(() => {
   <div class="product-detail-container">
     <!-- 페이지 헤더 -->
     <div class="page-header">
-      <h1 class="page-title">배 상품 상세정보</h1>
+      <h1 class="page-title">{{ props.product.prodName }}</h1>
       <div class="breadcrumb">
         <span>홈</span>
         <span class="separator">></span>
@@ -175,7 +175,7 @@ onMounted(() => {
       <!-- 상품 기본 정보 -->
       <div class="product-info-section">
         <div class="product-header">
-          <h2 class="product-title">{{ props.product.prodName }}</h2>
+<!--          <h2 class="product-title">{{ props.product.prodName }}</h2>-->
           <div class="action-buttons">
             <button @click="onContactClick" class="btn btn-primary">
               <i class="fas fa-comments"></i>

@@ -1,7 +1,9 @@
 <script setup>
-import {reactive, watch, toRefs, onMounted, ref} from 'vue'
+import {reactive, watch, toRefs, onMounted, ref, computed} from 'vue'
 import {createProduct} from "@/api/product.js";
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const files = ref([])  // 여러 파일 업로드 지원
 const imagePreviews = ref([]) // 여러 이미지 미리보기
 
@@ -13,6 +15,19 @@ const props = defineProps({
 })
 
 const localForm = reactive({...props.form})
+
+const isFormValid = computed(() => {
+  return (
+    localForm.prodName &&
+    localForm.prodRegion &&
+    localForm.mainType &&
+    localForm.subType &&
+    localForm.maxPerson &&
+    localForm.weight &&
+    localForm.prodAddress &&
+    files.value.length > 0
+  )
+})
 
 // props.form이 바뀌면 localForm도 반영
 watch(
@@ -78,6 +93,11 @@ function removeAllImages() {
 }
 
 async function submit() {
+  if (!isFormValid.value) {
+    alert('필수 항목을 모두 입력해주세요. (배 이름, 지역, 유형, 상세장소, 최대인원, 선박무게, 선박주소, 대표이미지)')
+    return
+  }
+
   const formData = new FormData()
 
   // 👉 여기를 JSON 전체로 묶어서 하나의 Blob으로 추가해야 함
@@ -87,21 +107,19 @@ async function submit() {
       new Blob([JSON.stringify(productJson)], {type: "application/json"})
   )
 
-  // 현재는 첫 번째 이미지만 전송 (백엔드가 단일 이미지만 지원)
-  if (files.value.length > 0) {
-    formData.append("thumbnailFile", files.value[0])
-  }
+  files.value.forEach(file => {
+    formData.append("thumbnailFiles", file) // ✅ 키는 thumbnailFiles, 반복해서 append
+  })
 
   try {
     const response = await createProduct(formData)
     alert('등록 성공')
+    router.push('/products')
   } catch (err) {
     console.error(err)
     alert('등록 실패')
   }
 }
-
-
 </script>
 
 <template>
@@ -171,6 +189,7 @@ async function submit() {
               <p class="upload-text">대표 이미지를 업로드하세요</p>
               <p class="upload-hint">JPG, PNG 파일만 가능합니다 (최대 5MB)</p>
               <p class="upload-hint">여러 장 업로드 가능 (첫 번째가 대표 이미지)</p>
+              <p class="upload-hint required-text">* 필수 항목입니다</p>
             </div>
 
             <input 
@@ -248,13 +267,12 @@ async function submit() {
             </div>
 
             <div class="form-group">
-              <label class="form-label required">최소 인원</label>
+              <label class="form-label">최소 인원</label>
               <input 
                 v-model.number="localForm.minPerson" 
                 type="number" 
                 class="form-input" 
-                placeholder="최소 필요 인원"
-                required
+                placeholder="최소 필요 인원 (선택사항)"
               />
             </div>
           </div>
@@ -272,23 +290,25 @@ async function submit() {
 
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">선박 무게</label>
+            <label class="form-label required">선박 무게</label>
             <input 
               v-model.number="localForm.weight" 
               step="0.01" 
               type="number" 
               class="form-input"
               placeholder="선박 무게 (톤)"
+              required
             />
           </div>
 
           <div class="form-group">
-            <label class="form-label">선박 주소</label>
+            <label class="form-label required">선박 주소</label>
             <input 
               v-model="localForm.prodAddress" 
               type="text" 
               class="form-input"
               placeholder="선박이 위치한 주소"
+              required
             />
           </div>
         </div>
@@ -337,9 +357,9 @@ async function submit() {
 
       <!-- 제출 버튼 -->
       <div class="form-actions">
-        <button type="submit" class="submit-button">
+        <button type="submit" :disabled="!isFormValid" class="submit-button">
           <i class="fas fa-save"></i>
-          상품 등록
+          {{ isFormValid ? '상품 등록' : '필수 항목을 입력해주세요' }}
         </button>
       </div>
     </form>
@@ -439,6 +459,12 @@ async function submit() {
   font-size: 0.9rem;
   color: #718096;
   margin: 4px 0;
+}
+
+.upload-hint.required-text {
+  color: #e53e3e;
+  font-weight: 600;
+  margin-top: 8px;
 }
 
 /* 이미지 갤러리 */
@@ -790,13 +816,20 @@ async function submit() {
   box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
 }
 
-.submit-button:hover {
+.submit-button:hover:not(:disabled) {
   background: linear-gradient(135deg, #38a169, #2f855a);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
 }
 
-.submit-button:active {
+.submit-button:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.submit-button:active:not(:disabled) {
   transform: translateY(0);
 }
 
