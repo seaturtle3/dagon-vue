@@ -3,6 +3,15 @@
   <div class="inquiry-container">
     <h2 class="page-title">문의하기(비회원용)</h2>
 
+    <!-- 상품 정보 표시 섹션 -->
+    <div v-if="productInfo" class="product-info-section">
+      <h3>상품 정보</h3>
+      <div class="product-info">
+        <p><strong>상품명:</strong> {{ productInfo.productName }}</p>
+        <p><strong>상품ID:</strong> {{ productInfo.productId }}</p>
+      </div>
+    </div>
+
     <!-- 항상 보이는 문의하기 작성 폼 -->
     <div class="inquiry-form">
       <h3>문의하기 작성</h3>
@@ -31,7 +40,7 @@
         </div>
         <div class="form-group">
           <label>내용</label>
-          <textarea v-model="form.content" required></textarea>
+          <textarea v-model="form.content" required placeholder="문의 내용을 입력해주세요."></textarea>
         </div>
         <div class="form-actions">
           <button type="submit">등록</button>
@@ -44,6 +53,7 @@
 
 <script>
 import { inquiryApi } from '@/api/inquiry.js';
+import { useRoute } from 'vue-router';
 
 export default {
   name: 'NonMemberInquiry',
@@ -61,27 +71,68 @@ export default {
         { value: 'SYSTEM', label: '시스템 문의' },
         { value: 'RESERVATION', label: '예약 문의' },
         { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
-      ]
+      ],
+      productInfo: null
     };
   },
+  mounted() {
+    this.initializeProductInfo();
+  },
   methods: {
+    initializeProductInfo() {
+      const route = useRoute();
+      
+      // URL 쿼리 파라미터에서 상품 정보 가져오기
+      if (route.query.productId && route.query.productName) {
+        this.productInfo = {
+          productId: route.query.productId,
+          productName: route.query.productName,
+          productType: route.query.productType || 'product'
+        };
+        
+        console.log('상품 정보 받음:', this.productInfo);
+        
+        // 상품 문의인 경우 자동으로 문의 유형 설정
+        if (this.productInfo.productType === 'product') {
+          this.form.inquiryType = 'PRODUCT';
+          
+          // 제목에 상품명 자동 추가
+          this.form.title = `[${this.productInfo.productName}] 상품 문의`;
+        }
+      }
+    },
+    
     async submitForm() {
       try {
-        await inquiryApi.createInquiry(this.form);
+        // 상품 정보가 있으면 문의 내용에 추가
+        let content = this.form.content;
+        if (this.productInfo) {
+          content = `상품 정보:\n- 상품명: ${this.productInfo.productName}\n- 상품ID: ${this.productInfo.productId}\n\n문의 내용:\n${content}`;
+        }
+        
+        const inquiryData = {
+          ...this.form,
+          content: content
+        };
+        
+        await inquiryApi.createInquiry(inquiryData);
         alert('문의가 등록되었습니다.');
         this.resetForm();
       } catch (error) {
         console.error('문의 저장 실패:', error);
+        alert('문의 등록에 실패했습니다. 다시 시도해주세요.');
       }
     },
+    
     resetForm() {
       this.form = {
-        title: '',
+        title: this.productInfo ? `[${this.productInfo.productName}] 상품 문의` : '',
         content: '',
         writerType: 'NON_MEMBER',
-        inquiryType: ''
+        inquiryType: this.productInfo ? 'PRODUCT' : ''
       };
     },
+    
     cancelForm() {
       if (confirm('작성을 취소하시겠습니까?')) {
         this.resetForm();
@@ -197,6 +248,32 @@ export default {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.product-info-section {
+  background: #e8f4fd;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #007BFF;
+}
+
+.product-info-section h3 {
+  margin: 0 0 15px 0;
+  color: #007BFF;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.product-info p {
+  margin: 8px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.product-info strong {
+  color: #007BFF;
+  font-weight: 600;
 }
 
 .form-group {

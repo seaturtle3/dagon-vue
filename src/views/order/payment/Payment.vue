@@ -5,20 +5,44 @@
     </div>
 
     <div class="reservation-summary" v-if="reservationInfo">
-      <h3>예약 정보</h3>
-      <div class="summary-item">
-        <span class="label">예약 날짜:</span>
-        <span class="value">{{ formatDate(reservationInfo.fishingAt) }}</span>
+      <h4>회원 예약 정보</h4>
+      <br>      
+      <!-- 예약자 정보 섹션 -->
+      <div class="user-info-section">
+        <h4>예약자 정보</h4>
+        <div class="user-info-grid">
+          <div class="user-info-item">
+            <span class="label">예약자명:</span>
+            <span class="value">{{ userInfo.buyer_name || '미입력' }}</span>
+          </div>
+          <div class="user-info-item">
+            <span class="label">이메일:</span>
+            <span class="value">{{ userInfo.buyer_email || '미입력' }}</span>
+          </div>
+          <div class="user-info-item">
+            <span class="label">연락처:</span>
+            <span class="value">{{ userInfo.buyer_tel || '미입력' }}</span>
+          </div>
+        </div>
       </div>
 
-      <div class="summary-item">
-        <span class="label">이용 금액:</span>
-        <span class="value">{{ reservationInfo.totalPeople }}원</span>
-      </div>
-
-      <div class="summary-item">
-        <span class="label">인원수:</span>
-        <span class="value">{{ reservationInfo.Count }}명</span>
+      <!-- 예약 정보 섹션 -->
+      <div class="reservation-info-section">
+        <h4>예약 정보</h4>
+        <div class="reservation-info-grid">
+          <div class="reservation-info-item">
+            <span class="label">예약 날짜:</span>
+            <span class="value">{{ formatDate(reservationInfo.fishingAt) }}</span>
+          </div>
+          <div class="reservation-info-item">
+            <span class="label">인원수:</span>
+            <span class="value">{{ reservationInfo.totalPeople }}명</span>
+          </div>
+          <div class="reservation-info-item">
+            <span class="label">이용 금액:</span>
+            <span class="value">{{ reservationInfo.Count }}원</span>
+          </div>
+        </div>
       </div>
 
 <!--      <div class="summary-item">-->
@@ -42,8 +66,10 @@
       </div>
     </div>
 
-    <!-- 예약자 정보 입력란 -->
-    <div class="user-info-form">
+    <!-- 비회원 예약자 정보 입력란 -->
+    <div class="user-info-form" v-if="!isUserInfoValid">
+      <h4>비회원 예약자 정보</h4>
+      <h3>(*비회원만 입력 가능합니다.)</h3>
       <div class="form-row">
         <label for="buyerName">예약자명</label>
         <input id="buyerName" v-model="userInfo.buyer_name" type="text" placeholder="예약자명을 입력하세요" required />
@@ -71,6 +97,8 @@
 
 <script>
 import {BASE_URL} from "@/constants/baseUrl.js";
+import { useAuthStore } from '@/store/login/loginStore.js';
+import { myPageAPI } from '@/api/mypage.js';
 
 export default {
   name: "Payments",
@@ -81,7 +109,8 @@ export default {
         buyer_name: '',
         buyer_email: '',
         buyer_tel: ''
-      }
+      },
+      authStore: null
     }
   },
   computed: {
@@ -90,7 +119,13 @@ export default {
       return this.userInfo.buyer_name && this.userInfo.buyer_email && this.userInfo.buyer_tel;
     }
   },
-  mounted() {
+  async mounted() {
+    // Auth store 초기화
+    this.authStore = useAuthStore();
+    
+    // 로그인 상태 확인 및 사용자 정보 동기화
+    await this.checkAuthStatus();
+    
     // URL 쿼리 파라미터에서 예약 정보 가져오기
     this.reservationInfo = {
       fishingAt: this.$route.query.fishingAt,
@@ -107,6 +142,9 @@ export default {
       return;
     }
 
+    // 로그인된 사용자 정보 가져오기
+    await this.loadUserInfo();
+
     if (!window.IMP) {
       const script = document.createElement("script");
       script.src = "https://cdn.iamport.kr/v1/iamport.js";
@@ -119,6 +157,77 @@ export default {
     }
   },
   methods: {
+    async loadUserInfo() {
+      try {
+        console.log('사용자 정보 로드 시작...');
+        
+        // 1. 먼저 Auth store에서 사용자 정보 확인
+        if (this.authStore.isAuthenticated && this.authStore.user) {
+          console.log('Auth store에서 사용자 정보 확인:', this.authStore.user);
+          const user = this.authStore.user;
+          this.userInfo.buyer_name = user.uname || user.name || '';
+          this.userInfo.buyer_email = user.email || '';
+          this.userInfo.buyer_tel = user.phone || user.tel || '';
+          
+          // 기본 정보가 있으면 추가 정보를 위해 API 호출
+          if (this.userInfo.buyer_name) {
+            await this.loadUserInfoFromAPI();
+          }
+        } else {
+          // 2. localStorage에서 사용자 정보 확인
+          const storedUserInfo = localStorage.getItem('userInfo');
+          if (storedUserInfo) {
+            console.log('localStorage에서 사용자 정보 확인');
+            const user = JSON.parse(storedUserInfo);
+            this.userInfo.buyer_name = user.uname || user.name || '';
+            this.userInfo.buyer_email = user.email || '';
+            this.userInfo.buyer_tel = user.phone || user.tel || '';
+            
+            // 기본 정보가 있으면 추가 정보를 위해 API 호출
+            if (this.userInfo.buyer_name) {
+              await this.loadUserInfoFromAPI();
+            }
+          } else {
+            // 3. API를 통해 사용자 정보 가져오기
+            await this.loadUserInfoFromAPI();
+          }
+        }
+        
+        console.log('최종 사용자 정보:', this.userInfo);
+      } catch (error) {
+        console.error('사용자 정보 로드 실패:', error);
+      }
+    },
+
+    async loadUserInfoFromAPI() {
+      try {
+        console.log('API를 통해 사용자 정보 가져오기 시작...');
+        const response = await myPageAPI.getMyInfo();
+        console.log('API 응답:', response);
+        
+        if (response.data) {
+          const userData = response.data;
+          console.log('API에서 받은 사용자 데이터:', userData);
+          
+          // 기존 정보가 없거나 API에서 받은 정보가 더 완전한 경우 업데이트
+          if (!this.userInfo.buyer_name || userData.uname) {
+            this.userInfo.buyer_name = userData.uname || userData.name || this.userInfo.buyer_name || '';
+          }
+          if (!this.userInfo.buyer_email || userData.email) {
+            this.userInfo.buyer_email = userData.email || this.userInfo.buyer_email || '';
+          }
+          if (!this.userInfo.buyer_tel || userData.phone || userData.tel) {
+            this.userInfo.buyer_tel = userData.phone || userData.tel || this.userInfo.buyer_tel || '';
+          }
+          
+          console.log('API에서 업데이트된 사용자 정보:', this.userInfo);
+        }
+      } catch (error) {
+        console.error('API를 통한 사용자 정보 로드 실패:', error);
+        console.log('기존 정보를 유지합니다.');
+      }
+    },
+
     formatDate(dateString) {
       if (!dateString) return '';
       // YYYY-MM-DD 형식의 문자열을 Date 객체로 변환
@@ -144,7 +253,7 @@ export default {
         return;
       }
       if (!this.isUserInfoValid) {
-        alert("예약자명, 이메일, 연락처를 모두 입력해주세요.");
+        alert("예약자 정보를 모두 입력해주세요.");
         return;
       }
 
@@ -223,7 +332,34 @@ export default {
 
     goBack() {
       this.$router.push('/reservation-calendar');
-    }
+    },
+
+    async checkAuthStatus() {
+      try {
+        console.log('로그인 상태 확인 시작...');
+        
+        // Auth store에서 로그인 상태 확인
+        if (!this.authStore.isAuthenticated) {
+          console.log('Auth store에서 인증되지 않음, 토큰 확인 중...');
+          
+          // 토큰이 있는지 확인
+          const token = localStorage.getItem('token');
+          if (token) {
+            console.log('토큰 발견, 인증 상태 복원 시도...');
+            await this.authStore.checkAuth();
+          } else {
+            console.log('토큰이 없음, 로그인 필요');
+          }
+        } else {
+          console.log('이미 인증된 상태');
+        }
+        
+        console.log('최종 인증 상태:', this.authStore.isAuthenticated);
+        console.log('사용자 정보:', this.authStore.user);
+      } catch (error) {
+        console.error('인증 상태 확인 실패:', error);
+      }
+    },
   },
 };
 </script>
@@ -261,6 +397,96 @@ export default {
   margin: 0 0 1rem 0;
   color: #333;
   text-align: center;
+}
+
+/* 예약자 정보 섹션 스타일 */
+.user-info-section {
+  background: #e8f4fd;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #007BFF;
+}
+
+.user-info-section h4 {
+  margin: 0 0 0.75rem 0;
+  color: #007BFF;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.user-info-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.user-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #d1ecf1;
+}
+
+.user-info-item:last-child {
+  border-bottom: none;
+}
+
+.user-info-item .label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 80px;
+}
+
+.user-info-item .value {
+  color: #333;
+  font-weight: 500;
+  text-align: right;
+}
+
+/* 예약 정보 섹션 스타일 */
+.reservation-info-section {
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #6c757d;
+}
+
+.reservation-info-section h4 {
+  margin: 0 0 0.75rem 0;
+  color: #6c757d;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.reservation-info-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.reservation-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.reservation-info-item:last-child {
+  border-bottom: none;
+}
+
+.reservation-info-item .label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 80px;
+}
+
+.reservation-info-item .value {
+  color: #333;
+  font-weight: 500;
+  text-align: right;
 }
 
 .summary-item {
@@ -346,14 +572,24 @@ export default {
 }
 
 .user-info-form {
-  background: #f4f8fb;
+  background: #fff3cd;
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  border: 1px solid #ffeaa7;
 }
+
+.user-info-form h3 {
+  margin: 0 0 1rem 0;
+  color: #856404;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
 .form-row {
   display: flex;
   align-items: center;

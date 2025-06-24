@@ -273,6 +273,8 @@ const routes = [
     // support
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
     {path: '/inquiry', component: () => import('@/views/support/inquiry/InquiryMain.vue')},
+    {path: '/guest-inquiry', name: 'GuestInquiry', component: () => import('@/views/support/inquiry/components/GuestInquiry.vue')},
+    {path: '/member-inquiry', name: 'MemberInquiry', component: () => import('@/views/support/inquiry/components/MemberInquiry.vue')},
     {path: '/faq', component: () => import('@/views/support/faq/FAQ.vue')},
     {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
     {

@@ -2,6 +2,9 @@
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js"
 import { ref, computed, onMounted } from 'vue'
 import { partnerService } from '@/api/partner'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const props = defineProps({
   product: {
@@ -47,7 +50,34 @@ function formatDate(dateStr) {
 }
 
 function onContactClick() {
-  alert('문의 기능은 준비 중입니다!')
+  console.log('1:1 문의 버튼 클릭됨');
+  console.log('상품 정보:', props.product);
+  console.log('현재 사용자 정보:', currentUser.value);
+  
+  // 로그인 상태 확인
+  if (currentUser.value && currentUser.value.uid) {
+    console.log('로그인된 사용자 - MemberInquiry로 이동');
+    // 로그인된 사용자는 MemberInquiry 페이지로 이동
+    router.push({
+      name: 'MemberInquiry',
+      query: {
+        productId: props.product.prodId,
+        productName: props.product.prodName,
+        productType: 'product'
+      }
+    });
+  } else {
+    console.log('비로그인 사용자 - GuestInquiry로 이동');
+    // 비로그인 사용자는 GuestInquiry 페이지로 이동
+    router.push({
+      name: 'GuestInquiry',
+      query: {
+        productId: props.product.prodId,
+        productName: props.product.prodName,
+        productType: 'product'
+      }
+    });
+  }
 }
 
 // 신고 폼 열기
@@ -253,18 +283,23 @@ onMounted(() => {
   display: flex;
   gap: 10px;
   align-items: center;
+  position: relative;
+  z-index: 10;
 }
 
 .inquiry-button {
-  background-color: white; /* Tailwind: blue-200 */
-  padding: 6px 14px; /* 약간 줄여서 중앙 정렬 느낌 맞춤 */
+  background-color: white;
+  padding: 6px 14px;
   font-size: 0.9rem;
   border-radius: 8px;
   transition: background-color 0.2s;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  color: #333;
 }
 
 .inquiry-button:hover {
-  background-color: #93c5fd; /* Tailwind: blue-300 */
+  background-color: #93c5fd;
 }
 
 .report-button {
