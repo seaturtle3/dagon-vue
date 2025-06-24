@@ -53,7 +53,8 @@
 
 <script>
 import { inquiryApi } from '@/api/inquiry.js';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
 
 export default {
   name: 'NonMemberInquiry',
@@ -67,18 +68,30 @@ export default {
       },
       inquiryTypes: [
         { value: 'PRODUCT', label: '상품 문의' },
-        { value: 'PARTNERSHIP', label: '제휴 문의' },
-        { value: 'SYSTEM', label: '시스템 문의' },
         { value: 'RESERVATION', label: '예약 문의' },
         { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
       ],
       productInfo: null
-    };
+    }
   },
   mounted() {
+    this.checkLoginStatus();
     this.initializeProductInfo();
   },
   methods: {
+    checkLoginStatus() {
+      const token = localStorage.getItem('token');
+      const userInfo = localStorage.getItem('userInfo');
+      
+      if (token && userInfo) {
+        console.log('로그인된 사용자가 GuestInquiry에 접근 - MemberInquiry로 리다이렉트');
+        this.$router.push({
+          name: 'MemberInquiry',
+          query: this.$route.query
+        });
+      }
+    },
+    
     initializeProductInfo() {
       const route = useRoute();
       
@@ -92,12 +105,10 @@ export default {
         
         console.log('상품 정보 받음:', this.productInfo);
         
-        // 상품 문의인 경우 자동으로 문의 유형 설정
+        // 상품 문의인 경우 자동으로 문의 유형만 설정
         if (this.productInfo.productType === 'product') {
           this.form.inquiryType = 'PRODUCT';
-          
-          // 제목에 상품명 자동 추가
-          this.form.title = `[${this.productInfo.productName}] 상품 문의`;
+          // 제목은 자동 설정하지 않고 비회원이 직접 입력하도록 함
         }
       }
     },
@@ -126,7 +137,7 @@ export default {
     
     resetForm() {
       this.form = {
-        title: this.productInfo ? `[${this.productInfo.productName}] 상품 문의` : '',
+        title: '',
         content: '',
         writerType: 'NON_MEMBER',
         inquiryType: this.productInfo ? 'PRODUCT' : ''

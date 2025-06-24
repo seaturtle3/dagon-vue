@@ -1,4 +1,3 @@
-<!-- views/community/fishing-diary/components/DiaryListView.vue -->
 <script setup>
 import DiaryCard from './DiaryCard.vue'
 

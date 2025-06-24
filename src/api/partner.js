@@ -82,20 +82,17 @@ export const partnerService = {
     },
 
     // 조황정보 목록 조회
-    getFishingReports(page = 0, size = 10, type = '', keyword = '') {
-        return api.get(`${API_URL}/fishing-report/mine`, {
-            params: {
-                page,
-                size,
-                type,
-                keyword
-            }
-        });
+    getFishingReports(prodId = null) {
+        if (prodId) {
+            return api.get(`${API_URL}/fishing-report/mine/${prodId}`);
+        } else {
+            return api.get(`${API_URL}/fishing-report/mine`);
+        }
     },
 
     // 조황정보 상세 조회
     getFishingReportDetail(frId) {
-        return api.get(`${API_URL}/fishing-report/${frId}`);
+        return api.get(`${API_URL}/fishing-report/get/${frId}`);
     },
 
     // 조황정보 생성
@@ -224,12 +221,58 @@ export const partnerService = {
     },
 
     // 조행기 댓글 신고
-    reportFishingPostComment(commentId, reason) {
-        return api.post(`${API_URL}/reports/fishing-post-comment/${commentId}`, reason, {
+    // commentId에는 반드시 댓글의 uid를 넘겨야 함
+    reportFishingPostComment(commentUid, reason, reportedUid = null) {
+        // reportedUid가 필요하면 body에 추가
+        if (reportedUid) {
+            return api.post(`${API_URL}/reports/fishing-post-comment/${commentUid}`, {
+                reason,
+                reportedUid
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        } else {
+            // 기본: reason만 넘김 (백엔드에서 reportedUid 추출)
+            return api.post(`${API_URL}/reports/fishing-post-comment/${commentUid}`, reason, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'text/plain'
+                }
+            });
+        }
+    },
+
+    // 파트너 조행기 목록 조회
+    getMyFishingDiaries() {
+        return api.get(`${API_URL}/fishing-diary/mine`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Content-Type': 'text/plain'
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
+    },
+
+    // 조행기 전체 조회 (페이징)
+    getAllFishingDiaries({ page = 0, size = 10, sortBy = 'fdId', direction = 'desc' } = {}) {
+        return api.get(`${API_URL}/fishing-diary/get-all`, {
+            params: { page, size, sortBy, direction },
+        });
+    },
+
+    // 조행기 단건 조회
+    getFishingDiaryById(id) {
+        return api.get(`${API_URL}/fishing-diary/get/${id}`);
+    },
+
+    // 조행기 수정
+    updateFishingDiary(id, diaryData) {
+        return api.put(`${API_URL}/fishing-diary/update/${id}`, diaryData);
+    },
+
+    // 조행기 삭제
+    deleteFishingDiary(id) {
+        return api.delete(`${API_URL}/fishing-diary/delete/${id}`);
     }
 };

@@ -4,29 +4,100 @@
       <h1>예약 결제</h1>
     </div>
 
-    <div class="reservation-summary" v-if="reservationInfo">
-      <h4>회원 예약 정보</h4>
-      <br>      
-      <!-- 예약자 정보 섹션 -->
-      <div class="user-info-section">
-        <h4>예약자 정보</h4>
-        <div class="user-info-grid">
-          <div class="user-info-item">
+    <!-- 회원 예약 정보 섹션 (로그인 상태) -->
+    <div v-if="reservationInfo && isLoggedIn">
+      <h4 class="section-title">선택 상품 정보</h4>
+      <div class="user-reservation-info-section">
+        <div class="user-reservation-info-grid">
+          <div class="user-reservation-info-item">
+            <span class="label">상품명:</span>
+            <span class="value">{{ reservationInfo.prodName || '상품명 없음' }}</span>
+          </div>
+          <div class="user-reservation-info-item">
+            <span class="label">상품ID:</span>
+            <span class="value">{{ reservationInfo.prodId || '-' }}</span>
+          </div>
+          <div class="user-reservation-info-item">
+            <span class="label">상품 주소:</span>
+            <span class="value">{{ reservationInfo.prodAddress || '-' }}</span>
+          </div>
+          <div class="user-reservation-info-item">
+            <span class="label">어종명:</span>
+            <span class="value">{{ reservationInfo.fishType || '-' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="section-divider"></div>
+      <h4 class="section-title">회원 예약 정보</h4>
+      <div class="user-reservation-info-section">
+        <div class="user-reservation-info-grid">
+          <div class="user-reservation-info-item">
             <span class="label">예약자명:</span>
             <span class="value">{{ userInfo.buyer_name || '미입력' }}</span>
           </div>
-          <div class="user-info-item">
+          <div class="user-reservation-info-item">
             <span class="label">이메일:</span>
             <span class="value">{{ userInfo.buyer_email || '미입력' }}</span>
           </div>
-          <div class="user-info-item">
+          <div class="user-reservation-info-item">
             <span class="label">연락처:</span>
             <span class="value">{{ userInfo.buyer_tel || '미입력' }}</span>
+          </div>
+          <div class="user-reservation-info-item">
+            <span class="label">예약 날짜:</span>
+            <span class="value">{{ formatDate(reservationInfo.fishingAt) }}</span>
+          </div>
+          <div class="user-reservation-info-item">
+            <span class="label">인원수:</span>
+            <span class="value">{{ reservationInfo.totalPeople }}명</span>
+          </div>
+          <div class="user-reservation-info-item">
+            <span class="label">이용 금액:</span>
+            <span class="value">{{ reservationInfo.Count }}원</span>
+          </div>
+        </div>
+      </div>
+      <div class="summary-item total-price">
+        <span class="label">결제 금액:</span>
+        <span class="value">{{ reservationInfo.estimatedPrice?.toLocaleString() }}원</span>
+      </div>
+    </div>
+
+    <!-- 비회원 예약 정보 섹션 (비로그인 상태) -->
+    <div class="reservation-summary" v-if="reservationInfo && !isLoggedIn">
+      <!-- 상품 정보 섹션 -->
+      <div class="product-info-section">
+        <h4>상품 정보</h4>
+        <div class="product-info">
+          <p><strong>상품명:</strong> {{ reservationInfo.prodName || '상품명 없음' }}</p>
+          <p><strong>상품ID:</strong> {{ reservationInfo.prodId || '-' }}</p>
+          <p><strong>상품 주소:</strong> {{ reservationInfo.prodAddress || '-' }}</p>
+          <p><strong>어종명:</strong> {{ reservationInfo.fishType || '-' }}</p>
+        </div>
+      </div>
+      <h4>비회원 예약 정보</h4>
+      <br>
+      
+      <!-- 비회원 예약자 정보 입력 섹션 -->
+      <div class="user-info-section">
+        <h4>예약자 정보 (직접 입력)</h4>
+        <div class="user-input-grid">
+          <div class="user-input-item">
+            <label>예약자명:</label>
+            <input type="text" v-model="userInfo.buyer_name" placeholder="예약자명을 입력하세요" required>
+          </div>
+          <div class="user-input-item">
+            <label>이메일:</label>
+            <input type="email" v-model="userInfo.buyer_email" placeholder="이메일을 입력하세요" required>
+          </div>
+          <div class="user-input-item">
+            <label>연락처:</label>
+            <input type="tel" v-model="userInfo.buyer_tel" placeholder="연락처를 입력하세요" required>
           </div>
         </div>
       </div>
 
-      <!-- 예약 정보 섹션 -->
+      <!-- 예약 정보 섹션 (자동 입력) -->
       <div class="reservation-info-section">
         <h4>예약 정보</h4>
         <div class="reservation-info-grid">
@@ -45,47 +116,20 @@
         </div>
       </div>
 
-<!--      <div class="summary-item">-->
-<!--        <label for="nickname">닉네임:</label>-->
-<!--        <input type="text" id="nickname" :value="userInfo.nickname" disabled />-->
-<!--      </div>-->
-
-<!--      <div class="summary-item">-->
-<!--        <label for="phone">연락처:</label>-->
-<!--        <input type="tel" id="phone" :value="userInfo.phone" disabled />-->
-<!--      </div>-->
-
-<!--      <div class="summary-item">-->
-<!--        <label for="email">이메일:</label>-->
-<!--        <input type="email" id="email" :value="userInfo.email" disabled />-->
-<!--      </div>-->
-
       <div class="summary-item total-price">
         <span class="label">결제 금액:</span>
         <span class="value">{{ reservationInfo.estimatedPrice?.toLocaleString() }}원</span>
       </div>
     </div>
 
-    <!-- 비회원 예약자 정보 입력란 -->
-    <div class="user-info-form" v-if="!isUserInfoValid">
-      <h4>비회원 예약자 정보</h4>
-      <h3>(*비회원만 입력 가능합니다.)</h3>
-      <div class="form-row">
-        <label for="buyerName">예약자명</label>
-        <input id="buyerName" v-model="userInfo.buyer_name" type="text" placeholder="예약자명을 입력하세요" required />
-      </div>
-      <div class="form-row">
-        <label for="buyerEmail">이메일</label>
-        <input id="buyerEmail" v-model="userInfo.buyer_email" type="email" placeholder="이메일을 입력하세요" required />
-      </div>
-      <div class="form-row">
-        <label for="buyerTel">연락처</label>
-        <input id="buyerTel" v-model="userInfo.buyer_tel" type="tel" placeholder="연락처를 입력하세요" required />
+    <div class="payment-actions">
+      <div class="agreement-check">
+        <input type="checkbox" id="agreeCheck" v-model="isAgreed">
+        <label for="agreeCheck">위 상품 정보와 예약 정보를 확인하였고 결제에 동의합니다.</label>
       </div>
     </div>
-
-    <div class="payment-actions">
-      <button class="btn-payment" @click="handlePayment" :disabled="!reservationInfo || !isUserInfoValid">
+    <div class="payment-buttons">
+      <button class="btn-payment" @click="handlePayment" :disabled="!reservationInfo || !isUserInfoValid || !isAgreed">
         결제하기
       </button>
       <button class="btn-cancel" @click="goBack">
@@ -99,6 +143,8 @@
 import {BASE_URL} from "@/constants/baseUrl.js";
 import { useAuthStore } from '@/store/login/loginStore.js';
 import { myPageAPI } from '@/api/mypage.js';
+import { partnerService } from '@/api/partner.js';
+import axios from 'axios';
 
 export default {
   name: "Payments",
@@ -110,7 +156,9 @@ export default {
         buyer_email: '',
         buyer_tel: ''
       },
-      authStore: null
+      authStore: null,
+      isLoggedIn: false,
+      isAgreed: false
     }
   },
   computed: {
@@ -126,14 +174,32 @@ export default {
     // 로그인 상태 확인 및 사용자 정보 동기화
     await this.checkAuthStatus();
     
-    // URL 쿼리 파라미터에서 예약 정보 가져오기
+    // URL 쿼리 파라미터에서 예약 및 상품 정보 가져오기
     this.reservationInfo = {
       fishingAt: this.$route.query.fishingAt,
       adultCount: parseInt(this.$route.query.adultCount) || 0,
       childCount: parseInt(this.$route.query.childCount) || 0,
       totalPeople: parseInt(this.$route.query.totalPeople) || 0,
-      estimatedPrice: parseInt(this.$route.query.estimatedPrice) || 0
+      estimatedPrice: parseInt(this.$route.query.estimatedPrice) || 0,
+      prodId: this.$route.query.prodId || '',
+      prodName: this.$route.query.prodName || ''
     };
+
+    // prodId가 있으면 상품 상세 정보 DB에서 가져오기
+    if (this.reservationInfo.prodId) {
+      try {
+        const res = await partnerService.getProductDetail(this.reservationInfo.prodId);
+        if (res.data) {
+          this.reservationInfo.prodName = res.data.prod_name || this.reservationInfo.prodName;
+          this.reservationInfo.prodId = res.data.prod_id || this.reservationInfo.prodId;
+          this.reservationInfo.prodAddress = res.data.prod_address || '';
+          this.reservationInfo.boatName = res.data.boatName || '';
+          this.reservationInfo.fishType = res.data.fishType || '';
+        }
+      } catch (e) {
+        console.error('상품 정보 조회 실패:', e);
+      }
+    }
 
     // 예약 정보가 없으면 이전 페이지로 이동
     if (!this.reservationInfo.fishingAt) {
@@ -142,8 +208,16 @@ export default {
       return;
     }
 
-    // 로그인된 사용자 정보 가져오기
-    await this.loadUserInfo();
+    // 로그인된 사용자 정보만 자동 입력, 비회원은 빈 값 유지
+    if (this.isLoggedIn) {
+      await this.loadUserInfo();
+    } else {
+      this.userInfo = {
+        buyer_name: '',
+        buyer_email: '',
+        buyer_tel: ''
+      };
+    }
 
     if (!window.IMP) {
       const script = document.createElement("script");
@@ -169,10 +243,9 @@ export default {
           this.userInfo.buyer_email = user.email || '';
           this.userInfo.buyer_tel = user.phone || user.tel || '';
           
-          // 기본 정보가 있으면 추가 정보를 위해 API 호출
-          if (this.userInfo.buyer_name) {
-            await this.loadUserInfoFromAPI();
-          }
+          // 로그인된 사용자는 항상 API에서 최신 정보를 가져옴
+          await this.loadUserInfoFromAPI();
+          this.isLoggedIn = true;
         } else {
           // 2. localStorage에서 사용자 정보 확인
           const storedUserInfo = localStorage.getItem('userInfo');
@@ -183,19 +256,31 @@ export default {
             this.userInfo.buyer_email = user.email || '';
             this.userInfo.buyer_tel = user.phone || user.tel || '';
             
-            // 기본 정보가 있으면 추가 정보를 위해 API 호출
-            if (this.userInfo.buyer_name) {
+            // 토큰이 있으면 API에서 최신 정보를 가져옴
+            const token = localStorage.getItem('token');
+            if (token) {
               await this.loadUserInfoFromAPI();
+              this.isLoggedIn = true;
+            } else {
+              this.isLoggedIn = false;
             }
           } else {
-            // 3. API를 통해 사용자 정보 가져오기
-            await this.loadUserInfoFromAPI();
+            // 3. 토큰이 있으면 API를 통해 사용자 정보 가져오기
+            const token = localStorage.getItem('token');
+            if (token) {
+              await this.loadUserInfoFromAPI();
+              this.isLoggedIn = true;
+            } else {
+              this.isLoggedIn = false;
+            }
           }
         }
         
         console.log('최종 사용자 정보:', this.userInfo);
+        console.log('로그인 상태:', this.isLoggedIn);
       } catch (error) {
         console.error('사용자 정보 로드 실패:', error);
+        this.isLoggedIn = false;
       }
     },
 
@@ -209,22 +294,28 @@ export default {
           const userData = response.data;
           console.log('API에서 받은 사용자 데이터:', userData);
           
-          // 기존 정보가 없거나 API에서 받은 정보가 더 완전한 경우 업데이트
-          if (!this.userInfo.buyer_name || userData.uname) {
-            this.userInfo.buyer_name = userData.uname || userData.name || this.userInfo.buyer_name || '';
-          }
-          if (!this.userInfo.buyer_email || userData.email) {
-            this.userInfo.buyer_email = userData.email || this.userInfo.buyer_email || '';
-          }
-          if (!this.userInfo.buyer_tel || userData.phone || userData.tel) {
-            this.userInfo.buyer_tel = userData.phone || userData.tel || this.userInfo.buyer_tel || '';
-          }
+          // DB에서 받은 정보로 사용자 정보 업데이트
+          this.userInfo.buyer_name = userData.uname || userData.name || '';
+          this.userInfo.buyer_email = userData.email || '';
+          this.userInfo.buyer_tel = userData.phone || userData.tel || '';
           
-          console.log('API에서 업데이트된 사용자 정보:', this.userInfo);
+          console.log('DB에서 업데이트된 사용자 정보:', this.userInfo);
+          
+          // 로그인 상태 확인
+          if (this.userInfo.buyer_name) {
+            this.isLoggedIn = true;
+            console.log('DB 정보로 로그인 상태 확인됨');
+          }
         }
       } catch (error) {
         console.error('API를 통한 사용자 정보 로드 실패:', error);
         console.log('기존 정보를 유지합니다.');
+        
+        // API 호출 실패 시 토큰이 있으면 로그인 상태로 간주
+        const token = localStorage.getItem('token');
+        if (token && this.userInfo.buyer_name) {
+          this.isLoggedIn = true;
+        }
       }
     },
 
@@ -287,8 +378,32 @@ export default {
       console.log("결제 성공:", rsp);
       alert("결제가 성공했습니다!");
 
-      // 결제 성공 후 예약 정보를 서버에 저장하는 로직 추가
-      this.saveReservation(rsp);
+      // 1. 결제 검증(백엔드) 진행
+      this.verifyAndSavePayment(rsp);
+    },
+
+    async verifyAndSavePayment(rsp) {
+      try {
+        // 백엔드 결제 검증 API 호출
+        const verifyRes = await myPageAPI.verifyPayment({
+          impUid: rsp.imp_uid,
+          merchantUid: rsp.merchant_uid,
+          amount: rsp.paid_amount,
+          buyerName: rsp.buyer_name,
+          status: rsp.status,
+          payMethod: this.getPaymentsMethod(rsp.pay_method),
+          paidAt: rsp.paid_at
+        });
+        if (verifyRes.data && verifyRes.data.success === "true") {
+          // 검증 성공 시 예약 저장
+          this.saveReservation(rsp);
+        } else {
+          alert("결제 검증에 실패했습니다. 관리자에게 문의하세요.");
+        }
+      } catch (error) {
+        alert("결제 검증 중 오류가 발생했습니다. 관리자에게 문의하세요.");
+        console.error("결제 검증 오류:", error);
+      }
     },
 
     handlePaymentFailure(rsp) {
@@ -298,36 +413,64 @@ export default {
 
     async saveReservation(paymentResult) {
       try {
-        // 실제로는 서버에 예약 정보와 결제 정보를 함께 저장
         const reservationData = {
-          ...this.reservationInfo,
-          paymentId: paymentResult.imp_uid,
-          paymentMethod: paymentResult.pay_method,
-          paymentAmount: paymentResult.paid_amount,
-          paymentStatus: 'paid'
+          // 예약자 정보
+          // userId는 백엔드에서 AuthenticationPrincipal로 자동 세팅
+
+          // 상품 정보
+          prodId: this.reservationInfo.prodId, // Product의 PK
+
+          // 옵션 정보
+          optionId: this.reservationInfo.optionId || null, // ProductOption의 PK (없으면 null)
+
+          numPerson: this.reservationInfo.totalPeople,
+          fishingAt: this.toLocalDateTimeString(new Date(this.reservationInfo.fishingAt)),
+          paidAt: this.toLocalDateTimeString(new Date(paymentResult.paid_at * 1000)),
+          createdAt: this.toLocalDateTimeString(new Date()),
+
+          reservationStatus: 'PAID', // enum 값, 필요시 실제 값으로 매핑
+          paymentsMethod: this.getPaymentsMethod(paymentResult.pay_method), // enum 값 매핑
+
+          paymentId: paymentResult.imp_uid, // 결제 고유 ID (PaymentsEntity의 PK)
+
+          // 화면 표시용
+          productName: this.reservationInfo.prodName,
+          optionName: this.reservationInfo.optionName || '',
+          userName: this.userInfo.buyer_name
         };
 
-        // API 호출 예시 (실제 구현 필요)
-        // const response = await fetch('/api/reservations', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(reservationData)
-        // });
+        console.log("예약 정보 전체:", JSON.stringify(reservationData, null, 2));
 
-        console.log("예약 정보 저장:", reservationData);
+        const token = localStorage.getItem('token');
+        const response = await axios.post(
+          `${BASE_URL}/api/reservation`,
+          reservationData,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
 
-        // 예약 완료 페이지로 이동
         this.$router.push({
           name: 'PaymentResult',
           query: {
             success: 'true',
-            reservationId: 'temp-id' // 실제로는 서버에서 받은 예약 ID
+            reservationId: response.data.reservationId || 'temp-id'
           }
         });
       } catch (error) {
         console.error("예약 저장 실패:", error);
         alert("예약 정보 저장에 실패했습니다.");
       }
+    },
+
+    getPaymentsMethod(payMethod) {
+      if (payMethod === 'card') return 'CARD';
+      if (payMethod === 'kakaopay') return 'KAKAO_PAY';
+      if (payMethod === 'trans' || payMethod === 'bank_transfer') return 'BANK_TRANSFER';
+      return 'CARD';
     },
 
     goBack() {
@@ -356,9 +499,31 @@ export default {
         
         console.log('최종 인증 상태:', this.authStore.isAuthenticated);
         console.log('사용자 정보:', this.authStore.user);
+        
+        // 로그인 상태에 따라 isLoggedIn 설정
+        if (this.authStore.isAuthenticated && this.authStore.user) {
+          this.isLoggedIn = true;
+          console.log('로그인 상태로 설정됨');
+        } else {
+          this.isLoggedIn = false;
+          console.log('비로그인 상태로 설정됨');
+        }
       } catch (error) {
         console.error('인증 상태 확인 실패:', error);
+        this.isLoggedIn = false;
       }
+    },
+
+    toLocalDateTimeString(date) {
+      const pad = n => n.toString().padStart(2, '0');
+      return (
+        date.getFullYear() +
+        '-' + pad(date.getMonth() + 1) +
+        '-' + pad(date.getDate()) +
+        'T' + pad(date.getHours()) +
+        ':' + pad(date.getMinutes()) +
+        ':' + pad(date.getSeconds())
+      );
     },
   },
 };
@@ -446,16 +611,16 @@ export default {
 
 /* 예약 정보 섹션 스타일 */
 .reservation-info-section {
-  background: #f5f5f5;
+  background: #e8f4fd;
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1.5rem;
-  border-left: 4px solid #6c757d;
+  border-left: 4px solid #007BFF;
 }
 
 .reservation-info-section h4 {
   margin: 0 0 0.75rem 0;
-  color: #6c757d;
+  color: #007BFF;
   font-size: 1rem;
   font-weight: 600;
 }
@@ -470,7 +635,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 0.25rem 0;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid #d1ecf1;
 }
 
 .reservation-info-item:last-child {
@@ -571,44 +736,133 @@ export default {
   box-shadow: 0 4px 12px rgba(108,117,125,0.3);
 }
 
-.user-info-form {
-  background: #fff3cd;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+/* 비회원 예약자 정보 입력 스타일 */
+.user-input-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.user-input-item {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  border: 1px solid #ffeaa7;
+  gap: 0.5rem;
 }
 
-.user-info-form h3 {
-  margin: 0 0 1rem 0;
-  color: #856404;
-  text-align: center;
-  font-size: 1.1rem;
+.user-input-item label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.user-input-item input {
+  padding: 0.5rem;
+  border: 1px solid #d1ecf1;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: white;
+}
+
+.user-input-item input:focus {
+  outline: none;
+  border-color: #007BFF;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.user-input-item input::placeholder {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.product-info-section {
+  background: #eaf6ff;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+  padding: 18px 24px 12px 24px;
+  margin-bottom: 18px;
+}
+.product-info-section h4 {
+  color: #0080ff;
+  font-size: 1.08rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+.product-info {
+  font-size: 0.98rem;
+  color: #222;
+}
+.product-info p {
+  margin: 4px 0;
+}
+.product-info strong {
+  color: #0080ff;
   font-weight: 600;
 }
 
-.form-row {
+.user-reservation-info-section {
+  background: #e8f4fd;
+  border-radius: 8px;
+  border-left: 4px solid #007BFF;
+  padding: 18px 24px 12px 24px;
+  margin-bottom: 18px;
+}
+.user-reservation-info-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+.user-reservation-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #d1ecf1;
+  font-size: 16px;
+  color: #222;
+}
+.user-reservation-info-item:last-child {
+  border-bottom: none;
+}
+.user-reservation-info-item .label {
+  font-weight: 600;
+  color: #222;
+  min-width: 80px;
+  font-size: 16px;
+}
+.user-reservation-info-item .value {
+  color: #222;
+  font-weight: 400;
+  text-align: right;
+  font-size: 16px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 10px;
+}
+
+.section-divider {
+  border-bottom: 1.5px solid #e0e0e0;
+  margin: 18px 0 18px 0;
+}
+
+.agreement-check {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  margin-top: 40px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: #222;
 }
-.form-row label {
-  min-width: 80px;
-  font-weight: 600;
-  color: #333;
+.agreement-check input[type="checkbox"] {
+  margin-right: 8px;
+  width: 18px;
+  height: 18px;
 }
-.form-row input {
-  flex: 1;
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-}
-.form-row input:focus {
-  border-color: #007bff;
-  outline: none;
+.payment-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 48px;
+  justify-content: center;
 }
 </style>

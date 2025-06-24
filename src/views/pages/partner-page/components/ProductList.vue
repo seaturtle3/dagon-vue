@@ -51,7 +51,9 @@
           <div class="product-actions">
             <button v-if="!product.deleted" class="delete-button" @click.stop="deleteProduct(product.prodId)">비공개</button>
             <button v-else class="restore-button" @click.stop="restoreProduct(product.prodId)">복구</button>
-            <button class="report-button" @click.stop="openCreateReportForm(product.prodId)">조황 등록</button>
+            <button class="report-button" @click="$router.push(`/partner/market-info/create/${product.prodId}`)">
+              조황 등록
+            </button>
           </div>
         </div>
       </div>
@@ -64,58 +66,21 @@
     <!-- 조황 등록 폼 (오버레이) -->
     <div v-if="showCreateReportFormForProduct" class="create-report-overlay">
       <div class="create-report-form-container">
+        <div class="form-header">
         <h3>{{ getProductNameForReport() }} 조황정보 등록</h3>
-        <form @submit.prevent="createReportForProduct">
-          <div class="form-group">
-            <label for="reportTitle">제목</label>
-            <input
-              type="text"
-              id="reportTitle"
-              v-model="newReport.title"
-              required
-              placeholder="조황정보 제목"
-            />
+          <button class="close-button" @click="cancelCreateReport">
+            <i class="fas fa-times"></i>
+          </button>
           </div>
 
-          <div class="form-group">
-            <label for="reportContent">내용</label>
-            <textarea
-              id="reportContent"
-              v-model="newReport.content"
-              required
-              placeholder="조황정보 내용"
-              rows="4"
-            ></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="fishingAt">낚시 날짜</label>
-            <input
-              type="date"
-              id="fishingAt"
-              v-model="newReport.fishingAt"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="imageFile">이미지 파일</label>
-            <input
-              type="file"
-              id="imageFile"
-              @change="handleThumbnailChange"
-              accept="image/*"
-            />
-            <div v-if="thumbnailPreview" class="thumbnail-preview">
-              <img :src="thumbnailPreview" alt="썸네일 미리보기" />
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="submit-button">등록</button>
-            <button type="button" class="cancel-button" @click="cancelCreateReport">취소</button>
-          </div>
-        </form>
+        <!-- ReportFormView 컴포넌트 사용 -->
+        <ReportFormView
+          :dto="reportDto"
+          :loading="reportLoading"
+          :error="reportError"
+          @submit-success="handleReportSuccess"
+          @submit-error="handleReportError"
+        />
       </div>
     </div>
 
@@ -147,9 +112,13 @@
 
 <script>
 import { partnerService } from '@/api/partner';
+import ReportFormView from '@/views/community/fishing-report/components/ReportFormView.vue';
 
 export default {
   name: 'ProductList',
+  components: {
+    ReportFormView
+  },
   data() {
     return {
       searchQuery: '',
@@ -159,11 +128,14 @@ export default {
       defaultImage: '/images/default-product.jpg',
       showCreateReportFormForProduct: false,
       selectedProdId: null,
-      newReport: {
+      reportDto: {
         title: '',
         content: '',
         fishingAt: '',
+        product: null
       },
+      reportLoading: false,
+      reportError: null,
       thumbnailFile: null,
       thumbnailPreview: null,
     }
@@ -274,8 +246,18 @@ export default {
     // 조황 등록 폼 열기
     openCreateReportForm(prodId) {
       this.selectedProdId = prodId;
-      this.showCreateReportFormForProduct = true; // 폼 표시
+      this.showCreateReportFormForProduct = true;
       this.resetNewReportForm();
+      
+      // 선택된 상품 정보를 reportDto에 설정
+      const selectedProduct = this.products.find(p => p.prodId === prodId);
+      if (selectedProduct) {
+        this.reportDto.product = {
+          prodId: selectedProduct.prodId,
+          prodName: selectedProduct.prodName
+        };
+        console.log('선택된 상품 정보:', this.reportDto.product);
+      }
     },
     // 조황 등록 폼 닫기 및 초기화
     cancelCreateReport() {
@@ -285,13 +267,27 @@ export default {
     },
     // 새 조황정보 폼 데이터 초기화
     resetNewReportForm() {
-      this.newReport = {
+      this.reportDto = {
         title: '',
         content: '',
         fishingAt: '',
+        product: null
       };
+      this.reportLoading = false;
+      this.reportError = null;
       this.thumbnailFile = null;
       this.thumbnailPreview = null;
+    },
+    // ReportFormView에서 성공 이벤트 처리
+    handleReportSuccess(data) {
+      console.log('조황정보 등록 성공:', data);
+      alert('조황정보가 성공적으로 등록되었습니다.');
+      this.cancelCreateReport();
+    },
+    // ReportFormView에서 에러 이벤트 처리
+    handleReportError(error) {
+      console.error('조황정보 등록 실패:', error);
+      this.reportError = error.message || '조황정보 등록에 실패했습니다.';
     },
     // 썸네일 이미지 변경 처리
     handleThumbnailChange(event) {
@@ -312,39 +308,6 @@ export default {
     getProductNameForReport() {
       const product = this.products.find(p => p.prodId === this.selectedProdId);
       return product ? product.prodName : '';
-    },
-    // 조황 정보 등록 처리
-    async createReportForProduct() {
-      console.log("createReportForProduct 호출됨, prodId:", this.selectedProdId);
-      if (!confirm('조황정보를 등록하시겠습니까?')) {
-        return;
-      }
-
-      try {
-        const formData = new FormData();
-        // 백엔드 @RequestPart("dto")에 맞춤
-        formData.append("dto", new Blob([JSON.stringify({
-          title: this.newReport.title,
-          content: this.newReport.content,
-          fishingAt: this.newReport.fishingAt, // 날짜 필드
-          prodId: this.selectedProdId // 선택된 상품 ID 추가
-        })], { type: "application/json" }));
-
-        // 백엔드 @RequestPart(value = "thumbnailFile")에 맞춤
-        if (this.thumbnailFile) {
-          formData.append("thumbnailFile", this.thumbnailFile);
-        }
-
-        await partnerService.createFishingReport(formData);
-        alert('조황정보가 성공적으로 등록되었습니다.');
-        this.cancelCreateReport(); // 폼 닫기
-        // 조황 등록 후 상품 목록을 새로고침할 필요는 없지만,
-        // 만약 상품 목록에 조황 정보 요약이 표시된다면 loadProducts()를 호출할 수 있습니다.
-        // 현재 ProductList에서는 직접적으로 조황 정보를 표시하지 않으므로 생략.
-      } catch (error) {
-        console.error('조황정보 등록 실패:', error);
-        alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.');
-      }
     },
     openReportProductForm(prodId, prodName) {
       // 신고 제품 폼 열기
@@ -668,11 +631,41 @@ export default {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
 }
 
-.create-report-form-container h3 {
-  margin-top: 0;
-  margin-bottom: 20px; /* 여백 조정 */
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.form-header h3 {
+  margin: 0;
   color: #1a237e;
-  font-size: 1.5rem; /* 제목 크기 조정 */
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background-color: #f0f0f0;
+  color: #333;
 }
 
 .create-report-form-container .form-group {

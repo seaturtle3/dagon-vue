@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductDetailStore } from '@/store/product/product-detail/useProductDetailStore.js'
 
@@ -17,10 +17,22 @@ const product = computed(() => store.product)
 
 const activeTab = ref('info')
 const activeSubTab = ref('center')
+const selectedOptionId = ref(null)
 
-onMounted(() => {
-  store.fetchProductDetail(prodId)
+
+
+
+onMounted(async () => {
+  await store.fetchProductDetail(prodId)
+  console.log('onMounted product:', store.product)
 })
+
+watch(product, (val) => {
+  if (val && val.options && val.options.length > 0) {
+    selectedOptionId.value = val.options[0].option_id
+  }
+})
+
 
 onUnmounted(() => {
   store.clearProduct()
@@ -114,7 +126,17 @@ const setTab = (tab) => {
         <div v-if="activeTab === 'reservation'" class="reservation-content">
           <div class="content-section">
             <h3 class="section-title">예약 캘린더</h3>
-            <ReservationCalendar />
+            <div v-if="store.product ">
+              <select v-model="selectedOptionId">
+                <option v-for="option in product.options" :key="option.option_id" :value="option.option_id">
+                  {{ option.option_name }} ({{ option.price }}원)
+                </option>
+              </select>
+            </div>
+            <div v-else>
+              옵션 정보가 없습니다.
+            </div>
+            <ReservationCalendar :product="product" :option-id="selectedOptionId" />
           </div>
         </div>
       </div>

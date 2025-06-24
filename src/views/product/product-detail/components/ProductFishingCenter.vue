@@ -47,7 +47,7 @@ const goToDetail = (item) => {
   if (!item || !item._type) return
   const basePath = item._type === 'report' ? 'fishing-report' : 'fishing-diary'
   const id = item._type === 'report' ? item.frId : item.fdId
-  window.open(`/${basePath}/${id}`, '_blank')
+  window.location.href = `/${basePath}/${id}` // ← 기존 창 이동
 }
 </script>
 

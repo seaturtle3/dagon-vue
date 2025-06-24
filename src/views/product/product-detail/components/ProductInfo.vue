@@ -29,12 +29,24 @@ const isOwnProduct = computed(() => {
 // 사용자 정보 초기화
 const initializeUserInfo = () => {
   try {
+    // 1. localStorage에서 사용자 정보 확인
     const userInfo = localStorage.getItem('userInfo');
     if (userInfo) {
       currentUser.value = JSON.parse(userInfo);
+      console.log('localStorage에서 사용자 정보 로드:', currentUser.value);
+    }
+    
+    // 2. 토큰 확인
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('토큰이 없음 - 비로그인 상태');
+      currentUser.value = null;
+    } else {
+      console.log('토큰 존재 - 로그인 상태');
     }
   } catch (error) {
     console.error('사용자 정보 파싱 실패:', error);
+    currentUser.value = null;
   }
 };
 
@@ -54,8 +66,15 @@ function onContactClick() {
   console.log('상품 정보:', props.product);
   console.log('현재 사용자 정보:', currentUser.value);
   
-  // 로그인 상태 확인
-  if (currentUser.value && currentUser.value.uid) {
+  // 로그인 상태 확인 (토큰과 사용자 정보 모두 확인)
+  const token = localStorage.getItem('token');
+  const isLoggedIn = token && currentUser.value && currentUser.value.uid;
+  
+  console.log('토큰 존재:', !!token);
+  console.log('사용자 정보 존재:', !!currentUser.value);
+  console.log('로그인 상태:', isLoggedIn);
+  
+  if (isLoggedIn) {
     console.log('로그인된 사용자 - MemberInquiry로 이동');
     // 로그인된 사용자는 MemberInquiry 페이지로 이동
     router.push({

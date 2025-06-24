@@ -94,8 +94,8 @@ const router = useRouter();
 const datesInMonth = ref([]);
 
 // 성인 1명당 50,000원, 아동 1명당 30,000원으로 가정
-const ADULT_PRICE = 50000;
-const CHILD_PRICE = 30000;
+const ADULT_PRICE = 100;
+const CHILD_PRICE = 50;
 
 const totalPeople = computed(() => adultCount.value + childCount.value);
 
@@ -191,6 +191,11 @@ const generateDates = () => {
   datesInMonth.value = days;
 };
 
+// product 정보를 props로 받음
+const props = defineProps({
+  product: { type: Object, required: false, default: null }
+});
+
 const goToPayment = () => {
   if (totalPeople.value === 0) {
     alert("예약 인원을 선택해주세요.");
@@ -203,6 +208,7 @@ const goToPayment = () => {
   const day = String(selectedDate.value.getDate()).padStart(2, '0');
   const fishingAtStr = `${year}-${month}-${day}`;
 
+  // product 정보 쿼리로 전달
   router.push({
     name: 'Payment',
     query: {
@@ -210,7 +216,10 @@ const goToPayment = () => {
       adultCount: adultCount.value,
       childCount: childCount.value,
       totalPeople: totalPeople.value,
-      estimatedPrice: estimatedPrice.value
+      estimatedPrice: estimatedPrice.value,
+      prodId: props.product?.prodId || '',
+      prodName: props.product?.prodName || '',
+      prodAddress: props.product?.prodAddress || ''
     }
   });
 };

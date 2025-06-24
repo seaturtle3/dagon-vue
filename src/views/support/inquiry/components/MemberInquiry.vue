@@ -109,14 +109,11 @@ const productInfo = ref(null)
 const inquiryTypes = {
   USER: [
     { value: 'PRODUCT', label: '상품 문의' },
-    { value: 'PARTNERSHIP', label: '제휴 문의' },
-    { value: 'SYSTEM', label: '시스템 문의' },
     { value: 'RESERVATION', label: '예약 문의' },
     { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
   ],
   PARTNER: [
     { value: 'PRODUCT', label: '상품 문의' },
-    { value: 'SYSTEM', label: '시스템 문의' },
     { value: 'RESERVATION', label: '예약 문의' },
     { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
   ]
@@ -137,12 +134,10 @@ const initializeProductInfo = () => {
     
     console.log('상품 정보 받음:', productInfo.value);
     
-    // 상품 문의인 경우 자동으로 문의 유형 설정
+    // 상품 문의인 경우 자동으로 문의 유형만 설정
     if (productInfo.value.productType === 'product') {
       form.value.inquiryType = 'PRODUCT';
-      
-      // 제목에 상품명 자동 추가
-      form.value.title = `[${productInfo.value.productName}] 상품 문의`;
+      // 제목은 자동 설정하지 않고 회원이 직접 입력하도록 함
     }
   }
 };
@@ -253,7 +248,7 @@ const submitForm = async () => {
 
 const resetForm = () => {
   form.value = {
-    title: productInfo.value ? `[${productInfo.value.productName}] 상품 문의` : '',
+    title: '',
     content: '',
     inquiryType: productInfo.value ? 'PRODUCT' : '',
     writerType: userInfo.value.role,
@@ -266,8 +261,22 @@ const goToLogin = () => {
 }
 
 onMounted(async () => {
+  // 로그인 상태 확인
+  const token = localStorage.getItem('token');
+  const userInfo = localStorage.getItem('userInfo');
+  
+  if (!token || !userInfo) {
+    console.log('비로그인 사용자가 MemberInquiry에 접근 - GuestInquiry로 리다이렉트');
+    alert('로그인이 필요한 서비스입니다.');
+    router.push({
+      name: 'GuestInquiry',
+      query: route.query
+    });
+    return;
+  }
+  
   await fetchUserInfo();
-  await initializeProductInfo();
+  initializeProductInfo();
 });
 
 </script>

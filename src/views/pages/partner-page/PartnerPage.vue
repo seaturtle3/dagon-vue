@@ -29,6 +29,10 @@
           <i class="fas fa-chart-bar"></i>
           조황정보
         </router-link>
+        <router-link to="/partner/fishing-diaries" class="nav-item">
+          <i class="fas fa-file-alt"></i>
+          조행기 관리
+        </router-link>
         <router-link to="/partner/withdrawal" class="nav-item">
           <i class="fa-solid fa-eye-slash"></i>
           탈퇴
