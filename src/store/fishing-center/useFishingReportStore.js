@@ -6,15 +6,36 @@ export const useFishingReportStore = defineStore('fishingReport', {
     state: () => ({
         reports: [],
         currentReport: null, // 상세보기용
+        currentPage: 0,
+        pageSize: 10,
+        totalPages: 1,
+        loading: false,
     }),
     actions: {
-        async fetchReports() {
+        async fetchReports(page = 0, size = 10) {
+            if (this.loading) return
+            this.loading = true
             try {
-                const res = await api.get('/api/fishing-report/get-all')
-                this.reports = res.data.content
-                console.log('useFishingReportStore 조황정보 :', this.reports)
+                const res = await api.get('/api/fishing-report/get-all', {
+                    params: {
+                        page,
+                        size,
+                        sortBy: 'frId',
+                        direction: 'desc'
+                    }
+                })
+                const data = res.data
+                if (page === 0) {
+                    this.reports = data.content
+                } else {
+                    this.reports = [...this.reports, ...data.content]
+                }
+                this.currentPage = data.number
+                this.totalPages = data.totalPages
             } catch (err) {
                 console.error('조황정보 로드 실패', err)
+            } finally {
+                this.loading = false
             }
         },
 

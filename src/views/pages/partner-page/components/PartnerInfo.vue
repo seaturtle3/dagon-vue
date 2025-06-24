@@ -94,7 +94,7 @@ export default {
         return '/img/default-license.png';
       }
       const fileName = path.split(/[/\\\\]/).pop(); // 마지막 파일명만 추출
-  return `http://localhost:8095/uploads/${fileName}`;
+  return `/uploads/${fileName}`;
     },
     goToInquiry() {
       this.$router.push('/partner/inquiries');

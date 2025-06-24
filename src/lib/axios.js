@@ -4,7 +4,7 @@ import {BASE_URL} from "@/constants/baseUrl.js";
 console.log('BASE_URL:', BASE_URL)
 
 const api = axios.create({
-    baseURL: BASE_URL || 'http://localhost:8095',
+    baseURL: BASE_URL || '',
     timeout: 30000,
     headers: {
         'Content-Type': 'application/json',

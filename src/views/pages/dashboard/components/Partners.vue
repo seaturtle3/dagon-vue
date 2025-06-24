@@ -113,7 +113,7 @@ export default {
     getLicenseImgUrl(path) {
       if (!path) return '/img/default-license.png';
       const fileName = path.split(/[/\\\\]/).pop();
-      return `http://localhost:8095/uploads/${fileName}`;
+      return `/uploads/${fileName}`;
     },
 
     async searchPartners() {
