@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted } from 'vue'
 import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
 import ReportListView from "@/views/community/fishing-report/components/ReportListView.vue";
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const store = useFishingReportStore()
