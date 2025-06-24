@@ -238,7 +238,7 @@ onMounted(() => {
           <div class="boat-detail-item">
             <div class="boat-detail-label">
 <!--              <i class="fas fa-weight-hanging"></i>-->
-              배 무게
+              선박 무게
             </div>
             <div class="boat-detail-value">{{ props.product.weight }}</div>
           </div>
@@ -246,7 +246,7 @@ onMounted(() => {
           <div class="boat-detail-item">
             <div class="boat-detail-label">
 <!--              <i class="fas fa-map-marked-alt"></i>-->
-              배 주소
+              선박 주소
             </div>
             <div class="boat-detail-value">{{ props.product.prodAddress }}</div>
           </div>
