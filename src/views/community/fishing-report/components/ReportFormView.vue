@@ -91,7 +91,7 @@ const isFormValid = computed(() => {
 async function validateAndRefreshToken() {
   try {
     console.log('토큰 검증 시작...')
-    
+
     // 현재 토큰 상태 확인
     const currentToken = localStorage.getItem('token')
     if (!currentToken) {
@@ -109,7 +109,7 @@ async function validateAndRefreshToken() {
 
     console.log('토큰이 존재합니다. API 요청을 시도합니다.')
     return true
-    
+
   } catch (error) {
     console.error('토큰 검증 중 오류:', error)
     // 토큰을 초기화하지 않고 에러만 로그
@@ -165,20 +165,20 @@ onMounted(async () => {
     console.log('페이지 로드 시 토큰 설정')
     adminAuthStore.setToken(token)
   }
-  
+
   // 현재 토큰 상태 확인
   checkTokenStatus()
-  
+
   // 페이지 로드 시 토큰 검증
   const tokenValid = await validateAndRefreshToken()
   if (!tokenValid) {
     console.log('토큰 검증 실패, 페이지 로드 중단')
     return
   }
-  
+
   // 검증 후 토큰 상태 재확인
   checkTokenStatus()
-  
+
   // RichTextEditor는 컴포넌트에서 자동으로 초기화됩니다
   await productListStore.fetchProducts()
 })
@@ -309,26 +309,26 @@ function onProductInputBlur(e) {
 </script>
 
 <template>
-  <div class="report-form-container">
+  <div class="form-container">
     <div class="form-header">
       <h2 class="form-title">🎣 조황정보 등록</h2>
       <p class="form-subtitle">오늘의 낚시 조황을 공유해보세요!</p>
     </div>
 
-    <form @submit.prevent="onSubmit" class="report-form">
+    <form @submit.prevent="onSubmit">
       <!-- 기본 정보 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📝 기본 정보</h3>
-        
+
         <div class="form-row">
           <div class="form-group">
             <label class="form-label required">제목</label>
-            <input 
-              v-model="formData.title" 
-              type="text" 
-              class="form-control" 
+            <input
+              v-model="formData.title"
+              type="text"
+              class="form-control"
               placeholder="조황정보 제목을 입력하세요"
-              required 
+              required
             />
           </div>
         </div>
@@ -336,22 +336,22 @@ function onProductInputBlur(e) {
         <div class="form-row">
           <div class="form-group">
             <label class="form-label required">낚시 날짜</label>
-            <input 
-              v-model="formData.fishingAt" 
-              type="date" 
-              class="form-control" 
-              required 
+            <input
+              v-model="formData.fishingAt"
+              type="date"
+              class="form-control"
+              required
             />
           </div>
-          
+
           <div class="form-group">
             <label class="form-label required">낚시 장소</label>
-            <input 
-              v-model="formData.location" 
-              type="text" 
-              class="form-control" 
+            <input
+              v-model="formData.location"
+              type="text"
+              class="form-control"
               placeholder="낚시한 장소를 입력하세요"
-              required 
+              required
             />
           </div>
         </div>
@@ -388,7 +388,7 @@ function onProductInputBlur(e) {
       <!-- 날씨 정보 섹션 -->
       <div class="form-section">
         <h3 class="section-title">🌤️ 날씨 정보</h3>
-        
+
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">날씨</label>
@@ -399,23 +399,23 @@ function onProductInputBlur(e) {
               </option>
             </select>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">기온 (°C)</label>
-            <input 
-              v-model="formData.temperature" 
-              type="number" 
-              class="form-control" 
+            <input
+              v-model="formData.temperature"
+              type="number"
+              class="form-control"
               placeholder="기온을 입력하세요"
             />
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">수온 (°C)</label>
-            <input 
-              v-model="formData.waterTemperature" 
-              type="number" 
-              class="form-control" 
+            <input
+              v-model="formData.waterTemperature"
+              type="number"
+              class="form-control"
               placeholder="수온을 입력하세요"
             />
           </div>
@@ -425,7 +425,7 @@ function onProductInputBlur(e) {
       <!-- 낚시 정보 섹션 -->
       <div class="form-section">
         <h3 class="section-title">🎯 낚시 정보</h3>
-        
+
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">낚시 방법</label>
@@ -436,7 +436,7 @@ function onProductInputBlur(e) {
               </option>
             </select>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">어종</label>
             <select v-model="formData.catchInfo" class="form-control">
@@ -452,14 +452,14 @@ function onProductInputBlur(e) {
       <!-- 이미지 업로드 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📸 이미지 업로드</h3>
-        
+
         <div class="form-group">
           <label class="form-label">대표 썸네일</label>
-          <input 
-            type="file" 
-            accept="image/*" 
-            class="form-control" 
-            @change="onThumbnailChange" 
+          <input
+            type="file"
+            accept="image/*"
+            class="form-control"
+            @change="onThumbnailChange"
           />
           <div v-if="thumbnailFile" class="file-preview">
             <span>선택된 파일: {{ thumbnailFile.name }}</span>
@@ -469,12 +469,12 @@ function onProductInputBlur(e) {
 
         <div class="form-group">
           <label class="form-label">추가 이미지</label>
-          <input 
-            type="file" 
-            accept="image/*" 
-            multiple 
-            class="form-control" 
-            @change="onFileChange" 
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            class="form-control"
+            @change="onFileChange"
           />
           <div v-if="images.length > 0" class="file-list">
             <div v-for="(file, index) in images" :key="index" class="file-item">
@@ -488,10 +488,10 @@ function onProductInputBlur(e) {
       <!-- 내용 작성 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📝 상세 내용</h3>
-        
+
         <div class="form-group">
           <label class="form-label required">조황정보 내용</label>
-          <RichTextEditor 
+          <RichTextEditor
             v-model="formData.content"
             editor-id="fishing-report-editor"
           />
@@ -517,7 +517,7 @@ function onProductInputBlur(e) {
 </template>
 
 <style scoped>
-.report-form-container {
+.form-container {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
@@ -700,11 +700,11 @@ function onProductInputBlur(e) {
   .form-row {
     grid-template-columns: 1fr;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .btn {
     width: 100%;
   }

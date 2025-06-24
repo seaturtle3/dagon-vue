@@ -42,6 +42,31 @@ export const useFishingReportStore = defineStore('fishingReport', {
                 console.error('조황정보 생성 실패', err)
                 throw err
             }
+        },
+
+        // 조황정보 수정 액션 (application/json)
+        async updateFishingReport(id, reportDto) {
+            try {
+                const res = await api.put(`/api/fishing-report/update/${id}`, reportDto, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                return res.data
+            } catch (err) {
+                console.error('조황정보 수정 실패', err)
+                throw err
+            }
+        },
+
+        // 조황정보 삭제 액션
+        async deleteFishingReport(id) {
+            try {
+                await api.delete(`/api/fishing-report/delete/${id}`)
+            } catch (err) {
+                console.error('조황정보 삭제 실패', err)
+                throw err
+            }
         }
     }
 })

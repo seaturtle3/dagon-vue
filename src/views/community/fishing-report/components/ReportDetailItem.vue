@@ -2,6 +2,8 @@
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 import { partnerService } from '@/api/partner';
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js';
 
 const props = defineProps({
   report: {
@@ -23,14 +25,13 @@ const currentUser = ref(null);
 
 // 현재 사용자가 조황정보 작성자인지 확인
 const isOwnReport = computed(() => {
-  if (!currentUser.value || !props.report.user) return false;
-  return currentUser.value.uid === props.report.user.uid;
+  return String(currentUser.value?.uno) === String(props.report?.user?.uno);
 });
 
 // 현재 사용자가 댓글 작성자인지 확인
 const isOwnComment = (comment) => {
   if (!currentUser.value || !comment.user) return false;
-  return currentUser.value.uid === comment.user.uid;
+  return String(currentUser.value.uno) === String(comment.user.uno);
 };
 
 // 사용자 정보 초기화
@@ -136,13 +137,92 @@ const closeReportModal = () => {
 // 컴포넌트 마운트 시 사용자 정보 초기화
 onMounted(() => {
   initializeUserInfo();
-});
+
+  console.log('✅ currentUser:', currentUser.value)
+  console.log('✅ report.user:', props.report.user)
+  console.log('✅ UID 비교 결과:', currentUser.value?.uno === props.report.user?.uno)
+})
+
+const router = useRouter();
+const fishingReportStore = useFishingReportStore();
+
+const goToEdit = () => {
+  router.push(`/fishing-report/form/${props.report.frId}`);
+};
+
+const confirmDelete = async () => {
+  if (confirm('정말 삭제하시겠습니까?')) {
+    try {
+      await fishingReportStore.deleteFishingReport(props.report.frId);
+      alert('삭제되었습니다.');
+      router.push('/fishing-report');
+    } catch (e) {
+      alert('삭제에 실패했습니다.');
+    }
+  }
+};
+
+const newComment = ref('');
+const submittingComment = ref(false);
+
+// 댓글 등록 함수
+const submitComment = async () => {
+  if (!newComment.value.trim()) {
+    alert('댓글 내용을 입력하세요.');
+    return;
+  }
+  if (!currentUser.value?.uno) {
+    alert('로그인 후 이용해 주세요.');
+    return;
+  }
+  submittingComment.value = true;
+  try {
+    await partnerService.createFishingReportComment(props.report.frId, newComment.value, currentUser.value.uno);
+    alert('댓글이 등록되었습니다.');
+    newComment.value = '';
+    // 댓글 목록 새로고침 (emit 또는 reload 필요)
+    location.reload(); // 임시: 새로고침, 추후 emit 등으로 개선 가능
+  } catch (e) {
+    alert('댓글 등록에 실패했습니다.');
+  } finally {
+    submittingComment.value = false;
+  }
+};
+
+// 댓글 삭제 함수
+const deleteComment = async (commentId) => {
+  if (!commentId) {
+    alert('댓글 ID가 없습니다.');
+    return;
+  }
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+  try {
+    await partnerService.deleteFishingReportComment(commentId);
+    alert('삭제되었습니다.');
+    location.reload(); // 또는 댓글 목록만 갱신
+  } catch (e) {
+    alert('삭제에 실패했습니다.');
+  }
+};
 </script>
 
 <template>
   <div class="detail-container card-style">
+    <div v-if="isOwnReport" class="detail-actions">
+      <button class="btn btn-edit" @click="goToEdit">수정</button>
+      <button class="btn btn-delete" @click="confirmDelete">삭제</button>
+    </div>
     <!-- 제목 -->
-    <h2 class="detail-title">{{ report.title }}</h2>
+    <div class="detail-title-row">
+      <h2 class="detail-title">{{ report.title }}</h2>
+      <button
+        class="btn-report-post"
+        @click="openReportModal(report, 'report')"
+        title="게시글 신고"
+      >
+        <i class="fas fa-flag"></i> 신고
+      </button>
+    </div>
     <div class="meta-row">
       <span class="meta-item">
         <i class="fa fa-user"></i> {{ report.user?.uname || '익명' }}
@@ -190,6 +270,23 @@ onMounted(() => {
 
     <div class="comment-box">
       <h5 class="section-label">댓글</h5>
+      <!-- 댓글 입력란: 항상 노출 -->
+      <div class="comment-input-row">
+        <textarea
+          v-model="newComment"
+          class="comment-input"
+          placeholder="댓글을 입력하세요..."
+          rows="2"
+          :disabled="submittingComment"
+        ></textarea>
+        <button
+          class="btn btn-primary comment-submit-btn"
+          @click="submitComment"
+          :disabled="submittingComment"
+        >
+          {{ submittingComment ? '등록 중...' : '등록' }}
+        </button>
+      </div>
       <div v-if="report.comments && report.comments.length">
         <div
           v-for="(comment, index) in report.comments"
@@ -201,6 +298,26 @@ onMounted(() => {
             <span class="comment-date">{{ comment.createdAt }}</span>
           </div>
           <div class="comment-content">{{ comment.comment }}</div>
+          <div class="comment-actions-row">
+            <button
+              v-if="!isOwnComment(comment)"
+              class="btn-action-comment"
+              @click="openReportModal(comment, 'comment')"
+              :disabled="submittingComment"
+              title="댓글 신고"
+            >
+              <i class="fas fa-flag"></i>신고
+            </button>
+            <button
+              v-if="isOwnComment(comment)"
+              class="btn-action-comment"
+              @click="deleteComment(comment.frCommentId)"
+              :disabled="submittingComment"
+              title="댓글 삭제"
+            >
+              <i class="fa-solid fa-x"></i>삭제
+            </button>
+          </div>
         </div>
       </div>
       <div v-else class="no-comment">아직 등록된 댓글이 없습니다.</div>
@@ -236,20 +353,26 @@ onMounted(() => {
 
 <style scoped>
 .detail-container.card-style {
-  max-width: 1040px;
+  max-width: 1280px;
   margin: 40px auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-  padding: 36px 32px 32px 32px;
+  padding: 36px 48px 32px 48px;
   position: relative;
 }
-.detail-title {
-  font-size: 2.1rem;
-  font-weight: 700;
-  color: #1976d2;
+.detail-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 10px;
+}
+.detail-title {
+  flex: 1;
   text-align: center;
+  margin: 0;
+  color: #1976d2;
 }
 .meta-row {
   display: flex;
@@ -463,5 +586,124 @@ onMounted(() => {
 .btn-close:hover {
   background-color: #f8f9fa;
   border-radius: 4px;
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.btn-edit, .btn-delete {
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.btn-edit {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+}
+.btn-delete {
+  background: #f44336;
+  color: #fff;
+  border: none;
+}
+
+/* 댓글 입력란 스타일 */
+.comment-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+  align-items: flex-start;
+}
+.comment-input {
+  flex: 1;
+  border-radius: 6px;
+  border: 1.5px solid #b0bec5;
+  padding: 10px;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 38px;
+  max-height: 90px;
+  background: #fff;
+  transition: border 0.2s;
+}
+.comment-input:focus {
+  border: 1.5px solid #1976d2;
+  outline: none;
+}
+.comment-submit-btn {
+  min-width: 80px;
+  height: 38px;
+  border-radius: 6px;
+  background: #1976d2;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.comment-submit-btn:disabled {
+  background: #b0bec5;
+  cursor: not-allowed;
+}
+.comment-submit-btn:hover:not(:disabled) {
+  background: #1251a3;
+}
+
+/* 스타일 추가 */
+.btn-report-post {
+  background: #fff0f0;
+  color: #e74c3c;
+  border: 1.5px solid #e74c3c;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-report-post i {
+  font-size: 1.1em;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.btn-report-post:hover {
+  background: #e74c3c;
+  color: #fff;
+}
+.comment-actions-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.btn-action-comment {
+  background: #fff0f0;
+  color: #e74c3c;
+  border: 1.5px solid #e74c3c;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.98rem;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-action-comment:disabled {
+  background: #f8d7da;
+  color: #b0bec5;
+  border-color: #f8d7da;
+  cursor: not-allowed;
+}
+.btn-action-comment:hover:not(:disabled) {
+  background: #e74c3c;
+  color: #fff;
 }
 </style>

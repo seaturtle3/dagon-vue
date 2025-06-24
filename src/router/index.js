@@ -4,6 +4,9 @@ import AdminLayout from '../views/pages/dashboard/AdminLayout.vue'
 const routes = [
     {path: '/', component: () => import('@/views/home/Home.vue')},
 
+    // multtae
+    {path: '/multtae', component: () => import('@/views/multtae/MulttaeView.vue')},
+
     // auth
     {path: '/login', component: () => import('@/views/auth/login/Login.vue')},
     {path: '/register', component: () => import('@/views/auth/register/components/RegisterForm.vue')},
@@ -225,7 +228,7 @@ const routes = [
         path: '/fishing-diary',
         children: [
             {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
-            // {path: 'form', component: () => import('@/views/community/fishing-diary/DiaryList/DiaryForm.vue')},
+            {path: 'create', component: () => import('@/views/community/fishing-diary/DiaryForm.vue')},
             {
                 path: ':fdId',
                 name: 'DiaryDetail',
@@ -304,6 +307,7 @@ const routes = [
         name: 'PartnerProductRegister',
         component: () => import('@/views/pages/partner-page/components/ProductRegister.vue')
     },
+    { path: '/product-inquiry', component: () => import('@/views/support/inquiry/ProductInquiry.vue') },
 ]
 
 const router = createRouter({

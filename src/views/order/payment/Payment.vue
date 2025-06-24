@@ -41,8 +41,25 @@
         <span class="value">{{ reservationInfo.estimatedPrice?.toLocaleString() }}원</span>
       </div>
     </div>
+
+    <!-- 예약자 정보 입력란 -->
+    <div class="user-info-form">
+      <div class="form-row">
+        <label for="buyerName">예약자명</label>
+        <input id="buyerName" v-model="userInfo.buyer_name" type="text" placeholder="예약자명을 입력하세요" required />
+      </div>
+      <div class="form-row">
+        <label for="buyerEmail">이메일</label>
+        <input id="buyerEmail" v-model="userInfo.buyer_email" type="email" placeholder="이메일을 입력하세요" required />
+      </div>
+      <div class="form-row">
+        <label for="buyerTel">연락처</label>
+        <input id="buyerTel" v-model="userInfo.buyer_tel" type="tel" placeholder="연락처를 입력하세요" required />
+      </div>
+    </div>
+
     <div class="payment-actions">
-      <button class="btn-payment" @click="handlePayment" :disabled="!reservationInfo">
+      <button class="btn-payment" @click="handlePayment" :disabled="!reservationInfo || !isUserInfoValid">
         결제하기
       </button>
       <button class="btn-cancel" @click="goBack">
@@ -59,7 +76,18 @@ export default {
   name: "Payments",
   data() {
     return {
-      reservationInfo: null
+      reservationInfo: null,
+      userInfo: {
+        buyer_name: '',
+        buyer_email: '',
+        buyer_tel: ''
+      }
+    }
+  },
+  computed: {
+    isUserInfoValid() {
+      // 모든 필드가 비어있지 않은지 체크
+      return this.userInfo.buyer_name && this.userInfo.buyer_email && this.userInfo.buyer_tel;
     }
   },
   mounted() {
@@ -115,6 +143,10 @@ export default {
         alert("예약 정보가 없습니다.");
         return;
       }
+      if (!this.isUserInfoValid) {
+        alert("예약자명, 이메일, 연락처를 모두 입력해주세요.");
+        return;
+      }
 
       IMP.request_pay(
           {
@@ -123,9 +155,9 @@ export default {
             merchant_uid: "RESV-" + new Date().getTime(),
             name: `낚시 예약 (${this.formatDate(this.reservationInfo.fishingAt)})`,
             amount: this.reservationInfo.estimatedPrice,
-            buyer_email: "test@test.com", // 실제로는 로그인된 사용자 정보 사용
-            buyer_name: "홍길동", // 실제로는 로그인된 사용자 정보 사용
-            buyer_tel: "010-0000-0000", // 실제로는 로그인된 사용자 정보 사용
+            buyer_email: this.userInfo.buyer_email,
+            buyer_name: this.userInfo.buyer_name,
+            buyer_tel: this.userInfo.buyer_tel,
             buyer_addr: "서울시 강남구",
             buyer_postcode: "12345",
             m_redirect_url: `${BASE_URL}/payments/result`,
@@ -145,7 +177,7 @@ export default {
     handlePaymentSuccess(rsp) {
       console.log("결제 성공:", rsp);
       alert("결제가 성공했습니다!");
-      
+
       // 결제 성공 후 예약 정보를 서버에 저장하는 로직 추가
       this.saveReservation(rsp);
     },
@@ -174,11 +206,11 @@ export default {
         // });
 
         console.log("예약 정보 저장:", reservationData);
-        
+
         // 예약 완료 페이지로 이동
         this.$router.push({
           name: 'PaymentResult',
-          query: { 
+          query: {
             success: 'true',
             reservationId: 'temp-id' // 실제로는 서버에서 받은 예약 ID
           }
@@ -311,5 +343,36 @@ export default {
   background: #545b62;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(108,117,125,0.3);
+}
+
+.user-info-form {
+  background: #f4f8fb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.form-row label {
+  min-width: 80px;
+  font-weight: 600;
+  color: #333;
+}
+.form-row input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.form-row input:focus {
+  border-color: #007bff;
+  outline: none;
 }
 </style>

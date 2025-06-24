@@ -47,7 +47,14 @@ function formatDate(dateStr) {
 }
 
 function onContactClick() {
-  alert('문의 기능은 준비 중입니다!')
+  // 상품명, 상품ID를 쿼리스트링으로 전달하여 /product-inquiry로 이동
+  const productName = props.product.prodName;
+  const productId = props.product.prodId;
+  if (!productName || !productId) {
+    alert('상품 정보가 올바르지 않습니다.');
+    return;
+  }
+  window.location.href = `/product-inquiry?productName=${encodeURIComponent(productName)}&productId=${productId}`;
 }
 
 // 신고 폼 열기

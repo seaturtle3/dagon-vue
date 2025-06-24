@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import {defineStore} from 'pinia'
 import api from '@/lib/axios.js'
 
 export const useFishingDiaryStore = defineStore('fishingDiary', {
@@ -24,6 +24,21 @@ export const useFishingDiaryStore = defineStore('fishingDiary', {
                 console.log('단일 조행기:', this.currentDiary)
             } catch (e) {
                 console.error(`조행기(id: ${id}) 로드 실패`, e)
+            }
+        },
+
+        // 조행기 생성 액션
+        async createFishingDiary(formData) {
+            try {
+                const res = await api.post('/api/fishing-diary/create', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    }
+                })
+                return res.data
+            } catch (err) {
+                console.error('조행기 생성 실패', err)
+                throw err
             }
         }
     }

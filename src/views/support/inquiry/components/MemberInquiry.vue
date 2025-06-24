@@ -18,9 +18,11 @@
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
             <option value="">문의 유형을 선택하세요.</option>
-            <option v-for="type in availableInquiryTypes" :key="type.value" :value="type.value">
-              {{ type.label }}
-            </option>
+            <option value="PRODUCT">상품 문의</option>
+            <option value="BUSINESS">제휴 문의</option>
+            <option value="SYSTEM">시스템 문의</option>
+            <option value="RESERVATION">예약 문의</option>
+            <option value="CANCEL">예약 취소 문의</option>
           </select>
         </div>
         <div class="form-group">
@@ -181,29 +183,37 @@ const submitForm = async () => {
   console.log('문의 데이터 준비:', inquiryData);
   console.log('사용자 정보:', userInfo.value);
 
-  openModal(inquiryData); // ✅ 모달 열기
+  try {
+    // 실제 API 호출
+    await inquiryApi.createInquiry(inquiryData);
+    alert('문의가 정상 등록되었습니다.');
+    
+    // Inquiries.vue로 데이터 전달을 위해 store에 저장
+    store.addNewInquiry({
+      id: Date.now(), // 임시 ID 생성
+      title: inquiryData.title,
+      content: inquiryData.content,
+      status: '대기중',
+      createdAt: inquiryData.createdAt,
+      userName: inquiryData.userName,
+      author: inquiryData.userName,
+      inquiryType: inquiryData.inquiryType,
+      answerContent: null,
+      answeredAt: null
+    });
+    
+    resetForm();
+    
+    // 관리자 문의 페이지로 이동 (해당 문의 유형 탭 선택)
+    router.push({
+      path: '/admin/inquiries',
+      query: { type: inquiryData.inquiryType }
+    });
+  } catch (error) {
+    console.error('문의 저장 실패:', error);
+    alert('저장에 실패했습니다.');
+  }
 };
-
-//   try {
-//     const inquiryData = {
-//       ...form.value,
-//       writerId: userInfo.value.uno,
-//       writerType: userInfo.value.role,
-//       status: '대기중',
-//       createdAt: new Date().toISOString(),
-//       userName: userInfo.value.uid
-//     };
-//
-//     await inquiryApi.createInquiry(inquiryData);
-//     alert('문의가 정상 등록되었습니다.');
-//     resetForm();
-//
-//     router.push('/admin/inquiries');
-//   } catch (error) {
-//     console.error('문의 저장 실패:', error);
-//     alert('저장에 실패했습니다.');
-//   }
-// };
 
 const resetForm = () => {
   form.value = {
