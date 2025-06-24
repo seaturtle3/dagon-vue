@@ -3,11 +3,10 @@ import { ref, onMounted, computed, watch } from 'vue'
 import axios from '@/lib/axios.js'
 import { useAdminAuthStore } from '@/store/auth/auth.js'
 import { useAuthStore } from '@/store/login/loginStore.js'
+import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
 import { useRouter } from 'vue-router'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
-import { useProductListStore } from '@/store/product/all-products/useProductListStore.js'
 import { getProductsByKeyword } from '@/api/product.js'
-import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
 
 const props = defineProps({
   dto: Object,
@@ -15,21 +14,14 @@ const props = defineProps({
   error: String,
 })
 
-const emit = defineEmits(['thumbnail-change', 'file-change', 'submit-success', 'submit-error'])
+const emit = defineEmits(['thumbnail-change', 'submit-success', 'submit-error'])
 
 const router = useRouter()
-const images = ref([])
 const thumbnailFile = ref(null)
 const formData = ref({
   title: '',
   content: '',
   fishingAt: '',
-  location: '',
-  weather: '',
-  temperature: '',
-  waterTemperature: '',
-  fishingMethod: '',
-  catchInfo: '',
   imageFileName: '',
   thumbnailUrl: '',
   images: [],
@@ -39,50 +31,20 @@ const formData = ref({
 
 const adminAuthStore = useAdminAuthStore()
 const authStore = useAuthStore()
-const productListStore = useProductListStore()
+const fishingReportStore = useFishingReportStore()
+
 const selectedProduct = ref(null)
 const productSearch = ref('')
 const productOptions = ref([])
 const productSearchLoading = ref(false)
 const highlightedIndex = ref(-1)
 const productInputRef = ref(null)
-const fishingReportStore = useFishingReportStore()
-
-// 날씨 옵션
-const weatherOptions = [
-  { value: 'SUNNY', label: '맑음' },
-  { value: 'CLOUDY', label: '흐림' },
-  { value: 'RAINY', label: '비' },
-  { value: 'SNOWY', label: '눈' },
-  { value: 'WINDY', label: '바람' }
-]
-
-// 낚시 방법 옵션
-const fishingMethodOptions = [
-  { value: 'ROD', label: '대물낚시' },
-  { value: 'SPINNING', label: '스피닝' },
-  { value: 'FLY', label: '플라이낚시' },
-  { value: 'NET', label: '그물' },
-  { value: 'TRAP', label: '통발' }
-]
-
-// 어종 옵션
-const fishSpeciesOptions = [
-  { value: 'BASS', label: '배스' },
-  { value: 'CRAPPIE', label: '블루길' },
-  { value: 'CATFISH', label: '메기' },
-  { value: 'CARP', label: '잉어' },
-  { value: 'TROUT', label: '송어' },
-  { value: 'SALMON', label: '연어' },
-  { value: 'OTHER', label: '기타' }
-]
 
 const isFormValid = computed(() => {
   return (
     formData.value.title &&
     formData.value.content &&
     formData.value.fishingAt &&
-    formData.value.location &&
     selectedProduct.value
   )
 })
@@ -144,16 +106,6 @@ function onThumbnailChange(event) {
   }
 }
 
-function onFileChange(event) {
-  const files = Array.from(event.target.files)
-  images.value = files
-  emit('file-change', event)
-}
-
-function removeImage(index) {
-  images.value.splice(index, 1)
-}
-
 function removeThumbnail() {
   thumbnailFile.value = null
 }
@@ -178,83 +130,7 @@ onMounted(async () => {
   
   // 검증 후 토큰 상태 재확인
   checkTokenStatus()
-  
-  // RichTextEditor는 컴포넌트에서 자동으로 초기화됩니다
-  await productListStore.fetchProducts()
 })
-
-async function onSubmit() {
-  if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 장소, 상품)')
-    return
-  }
-  if (!formData.value.fishingAt) {
-    alert('낚시 날짜를 입력하세요.');
-    return;
-  }
-  // if (images.value.length === 0) {
-  //   alert('이미지는 최소 1장 이상 업로드해주세요.')
-  //   return
-  // }
-
-  const submitFormData = new FormData()
-  const dtoToSend = {
-    title: formData.value.title,
-    content: formData.value.content,
-    prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
-    fishingAt: formData.value.fishingAt,
-    imageFileName: thumbnailFile.value ? thumbnailFile.value.name : null,
-    product: selectedProduct.value ? {
-      prodId: selectedProduct.value.prodId,
-      prodName: selectedProduct.value.prodName
-    } : null,
-    user: null,
-    comments: [],
-    images: [],
-    thumbnailUrl: null
-  }
-  submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' }))
-  const allImages = []
-  if (thumbnailFile.value) {
-    allImages.push(thumbnailFile.value)
-  }
-  allImages.push(...images.value)
-  allImages.forEach(file => {
-    submitFormData.append('images', file)
-  })
-  try {
-    await fishingReportStore.createFishingReport(submitFormData)
-    alert('조황정보가 성공적으로 등록되었습니다!')
-    router.push('/fishing-report')
-  } catch (err) {
-    alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.')
-  }
-}
-
-function resetForm() {
-  formData.value = {
-    title: '',
-    content: '',
-    fishingAt: '',
-    location: '',
-    weather: '',
-    temperature: '',
-    waterTemperature: '',
-    fishingMethod: '',
-    catchInfo: '',
-    productId: null,
-    productName: '',
-    imageFileName: '',
-    thumbnailUrl: '',
-    images: [],
-    user: null,
-    comments: []
-  }
-  images.value = []
-  thumbnailFile.value = null
-  selectedProduct.value = null
-  // RichTextEditor는 v-model로 자동으로 초기화됩니다
-}
 
 watch(productSearch, async (newVal) => {
   if (newVal && newVal.length >= 2) {
@@ -298,13 +174,66 @@ watch(productOptions, (newVal) => {
   else highlightedIndex.value = -1
 })
 
-// 상품 자동완성 입력란 포커스 아웃 시 선택박스 닫기
 function onProductInputBlur(e) {
-  // blur 직후 클릭 이벤트로 선택이 안되는 문제 방지 (setTimeout)
   setTimeout(() => {
     productOptions.value = []
     highlightedIndex.value = -1
   }, 120)
+}
+
+async function onSubmit() {
+  if (!isFormValid.value) {
+    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 상품)')
+    return
+  }
+  if (!formData.value.fishingAt) {
+    alert('낚시 날짜를 입력하세요.');
+    return;
+  }
+
+  const submitFormData = new FormData()
+  const dtoToSend = {
+    title: formData.value.title,
+    content: formData.value.content,
+    fishingAt: formData.value.fishingAt,
+    prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
+    product: selectedProduct.value ? {
+      prodId: selectedProduct.value.prodId,
+      prodName: selectedProduct.value.prodName
+    } : null,
+    imageFileName: thumbnailFile.value ? thumbnailFile.value.name : null,
+    user: null,
+    comments: [],
+    images: [],
+    thumbnailUrl: null
+  }
+  submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' }))
+  if (thumbnailFile.value) {
+    submitFormData.append('images', thumbnailFile.value)
+  }
+  try {
+    await fishingReportStore.createFishingReport(submitFormData)
+    alert('조황정보가 성공적으로 등록되었습니다!')
+    router.push('/fishing-report')
+  } catch (err) {
+    alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.')
+  }
+}
+
+function resetForm() {
+  formData.value = {
+    title: '',
+    content: '',
+    fishingAt: '',
+    imageFileName: '',
+    thumbnailUrl: '',
+    images: [],
+    user: null,
+    comments: []
+  }
+  thumbnailFile.value = null
+  selectedProduct.value = null
+  productSearch.value = ''
 }
 </script>
 
@@ -343,17 +272,6 @@ function onProductInputBlur(e) {
               required 
             />
           </div>
-          
-          <div class="form-group">
-            <label class="form-label required">낚시 장소</label>
-            <input 
-              v-model="formData.location" 
-              type="text" 
-              class="form-control" 
-              placeholder="낚시한 장소를 입력하세요"
-              required 
-            />
-          </div>
         </div>
 
         <div class="form-row">
@@ -385,70 +303,6 @@ function onProductInputBlur(e) {
         </div>
       </div>
 
-      <!-- 날씨 정보 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">🌤️ 날씨 정보</h3>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">날씨</label>
-            <select v-model="formData.weather" class="form-control">
-              <option value="">날씨를 선택하세요</option>
-              <option v-for="option in weatherOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">기온 (°C)</label>
-            <input 
-              v-model="formData.temperature" 
-              type="number" 
-              class="form-control" 
-              placeholder="기온을 입력하세요"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">수온 (°C)</label>
-            <input 
-              v-model="formData.waterTemperature" 
-              type="number" 
-              class="form-control" 
-              placeholder="수온을 입력하세요"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- 낚시 정보 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">🎯 낚시 정보</h3>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">낚시 방법</label>
-            <select v-model="formData.fishingMethod" class="form-control">
-              <option value="">낚시 방법을 선택하세요</option>
-              <option v-for="option in fishingMethodOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">어종</label>
-            <select v-model="formData.catchInfo" class="form-control">
-              <option value="">잡은 어종을 선택하세요</option>
-              <option v-for="option in fishSpeciesOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       <!-- 이미지 업로드 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📸 이미지 업로드</h3>
@@ -464,23 +318,6 @@ function onProductInputBlur(e) {
           <div v-if="thumbnailFile" class="file-preview">
             <span>선택된 파일: {{ thumbnailFile.name }}</span>
             <button type="button" @click="removeThumbnail" class="remove-btn">삭제</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">추가 이미지</label>
-          <input 
-            type="file" 
-            accept="image/*" 
-            multiple 
-            class="form-control" 
-            @change="onFileChange" 
-          />
-          <div v-if="images.length > 0" class="file-list">
-            <div v-for="(file, index) in images" :key="index" class="file-item">
-              <span>{{ file.name }}</span>
-              <button type="button" @click="removeImage(index)" class="remove-btn">삭제</button>
-            </div>
           </div>
         </div>
       </div>
@@ -708,35 +545,5 @@ function onProductInputBlur(e) {
   .btn {
     width: 100%;
   }
-}
-
-.autocomplete-list {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  max-height: 180px;
-  overflow-y: auto;
-  position: absolute;
-  z-index: 10;
-  width: 100%;
-  min-width: 120px;
-  left: 0;
-  top: 100%;
-  box-sizing: border-box;
-}
-.autocomplete-item {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-.autocomplete-item.highlighted, .autocomplete-item:hover {
-  background: #e3f2fd;
-}
-.selected-product-info {
-  margin-top: 8px;
-  color: #1976d2;
-  font-size: 0.95em;
 }
 </style>

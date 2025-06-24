@@ -33,7 +33,7 @@
           <div class="form-group">
             <label>닉네임 *</label>
             <input v-model="userInfo.nickname" type="text" required :disabled="loading" />
-          </div>
+            </div>
 
           <div class="form-group">
             <label>이메일</label>
