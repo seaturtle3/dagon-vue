@@ -38,19 +38,6 @@ watch(
     {deep: true}
 )
 
-onMounted(() => {
-  // ✅ enum 배열이 로드된 뒤 가장 첫 값으로 초기화
-  if (!localForm.prodRegion && props.regions.length > 0) {
-    localForm.prodRegion = props.regions[0].name
-  }
-  if (!localForm.mainType && props.mainTypes.length > 0) {
-    localForm.mainType = props.mainTypes[0].name
-  }
-  if (!localForm.subType && props.subTypes.length > 0) {
-    localForm.subType = props.subTypes[0].name
-  }
-})
-
 function onFileChange(event) {
   const uploadedFiles = Array.from(event.target.files)
   
@@ -106,6 +93,8 @@ async function submit() {
       "product",
       new Blob([JSON.stringify(productJson)], {type: "application/json"})
   )
+  console.log('**************mainType : ', productJson.mainType)
+
 
   files.value.forEach(file => {
     formData.append("thumbnailFiles", file) // ✅ 키는 thumbnailFiles, 반복해서 append
@@ -120,6 +109,11 @@ async function submit() {
     alert('등록 실패')
   }
 }
+
+const filteredSubTypes = computed(() => {
+  return props.subTypes.filter(sub => sub.mainType === localForm.mainType)
+})
+
 </script>
 
 <template>
@@ -249,7 +243,7 @@ async function submit() {
             <div class="form-group">
               <label class="form-label required">상세 장소</label>
               <select v-model="localForm.subType" class="form-select">
-                <option v-for="sub in subTypes" :key="sub.name" :value="sub.name">
+                <option v-for="sub in filteredSubTypes" :key="sub.name" :value="sub.name">
                   {{ sub.korean }}
                 </option>
               </select>
