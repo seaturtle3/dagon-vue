@@ -1,7 +1,13 @@
 <script setup>
-import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js"
 import { ref, computed, onMounted } from 'vue'
 import { partnerService } from '@/api/partner'
+import {BASE_URL} from "@/constants/baseUrl.js";
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import { Navigation, Pagination } from 'swiper/modules';
+
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 const props = defineProps({
   product: {
@@ -35,7 +41,7 @@ const initializeUserInfo = () => {
   }
 };
 
-// console.log('ProductDetailInfo props product:', props.product)
+console.log('***********prodImageNames:', props.product.prodImageNames)
 
 function formatDate(dateStr) {
   const date = new Date(dateStr)
@@ -74,16 +80,16 @@ function openReportForm() {
       props.product.prodId = parseInt(pathId);
     }
   }
-  
+
   // 가능한 ID 필드들 확인
   const possibleIdFields = ['prodId', 'id', 'productId', 'product_id'];
   const foundId = possibleIdFields.find(field => props.product[field] && props.product[field] !== null && props.product[field] !== undefined);
-  
+
   if (!foundId) {
     alert('상품 ID를 찾을 수 없습니다. 상품 데이터를 확인해주세요.');
     return;
   }
-  
+
   showReportForm.value = true;
 }
 
@@ -115,7 +121,7 @@ async function submitReport() {
     const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
     reportedItems.push({ id: props.product.prodId, type: 'product' });
     localStorage.setItem('reportedItems', JSON.stringify(reportedItems));
-    
+
     alert('상품이 성공적으로 신고되었습니다.')
     closeReportForm()
   } catch (error) {
@@ -127,7 +133,7 @@ async function submitReport() {
       prodId: props.product.prodId,
       reason: reportReason.value
     })
-    
+
     // 백엔드에서 보내는 에러 메시지 표시
     const errorMessage = error.response?.data?.message || '상품 신고에 실패했습니다. 다시 시도해주세요.'
     alert(errorMessage)
@@ -159,11 +165,31 @@ onMounted(() => {
       <!-- 썸네일 영역 -->
       <div class="thumbnail-section">
         <div class="thumbnail-container">
-          <img
-            :src="`${IMAGE_BASE_URL}/${props.product.prodThumbnail}`"
-            class="product-thumbnail"
-            alt="상품 썸네일"
-          />
+          <Swiper
+              v-if="Array.isArray(props.product.prodImageNames) && props.product.prodImageNames.length > 0"
+              :modules="[Navigation, Pagination]"
+              :slides-per-view="1"
+              :space-between="10"
+              navigation
+              pagination
+              class="main-swiper"
+          >
+            <SwiperSlide v-for="(img, idx) in props.product.prodImageNames.filter(Boolean)" :key="idx">
+              <img
+                  :src="`${BASE_URL}${img}`"
+                  class="slide-image"
+                  alt="상품 이미지"
+              />
+            </SwiperSlide>
+          </Swiper>
+
+          <template v-else>
+            <img
+              :src="`${BASE_URL}/${props.product.prodImageName}`"
+              class="product-thumbnail"
+              alt="상품 썸네일"
+            />
+          </template>
           <div class="thumbnail-overlay">
             <div class="zoom-icon">
               <i class="fas fa-search-plus"></i>
@@ -220,6 +246,15 @@ onMounted(() => {
             </div>
             <div class="detail-value">{{ props.product.maxPerson }}명</div>
           </div>
+
+          <div class="detail-item">
+            <div class="detail-label">
+              <i class="fas fa-users"></i>
+              최소 인원
+            </div>
+            <div class="detail-value">{{ props.product.minPerson }}명</div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -232,7 +267,7 @@ onMounted(() => {
           배 정보
         </h3>
       </div>
-      
+
       <div class="boat-info-content">
         <div class="boat-detail-grid">
           <div class="boat-detail-item">
@@ -292,7 +327,7 @@ onMounted(() => {
             <i class="fas fa-times"></i>
           </button>
         </div>
-        
+
         <form @submit.prevent="submitReport" class="modal-body">
           <div class="form-group">
             <label for="reportReason" class="form-label">신고 사유</label>
@@ -321,7 +356,7 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
+<style>
 .product-detail-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -366,11 +401,53 @@ onMounted(() => {
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   overflow: hidden;
+  height: 500px; /* 원하는 높이 고정 */
+}
+
+.main-swiper {
+  max-width: 500px;
+  width: 100%;
+  height: 500px;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.slide-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 16px;
+}
+
+/* Swiper 좌우 화살표 스타일 커스터마이징 */
+.swiper-button-prev,
+.swiper-button-next {
+  color: white;
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+}
+
+.swiper-button-prev::after,
+.swiper-button-next::after {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+
+.product-info-section {
+  flex: 1;
+  min-width: 0;
 }
 
 /* 썸네일 섹션 */
 .thumbnail-section {
-  position: relative;
+  flex-basis: 50%;
+  height: 100%; /* 부모 높이 꽉 채우기 */
 }
 
 .thumbnail-container {
@@ -430,14 +507,6 @@ onMounted(() => {
 
 .product-header {
   margin-bottom: 30px;
-}
-
-.product-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 20px;
-  line-height: 1.2;
 }
 
 .action-buttons {
@@ -720,26 +789,26 @@ onMounted(() => {
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .product-main-info {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr; /* 2열 동일 비율 */
     gap: 20px;
   }
-  
+
   .thumbnail-container {
     border-radius: 16px;
   }
-  
+
   .product-info-section {
     padding: 24px;
   }
-  
+
   .boat-detail-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }
-  
+
   .btn {
     justify-content: center;
   }
