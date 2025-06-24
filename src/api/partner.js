@@ -339,4 +339,13 @@ export const partnerService = {
             }
         });
     },
+
+    // 1:1 문의 삭제
+    deleteInquiry(inquiryId) {
+        return api.delete(`${API_URL}/inquiry/${inquiryId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+    },
 };
