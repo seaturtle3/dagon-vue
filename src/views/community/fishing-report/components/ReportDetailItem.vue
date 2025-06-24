@@ -2,6 +2,8 @@
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 import { partnerService } from '@/api/partner';
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js';
 
 const props = defineProps({
   report: {
@@ -23,8 +25,7 @@ const currentUser = ref(null);
 
 // 현재 사용자가 조황정보 작성자인지 확인
 const isOwnReport = computed(() => {
-  if (!currentUser.value || !props.report.user) return false;
-  return currentUser.value.uid === props.report.user.uid;
+  return String(currentUser.value?.uid) === String(props.report?.user?.uid);
 });
 
 // 현재 사용자가 댓글 작성자인지 확인
@@ -136,11 +137,38 @@ const closeReportModal = () => {
 // 컴포넌트 마운트 시 사용자 정보 초기화
 onMounted(() => {
   initializeUserInfo();
-});
+
+  console.log('✅ currentUser:', currentUser.value)
+  console.log('✅ report.user:', props.report.user)
+  console.log('✅ UID 비교 결과:', currentUser.value?.uid === props.report.user?.uid)
+})
+
+const router = useRouter();
+const fishingReportStore = useFishingReportStore();
+
+const goToEdit = () => {
+  router.push(`/fishing-report/form/${props.report.frId}`);
+};
+
+const confirmDelete = async () => {
+  if (confirm('정말 삭제하시겠습니까?')) {
+    try {
+      await fishingReportStore.deleteFishingReport(props.report.frId);
+      alert('삭제되었습니다.');
+      router.push('/fishing-report');
+    } catch (e) {
+      alert('삭제에 실패했습니다.');
+    }
+  }
+};
 </script>
 
 <template>
   <div class="detail-container card-style">
+    <div v-if="isOwnReport" class="detail-actions">
+      <button class="btn btn-edit" @click="goToEdit">수정</button>
+      <button class="btn btn-delete" @click="confirmDelete">삭제</button>
+    </div>
     <!-- 제목 -->
     <h2 class="detail-title">{{ report.title }}</h2>
     <div class="meta-row">
@@ -463,5 +491,27 @@ onMounted(() => {
 .btn-close:hover {
   background-color: #f8f9fa;
   border-radius: 4px;
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.btn-edit, .btn-delete {
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.btn-edit {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+}
+.btn-delete {
+  background: #f44336;
+  color: #fff;
+  border: none;
 }
 </style>

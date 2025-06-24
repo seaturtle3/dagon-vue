@@ -190,7 +190,7 @@ onMounted(() => {
 
     <!-- 조행기 내용 -->
     <div class="content mb-4">
-      <p class="content-text">{{ diary.content }}</p>
+      <div class="content-text" v-html="diary.content"></div>
     </div>
 
     <!-- 추가 이미지 예시 (필요시 확장 가능) -->

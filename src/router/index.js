@@ -4,6 +4,9 @@ import AdminLayout from '../views/pages/dashboard/AdminLayout.vue'
 const routes = [
     {path: '/', component: () => import('@/views/home/Home.vue')},
 
+    // multtae
+    {path: '/multtae', component: () => import('@/views/multtae/MulttaeView.vue')},
+
     // auth
     {path: '/login', component: () => import('@/views/auth/login/Login.vue')},
     {path: '/register', component: () => import('@/views/auth/register/components/RegisterForm.vue')},
@@ -164,7 +167,17 @@ const routes = [
             },
             {
                 path: 'market-info/:id',
-                component: () => import('@/views/pages/partner-page/components/FishingReportDetail.vue')
+                component: () => import('@/views/pages/partner-page/components/FishingReportDetail.vue'),
+                props: route => ({ fr_id: route.params.id })
+            },
+            {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')},
+            {
+                path: 'fishing-diaries',
+                component: () => import('@/views/pages/partner-page/components/FishingDiaryList.vue')
+            },
+            {
+                path: 'fishing-diaries/:fd_id',
+                component: () => import('@/views/pages/partner-page/components/FishingDiaryDetail.vue')
             },
             {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')}
         ]
@@ -216,7 +229,7 @@ const routes = [
         path: '/fishing-diary',
         children: [
             {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
-            // {path: 'form', component: () => import('@/views/community/fishing-diary/DiaryList/DiaryForm.vue')},
+            {path: 'create', component: () => import('@/views/community/fishing-diary/DiaryForm.vue')},
             {
                 path: ':fdId',
                 name: 'DiaryDetail',
