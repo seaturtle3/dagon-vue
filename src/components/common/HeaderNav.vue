@@ -86,22 +86,23 @@
                   <small class="text-muted">불러오는 중...</small>
                 </div>
                 
-                <div v-else-if="notifications.length === 0" class="text-center py-3">
+                <div v-else-if="visibleNotifications.length === 0" class="text-center py-3">
                   <small class="text-muted">알림이 없습니다</small>
                 </div>
                 
                 <div v-else>
-                  <div v-for="notification in notifications.slice(0, 5)" :key="notification.id"
+                  <div v-for="notification in visibleNotifications.slice(0, 5)" :key="notification && notification.id"
                        class="notification-item"
-                       :class="{ unread: !notification.read }"
+                       :class="{ unread: notification && !notification.read }"
                        @click.stop="openNotificationModal(notification)">
-                    <div class="notification-content">
+                    <div class="notification-content" v-if="notification">
                       <div class="notification-title">{{ notification.title }}</div>
                       <div class="notification-time">{{ formatTime(notification.time) }}</div>
                     </div>
+                    <button class="notification-close-btn" v-if="notification" @click.stop="hideNotification(notification.id)">×</button>
                   </div>
                   
-                  <div v-if="notifications.length > 5" class="text-center py-2">
+                  <div v-if="visibleNotifications.length > 5" class="text-center py-2">
                     <router-link to="/mypage/notifications" class="btn btn-sm btn-link" @click.stop>
                       더보기
                     </router-link>
@@ -148,11 +149,16 @@ const showNotificationDropdown = ref(false)
 const clickOutsideListener = ref(null)
 const showNotificationModal = ref(false)
 const selectedNotification = ref(null)
+const hiddenNotifications = ref([]);
 
 // 읽지 않은 알람 개수
 const unreadCount = computed(() => {
   return notifications.value.filter(n => !n.read).length
 })
+
+const visibleNotifications = computed(() =>
+  notifications.value.filter(n => n && n.id && !hiddenNotifications.value.includes(n.id))
+);
 
 const logout = () => {
   authStore.clearToken()
@@ -225,7 +231,7 @@ const fetchNotifications = async () => {
     console.log('API 응답1:', response)
     
     if (Array.isArray(response)) {
-      notifications.value = response.map(notification => {
+      notifications.value = (response || []).filter(n => n && n.id).map(notification => {
         console.log('원본 알림 데이터:', notification)
         console.log('createdAt 필드:', notification.createdAt)
         console.log('createdAt 타입:', typeof notification.createdAt)
@@ -409,6 +415,15 @@ onMounted(() => {
   
   // ESC 키 리스너 추가
   document.addEventListener('keydown', handleKeyDown)
+
+  const stored = localStorage.getItem('hiddenNotifications');
+  if (stored) {
+    try {
+      hiddenNotifications.value = JSON.parse(stored);
+    } catch (e) {
+      hiddenNotifications.value = [];
+    }
+  }
 })
 
 onUnmounted(() => {
@@ -452,6 +467,13 @@ const menuItems = ref([
     ]
   }
 ])
+
+const hideNotification = (id) => {
+  if (!hiddenNotifications.value.includes(id)) {
+    hiddenNotifications.value.push(id);
+    localStorage.setItem('hiddenNotifications', JSON.stringify(hiddenNotifications.value));
+  }
+};
 </script>
 
 <style>
@@ -529,6 +551,7 @@ const menuItems = ref([
   border-bottom: 1px solid #f1f3f4;
   cursor: pointer;
   transition: background-color 0.2s;
+  position: relative;
 }
 
 .notification-item:hover {
@@ -554,6 +577,19 @@ const menuItems = ref([
 .notification-time {
   font-size: 0.8rem;
   color: #6c757d;
+}
+
+.notification-close-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.1rem;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  cursor: pointer;
+  padding: 0;
+  z-index: 2;
 }
 
 /* 슬라이드 트랜지션 */

@@ -6,6 +6,32 @@
       <button @click="searchMembers">검색</button>
     </div>
     
+    <div class="members-actions">
+      <button class="alarm-btn" @click="showAlarmBox = !showAlarmBox">
+        <i class="fas fa-bell"></i> 알림 보내기
+      </button>
+    </div>
+    
+    <div v-if="showAlarmBox" class="alarm-box">
+      <h2>여러 회원에게 알림 보내기</h2>
+      <div class="member-checkbox-list">
+        <label v-for="m in members" :key="m.uid" class="member-checkbox">
+          <input type="checkbox" :value="m.uid" v-model="selectedMembers" />
+          {{ m.uname }} ({{ m.uid }})
+        </label>
+      </div>
+      <div class="selected-members">
+        <span v-for="uid in selectedMembers" :key="uid" class="member-chip">
+          {{ members.find(m => m.uid === uid)?.uname || uid }}
+        </span>
+      </div>
+      <input v-model="alarmTitle" placeholder="알림 제목" class="alarm-input" />
+      <textarea v-model="alarmContent" placeholder="알림 내용" class="alarm-textarea"></textarea>
+      <button @click="sendAlarm" :disabled="!alarmTitle || !alarmContent" class="alarm-btn">알림 보내기</button>
+      <button @click="showAlarmBox = false" class="alarm-cancel-btn">닫기</button>
+      <div v-if="alarmSendResult" class="alarm-result">{{ alarmSendResult }}</div>
+    </div>
+    
     <table class="members-table">
       <thead>
         <tr>
@@ -93,7 +119,12 @@ export default {
       loading: false,
       error: '',
       showEditModal: false,
-      editMember: null
+      editMember: null,
+      selectedMembers: [],
+      showAlarmBox: false,
+      alarmTitle: '',
+      alarmContent: '',
+      alarmSendResult: ''
     }
   },
   methods: {
@@ -182,6 +213,33 @@ export default {
     changePage(page) {
       this.currentPage = page;
       this.searchMembers();
+    },
+    async sendAlarm() {
+      console.log('알림 전송 시도:', {
+        receiverUids: this.selectedMembers,
+        title: this.alarmTitle,
+        content: this.alarmContent
+      });
+      try {
+        const response = await memberApi.sendAlarmToMembers({
+          receiverUids: this.selectedMembers,
+          title: this.alarmTitle,
+          content: this.alarmContent
+        });
+        console.log('알림 전송 성공:', response.data);
+        this.alarmSendResult = `알림이 성공적으로 전송되었습니다! (${response.data.count || this.selectedMembers.length}명에게 발송)`;
+        this.alarmTitle = '';
+        this.alarmContent = '';
+        this.selectedMembers = [];
+        setTimeout(() => {
+          this.showAlarmBox = false;
+          this.alarmSendResult = '';
+        }, 1000);
+      } catch (e) {
+        console.error('알림 전송 실패:', e);
+        console.error('에러 응답:', e.response?.data);
+        this.alarmSendResult = `알림 전송에 실패했습니다. ${e.response?.data?.message || e.message}`;
+      }
     }
   },
   created() {
@@ -325,5 +383,169 @@ export default {
   margin-top: 1rem;
   color: #e74c3c;
   text-align: center;
+}
+
+.members-actions {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+.alarm-btn {
+  background: #1976ed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(25, 118, 237, 0.08);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.alarm-btn:disabled {
+  background: #b0b8c1;
+  cursor: not-allowed;
+}
+.selected-members {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.member-chip {
+  background: #e3eaf5;
+  color: #1976ed;
+  border-radius: 16px;
+  padding: 0.3rem 1rem;
+  font-size: 0.98rem;
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(25, 118, 237, 0.05);
+}
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+.form-group input, .form-group textarea {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1.5px solid #e3eaf5;
+  border-radius: 8px;
+  font-size: 1.08rem;
+  background: #f7fafd;
+  margin-bottom: 1rem;
+}
+.send-btn {
+  background: #1976ed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-right: 0.7rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.cancel-btn {
+  background: #e3eaf5;
+  color: #1976ed;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.alarm-result {
+  margin-top: 1rem;
+  color: #1976ed;
+  font-weight: 600;
+  text-align: center;
+}
+.alarm-box {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(25, 118, 237, 0.07);
+  padding: 2rem 2.5rem;
+  margin: 2rem 0 1.5rem 0;
+  max-width: 900px;
+}
+.member-checkbox-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  max-height: 90px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+.member-checkbox {
+  background: #f7fafd;
+  border-radius: 16px;
+  padding: 0.3rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(25, 118, 237, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.selected-members {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.member-chip {
+  background: #e3eaf5;
+  color: #1976ed;
+  border-radius: 16px;
+  padding: 0.3rem 1rem;
+  font-size: 0.98rem;
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(25, 118, 237, 0.05);
+}
+.alarm-input, .alarm-textarea {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1.5px solid #e3eaf5;
+  border-radius: 8px;
+  font-size: 1.08rem;
+  background: #f7fafd;
+  margin-bottom: 1rem;
+}
+.alarm-btn {
+  background: #1976ed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.alarm-btn:disabled {
+  background: #b0b8c1;
+  cursor: not-allowed;
+}
+.alarm-result {
+  margin-top: 1rem;
+  color: #1976ed;
+  font-weight: 600;
+  text-align: center;
+}
+.alarm-cancel-btn {
+  background: #e3eaf5;
+  color: #1976ed;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-left: 0.7rem;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 </style> 

@@ -61,6 +61,10 @@
           <i class="fa-solid fa-eye-slash"></i>
           <span>로그아웃</span>
         </router-link>
+        <router-link to="/admin/register" class="nav-item" active-class="nav-item-active">
+          <i class="fas fa-user-plus"></i>
+          <span>관리자 회원가입</span>
+        </router-link>
       </nav>
     </aside>
     <main class="main-content">
