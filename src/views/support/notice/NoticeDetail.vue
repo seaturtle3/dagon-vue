@@ -1,7 +1,7 @@
 <script setup>
 import {ref, onMounted, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {fetchNoticeById, deleteNotice, fetchNotices} from "@/api/noticeApi.js";
+import {fetchNoticeById, deleteNotice, fetchNotices} from "@/api/notice.js";
 import {useAdminAuthStore} from "@/store/auth/auth.js";
 
 import BoardDetailBox from "@/components/common/BoardDetailBox.vue";
