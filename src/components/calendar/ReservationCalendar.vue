@@ -56,20 +56,17 @@
           </div>
         </div>
         
-        <div v-if="props.product && props.product.options && props.product.options.length" class="option-select-section">
-          <div>
-            <p>localOptionId: {{ localOptionId }}</p>
-            <p>options: {{ props.product && props.product.options ? props.product.options.length : 0 }}</p>
-          </div>
-          <label for="optionSelect"><b>옵션 선택</b></label>
+        <div v-if="props.product && props.product.options && props.product.options.length" class="option-select-section" style="margin: 24px 0 12px 0;">
+          <label for="optionSelect" style="font-weight:600; margin-right: 12px;">옵션 선택</label>
           <select
             id="optionSelect"
             v-model="localOptionId"
             :key="props.product && props.product.options ? props.product.options.map(o => o.id).join(',') : ''"
-            @change="e => console.log('[select change]', e.target.value, localOptionId)"
-            style="margin-left: 12px;"
+            class="form-select"
+            style="min-width:180px; padding:8px 12px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:1rem;"
           >
-            <option v-for="option in props.product.options" :key="option.id" :value="String(option.price)">
+            <option value="" disabled>옵션을 선택하세요</option>
+            <option v-for="option in props.product.options" :key="option.id" :value="String(option.id)">
               {{ option.optName || option.option_name }} ({{ option.price ? option.price.toLocaleString() + '원' : '-' }})
             </option>
           </select>
