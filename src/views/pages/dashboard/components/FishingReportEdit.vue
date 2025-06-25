@@ -137,7 +137,7 @@
             <h4>현재 이미지</h4>
             <div class="image-grid">
               <div v-for="image in report.images" :key="image.id" class="image-item">
-                <img :src="image.imageUrl" :alt="image.imageName">
+                <img :src="image.imageData ? `data:image/jpeg;base64,${image.imageData}` : image.imageUrl" :alt="image.imageName">
                 <div class="image-actions">
                   <button type="button" @click="deleteImage(image.id)" class="btn-delete-image">
                     <i class="fas fa-trash"></i>

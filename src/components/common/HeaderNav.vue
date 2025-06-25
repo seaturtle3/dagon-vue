@@ -224,7 +224,7 @@ const fetchNotifications = async () => {
     loading.value = true
     console.log('API 호출 시작 - 사용자 번호:', userInfo.uno)
     const response = await myPageAPI.getNotifications(userInfo.uno)
-    console.log('API 응답:', response)
+    console.log('API 응답1:', response)
     
     if (Array.isArray(response)) {
       notifications.value = response.map(notification => {

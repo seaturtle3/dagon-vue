@@ -40,7 +40,7 @@ export default {
     return {
       currentIndex: 0,
       banners: [
-        { title: '환영합니다!', subtitle: '아무나 꾸며주세요~', color: '#66b2ff' },
+        { title: '환영합니다!', subtitle: 'DAGON 체험판을 경험해보세요~', color: '#66b2ff' },
         { title: '즐거운 낚시 되세요!', subtitle: '지금 예약하고 떠나보세요~', color: '#ffa07a' },
         { title: '커뮤니티에 참여해보세요!', subtitle: '후기를 남기고 포인트도 받아요!', color: '#90ee90' }
       ]
