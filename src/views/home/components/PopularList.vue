@@ -27,7 +27,7 @@ const goToDetail = (report) => {
 <template>
   <div class="popular-section">
     <div class="header">
-      <h2 class="title">인기 조황정보</h2>
+      <h2 class="title mb-3">인기 조황정보</h2>
       <button class="view-all" @click="router.push('/fishing-report')">전체보기 </button>
     </div>
 
@@ -39,16 +39,25 @@ const goToDetail = (report) => {
           @click="goToDetail(report)"
           style="cursor: pointer"
       >
-        <!-- 썸네일 이미지 -->
-        <img
-            class="thumbnail"
-            :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
-            alt="썸네일"
-        />
+        <!-- 썸네일 영역 (60% 고정) -->
+        <div class="thumbnail-section">
+          <!-- 썸네일 이미지가 있는 경우 -->
+          <img
+              v-if="report.thumbnailUrl"
+              class="thumbnail"
+              :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+              alt="썸네일"
+          />
+          <!-- 썸네일이 없는 경우 플레이스홀더 -->
+          <div v-else class="image-placeholder">
+            <i class="fas fa-image"></i>
+            <span>이미지 없음</span>
+          </div>
+        </div>
 
         <div class="report-info">
-          <h5 class="report-title">{{ report.prodName }}</h5>
-          <h6 class="report-title">{{ report.title }}</h6>
+          <h6 class="report-title">{{ report.prodName }}</h6>
+          <p class="report-title">{{ report.title }}</p>
           <p class="report-date">{{ report.fishingAt?.slice(0, 10) || '날짜 없음' }}</p>
         </div>
       </div>
@@ -84,8 +93,9 @@ const goToDetail = (report) => {
 
 .report-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  width: 100%;
 }
 
 .report-card {
@@ -95,23 +105,51 @@ const goToDetail = (report) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  width: 150px;
-  height: auto;
+  width: 100%;
+  height: 280px;
+}
+
+.thumbnail-section {
+  height: 60%;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .thumbnail {
-  width: 150px;
-  height: 150px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 8px 8px 0 0;
+  display: block;
+}
+
+.image-placeholder {
+  height: 100%;
+  background: linear-gradient(135deg, #f7fafc, #edf2f7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #a0aec0;
+}
+
+.image-placeholder i {
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+  color: #cbd5e0;
+}
+
+.image-placeholder span {
+  font-size: 0.75rem;
+  color: #a0aec0;
 }
 
 .report-info {
+  height: 40%;
   padding: 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  flex-grow: 1;
+  flex-shrink: 0;
 }
 
 .report-title {
