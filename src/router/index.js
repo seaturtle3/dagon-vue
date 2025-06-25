@@ -179,7 +179,6 @@ const routes = [
                 path: 'fishing-diaries/:fd_id',
                 component: () => import('@/views/pages/partner-page/components/FishingDiaryDetail.vue')
             },
-            {path: 'withdrawal', component: () => import('@/views/pages/partner-page/components/PartnerWithdrawal.vue')}
         ]
     },
 
@@ -310,6 +309,7 @@ const routes = [
         name: 'PartnerProductRegister',
         component: () => import('@/views/pages/partner-page/components/ProductRegister.vue')
     },
+    { path: '/product-inquiry', component: () => import('@/views/support/inquiry/ProductInquiry.vue') },
 ]
 
 const router = createRouter({

@@ -59,7 +59,7 @@ export const partnerService = {
 
     // 파트너 상품 삭제
     deleteProduct(prodId) {
-        return api.delete(`${API_URL}/partner/product/delete/${prodId}`, {
+        return api.delete(`${API_URL}/products/delete/${prodId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -245,9 +245,9 @@ export const partnerService = {
         }
     },
 
-    // 파트너 조행기 목록 조회
+    // 내가 등록한 상품의 모든 조행기 목록 조회
     getMyFishingDiaries() {
-        return api.get(`${API_URL}/fishing-diary/mine`, {
+        return api.get(`${API_URL}/fishing-diary/my-products-diaries`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -274,5 +274,78 @@ export const partnerService = {
     // 조행기 삭제
     deleteFishingDiary(id) {
         return api.delete(`${API_URL}/fishing-diary/delete/${id}`);
-    }
+    },
+
+    // 조황정보 댓글 작성 (엔드포인트: /comments/fishing-report/{postId})
+    createFishingReportComment(postId, content, userId) {
+        const formData = new URLSearchParams();
+        formData.append('content', content);
+        formData.append('userId', userId);
+        return api.post(`${API_URL}/comments/fishing-report/${postId}`, formData, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+    },
+
+    // 조행기 댓글 작성 (엔드포인트: /comments/fishing-diary/{postId})
+    createFishingDiaryComment(postId, content, userId) {
+        const formData = new URLSearchParams();
+        formData.append('content', content);
+        formData.append('userId', userId);
+        return api.post(`${API_URL}/comments/fishing-diary/${postId}`, formData, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+    },
+
+    // 조행기 댓글 삭제
+    deleteFishingDiaryComment(commentId) {
+        return api.delete(`${API_URL}/comments/fishing-diary/${commentId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+    },
+
+    // 조황정보 댓글 삭제
+    deleteFishingReportComment(commentId) {
+        return api.delete(`${API_URL}/comments/fishing-report/${commentId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+    },
+
+    // 1:1 문의 생성
+    createInquiry(inquiryData) {
+        return api.post(`${API_URL}/inquiry`, inquiryData, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+    },
+
+    // 상품명 기반 1:1 문의 생성
+    createPartnerInquiry(inquiryData) {
+        return api.post(`${API_URL}/inquiry/partner`, inquiryData, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+    },
+
+    // 1:1 문의 삭제
+    deleteInquiry(inquiryId) {
+        return api.delete(`${API_URL}/inquiry/${inquiryId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+    },
 };

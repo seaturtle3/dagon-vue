@@ -451,7 +451,7 @@ function onProductInputBlur(e) {
         </div>
       </div>
 
- 
+
       <!-- 내용 작성 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📝 상세 내용</h3>

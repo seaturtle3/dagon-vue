@@ -5,8 +5,13 @@
       <!-- 로고 -->
       <router-link to="/" class="navbar-brand fs-3">DΛGON</router-link>
 
+      <!-- 햄버거 버튼 (모바일/태블릿에서만 보임) -->
+      <button class="navbar-toggler d-lg-none" type="button" @click="toggleMobileMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
       <!-- 메인 네비게이션 -->
-      <ul class="navbar-nav d-flex flex-row gap-4 position-absolute start-50 translate-middle-x">
+      <ul class="navbar-nav d-flex flex-row gap-4 position-absolute start-50 translate-middle-x d-none d-lg-flex">
         <li v-for="item in menuItems" :key="item.label" class="nav-item position-relative"
             @mouseenter="item.open = true" @mouseleave="item.open = false">
 
@@ -34,7 +39,7 @@
 
         <template v-if="!authStore.isAuthenticated">
           <router-link to="/signup" class="btn btn-outline-secondary btn-sm">회원가입</router-link>
-          <router-link to="/login" class="btn btn-outline-secondary btn-sm">로그인</router-link>
+          <router-link to="/login" class="btn btn-outline-secondary btn-sm">사용자 로그인</router-link>
           <router-link to="/admin/login" class="btn btn-outline-primary btn-sm">관리자 로그인</router-link>
         </template>
 
@@ -112,6 +117,18 @@
           </div>
         </template>
       </div>
+
+      <!-- 모바일/태블릿 메뉴 (햄버거 클릭 시 드롭다운) -->
+      <ul v-if="isMobileMenuOpen" class="mobile-menu d-lg-none">
+        <li v-for="item in menuItems" :key="item.label" class="nav-item">
+          <router-link class="nav-link" :to="item.link" @click="closeMobileMenu">{{ item.label }}</router-link>
+          <ul v-if="item.children">
+            <li v-for="sub in item.children" :key="sub.label">
+              <router-link class="dropdown-item" :to="sub.link" @click="closeMobileMenu">{{ sub.label }}</router-link>
+            </li>
+          </ul>
+        </li>
+      </ul>
 
     </div>
   </nav>
@@ -424,10 +441,19 @@ const menuItems = ref([
     children: [
       {label: '공지사항', link: '/notice'},
       {label: '자주묻는질문', link: '/faq'},
-      {label: '1:1 문의', link: '/inquiry'}
+      {label: '1:1 문의', link: '/inquiry'},
+      {label: '파트너 신청', link: '/partner/apply'}
     ]
   }
 ])
+
+const isMobileMenuOpen = ref(false)
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
+}
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+}
 </script>
 
 <style>
@@ -544,4 +570,41 @@ const menuItems = ref([
   transform: translateY(-10px);
 }
 
+/* 햄버거 버튼 스타일 */
+.navbar-toggler {
+  border: none;
+  background: transparent;
+  font-size: 2rem;
+  margin-left: 1rem;
+}
+
+/* 모바일 메뉴 스타일 */
+.mobile-menu {
+  position: absolute;
+  top: 60px; /* 네비게이션 높이에 맞게 조정 */
+  left: 0;
+  width: 100vw;
+  background: white;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 1rem 0;
+  list-style: none;
+}
+
+@media (max-width: 1024px) {
+  .navbar-nav.d-lg-flex {
+    display: none !important;
+  }
+  .navbar-toggler {
+    display: block !important;
+  }
+}
+@media (min-width: 1025px) {
+  .navbar-toggler {
+    display: none !important;
+  }
+  .mobile-menu {
+    display: none !important;
+  }
+}
 </style>

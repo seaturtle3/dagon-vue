@@ -72,9 +72,9 @@
           <div v-for="comment in report.comments" :key="comment.frCommentId || comment.id" class="comment-item">
             <div class="comment-header">
               <div class="comment-author-info">
-                <span class="comment-author">{{ getCommentAuthorName(comment) }}</span>
-                <span v-if="getCommentUserId(comment)" class="comment-user-id">
-                  (ID: {{ getCommentUserId(comment) }})
+                <span class="comment-author">{{ comment.user?.nickname || comment.user?.uname || '알 수 없음' }}</span>
+                <span v-if="comment.user?.uid || comment.user?.uno" class="comment-user-id">
+                  (ID: {{ comment.user.uid || comment.user.uno }})
                 </span>
               </div>
               <span class="comment-date">{{ formatDateTime(comment.createdAt) }}</span>
@@ -82,7 +82,7 @@
             <div class="comment-content">{{ comment.comment || comment.content || comment.text }}</div>
             <div class="comment-actions">
               <button
-                @click="openReportModal(getCommentReportId(comment))"
+                @click="openReportModal(comment.user?.uid || comment.user?.uno)"
                 class="btn-report-comment"
                 :aria-label="'댓글 신고'"
                 :disabled="reporting"
@@ -150,7 +150,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { partnerService } from '@/api/partner.js';
 
@@ -205,6 +205,20 @@ async function fetchReport() {
     loading.value = false;
   }
 }
+
+// 댓글 데이터 watch로 콘솔 출력
+watch(
+  () => report.value?.comments,
+  (comments) => {
+    if (comments) {
+      comments.forEach((comment) => {
+        console.log('조황정보 댓글:', comment);
+        console.log('조황정보 댓글 user:', comment.user);
+      });
+    }
+  },
+  { immediate: true }
+);
 
 function goBack() {
   router.back();
@@ -275,59 +289,6 @@ async function confirmDelete() {
   } finally {
     showDeleteModal.value = false;
   }
-}
-
-function getCommentAuthorName(comment) {
-  // 사용자 정보가 있는 경우
-  if (comment.user?.nickname) {
-    return comment.user.nickname;
-  } else if (comment.user?.uname) {
-    return comment.user.uname;
-  }
-  
-  // 사용자 정보가 없는 경우 (user가 null)
-  if (!comment.user) {
-    // 댓글 ID나 다른 식별자로 표시
-    if (comment.frCommentId) return `사용자${comment.frCommentId}`;
-    if (comment.id) return `사용자${comment.id}`;
-    return '익명 사용자';
-  }
-  
-  return '알 수 없음';
-}
-
-function getCommentUserId(comment) {
-  // 사용자 정보가 있는 경우
-  if (comment.user?.uid) {
-    return comment.user.uid;
-  } else if (comment.user?.uno) {
-    return comment.user.uno;
-  }
-  
-  // 사용자 정보가 없는 경우 댓글 ID 표시
-  if (!comment.user) {
-    if (comment.frCommentId) return `댓글ID: ${comment.frCommentId}`;
-    if (comment.id) return `댓글ID: ${comment.id}`;
-  }
-  
-  return null;
-}
-
-function getCommentReportId(comment) {
-  // 사용자 정보가 있는 경우
-  if (comment.user?.uid) {
-    return comment.user.uid;
-  } else if (comment.user?.uno) {
-    return comment.user.uno;
-  }
-  
-  // 사용자 정보가 없는 경우 댓글 ID 표시
-  if (!comment.user) {
-    if (comment.frCommentId) return `댓글ID: ${comment.frCommentId}`;
-    if (comment.id) return `댓글ID: ${comment.id}`;
-  }
-  
-  return null;
 }
 </script>
 

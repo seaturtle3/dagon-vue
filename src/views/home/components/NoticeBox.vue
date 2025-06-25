@@ -1,5 +1,5 @@
 <script>
-import { fetchNotices } from '@/api/noticeApi.js';
+import { fetchNotices } from '@/api/notice.js';
 
 export default {
   name: 'NoticeBox',

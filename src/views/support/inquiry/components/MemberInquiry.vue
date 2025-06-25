@@ -27,9 +27,11 @@
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
             <option value="">문의 유형을 선택하세요.</option>
-            <option v-for="type in availableInquiryTypes" :key="type.value" :value="type.value">
-              {{ type.label }}
-            </option>
+            <option value="PRODUCT">상품 문의</option>
+            <option value="BUSINESS">제휴 문의</option>
+            <option value="SYSTEM">시스템 문의</option>
+            <option value="RESERVATION">예약 문의</option>
+            <option value="CANCEL">예약 취소 문의</option>
           </select>
         </div>
         <div class="form-group">

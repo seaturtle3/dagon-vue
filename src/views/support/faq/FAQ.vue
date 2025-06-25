@@ -98,7 +98,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { fetchFAQs } from '@/api/faqApi.js'
+import { fetchFAQs } from '@/api/faq.js'
 
 // 상태 관리
 const searchQuery = ref('')
