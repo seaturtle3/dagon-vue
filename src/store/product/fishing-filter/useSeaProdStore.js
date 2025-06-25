@@ -27,13 +27,19 @@ export const useSeaProdStore = defineStore('seaProdStore', {
             }
         },
 
-        async fetchFilteredProducts({ region = '', subType = '', species = '' } = {}) {
+        async fetchFilteredProducts({
+                                        region = '',
+                                        subType = '',
+                                        species = '',
+                                        sortBy = 'prodId',
+                                        direction = 'desc'
+                                    } = {}) {
             this.loading = true
             try {
                 const res = await api.get('/api/product/get-all/sea/filter', {
-                    params: { region, subType, species }
+                    params: { region, subType, species, sortBy, direction }
                 })
-                this.products = res.data // 이건 List<ProductDTO> 반환이라고 가정
+                this.products = res.data // List<ProductDTO> 반환
             } catch (error) {
                 console.error('Filtered sea products fetch error:', error)
             } finally {
