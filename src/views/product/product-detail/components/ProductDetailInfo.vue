@@ -4,6 +4,7 @@ import { partnerService } from '@/api/partner'
 import {BASE_URL} from "@/constants/baseUrl.js";
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination } from 'swiper/modules';
+import { useRouter } from 'vue-router'
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -15,6 +16,8 @@ const props = defineProps({
     required: true,
   }
 })
+
+const router = useRouter()
 
 // 신고 관련 상태
 const showReportForm = ref(false)
@@ -140,6 +143,28 @@ async function submitReport() {
   }
 }
 
+// 상품 삭제 함수
+async function deleteProduct() {
+  if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) {
+    return
+  }
+
+  try {
+    await partnerService.deleteProduct(props.product.prodId)
+    alert('상품이 성공적으로 삭제되었습니다.')
+    router.push('/products')
+  } catch (error) {
+    console.error('상품 삭제 실패:', error)
+    const errorMessage = error.response?.data?.message || '상품 삭제에 실패했습니다. 다시 시도해주세요.'
+    alert(errorMessage)
+  }
+}
+
+// 상품 수정 페이지로 이동
+function editProduct() {
+  router.push(`/products/edit/${props.product.prodId}`)
+}
+
 // 컴포넌트 마운트 시 사용자 정보 초기화
 onMounted(() => {
   initializeUserInfo();
@@ -150,13 +175,28 @@ onMounted(() => {
   <div class="product-detail-container">
     <!-- 페이지 헤더 -->
     <div class="page-header">
-      <h1 class="page-title">{{ props.product.prodName }}</h1>
-      <div class="breadcrumb">
-        <span>홈</span>
-        <span class="separator">></span>
-        <span>상품</span>
-        <span class="separator">></span>
-        <span>{{ props.product.prodName }}</span>
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="page-title">{{ props.product.prodName }}</h1>
+          <div class="breadcrumb">
+            <span>홈</span>
+            <span class="separator">></span>
+            <span>상품</span>
+            <span class="separator">></span>
+            <span>{{ props.product.prodName }}</span>
+          </div>
+        </div>
+        <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
+        <div v-if="isOwnProduct" class="header-actions">
+          <button @click="editProduct" class="btn btn-primary">
+            <i class="fas fa-edit"></i>
+            수정
+          </button>
+          <button @click="deleteProduct" class="btn btn-danger">
+            <i class="fas fa-trash"></i>
+            삭제
+          </button>
+        </div>
       </div>
     </div>
 
@@ -273,7 +313,7 @@ onMounted(() => {
             <div class="boat-detail-label">
               선박 무게
             </div>
-            <div class="boat-detail-value">{{ props.product.weight }}</div>
+            <div class="boat-detail-value">{{ props.product.weight }} t</div>
           </div>
 
           <div class="boat-detail-item">
@@ -366,6 +406,17 @@ onMounted(() => {
 /* 페이지 헤더 */
 .page-header {
   margin-bottom: 30px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.header-left {
+  flex: 1;
   text-align: center;
 }
 
@@ -388,6 +439,12 @@ onMounted(() => {
 
 .separator {
   color: #cbd5e0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .no-image-placeholder {
@@ -800,6 +857,26 @@ onMounted(() => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .header-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .breadcrumb {
+    justify-content: center;
+  }
+
   .product-main-info {
     grid-template-columns: 1fr 1fr; /* 2열 동일 비율 */
     gap: 20px;
