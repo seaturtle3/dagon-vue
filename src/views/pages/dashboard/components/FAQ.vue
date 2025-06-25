@@ -217,7 +217,7 @@ import {
   updateFAQ, 
   deleteFAQ, 
   getFAQById 
-} from '@/api/faqApi.js'
+} from '@/api/faq.js'
 
 export default {
   name: 'FAQ',
