@@ -41,7 +41,7 @@ function goToProductForm() {
           :key="product.prodId"
           class="col"
       >
-        <ProductCard :product="product"/>
+        <ProductCard :product="product" />
       </div>
     </div>
 
