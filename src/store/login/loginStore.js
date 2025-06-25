@@ -25,19 +25,39 @@ export const useAuthStore = defineStore('auth', {
             try {
                 // 1. 로그인 요청
                 const res = await axios.post('/api/auth/login', { uid, upw });
-                const token = res.data.token;
+
+                console.log(typeof res.data); // 'string' 이라면 문제!
+                // console.log(res.data); // '{"token":"...","userInfo":{...}}'
+
+                let data = res.data;
+                if (typeof data === 'string') {
+                    try {
+                        data = JSON.parse(data);
+                    } catch (e) {
+                        // 파싱 실패 시 에러 처리
+                        throw new Error('서버 응답 파싱 오류');
+                    }
+                }
+                const token = data.token;
+                console.log('token------->: ', token)
 
                 if (!token) {
-                    throw new Error('토큰이 없습니다.');
+                    this.error = data.message || '로그인에 실패했습니다.';
+                    this.user = null;
+                    this.isAuthenticated = false;
+                    this.clearAuthData();
+                    return false;
                 }
 
                 // 2. 토큰 저장
                 localStorage.setItem('token', token);
+                // console.log('res.data------->: ', res.data)
+                const userInfo = res.data.userInfo || {};
                 localStorage.setItem('userInfo', JSON.stringify({
-                    uid: res.data.uid,
-                    uname: res.data.uname,
-                    profileImg: res.data.profileImg,
-                    uno: res.data.uno
+                    uid: userInfo.uid,
+                    uname: userInfo.uname,
+                    profileImg: userInfo.profileImg,
+                    uno: userInfo.uno
                 }));
 
                 // 3. 토큰을 Authorization 헤더에 설정
@@ -141,7 +161,16 @@ export const useAuthStore = defineStore('auth', {
                 
                 console.log('토큰 갱신 응답:', res.data)
                 
-                const newToken = res.data.token
+                let data = res.data;
+                if (typeof data === 'string') {
+                    try {
+                        data = JSON.parse(data);
+                    } catch (e) {
+                        // 파싱 실패 시 에러 처리
+                        throw new Error('서버 응답 파싱 오류');
+                    }
+                }
+                const newToken = data.token
                 
                 if (newToken) {
                     console.log('토큰 갱신 성공')

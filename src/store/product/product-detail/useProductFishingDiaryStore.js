@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import api from '@/lib/axios'
 
 export const useProductFishingDiaryStore = defineStore('productFishingDiary', {
     state: () => ({
@@ -13,7 +13,7 @@ export const useProductFishingDiaryStore = defineStore('productFishingDiary', {
             this.loading = true
             this.error = null
             try {
-                const response = await axios.get(`/api/product/fishing-diary/${productId}`)
+                const response = await api.get(`/product/fishing-diary/${productId}`)
                 this.diary = response.data
             } catch (err) {
                 this.error = err.response?.data?.message || '조행기 조회 실패'

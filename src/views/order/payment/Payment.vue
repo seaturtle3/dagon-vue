@@ -144,7 +144,7 @@ import {BASE_URL} from "@/constants/baseUrl.js";
 import { useAuthStore } from '@/store/login/loginStore.js';
 import { myPageAPI } from '@/api/mypage.js';
 import { partnerService } from '@/api/partner.js';
-import axios from 'axios';
+import api from '@/lib/axios';
 import { useUserStore } from '@/store/inquiries/userStore.js';
 
 export default {
@@ -296,7 +296,7 @@ export default {
       try {
         console.log('API를 통해 사용자 정보 가져오기 시작...');
         const response = await myPageAPI.getMyInfo();
-        console.log('API 응답:', response);
+        console.log('API 응답3:', response);
         
         if (response.data) {
           const userData = response.data;
@@ -454,7 +454,7 @@ export default {
         console.log("예약 정보 전체:", JSON.stringify(reservationData, null, 2));
 
         const token = localStorage.getItem('token');
-        const response = await axios.post(
+        const response = await api.post(
           `${BASE_URL}/api/reservation`,
           reservationData,
           {
