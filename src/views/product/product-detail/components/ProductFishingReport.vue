@@ -8,12 +8,15 @@ const route = useRoute()
 const router = useRouter()
 const store = useProductFishingReportStore()
 const productId = route.params.prodId
+console.log("-------------1>",productId)
 
 onMounted(() => {
   store.fetchFishingReport(productId)
 })
 
 const reportList = computed(() => store.getReportByProductId(productId))
+
+console.log("-------------2>",reportList)
 
 const goToDetail = (report) => {
   router.push(`/fishing-report/${report.frId}`)
@@ -26,13 +29,11 @@ const goToDetail = (report) => {
     <div v-else-if="store.error">{{ store.error }}</div>
     <div v-else>
 
-      <div v-if="store.report && store.report.length > 0" class="report-grid">
-        <div
-            v-for="(report, index) in store.report.slice(0, 15)"
-            :key="report.frId"
-            class="item-box"
-            @click="goToDetail(report)"
-            style="cursor: pointer;"
+      <div v-if="reportList.length > 0" class="report-grid">
+        <div v-for="(report, index) in reportList.slice(0, 15)"
+             :key="report.frId"
+             class="item-box"
+             @click="goToDetail(report)"
         >
           <div class="thumbnail-wrapper">
             <img

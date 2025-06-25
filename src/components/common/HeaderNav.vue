@@ -104,7 +104,6 @@
                       <div class="notification-title">{{ notification.title }}</div>
                       <div class="notification-time">{{ formatTime(notification.time) }}</div>
                     </div>
-                    <button class="notification-close-btn" v-if="notification" @click.stop="hideNotification(notification.id)">×</button>
                   </div>
                   
                   <div v-if="visibleNotifications.length > 5" class="text-center py-2">
@@ -135,15 +134,19 @@
   </nav>
 
   <div v-if="showNotificationModal" class="custom-modal-overlay" @click.self="closeNotificationModal">
-    <div class="custom-modal-content">
-      <div class="custom-modal-header">
-        <span>{{ selectedNotification?.title }}</span>
-        <button class="custom-modal-close" @click="closeNotificationModal">&times;</button>
+    <div class="custom-modal-content modern-modal">
+      <button class="custom-modal-close right-top" @click="closeNotificationModal" title="창 닫기">&times;</button>
+      <div class="custom-modal-header notification-modal-header modern-modal-header">
+        <span class="modern-modal-title">{{ selectedNotification?.title }}</span>
       </div>
-      <div class="custom-modal-body">
-        <div>{{ selectedNotification?.content }}</div>
-        <div class="text-muted mt-2" style="font-size:0.9em;">{{ formatTime(selectedNotification?.time) }}</div>
+      <div class="custom-modal-body modern-modal-body">
+        <div class="modern-modal-content">{{ selectedNotification?.content }}</div>
+        <div class="modern-modal-time">{{ formatTime(selectedNotification?.time) }}</div>
       </div>
+      <button v-if="selectedNotification" class="notification-delete-btn modal-bottom modern-modal-delete" @click="deleteNotificationFromModal" title="알림 삭제">
+        <i class="fa-solid fa-x"></i>
+        <span class="delete-text">삭제</span>
+      </button>
     </div>
   </div>
 
@@ -166,7 +169,6 @@ const showNotificationDropdown = ref(false)
 const clickOutsideListener = ref(null)
 const showNotificationModal = ref(false)
 const selectedNotification = ref(null)
-const hiddenNotifications = ref([]);
 
 // 읽지 않은 알람 개수
 const unreadCount = computed(() => {
@@ -174,7 +176,7 @@ const unreadCount = computed(() => {
 })
 
 const visibleNotifications = computed(() =>
-  notifications.value.filter(n => n && n.id && !hiddenNotifications.value.includes(n.id))
+  notifications.value.filter(n => n && n.id)
 );
 
 const logout = () => {
@@ -396,6 +398,19 @@ const closeNotificationModal = () => {
   selectedNotification.value = null
 }
 
+// 모달에서 알림 삭제
+const deleteNotificationFromModal = async () => {
+  if (!selectedNotification.value) return;
+  if (!confirm('이 알림을 삭제하시겠습니까?')) return;
+  try {
+    await myPageAPI.deleteNotification(selectedNotification.value.id);
+    notifications.value = notifications.value.filter(n => n.id !== selectedNotification.value.id);
+    closeNotificationModal();
+  } catch (error) {
+    alert('알림 삭제에 실패했습니다.');
+  }
+};
+
 onMounted(() => {
   authStore.loadTokenFromStorage()
   
@@ -432,15 +447,6 @@ onMounted(() => {
   
   // ESC 키 리스너 추가
   document.addEventListener('keydown', handleKeyDown)
-
-  const stored = localStorage.getItem('hiddenNotifications');
-  if (stored) {
-    try {
-      hiddenNotifications.value = JSON.parse(stored);
-    } catch (e) {
-      hiddenNotifications.value = [];
-    }
-  }
 })
 
 onUnmounted(() => {
@@ -493,13 +499,6 @@ const toggleMobileMenu = () => {
 const closeMobileMenu = () => {
   isMobileMenuOpen.value = false
 }
-
-const hideNotification = (id) => {
-  if (!hiddenNotifications.value.includes(id)) {
-    hiddenNotifications.value.push(id);
-    localStorage.setItem('hiddenNotifications', JSON.stringify(hiddenNotifications.value));
-  }
-};
 </script>
 
 <style>
@@ -605,19 +604,6 @@ const hideNotification = (id) => {
   color: #6c757d;
 }
 
-.notification-close-btn {
-  background: none;
-  border: none;
-  color: #888;
-  font-size: 1.1rem;
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  cursor: pointer;
-  padding: 0;
-  z-index: 2;
-}
-
 /* 슬라이드 트랜지션 */
 .slide-fade-enter-active,
 .slide-fade-leave-active {
@@ -706,5 +692,137 @@ const hideNotification = (id) => {
 .custom-modal-body {
   font-size: 1rem;
   color: #222;
+}
+.notification-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header-actions {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+}
+.notification-delete-btn {
+  background: none;
+  border: 1.5px solid #d32f2f;
+  color: #d32f2f;
+  font-size: 1.1rem;
+  margin-left: 0.2rem;
+  cursor: pointer;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  transition: background 0.2s, border 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+.notification-delete-btn .delete-text {
+  display: inline-block;
+  margin-left: 0.3em;
+  font-size: 1em;
+  color: #d32f2f;
+  font-weight: 500;
+  vertical-align: middle;
+}
+@media (max-width: 500px) {
+  .notification-delete-btn .delete-text {
+    display: none;
+  }
+}
+.notification-delete-btn:hover {
+  background: #ffeaea;
+  color: #b71c1c;
+  border-color: #b71c1c;
+}
+.custom-modal-close.right-top {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 10;
+}
+.notification-delete-btn.modal-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px auto 0 auto;
+  width: 120px;
+  font-size: 1.05rem;
+}
+.modern-modal {
+  background: #fff;
+  border-radius: 18px;
+  max-width: 380px;
+  width: 92%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 1.5px 8px rgba(33,150,243,0.08);
+  padding: 32px 24px 28px 24px;
+  position: relative;
+  border: 1.5px solid #e3eaf5;
+  animation: modalPop 0.22s cubic-bezier(.4,1.6,.6,1) 1;
+}
+@keyframes modalPop {
+  0% { transform: scale(0.95); opacity: 0.2; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.modern-modal-header {
+  border-bottom: 1.5px solid #e3eaf5;
+  padding-bottom: 0.7rem;
+  margin-bottom: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modern-modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1976d2;
+  letter-spacing: 0.01em;
+}
+.modern-modal-body {
+  padding: 0.2rem 0 0.5rem 0;
+  min-height: 60px;
+}
+.modern-modal-content {
+  font-size: 1.02rem;
+  color: #222;
+  margin-bottom: 0.7rem;
+  word-break: break-all;
+}
+.modern-modal-time {
+  font-size: 0.92rem;
+  color: #90a4ae;
+  text-align: right;
+  margin-bottom: 0.2rem;
+}
+.modern-modal-delete {
+  margin-top: 18px;
+  width: 100%;
+  border-radius: 8px;
+  font-size: 1.08rem;
+  font-weight: 500;
+  background: #fff;
+  border: 1.5px solid #d32f2f;
+  color: #d32f2f;
+  transition: background 0.18s, color 0.18s, border 0.18s;
+  box-shadow: 0 1.5px 8px rgba(211,47,47,0.04);
+}
+.modern-modal-delete:hover {
+  background: #ffeaea;
+  color: #b71c1c;
+  border-color: #b71c1c;
+}
+@media (max-width: 500px) {
+  .modern-modal {
+    padding: 18px 6px 16px 6px;
+    max-width: 98vw;
+  }
+  .modern-modal-title {
+    font-size: 1.01rem;
+  }
+  .modern-modal-delete {
+    font-size: 0.98rem;
+    padding: 0.7em 0.2em;
+  }
 }
 </style>
