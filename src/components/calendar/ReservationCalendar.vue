@@ -47,7 +47,7 @@
         <h5>예약 인원을 선택해주세요</h5>
         <div class="people-counter">
           <div class="counter-item">
-            <label>성인</label>
+            <label>예약 인원 선택</label>
             <div class="counter-controls">
               <button @click="decreaseAdult" :disabled="adultCount <= 0">-</button>
               <span>{{ adultCount }}</span>
@@ -57,22 +57,20 @@
         </div>
         
         <div v-if="props.product && props.product.options && props.product.options.length" class="option-select-section">
-          <div>
-            <p>localOptionId: {{ localOptionId }}</p>
-            <p>options: {{ props.product && props.product.options ? props.product.options.length : 0 }}</p>
+          <div class="counter-item">
+            <label>옵션 선택</label>
+            <div class="option-controls">
+              <select
+                v-model="localOptionId"
+                :key="props.product && props.product.options ? props.product.options.map(o => o.id).join(',') : ''"
+                @change="e => console.log('[select change]', e.target.value, localOptionId)"
+              >
+                <option v-for="option in props.product.options" :key="option.id" :value="String(option.price)">
+                  {{ option.optName || option.option_name }} ({{ option.price ? option.price.toLocaleString() + '원' : '-' }})
+                </option>
+              </select>
+            </div>
           </div>
-          <label for="optionSelect"><b>옵션 선택</b></label>
-          <select
-            id="optionSelect"
-            v-model="localOptionId"
-            :key="props.product && props.product.options ? props.product.options.map(o => o.id).join(',') : ''"
-            @change="e => console.log('[select change]', e.target.value, localOptionId)"
-            style="margin-left: 12px;"
-          >
-            <option v-for="option in props.product.options" :key="option.id" :value="String(option.price)">
-              {{ option.optName || option.option_name }} ({{ option.price ? option.price.toLocaleString() + '원' : '-' }})
-            </option>
-          </select>
         </div>
         
         <div class="total-info">
@@ -507,5 +505,33 @@ onMounted(() => {
 .option-select-section {
   margin-top: 24px;
   margin-bottom: 12px;
+}
+
+.option-controls {
+  display: flex;
+  align-items: center;
+}
+
+.option-controls select {
+  padding: 8px 12px;
+  border: 2px solid #007BFF;
+  border-radius: 8px;
+  background: white;
+  color: #007BFF;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+}
+
+.option-controls select:hover {
+  background: #f8f9fa;
+  border-color: #0056b3;
+}
+
+.option-controls select:focus {
+  outline: none;
+  border-color: #0056b3;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 </style>

@@ -1,6 +1,5 @@
-<!-- ProductCard.vue -->
 <script setup>
-import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const props = defineProps({
   product: Object,
@@ -15,7 +14,7 @@ function openDetail(product) {
 <template>
   <div class="card h-100" @click="openDetail(product)">
     <img
-        :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
+        :src="`${BASE_URL}/${product.prodImageNames}`"
         class="card-img-top"
         alt="썸네일"
         style="height: 150px; object-fit: cover;"

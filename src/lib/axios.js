@@ -72,7 +72,11 @@ api.interceptors.response.use(
         if (errorStatus === 401) {
             console.log('인증 실패, 토큰 삭제 및 로그인 페이지로 이동')
             localStorage.removeItem('token')
-            if (window.location.pathname !== '/admin/login') {
+            
+            // 로그인 API 호출 시에는 리다이렉트하지 않음
+            if (requestUrl && requestUrl.includes('/api/auth/login')) {
+                console.log('로그인 API 호출이므로 리다이렉트하지 않음')
+            } else if (window.location.pathname !== '/admin/login') {
                 window.location.href = '/admin/login'
             }
         }

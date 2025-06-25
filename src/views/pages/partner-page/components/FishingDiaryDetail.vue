@@ -82,7 +82,7 @@
             <div class="comment-content">{{ comment.comment || comment.content || comment.text }}</div>
             <div class="comment-actions">
               <button
-                @click="openReportModal(comment.user.uno)"
+                @click="openReportModal(comment.user?.uid || comment.user?.uno)"
                 class="btn-report-comment"
                 :aria-label="'댓글 신고'"
                 :disabled="reporting"
@@ -150,7 +150,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { partnerService } from '@/api/partner.js';
 
@@ -272,6 +272,20 @@ function closeReportModal() {
   commentToReport.value = null;
   reportReason.value = "";
 }
+
+// 댓글 데이터 watch로 콘솔 출력
+watch(
+  () => diary.value?.comments,
+  (comments) => {
+    if (comments) {
+      comments.forEach((comment) => {
+        console.log('댓글:', comment);
+        console.log('댓글 user:', comment.user);
+      });
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>

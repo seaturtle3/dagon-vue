@@ -74,6 +74,7 @@
           <div class="button-group">
             <button @click="submitAnswer" class="submit-button">답변 저장</button>
             <button @click="closeModal" class="close-button">닫기</button>
+            <button @click="handleDeleteInquiry(selectedInquiry.id)" class="delete-button">삭제</button>
           </div>
         </div>
       </div>
@@ -89,6 +90,7 @@
 
 <script>
 import {BASE_URL} from "@/constants/baseUrl.js";
+import { partnerService } from '@/api/partner';
 
 export default {
   name: 'InquiryList',
@@ -216,6 +218,18 @@ export default {
     },
     changePage(page) {
       this.currentPage = page;
+    },
+    async handleDeleteInquiry(inquiryId) {
+      if (!confirm('이 문의를 정말로 삭제하시겠습니까?')) return;
+      try {
+        await partnerService.deleteInquiry(inquiryId);
+        alert('문의가 삭제되었습니다.');
+        this.closeModal();
+        await this.loadInquiries();
+      } catch (error) {
+        alert('문의 삭제에 실패했습니다.');
+        console.error('문의 삭제 실패:', error);
+      }
     }
   },
   mounted() {
@@ -529,6 +543,22 @@ tr:last-child td {
 .close-button:hover {
   background-color: #64b5f6;
   transform: translateY(-2px);
+}
+
+.delete-button {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.delete-button:hover {
+  background: #d9363e;
 }
 
 /* Responsive adjustments */
