@@ -1,10 +1,19 @@
 <script setup>
-import { useRouter } from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import { useProductFishingReportStore } from '@/store/product/product-detail/useProductFishingReportStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+import {computed, onMounted} from "vue";
 
+const route = useRoute()
 const router = useRouter()
 const store = useProductFishingReportStore()
+const productId = route.params.prodId
+
+onMounted(() => {
+  store.fetchFishingReport(productId)
+})
+
+const reportList = computed(() => store.getReportByProductId(productId))
 
 const goToDetail = (report) => {
   router.push(`/fishing-report/${report.frId}`)
@@ -17,7 +26,7 @@ const goToDetail = (report) => {
     <div v-else-if="store.error">{{ store.error }}</div>
     <div v-else>
 
-      <div v-if="store.report.length > 0" class="report-grid">
+      <div v-if="store.report && store.report.length > 0" class="report-grid">
         <div
             v-for="(report, index) in store.report.slice(0, 15)"
             :key="report.frId"
@@ -44,7 +53,7 @@ const goToDetail = (report) => {
           </div>
         </div>
       </div>
-      <!-- <div v-else>조황정보가 없습니다.</div> -->
+       <div v-else>조황정보가 없습니다.</div>
     </div>
   </div>
 </template>

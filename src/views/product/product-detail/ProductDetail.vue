@@ -12,7 +12,9 @@ import ProductFishingReport from '@/views/product/product-detail/components/Prod
 import ProductFishingDiary from '@/views/product/product-detail/components/ProductFishingDiary.vue'
 import ReservationCalendar from '@/components/calendar/ReservationCalendar.vue'
 
+// 현재 라우트 정보 (path, params, query 등)
 const route = useRoute()
+// 전역 라우터 인스턴스 (페이지 이동, push 등)
 const router = useRouter()
 const prodId = route.params.prodId
 const store = useProductDetailStore()

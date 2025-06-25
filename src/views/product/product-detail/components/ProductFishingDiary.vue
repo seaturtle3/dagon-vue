@@ -1,10 +1,21 @@
 <script setup>
-import { useRouter } from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import { useProductFishingDiaryStore } from '@/store/product/product-detail/useProductFishingDiaryStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+import {onMounted, onUnmounted} from "vue";
 
+const route = useRoute()
 const router = useRouter()
 const store = useProductFishingDiaryStore()
+const productId = route.params.prodId
+
+onMounted(() => {
+  store.fetchFishingDiary(productId)
+})
+
+onUnmounted(() => {
+  store.clearDiary()
+})
 
 const goToDetail = (diary) => {
   router.push(`/fishing-diary/${diary.fdId}`)
@@ -17,7 +28,7 @@ const goToDetail = (diary) => {
     <div v-else-if="store.error">{{ store.error }}</div>
     <div v-else>
 
-      <div v-if="store.diary.length > 0" class="diary-grid">
+      <div v-if="store.diary && store.diary.length > 0" class="diary-grid">
         <div
             v-for="diary in store.diary.slice(0, 15)"
             :key="diary.fdId"
@@ -43,7 +54,7 @@ const goToDetail = (diary) => {
           </div>
         </div>
       </div>
-      <!-- <div v-else>조황정보가 없습니다.</div> -->
+       <div v-else>조황정보가 없습니다.</div>
     </div>
   </div>
 </template>
