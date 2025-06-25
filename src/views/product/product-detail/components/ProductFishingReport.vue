@@ -1,20 +1,19 @@
 <script setup>
-import {computed, onMounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
-import {useProductFishingReportStore} from '@/store/product/product-detail/useProductFishingReportStore.js'
+import { useProductFishingReportStore } from '@/store/product/product-detail/useProductFishingReportStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+import {computed, onMounted} from "vue";
 
 const route = useRoute()
 const router = useRouter()
 const store = useProductFishingReportStore()
+const productId = route.params.prodId
 
 onMounted(() => {
-  const prodId = Number(route.params.prodId)
-  store.fetchFishingReport(prodId)
-  console.log('상세페이지 조황정보 productId:', prodId)
+  store.fetchFishingReport(productId)
 })
 
-const reportCount = computed(() => store.report?.length || 0)
+const reportList = computed(() => store.getReportByProductId(productId))
 
 const goToDetail = (report) => {
   router.push(`/fishing-report/${report.frId}`)
@@ -27,11 +26,7 @@ const goToDetail = (report) => {
     <div v-else-if="store.error">{{ store.error }}</div>
     <div v-else>
 
-      <h2 class="mb-3 font-bold text-lg">
-        조황정보 <span class="count">({{ reportCount }})</span>
-      </h2>
-
-      <div v-if="store.report.length > 0" class="report-grid">
+      <div v-if="store.report && store.report.length > 0" class="report-grid">
         <div
             v-for="(report, index) in store.report.slice(0, 15)"
             :key="report.frId"
@@ -41,10 +36,15 @@ const goToDetail = (report) => {
         >
           <div class="thumbnail-wrapper">
             <img
+                v-if="report.thumbnailUrl"
                 class="thumbnail"
                 :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
                 alt="썸네일"
             />
+            <div v-else class="image-placeholder">
+              <i class="fas fa-image"></i>
+              <span>이미지 없음</span>
+            </div>
           </div>
           <div class="item-content">
             <h3>{{ report.product?.prodName }}</h3>
@@ -53,23 +53,22 @@ const goToDetail = (report) => {
           </div>
         </div>
       </div>
-      <!-- <div v-else>조황정보가 없습니다.</div> -->
+       <div v-else>조황정보가 없습니다.</div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .list-container {
-  width: 80%;
+  width: 100%;
   margin: 0 auto;
 }
 
 .report-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3열 */
-  grid-auto-rows: minmax(150px, auto); /* 각 행 최소 높이 150px */
-  gap: 16px; /* 박스 간 간격 */
-  border-radius: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 10px 0;
 }
 
 .count {
@@ -87,23 +86,70 @@ const goToDetail = (report) => {
   display: flex;
   flex-direction: column;
   height: 400px;
-  padding: 0; /* 패딩 제거 */
+  padding: 0;
 }
+
 .item-content {
   height: 40%;
-  padding: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  justify-content: space-between;
+}
+
+.item-content h3 {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.item-content h5 {
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.item-content p {
+  color: #999;
+  font-size: 0.85rem;
+  margin: 0;
 }
 
 .thumbnail-wrapper {
   height: 60%;
+  overflow: hidden;
 }
+
 .thumbnail {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.image-placeholder i {
+  font-size: 2rem;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.image-placeholder span {
+  font-size: 0.85rem;
+  color: #999;
 }
 </style>

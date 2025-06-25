@@ -4,9 +4,6 @@
       <div class="admin-logo">DAGON</div>
       <div class="admin-title">관리자 로그인</div>
       <AdminLoginForm />
-      <div class="admin-link">
-        계정이 없으신가요? <router-link to="/admin/register">회원가입</router-link>
-      </div>
     </div>
   </div>
 </template>

@@ -81,7 +81,14 @@ function formatDate(dateStr) {
 }
 
 function onContactClick() {
-  alert('문의 기능은 준비 중입니다!')
+  // 상품명과 ID를 쿼리로 넘기며 문의 페이지로 이동
+  router.push({
+    path: '/product-inquiry',
+    query: {
+      productName: props.product.prodName,
+      productId: props.product.prodId
+    }
+  });
 }
 
 // 신고 폼 열기
