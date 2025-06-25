@@ -166,7 +166,6 @@ onMounted(() => {
       <div class="thumbnail-section">
         <div class="thumbnail-container">
           <Swiper
-              v-if="Array.isArray(props.product.prodImageNames) && props.product.prodImageNames.length > 0"
               :modules="[Navigation, Pagination]"
               :slides-per-view="1"
               :space-between="10"
@@ -174,28 +173,29 @@ onMounted(() => {
               pagination
               class="main-swiper"
           >
-            <SwiperSlide v-for="(img, idx) in props.product.prodImageNames.filter(Boolean)" :key="idx">
-              <img
-                  :src="`${BASE_URL}${img}`"
-                  class="slide-image"
-                  alt="상품 이미지"
-              />
+            <!-- 썸네일이 있으면 이미지 슬라이드 보여줌 -->
+            <SwiperSlide
+                v-for="(img, idx) in (props.product.prodImageNames || []).filter(Boolean)"
+                :key="idx"
+            >
+              <img :src="`${BASE_URL}${img}`" class="slide-image" alt="상품 이미지" />
+            </SwiperSlide>
+
+            <!-- 썸네일이 없으면 대체 이미지 or 빈 슬라이드 -->
+            <SwiperSlide v-if="!props.product.prodImageNames || props.product.prodImageNames.length === 0">
+              <div class="no-image-placeholder">
+                이미지 없음
+              </div>
             </SwiperSlide>
           </Swiper>
 
-          <template v-else>
-            <img
-              :src="`${BASE_URL}/${props.product.prodImageName}`"
-              class="product-thumbnail"
-              alt="상품 썸네일"
-            />
-          </template>
           <div class="thumbnail-overlay">
             <div class="zoom-icon">
               <i class="fas fa-search-plus"></i>
             </div>
           </div>
         </div>
+
       </div>
 
       <!-- 상품 기본 정보 -->
@@ -267,7 +267,6 @@ onMounted(() => {
           배 정보
         </h3>
       </div>
-
       <div class="boat-info-content">
         <div class="boat-detail-grid">
           <div class="boat-detail-item">
@@ -389,6 +388,19 @@ onMounted(() => {
 
 .separator {
   color: #cbd5e0;
+}
+
+.no-image-placeholder {
+  max-width: 500px;
+  width: 100%;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #edf2f7;
+  color: #a0aec0;
+  font-size: 1.2rem;
+  border-radius: 16px;
 }
 
 /* 메인 상품 정보 */
