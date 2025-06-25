@@ -94,7 +94,7 @@
                   <div v-for="notification in notifications.slice(0, 5)" :key="notification.id"
                        class="notification-item"
                        :class="{ unread: !notification.read }"
-                       @click.stop="markAsRead(notification.id)">
+                       @click.stop="openNotificationModal(notification)">
                     <div class="notification-content">
                       <div class="notification-title">{{ notification.title }}</div>
                       <div class="notification-time">{{ formatTime(notification.time) }}</div>
@@ -116,6 +116,19 @@
     </div>
   </nav>
 
+  <div v-if="showNotificationModal" class="custom-modal-overlay" @click.self="closeNotificationModal">
+    <div class="custom-modal-content">
+      <div class="custom-modal-header">
+        <span>{{ selectedNotification?.title }}</span>
+        <button class="custom-modal-close" @click="closeNotificationModal">&times;</button>
+      </div>
+      <div class="custom-modal-body">
+        <div>{{ selectedNotification?.content }}</div>
+        <div class="text-muted mt-2" style="font-size:0.9em;">{{ formatTime(selectedNotification?.time) }}</div>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <script setup>
@@ -133,6 +146,8 @@ const notifications = ref([])
 const loading = ref(false)
 const showNotificationDropdown = ref(false)
 const clickOutsideListener = ref(null)
+const showNotificationModal = ref(false)
+const selectedNotification = ref(null)
 
 // 읽지 않은 알람 개수
 const unreadCount = computed(() => {
@@ -349,6 +364,15 @@ const formatTime = (timeString) => {
   }
 }
 
+const openNotificationModal = (notification) => {
+  selectedNotification.value = notification
+  showNotificationModal.value = true
+}
+const closeNotificationModal = () => {
+  showNotificationModal.value = false
+  selectedNotification.value = null
+}
+
 onMounted(() => {
   authStore.loadTokenFromStorage()
   
@@ -544,4 +568,44 @@ const menuItems = ref([
   transform: translateY(-10px);
 }
 
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.custom-modal-content {
+  background: #fff;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 24px 20px 20px 20px;
+  position: relative;
+}
+.custom-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.custom-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #888;
+}
+.custom-modal-body {
+  font-size: 1rem;
+  color: #222;
+}
 </style>
