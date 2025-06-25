@@ -29,26 +29,6 @@ const selectedOptionId = ref(null)
 
 onMounted(async () => {
   await store.fetchProductDetail(prodId)
-  console.log('onMounted product:', store.product)
-})
-
-watch(product, (val) => {
-  if (val && val.options && val.options.length > 0) {
-    selectedOptionId.value = val.options[0].option_id
-  }
-// 개수 계산
-const centerCount = computed(() => {
-  const reportCount = fishingCenterStore.report ? fishingCenterStore.report.length : 0
-  const diaryCount = fishingCenterStore.diary ? fishingCenterStore.diary.length : 0
-  return reportCount + diaryCount
-})
-
-const reportCount = computed(() => fishingReportStore.report?.length || 0)
-const diaryCount = computed(() => fishingDiaryStore.diary?.length || 0)
-
-onMounted(() => {
-  store.fetchProductDetail(prodId)
-  // 각 스토어에서 데이터 가져오기
   const prodIdNum = Number(prodId)
   if (!isNaN(prodIdNum)) {
     fishingCenterStore.fetchFishingCenter(prodIdNum)
@@ -56,6 +36,23 @@ onMounted(() => {
     fishingDiaryStore.fetchFishingDiary(prodIdNum)
   }
 })
+
+
+watch(product, (val) => {
+  if (val?.options?.length > 0) {
+    selectedOptionId.value = val.options[0].option_id
+  }
+})
+
+// 개수 계산
+const centerCount = computed(() => {
+  const reportCount = (fishingCenterStore.report ?? []).length
+  const diaryCount = (fishingCenterStore.diary ?? []).length
+  return reportCount + diaryCount
+})
+
+const reportCount = computed(() => fishingReportStore.report?.length || 0)
+const diaryCount = computed(() => fishingDiaryStore.diary?.length || 0)
 
 onUnmounted(() => {
   store.clearProduct()

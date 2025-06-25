@@ -7,8 +7,8 @@ const store = useProductFishingCenterStore()
 
 const combinedList = computed(() => {
   const combined = [
-    ...store.report.map(center => ({ ...center, _type: 'report' })),
-    ...store.diary.map(center => ({ ...center, _type: 'diary' })),
+    ...(store.report ?? []).map(center => ({ ...center, _type: 'report' })),
+    ...(store.diary ?? []).map(center => ({ ...center, _type: 'diary' })),
   ]
   return combined
       .sort((a, b) => {
