@@ -196,7 +196,7 @@ export default {
     // prodId가 있으면 상품 상세 정보 DB에서 가져오기
     if (this.reservationInfo.prodId) {
       try {
-        const res = await partnerService.getProductDetail(this.reservationInfo.prodId);
+        const res = await api.get(`/api/product/get/${this.reservationInfo.prodId}`);
         if (res.data) {
           this.reservationInfo.prodName = res.data.prod_name || this.reservationInfo.prodName;
           this.reservationInfo.prodId = res.data.prod_id || this.reservationInfo.prodId;
@@ -448,7 +448,7 @@ export default {
           productName: this.reservationInfo.prodName,
           optionName: this.reservationInfo.optionName || '',
           userName: this.userInfo.buyer_name, 
-          uid: 'user001',
+          uid: this.authStore.user.uid,
         };
 
         console.log("예약 정보 전체:", JSON.stringify(reservationData, null, 2));

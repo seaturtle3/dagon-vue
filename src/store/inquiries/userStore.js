@@ -25,6 +25,7 @@ export const useUserStore = defineStore('user', {
         isLoggedIn: (state) => !!state.user,
         role: (state) => state.user?.role || '',
         nickname: (state) => state.user?.nickname || '',
-        uid: (state) => state.user?.uid || ''
+        uid: (state) => state.user?.uid || '',
+        uno: (state) => state.user?.uno || ''
     }
 });

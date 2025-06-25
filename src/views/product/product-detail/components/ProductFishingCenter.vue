@@ -22,9 +22,11 @@ onMounted(() => {
 })
 
 const combinedList = computed(() => {
+  const reportList = store.report || [];
+  const diaryList = store.diary || [];
   const combined = [
-    ...store.report.map(center => ({ ...center, _type: 'report' })),
-    ...store.diary.map(center => ({ ...center, _type: 'diary' })),
+    ...reportList.map(center => ({ ...center, _type: 'report' })),
+    ...diaryList.map(center => ({ ...center, _type: 'diary' })),
   ]
   return combined
       .sort((a, b) => {
@@ -37,8 +39,8 @@ const combinedList = computed(() => {
 })
 
 const totalCount = computed(() => {
-  const reportCount = store.report ? store.report.length : 0
-  const diaryCount = store.diary ? store.diary.length : 0
+  const reportCount = (store.report || []).length
+  const diaryCount = (store.diary || []).length
   return reportCount + diaryCount
 })
 
