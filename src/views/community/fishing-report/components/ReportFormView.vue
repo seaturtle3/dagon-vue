@@ -34,7 +34,8 @@ const formData = ref({
   thumbnailUrl: '',
   images: [],
   user: null,
-  comments: []
+  comments: [],
+  reportId: null
 })
 
 const adminAuthStore = useAdminAuthStore()
@@ -248,7 +249,8 @@ function resetForm() {
     thumbnailUrl: '',
     images: [],
     user: null,
-    comments: []
+    comments: [],
+    reportId: null
   }
   images.value = []
   thumbnailFile.value = null
@@ -449,42 +451,7 @@ function onProductInputBlur(e) {
         </div>
       </div>
 
-      <!-- 이미지 업로드 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">📸 이미지 업로드</h3>
-
-        <div class="form-group">
-          <label class="form-label">대표 썸네일</label>
-          <input
-            type="file"
-            accept="image/*"
-            class="form-control"
-            @change="onThumbnailChange"
-          />
-          <div v-if="thumbnailFile" class="file-preview">
-            <span>선택된 파일: {{ thumbnailFile.name }}</span>
-            <button type="button" @click="removeThumbnail" class="remove-btn">삭제</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">추가 이미지</label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            class="form-control"
-            @change="onFileChange"
-          />
-          <div v-if="images.length > 0" class="file-list">
-            <div v-for="(file, index) in images" :key="index" class="file-item">
-              <span>{{ file.name }}</span>
-              <button type="button" @click="removeImage(index)" class="remove-btn">삭제</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
+ 
       <!-- 내용 작성 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📝 상세 내용</h3>
@@ -494,6 +461,7 @@ function onProductInputBlur(e) {
           <RichTextEditor
             v-model="formData.content"
             editor-id="fishing-report-editor"
+            :report-id="formData.reportId"
           />
         </div>
       </div>

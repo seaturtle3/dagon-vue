@@ -21,9 +21,11 @@
     "chart.js": "^4.4.9",
     "jquery": "^3.7.1",
     "pinia": "^3.0.2",
+    "popper.js": "^1.16.1",
     "summernote": "^0.9.1",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "vue3-summernote-editor": "^1.0.2"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",

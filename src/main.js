@@ -15,6 +15,14 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import { fas } from '@fortawesome/free-solid-svg-icons'
 import { far } from '@fortawesome/free-regular-svg-icons'
 
+// 아래 4줄이 매우 중요!
+import $ from 'jquery'
+window.$ = window.jQuery = $;
+import 'popper.js'
+import 'summernote/dist/summernote-lite.min.js'
+import 'summernote/dist/summernote-lite.min.css'
+
+
 // 🔽 아이콘 라이브러리에 아이콘 추가
 
 
