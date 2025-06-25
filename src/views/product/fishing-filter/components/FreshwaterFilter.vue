@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch, defineEmits } from 'vue'
-import axios from 'axios'
+import api from '@/lib/axios'
 import { useFreshwaterProdStore } from '@/store/product/fishing-filter/useFreshwaterProdStore.js'
 
 const emit = defineEmits(['update:filter'])
@@ -64,7 +64,7 @@ const fetchProducts = async (filterValues) => {
 
 // 마운트 시 초기 필터 옵션 불러오기 및 상품 조회
 onMounted(async () => {
-  const { data } = await axios.get('/api/product/freshwater/filter')
+  const { data } = await api.get('/product/freshwater/filter')
   filters.value = data
 
   fetchProducts({})  // 전체 조회

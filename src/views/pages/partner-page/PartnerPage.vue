@@ -55,7 +55,7 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/lib/axios'
 import { adminAuth } from '@/api/admin.js'
 import Dashboard from './components/Dashboard.vue'
 import ProductList from './components/ProductList.vue'

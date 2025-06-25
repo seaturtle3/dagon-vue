@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
+import api from '@/lib/axios'
 import BoardWriteForm from "@/components/common/BoardWriteForm.vue";
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import { useAdminAuthStore} from "@/store/auth/auth.js";
@@ -37,9 +37,9 @@ async function submit() {
     }
 
     if (isEdit) {
-      await axios.post(`/api/admin/notices/${noticeId}`, form, config)
+      await api.post(`/admin/notices/${noticeId}`, form, config)
     } else {
-      await axios.post('/api/admin/notices', form, config)
+      await api.post('/admin/notices', form, config)
     }
 
     router.push('/notice')
@@ -52,7 +52,7 @@ async function submit() {
 onMounted(async () => {
   if (isEdit) {
     try {
-      const res = await axios.get(`/api/notices/${noticeId}`)
+      const res = await api.get(`/notices/${noticeId}`)
       Object.assign(form, res.data) // title, content, isTop 모두 채움
     } catch (err) {
       console.error('공지사항 조회 실패:', err)

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductDetailStore } from '@/store/product/product-detail/useProductDetailStore.js'
 
@@ -17,9 +17,17 @@ const product = computed(() => store.product)
 
 const activeTab = ref('info')
 const activeSubTab = ref('center')
+const selectedOptionId = ref(null)
 
-onMounted(() => {
-  store.fetchProductDetail(prodId)
+onMounted(async () => {
+  await store.fetchProductDetail(prodId)
+  console.log('onMounted product:', store.product)
+})
+
+watch(product, (val) => {
+  if (val && val.options && val.options.length > 0) {
+    selectedOptionId.value = val.options[0].option_id
+  }
 })
 
 onUnmounted(() => {
@@ -114,7 +122,7 @@ const setTab = (tab) => {
         <div v-if="activeTab === 'reservation'" class="reservation-content">
           <div class="content-section">
             <h3 class="section-title">예약 캘린더</h3>
-            <ReservationCalendar />
+            <ReservationCalendar :product="product" :option-id="selectedOptionId" />
           </div>
         </div>
       </div>
@@ -301,5 +309,20 @@ const setTab = (tab) => {
     border-bottom: none;
     border-right-color: #007bff;
   }
+}
+
+.go-payment-btn {
+  margin-left: 12px;
+  padding: 8px 18px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.go-payment-btn:hover {
+  background: #1251a3;
 }
 </style> 
