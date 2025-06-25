@@ -40,6 +40,7 @@ const productOptions = ref([])
 const productSearchLoading = ref(false)
 const highlightedIndex = ref(-1)
 const productInputRef = ref(null)
+const dateInputRef = ref(null)
 const fishingReportStore = useFishingReportStore()
 
 const isFormValid = computed(() => {
@@ -157,10 +158,21 @@ async function onSubmit() {
     alert('낚시 날짜를 입력하세요.');
     return;
   }
-  // if (images.value.length === 0) {
-  //   alert('이미지는 최소 1장 이상 업로드해주세요.')
-  //   return
-  // }
+
+  // 이미지 파일 검증
+  if (thumbnailFile.value) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (thumbnailFile.value.size > maxSize) {
+      alert('이미지 파일 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(thumbnailFile.value.type)) {
+      alert('지원되는 이미지 형식: JPG, PNG, GIF');
+      return;
+    }
+  }
 
   const submitFormData = new FormData()
   const dtoToSend = {
@@ -168,6 +180,7 @@ async function onSubmit() {
     content: formData.value.content,
     prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
     fishingAt: formData.value.fishingAt,
+    location: formData.value.location,
     imageFileName: thumbnailFile.value ? thumbnailFile.value.name : null,
     product: selectedProduct.value ? {
       prodId: selectedProduct.value.prodId,
@@ -177,16 +190,36 @@ async function onSubmit() {
     comments: [],
     thumbnailUrl: null
   }
+  
+  // DTO를 JSON 문자열로 변환하여 추가
   submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' }))
+  
+  // 썸네일 이미지 추가 (키 이름을 'images'로 변경)
   if (thumbnailFile.value) {
     submitFormData.append('images', thumbnailFile.value)
   }
+  
   try {
+    console.log('전송할 데이터:', dtoToSend)
+    console.log('FormData 내용:')
+    for (let [key, value] of submitFormData.entries()) {
+      console.log(key, value)
+    }
+    
     await fishingReportStore.createFishingReport(submitFormData)
     alert('조황정보가 성공적으로 등록되었습니다!')
     router.push('/fishing-report')
   } catch (err) {
-    alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.')
+    console.error('조황정보 등록 실패:', err)
+    
+    // 더 자세한 에러 메시지 표시
+    if (err.response?.data?.message) {
+      alert(`조황정보 등록 실패: ${err.response.data.message}`)
+    } else if (err.response?.status === 500) {
+      alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    } else {
+      alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.')
+    }
   }
 }
 
@@ -263,6 +296,60 @@ function onProductInputBlur(e) {
   }, 120)
 }
 
+// 날짜 선택기 열기
+function openDatePicker() {
+  if (dateInputRef.value) {
+    dateInputRef.value.showPicker()
+  }
+}
+
+// 날짜 입력 필드 클릭 시 달력 열기
+function onDateInputClick() {
+  openDatePicker()
+}
+
+// 이미지 없이 테스트 제출
+async function onSubmitWithoutImage() {
+  if (!isFormValid.value) {
+    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 장소, 상품)')
+    return
+  }
+
+  const submitFormData = new FormData()
+  const dtoToSend = {
+    title: formData.value.title,
+    content: formData.value.content,
+    prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
+    fishingAt: formData.value.fishingAt,
+    location: formData.value.location,
+    imageFileName: null,
+    product: selectedProduct.value ? {
+      prodId: selectedProduct.value.prodId,
+      prodName: selectedProduct.value.prodName
+    } : null,
+    user: null,
+    comments: [],
+    thumbnailUrl: null
+  }
+  
+  // DTO만 추가 (이미지 없음)
+  submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' }))
+  
+  try {
+    console.log('이미지 없이 테스트 - 전송할 데이터:', dtoToSend)
+    await fishingReportStore.createFishingReport(submitFormData)
+    alert('이미지 없이 조황정보가 성공적으로 등록되었습니다!')
+    router.push('/fishing-report')
+  } catch (err) {
+    console.error('이미지 없이 테스트 실패:', err)
+    if (err.response?.data?.message) {
+      alert(`테스트 실패: ${err.response.data.message}`)
+    } else {
+      alert('테스트에 실패했습니다.')
+    }
+  }
+}
+
 onUnmounted(() => {
   if (thumbnailPreviewUrl.value) {
     URL.revokeObjectURL(thumbnailPreviewUrl.value)
@@ -305,8 +392,9 @@ onUnmounted(() => {
                 class="form-control date-input"
                 placeholder="날짜를 선택하세요"
                 required
+                ref="dateInputRef"
+                @click="onDateInputClick"
               />
-              <div class="calendar-icon">📅</div>
             </div>
           </div>
 
@@ -416,6 +504,9 @@ onUnmounted(() => {
         <button type="button" @click="resetForm" class="btn btn-secondary">
           초기화
         </button>
+        <button type="button" @click="onSubmitWithoutImage" class="btn btn-test">
+          이미지 없이 테스트
+        </button>
         <button type="submit" :disabled="!isFormValid || loading" class="btn btn-primary">
           {{ loading ? '등록 중...' : '조황정보 등록' }}
         </button>
@@ -514,27 +605,7 @@ onUnmounted(() => {
 }
 
 .date-input {
-  padding-right: 45px;
   cursor: pointer;
-}
-
-.calendar-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.2rem;
-  color: #1976d2;
-  pointer-events: none;
-  transition: all 0.3s ease;
-}
-
-.date-input-container:hover .calendar-icon {
-  transform: translateY(-50%) scale(1.1);
-}
-
-.date-input:focus + .calendar-icon {
-  color: #1565c0;
 }
 
 /* RichTextEditor 스타일 조정 */
@@ -783,6 +854,22 @@ onUnmounted(() => {
 
 .btn-secondary:hover {
   background: #5a6268;
+}
+
+.btn-test {
+  background: #ffd740;
+  color: #333;
+}
+
+.btn-test:hover:not(:disabled) {
+  background: #ffc400;
+  transform: translateY(-2px);
+}
+
+.btn-test:disabled {
+  background: #ffebb2;
+  cursor: not-allowed;
+  transform: none;
 }
 
 @media (max-width: 768px) {

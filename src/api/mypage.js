@@ -169,7 +169,7 @@ export const myPageAPI = {
             payMethod,
             paidAt
         });
-        return axios.post('/api/payments', {
+        return api.post('/api/payments/verify', {
             impUid,
             merchantUid,
             amount,

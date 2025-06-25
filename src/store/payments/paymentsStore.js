@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '@/lib/axios';
 
 export const usePaymentsStore = defineStore('payments', {
     state: () => ({
@@ -12,7 +12,7 @@ export const usePaymentsStore = defineStore('payments', {
         async fetchPayments() {
             this.loading = true;
             try {
-                const res = await axios.get('/api/payments', {
+                const res = await api.get('/payments', {
                     headers: {
                         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
                     },
@@ -27,7 +27,7 @@ export const usePaymentsStore = defineStore('payments', {
 
         async addPayments(paymentData) {
             try {
-                const res = await axios.post('/api/payments', paymentData, {
+                const res = await api.post('/payments', paymentData, {
                     headers: {
                         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
                     },

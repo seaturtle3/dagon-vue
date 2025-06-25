@@ -4,7 +4,7 @@ import {BASE_URL} from "@/constants/baseUrl.js";
 console.log('BASE_URL:', BASE_URL)
 
 const api = axios.create({
-    baseURL: BASE_URL || 'http://localhost:8095',
+    baseURL: BASE_URL || '',
     timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ api.interceptors.request.use(
 // 응답 인터셉터
 api.interceptors.response.use(
     (response) => {
-        console.log('API 응답:', response.status, response.config.url, response.data)
+        console.log('API 응답23333:', response.status, response.config.url)
         return response
     },
     (error) => {
@@ -72,12 +72,19 @@ api.interceptors.response.use(
         if (errorStatus === 401) {
             console.log('인증 실패, 토큰 삭제 및 로그인 페이지로 이동')
             localStorage.removeItem('token')
-            
-            // 로그인 API 호출 시에는 리다이렉트하지 않음
-            if (requestUrl && requestUrl.includes('/api/auth/login')) {
-                console.log('로그인 API 호출이므로 리다이렉트하지 않음')
-            } else if (window.location.pathname !== '/admin/login') {
-                window.location.href = '/admin/login'
+            const path = window.location.pathname
+            if (path.startsWith('/admin')) {
+                if (window.location.pathname !== '/admin/login') {
+                    window.location.href = '/admin/login'
+                }
+            } else if (path.startsWith('/partner')) {
+                if (window.location.pathname !== '/partner/login') {
+                    window.location.href = '/partner/login'
+                }
+            } else {
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login'
+                }
             }
         }
         
