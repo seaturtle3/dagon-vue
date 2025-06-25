@@ -191,10 +191,10 @@ async function onSubmit() {
     thumbnailUrl: null
   }
   
-  // DTO를 JSON 문자열로 변환하여 추가
-  submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' }))
+  // DTO를 직접 JSON 객체로 추가 (Blob으로 감싸지 않음)
+  submitFormData.append('dto', JSON.stringify(dtoToSend))
   
-  // 썸네일 이미지 추가 (키 이름을 'images'로 변경)
+  // 썸네일 이미지 추가
   if (thumbnailFile.value) {
     submitFormData.append('images', thumbnailFile.value)
   }
@@ -306,48 +306,6 @@ function openDatePicker() {
 // 날짜 입력 필드 클릭 시 달력 열기
 function onDateInputClick() {
   openDatePicker()
-}
-
-// 이미지 없이 테스트 제출
-async function onSubmitWithoutImage() {
-  if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 장소, 상품)')
-    return
-  }
-
-  const submitFormData = new FormData()
-  const dtoToSend = {
-    title: formData.value.title,
-    content: formData.value.content,
-    prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
-    fishingAt: formData.value.fishingAt,
-    location: formData.value.location,
-    imageFileName: null,
-    product: selectedProduct.value ? {
-      prodId: selectedProduct.value.prodId,
-      prodName: selectedProduct.value.prodName
-    } : null,
-    user: null,
-    comments: [],
-    thumbnailUrl: null
-  }
-  
-  // DTO만 추가 (이미지 없음)
-  submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' }))
-  
-  try {
-    console.log('이미지 없이 테스트 - 전송할 데이터:', dtoToSend)
-    await fishingReportStore.createFishingReport(submitFormData)
-    alert('이미지 없이 조황정보가 성공적으로 등록되었습니다!')
-    router.push('/fishing-report')
-  } catch (err) {
-    console.error('이미지 없이 테스트 실패:', err)
-    if (err.response?.data?.message) {
-      alert(`테스트 실패: ${err.response.data.message}`)
-    } else {
-      alert('테스트에 실패했습니다.')
-    }
-  }
 }
 
 onUnmounted(() => {
@@ -503,9 +461,6 @@ onUnmounted(() => {
       <div class="form-actions">
         <button type="button" @click="resetForm" class="btn btn-secondary">
           초기화
-        </button>
-        <button type="button" @click="onSubmitWithoutImage" class="btn btn-test">
-          이미지 없이 테스트
         </button>
         <button type="submit" :disabled="!isFormValid || loading" class="btn btn-primary">
           {{ loading ? '등록 중...' : '조황정보 등록' }}
@@ -854,22 +809,6 @@ onUnmounted(() => {
 
 .btn-secondary:hover {
   background: #5a6268;
-}
-
-.btn-test {
-  background: #ffd740;
-  color: #333;
-}
-
-.btn-test:hover:not(:disabled) {
-  background: #ffc400;
-  transform: translateY(-2px);
-}
-
-.btn-test:disabled {
-  background: #ffebb2;
-  cursor: not-allowed;
-  transform: none;
 }
 
 @media (max-width: 768px) {
