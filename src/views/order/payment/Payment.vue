@@ -21,10 +21,6 @@
             <span class="label">상품 주소:</span>
             <span class="value">{{ reservationInfo.prodAddress || '-' }}</span>
           </div>
-          <div class="user-reservation-info-item">
-            <span class="label">어종명:</span>
-            <span class="value">{{ reservationInfo.fishType || '-' }}</span>
-          </div>
         </div>
       </div>
       <div class="section-divider"></div>
@@ -52,8 +48,16 @@
             <span class="value">{{ reservationInfo.totalPeople }}명</span>
           </div>
           <div class="user-reservation-info-item">
+            <span class="label">옵션명:</span>
+            <span class="value">{{ reservationInfo.optionName || '-' }}</span>
+          </div>
+          <div class="user-reservation-info-item">
+            <span class="label">옵션수:</span>
+            <span class="value">{{ reservationInfo.optionCount || 0 }}개</span>
+          </div>
+          <div class="user-reservation-info-item">
             <span class="label">이용 금액:</span>
-            <span class="value">{{ reservationInfo.Count }}원</span>
+            <span class="value">{{ reservationInfo.estimatedPrice?.toLocaleString() }}원</span>
           </div>
         </div>
       </div>
@@ -72,7 +76,6 @@
           <p><strong>상품명:</strong> {{ reservationInfo.prodName || '상품명 없음' }}</p>
           <p><strong>상품ID:</strong> {{ reservationInfo.prodId || '-' }}</p>
           <p><strong>상품 주소:</strong> {{ reservationInfo.prodAddress || '-' }}</p>
-          <p><strong>어종명:</strong> {{ reservationInfo.fishType || '-' }}</p>
         </div>
       </div>
       <h4>비회원 예약 정보</h4>
@@ -110,8 +113,16 @@
             <span class="value">{{ reservationInfo.totalPeople }}명</span>
           </div>
           <div class="reservation-info-item">
+            <span class="label">옵션명:</span>
+            <span class="value">{{ reservationInfo.optionName || '-' }}</span>
+          </div>
+          <div class="reservation-info-item">
+            <span class="label">옵션수:</span>
+            <span class="value">{{ reservationInfo.optionCount || 0 }}개</span>
+          </div>
+          <div class="reservation-info-item">
             <span class="label">이용 금액:</span>
-            <span class="value">{{ reservationInfo.Count }}원</span>
+            <span class="value">{{ reservationInfo.estimatedPrice?.toLocaleString() }}원</span>
           </div>
         </div>
       </div>
@@ -183,15 +194,21 @@ export default {
       adultCount: parseInt(this.$route.query.adultCount) || 0,
       childCount: parseInt(this.$route.query.childCount) || 0,
       totalPeople: parseInt(this.$route.query.totalPeople) || 0,
-      estimatedPrice: parseInt(this.$route.query.estimatedPrice) || 0,
+      estimatedPrice: 0,
       prodId: this.$route.query.prodId || '',
       prodName: this.$route.query.prodName || '',
       prodAddress: this.$route.query.prodAddress || '',
       prodPostcode: this.$route.query.prodPostcode || '',
       optionId: this.$route.query.optionId || '',
       optionName: this.$route.query.optionName || '',
-      optionPrice: this.$route.query.optionPrice || 0,
+      optionPrice: parseInt(this.$route.query.optionPrice) || 0,
+      optionCount: parseInt(this.$route.query.optionCount) || 0,
     }
+
+    // 옵션 가격 합산하여 estimatedPrice 재계산
+    const basePrice = parseInt(this.$route.query.estimatedPrice) || 0;
+    const optionTotal = (this.reservationInfo.optionPrice || 0) * (this.reservationInfo.optionCount || 0);
+    this.reservationInfo.estimatedPrice = basePrice + optionTotal;
 
     // prodId가 있으면 상품 상세 정보 DB에서 가져오기
     if (this.reservationInfo.prodId) {
@@ -202,7 +219,6 @@ export default {
           this.reservationInfo.prodId = res.data.prod_id || this.reservationInfo.prodId;
           this.reservationInfo.prodAddress = res.data.prod_address || '';
           this.reservationInfo.boatName = res.data.boatName || '';
-          this.reservationInfo.fishType = res.data.fishType || '';
         }
       } catch (e) {
         console.error('상품 정보 조회 실패:', e);
@@ -469,7 +485,18 @@ export default {
           name: 'PaymentResult',
           query: {
             success: 'true',
-            reservationId: response.data.reservationId || 'temp-id'
+            reservationId: response.data.reservationId || 'temp-id',
+            productName: this.reservationInfo.prodName,
+            productId: this.reservationInfo.prodId,
+            productAddress: this.reservationInfo.prodAddress,
+            userName: this.userInfo.buyer_name,
+            email: this.userInfo.buyer_email,
+            phone: this.userInfo.buyer_tel,
+            fishingAt: this.reservationInfo.fishingAt,
+            totalPeople: this.reservationInfo.totalPeople,
+            optionName: this.reservationInfo.optionName,
+            optionCount: this.reservationInfo.optionCount,
+            estimatedPrice: this.reservationInfo.estimatedPrice
           }
         });
       } catch (error) {

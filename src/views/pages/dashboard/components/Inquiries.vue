@@ -2,11 +2,6 @@
   <div class="inquiries">
     <h1>1:1 문의 관리</h1>
 
-    <div class="expand-controls">
-      <button @click="expandAllCategories" title="전체 펼치기"><span class="expand-icon">▼</span></button>
-      <button @click="collapseAllCategories" title="전체 접기"><span class="expand-icon">▲</span></button>
-    </div>
-
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="제목 또는 작성자로 검색">
       <select v-model="statusFilter">
@@ -33,12 +28,11 @@
     <!-- 문의 목록 -->
     <div class="inquiries-list">
       <div v-for="inquiry in paginatedInquiries" :key="inquiry.id" class="inquiry-item">
-            <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
+            <div class="inquiry-header">
               <span class="inquiry-status" :class="inquiry.status">{{ inquiry.status }}</span>
               <h3>{{ inquiry.title }}</h3>
-          <span class="inquiry-author">{{ inquiry.userName || inquiry.author }}</span>
+              <span class="inquiry-author">{{ inquiry.userName || inquiry.author }}</span>
               <span class="inquiry-date">{{ formatDate(inquiry.createdAt) }}</span>
-              <span class="inquiry-toggle">{{ expandedInquiries.includes(inquiry.id) ? '▼' : '▶' }}</span>
             </div>
             <!-- 문의 상세 펼침 영역 -->
             <div v-if="expandedInquiries.includes(inquiry.id)" class="inquiry-content">
@@ -703,11 +697,6 @@ export default {
 .inquiry-date {
   color: #666;
   font-size: 0.875rem;
-}
-
-.inquiry-toggle {
-  font-size: 1.25rem;
-  color: #666;
 }
 
 .inquiry-content {

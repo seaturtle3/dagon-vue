@@ -18,12 +18,15 @@
       <form @submit.prevent="submitForm">
         <div class="form-group">
           <label>작성자</label>
-          <input type="text" value="비회원" disabled>
+          <input type="text" v-model="form.name" required placeholder="이름을 입력하세요">
         </div>
         <div class="form-group">
-          <label>작성자 유형</label>
-          <input type="text" value="비회원 문의" disabled>
-
+          <label>이메일</label>
+          <input type="email" v-model="form.email" required placeholder="이메일을 입력하세요">
+        </div>
+        <div class="form-group">
+          <label>연락처</label>
+          <input type="tel" v-model="form.phone" required placeholder="연락처를 입력하세요">
         </div>
         <div class="form-group">
           <label>문의 유형</label>
@@ -61,6 +64,9 @@ export default {
   data() {
     return {
       form: {
+        name: '',
+        email: '',
+        phone: '',
         title: '',
         content: '',
         writerType: 'NON_MEMBER',
@@ -68,6 +74,8 @@ export default {
       },
       inquiryTypes: [
         { value: 'PRODUCT', label: '상품 문의' },
+        { value: 'BUSINESS', label: '제휴 문의' },
+        { value: 'SYSTEM', label: '시스템 문의' },
         { value: 'RESERVATION', label: '예약 문의' },
         { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
       ],
@@ -129,6 +137,7 @@ export default {
         await inquiryApi.createInquiry(inquiryData);
         alert('문의가 등록되었습니다.');
         this.resetForm();
+        this.$router.push('/admin/inquiries');
       } catch (error) {
         console.error('문의 저장 실패:', error);
         alert('문의 등록에 실패했습니다. 다시 시도해주세요.');
@@ -137,6 +146,9 @@ export default {
     
     resetForm() {
       this.form = {
+        name: '',
+        email: '',
+        phone: '',
         title: '',
         content: '',
         writerType: 'NON_MEMBER',

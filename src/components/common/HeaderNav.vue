@@ -39,7 +39,7 @@
 
         <template v-if="!authStore.isAuthenticated">
           <router-link to="/signup" class="btn btn-outline-secondary btn-sm">회원가입</router-link>
-          <router-link to="/login" class="btn btn-outline-secondary btn-sm">로그인</router-link>
+          <router-link to="/login" class="btn btn-outline-secondary btn-sm">사용자 로그인</router-link>
           <router-link to="/admin/login" class="btn btn-outline-primary btn-sm">관리자 로그인</router-link>
         </template>
 

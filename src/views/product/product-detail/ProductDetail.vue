@@ -325,4 +325,20 @@ const setTab = (tab) => {
 .go-payment-btn:hover {
   background: #1251a3;
 }
+
+.inquiry-btn {
+  margin-top: 18px;
+  padding: 10px 28px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.inquiry-btn:hover {
+  background: #1251a3;
+}
 </style> 

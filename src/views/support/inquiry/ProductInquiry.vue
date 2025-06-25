@@ -11,8 +11,6 @@
         <select v-model="form.inquiryType" required>
           <option value="">문의 유형을 선택하세요.</option>
           <option value="PRODUCT">상품 문의</option>
-          <option value="BUSINESS">제휴 문의</option>
-          <option value="SYSTEM">시스템 문의</option>
           <option value="RESERVATION">예약 문의</option>
           <option value="CANCEL">예약 취소 문의</option>
         </select>
@@ -33,12 +31,14 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { partnerService } from '@/api/partner';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
+const router = useRouter();
 const form = ref({
   productName: '',
   productId: null,
+  partnerUno: null,
   inquiryType: '',
   title: '',
   content: '',
@@ -47,6 +47,7 @@ const form = ref({
 onMounted(() => {
   if (route.query.productName) form.value.productName = route.query.productName;
   if (route.query.productId) form.value.productId = Number(route.query.productId);
+  if (route.query.partnerUno) form.value.partnerUno = Number(route.query.partnerUno);
 });
 
 async function submitInquiry() {
@@ -61,6 +62,7 @@ async function submitInquiry() {
   try {
     await partnerService.createPartnerInquiry({
       productId: form.value.productId,
+      partnerUno: form.value.partnerUno,
       title: `${form.value.productName} 문의 - ${form.value.title}`,
       content: form.value.content,
       inquiryType: form.value.inquiryType
@@ -69,6 +71,7 @@ async function submitInquiry() {
     form.value.title = '';
     form.value.content = '';
     form.value.inquiryType = '';
+    router.push('/partner/inquiries');
   } catch (e) {
     alert('문의 등록에 실패했습니다.');
   }
