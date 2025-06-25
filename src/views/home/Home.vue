@@ -51,15 +51,15 @@ const recommendedProducts = computed(() => {
 <template>
   <Banner />
   <div class="home">
-    <SideButtons />
-    
-    <!-- 공지사항 섹션 -->
-    <div class="notice-section">
-      <NoticeBox />
+    <div class="top-section">
+      <!-- 공지사항 섹션 -->
+      <div class="notice-section">
+        <NoticeBox />
+      </div>
     </div>
-    
     <PopularList :reports="reportStore.reports" />
     <RecommendationList :products="recommendedProducts" />
+    <SideButtons />
   </div>
 </template>
 
@@ -69,7 +69,17 @@ const recommendedProducts = computed(() => {
   margin: 0 auto;
 }
 
-.notice-section {
+.top-section {
+  display: flex;
+  gap: 2rem;
   margin: 2rem 0;
+}
+
+.notice-section {
+  flex: 1;
+}
+
+.notice-section {
+  margin: 0;
 }
 </style>
