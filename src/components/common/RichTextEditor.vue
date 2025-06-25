@@ -1,4 +1,7 @@
 <script setup>
+import api from '@/lib/axios'; // 또는 설정된 axios 인스턴스 사용
+import {BASE_URL} from "@/constants/baseUrl.js";
+
 import { onMounted, watch, onUnmounted } from 'vue'
 import $ from 'jquery'
 import 'summernote/dist/summernote-lite.min.css'
@@ -41,17 +44,20 @@ onMounted(() => {
         for (const file of files) {
           const formData = new FormData()
           formData.append('image', file)
-          if (props.reportId) {
-            formData.append('reportId', props.reportId)
-          }
           try {
-            console.log('업로드 시도:', file, 'reportId:', props.reportId);
-            const res = await fetch('/api/images/upload', {
+            // fetch를 사용하여 멀티파트로 전송, Content-Type은 브라우저가 자동 설정
+            const res = await fetch('http://localhost:8095/api/fishing-report/images/temp-upload', {
               method: 'POST',
               body: formData
             })
-            const imageUrl = await res.text()
-            console.log('서버 응답 imageUrl:', imageUrl);
+            let imageUrl = ''
+            try {
+              const data = await res.json()
+              imageUrl = data.url || data.imageUrl || data.path
+            } catch (jsonErr) {
+              // JSON 파싱 실패 시 텍스트로 처리
+              imageUrl = await res.text()
+            }
             $(`#${props.editorId}`).summernote('insertImage', imageUrl)
           } catch (e) {
             console.error('이미지 업로드 실패', e)
