@@ -34,7 +34,7 @@ function hasImage() {
 </script>
 
 <template>
-  <div class="card h-100" @click="openDetail(product)">
+  <div class="card" @click="openDetail(product)">
     <!-- 썸네일 영역 (60% 고정) -->
     <div class="thumbnail-section">
       <!-- 이미지가 있는 경우 -->
@@ -68,7 +68,7 @@ function hasImage() {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
-  height: 320px;
+  height: 360px;
   overflow: hidden;
 }
 
@@ -116,32 +116,35 @@ function hasImage() {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   flex-shrink: 0;
   overflow: hidden;
 }
 
 .card-title {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #2d3748;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
 }
 
 .card-text {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #718096;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   font-weight: 500;
+  flex-grow: 1;
 }
 
 .card-body small {
   color: #a0aec0;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  margin-top: auto;
 }
 </style>
