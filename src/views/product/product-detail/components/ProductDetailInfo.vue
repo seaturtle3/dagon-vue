@@ -4,6 +4,7 @@ import { partnerService } from '@/api/partner'
 import {BASE_URL} from "@/constants/baseUrl.js";
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination } from 'swiper/modules';
+import { useRouter } from 'vue-router'
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -16,6 +17,8 @@ const props = defineProps({
   }
 })
 
+const router = useRouter()
+
 // 신고 관련 상태
 const showReportForm = ref(false)
 const reportReason = ref('')
@@ -24,10 +27,35 @@ const reportReason = ref('')
 const currentUser = ref(null);
 
 // 현재 사용자가 상품 작성자인지 확인
-const isOwnProduct = computed(() => {
-  if (!currentUser.value || !props.product.user) return false;
-  return currentUser.value.uid === props.product.user.uid;
-});
+const isOwnProduct = ref(false);
+
+// 파트너 상품 목록에서 본인 상품인지 확인
+const checkOwnership = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      isOwnProduct.value = false;
+      return;
+    }
+
+    // 파트너 상품 목록 조회
+    const response = await partnerService.getPartnerProducts();
+    const myProducts = response.data;
+    
+    // 현재 상품이 내 상품 목록에 있는지 확인
+    isOwnProduct.value = myProducts.some(product => product.prodId === props.product.prodId);
+    
+    console.log('=== 본인 상품 확인 디버깅 ===');
+    console.log('내 상품 목록:', myProducts.map(p => p.prodId));
+    console.log('현재 상품 ID:', props.product.prodId);
+    console.log('본인 상품 여부:', isOwnProduct.value);
+    console.log('========================');
+    
+  } catch (error) {
+    console.error('상품 소유권 확인 실패:', error);
+    isOwnProduct.value = false;
+  }
+};
 
 // 사용자 정보 초기화
 const initializeUserInfo = () => {
@@ -58,10 +86,20 @@ function onContactClick() {
 
 // 신고 폼 열기
 function openReportForm() {
-  // 자기 자신 신고 방지
-  if (isOwnProduct.value) {
-    alert('자기 자신의 상품은 신고할 수 없습니다.');
-    return;
+  // 자기 자신 신고 방지 (uno로 확인)
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const userUno = payload.uno;
+      
+      if (userUno === props.product.uno) {
+        alert('자기 자신의 상품은 신고할 수 없습니다.');
+        return;
+      }
+    } catch (e) {
+      console.error('토큰에서 uno 추출 실패:', e);
+    }
   }
 
   // 이미 신고한 상품인지 확인
@@ -140,9 +178,32 @@ async function submitReport() {
   }
 }
 
+// 상품 삭제 함수
+async function deleteProduct() {
+  if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) {
+    return
+  }
+
+  try {
+    await partnerService.deleteProduct(props.product.prodId)
+    alert('상품이 성공적으로 삭제되었습니다.')
+    router.push('/products')
+  } catch (error) {
+    console.error('상품 삭제 실패:', error)
+    const errorMessage = error.response?.data?.message || '상품 삭제에 실패했습니다. 다시 시도해주세요.'
+    alert(errorMessage)
+  }
+}
+
+// 상품 수정 페이지로 이동
+function editProduct() {
+  router.push(`/products/edit/${props.product.prodId}`)
+}
+
 // 컴포넌트 마운트 시 사용자 정보 초기화
 onMounted(() => {
   initializeUserInfo();
+  checkOwnership();
 });
 </script>
 
@@ -150,13 +211,28 @@ onMounted(() => {
   <div class="product-detail-container">
     <!-- 페이지 헤더 -->
     <div class="page-header">
-      <h1 class="page-title">{{ props.product.prodName }}</h1>
-      <div class="breadcrumb">
-        <span>홈</span>
-        <span class="separator">></span>
-        <span>상품</span>
-        <span class="separator">></span>
-        <span>{{ props.product.prodName }}</span>
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="page-title">{{ props.product.prodName }}</h1>
+          <div class="breadcrumb">
+            <span>홈</span>
+            <span class="separator">></span>
+            <span>상품</span>
+            <span class="separator">></span>
+            <span>{{ props.product.prodName }}</span>
+          </div>
+        </div>
+        <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
+        <div v-if="isOwnProduct" class="header-actions">
+          <button @click="editProduct" class="btn btn-primary">
+            <i class="fas fa-edit"></i>
+            수정
+          </button>
+          <button @click="deleteProduct" class="btn btn-danger">
+            <i class="fa-solid fa-x"></i>
+            삭제
+          </button>
+        </div>
       </div>
     </div>
 
@@ -273,7 +349,7 @@ onMounted(() => {
             <div class="boat-detail-label">
               선박 무게
             </div>
-            <div class="boat-detail-value">{{ props.product.weight }}</div>
+            <div class="boat-detail-value">{{ props.product.weight }} t</div>
           </div>
 
           <div class="boat-detail-item">
@@ -366,6 +442,17 @@ onMounted(() => {
 /* 페이지 헤더 */
 .page-header {
   margin-bottom: 30px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.header-left {
+  flex: 1;
   text-align: center;
 }
 
@@ -388,6 +475,12 @@ onMounted(() => {
 
 .separator {
   color: #cbd5e0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .no-image-placeholder {
@@ -800,6 +893,26 @@ onMounted(() => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .header-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .breadcrumb {
+    justify-content: center;
+  }
+
   .product-main-info {
     grid-template-columns: 1fr 1fr; /* 2열 동일 비율 */
     gap: 20px;

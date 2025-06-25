@@ -290,7 +290,7 @@ const filteredSubTypes = computed(() => {
               step="0.01" 
               type="number" 
               class="form-input"
-              placeholder="선박 무게 (톤)"
+              placeholder="선박 무게 (t)"
               required
             />
           </div>

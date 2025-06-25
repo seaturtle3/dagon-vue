@@ -1,6 +1,6 @@
 <template>
   <div class="inquiry-main">
-    <h2>상품 1:1 문의 작성</h2>
+    <h2>파트너 1:1 문의</h2>
     <form @submit.prevent="submitInquiry">
       <div class="form-group">
         <label>상품명</label>
