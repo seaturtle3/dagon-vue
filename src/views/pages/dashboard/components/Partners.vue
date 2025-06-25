@@ -92,7 +92,7 @@
 
 <script>
 import { partnerApi } from '@/api/admin'
-import axios from '@/lib/axios'
+import api from '@/lib/axios'
 
 export default {
   name: 'Partners',
@@ -198,8 +198,27 @@ export default {
     },
     async goToPartnerDashboard(uno) {
       try {
-        // 1. 백엔드에서 위임 토큰 요청
-        const response = await axios.post(`/api/admin/impersonate/partner/${uno}`);
+        // 토큰 상태 확인
+        const token = localStorage.getItem('token');
+        console.log('현재 토큰:', token ? token.substring(0, 20) + '...' : '토큰 없음');
+        
+        if (!token) {
+          alert('로그인이 필요합니다. 다시 로그인해주세요.');
+          this.$router.push('/admin/login');
+          return;
+        }
+        
+        // 토큰 페이로드 확인 (권한 정보 디버깅)
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          console.log('토큰 페이로드:', payload);
+          console.log('사용자 권한:', payload.role || payload.authorities || payload.type || '권한 정보 없음');
+        } catch (e) {
+          console.log('토큰 페이로드 디코딩 실패:', e);
+        }
+        
+        // 1. 백엔드에서 위임 토큰 요청 (인터셉터가 적용된 api 사용)
+        const response = await api.post(`/api/admin/impersonate/partner/${uno}`);
         
         if (response.data.impersonatedToken) {
           // 2. 위임 토큰을 localStorage에 저장
@@ -216,9 +235,14 @@ export default {
           switch (error.response.status) {
             case 401:
               alert('로그인이 필요합니다.');
+              this.$router.push('/admin/login');
               break;
             case 403:
-              alert('관리자 권한이 필요합니다.');
+              alert('관리자 권한이 필요합니다. 현재 토큰을 확인해주세요.');
+              console.error('403 오류 - 토큰 정보:', {
+                token: localStorage.getItem('token') ? '존재함' : '없음',
+                tokenPreview: localStorage.getItem('token') ? localStorage.getItem('token').substring(0, 50) + '...' : 'N/A'
+              });
               break;
             case 404:
               alert('파트너를 찾을 수 없습니다.');

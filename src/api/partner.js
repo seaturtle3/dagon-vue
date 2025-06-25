@@ -59,7 +59,7 @@ export const partnerService = {
 
     // 파트너 상품 삭제
     deleteProduct(prodId) {
-        return api.delete(`${API_URL}/partner/product/delete/${prodId}`, {
+        return api.delete(`${API_URL}/products/delete/${prodId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }

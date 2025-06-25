@@ -45,37 +45,47 @@
       
       <div class="people-selection">
         <h5>예약 인원을 선택해주세요</h5>
-        <div class="people-counter">
-          <div class="counter-item">
-            <label>예약 인원 선택</label>
-            <div class="counter-controls">
-              <button @click="decreaseAdult" :disabled="adultCount <= 0">-</button>
-              <span>{{ adultCount }}</span>
-              <button @click="increaseAdult" :disabled="adultCount >= 10">+</button>
+        <div class="selection-container">
+          <div class="left-section">
+            <div class="people-counter">
+              <div class="counter-item">
+                <label>예약 인원 선택</label>
+                <div class="counter-controls">
+                  <button @click="decreaseAdult" :disabled="adultCount <= 0">-</button>
+                  <span>{{ adultCount }}</span>
+                  <button @click="increaseAdult" :disabled="adultCount >= 10">+</button>
+                </div>
+              </div>
+            </div>
+            
+            <div v-if="props.product && props.product.options && props.product.options.length" class="option-select-section">
+              <div class="counter-item">
+                <label>옵션 선택</label>
+                <div class="option-controls">
+                  <select
+                    v-model="localOptionId"
+                    :key="props.product && props.product.options ? props.product.options.map(o => o.id).join(',') : ''"
+                    @change="e => console.log('[select change]', e.target.value, localOptionId)"
+                  >
+                    <option v-for="option in props.product.options" :key="option.id" :value="String(option.price)">
+                      {{ option.optName || option.option_name }} ({{ option.price ? option.price.toLocaleString() + '원' : '-' }})
+                    </option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div v-if="props.product && props.product.options && props.product.options.length" class="option-select-section">
-          <div class="counter-item">
-            <label>옵션 선택</label>
-            <div class="option-controls">
-              <select
-                v-model="localOptionId"
-                :key="props.product && props.product.options ? props.product.options.map(o => o.id).join(',') : ''"
-                @change="e => console.log('[select change]', e.target.value, localOptionId)"
-              >
-                <option v-for="option in props.product.options" :key="option.id" :value="String(option.price)">
-                  {{ option.optName || option.option_name }} ({{ option.price ? option.price.toLocaleString() + '원' : '-' }})
-                </option>
-              </select>
+          
+          <div class="right-section">
+            <div class="total-info">
+              <h2>예약 정보 요약</h2>
+              <br>
+              <p>총 인원: {{ totalPeople }}명</p>
+              <br>
+              <p v-if="totalPeople > 0">총 금액: {{ estimatedPrice.toLocaleString() }}원</p>
+              <br>
             </div>
           </div>
-        </div>
-        
-        <div class="total-info">
-          <p>총 인원: {{ totalPeople }}명</p>
-          <p v-if="totalPeople > 0">예상 금액: {{ estimatedPrice.toLocaleString() }}원</p>
         </div>
         
         <div class="action-buttons">
@@ -84,7 +94,7 @@
             @click="goToPayment"
             :disabled="totalPeople === 0"
           >
-            결제하기
+            다음
           </button>
         </div>
       </div>
@@ -331,24 +341,47 @@ onMounted(() => {
 }
 
 .people-selection {
-  max-width: 400px;
+  max-width: 800px;
   margin: 0 auto;
+}
+
+.selection-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 3rem;
+  margin: 2rem 0;
+  width: 100%;
+}
+
+.left-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.right-section {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  min-width: 0;
 }
 
 .people-counter {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  margin: 2rem 0;
+  margin-bottom: 1.5rem;
 }
 
 .counter-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 1.5rem;
   background: #f8f9fa;
   border-radius: 8px;
+  width: 100%;
 }
 
 .counter-item label {
@@ -359,7 +392,7 @@ onMounted(() => {
 .counter-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .counter-controls button {
@@ -394,11 +427,13 @@ onMounted(() => {
 }
 
 .total-info {
-  margin: 2rem 0;
-  padding: 1rem;
+  margin: 0;
+  padding: 1.5rem;
   background: #e3f2fd;
   border-radius: 8px;
   border-left: 4px solid #007BFF;
+  width: 100%;
+  min-width: 200px;
 }
 
 .total-info p {
@@ -408,6 +443,8 @@ onMounted(() => {
 
 .action-buttons {
   margin-top: 2rem;
+  display: flex;
+  justify-content: center;
 }
 
 .btn-reserve {
@@ -513,7 +550,7 @@ onMounted(() => {
 }
 
 .option-controls select {
-  padding: 8px 12px;
+  padding: 12px 16px;
   border: 2px solid #007BFF;
   border-radius: 8px;
   background: white;
@@ -521,7 +558,8 @@ onMounted(() => {
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 200px;
+  min-width: 250px;
+  width: 100%;
 }
 
 .option-controls select:hover {
