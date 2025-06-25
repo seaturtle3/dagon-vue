@@ -1,20 +1,10 @@
 <script setup>
-import {computed, onMounted} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {useProductFishingDiaryStore} from '@/store/product/product-detail/useProductFishingDiaryStore.js'
+import { useRouter } from 'vue-router'
+import { useProductFishingDiaryStore } from '@/store/product/product-detail/useProductFishingDiaryStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
-const route = useRoute()
 const router = useRouter()
 const store = useProductFishingDiaryStore()
-
-onMounted(() => {
-  const prodId = Number(route.params.prodId)
-  console.log('상세페이지 조행기 - productId:', prodId)
-  store.fetchFishingDiary(prodId)
-})
-
-const diaryCount = computed(() => store.diary?.length || 0)
 
 const goToDetail = (diary) => {
   router.push(`/fishing-diary/${diary.fdId}`)
@@ -27,10 +17,6 @@ const goToDetail = (diary) => {
     <div v-else-if="store.error">{{ store.error }}</div>
     <div v-else>
 
-      <h2 class="mb-3 font-bold text-lg">
-        조행기 <span class="count">({{ diaryCount }})</span>
-      </h2>
-
       <div v-if="store.diary.length > 0" class="diary-grid">
         <div
             v-for="diary in store.diary.slice(0, 15)"
@@ -41,9 +27,14 @@ const goToDetail = (diary) => {
         >
           <div class="thumbnail-wrapper">
             <img
+                v-if="diary.thumbnailUrl"
                 class="thumbnail"
                 :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
             />
+            <div v-else class="image-placeholder">
+              <i class="fas fa-image"></i>
+              <span>이미지 없음</span>
+            </div>
           </div>
           <div class="item-content">
             <h3>{{ diary.product?.prodName }}</h3>
@@ -59,15 +50,15 @@ const goToDetail = (diary) => {
 
 <style scoped>
 .list-container {
-  width: 80%;
+  width: 100%;
   margin: 0 auto;
 }
 
 .diary-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3열 */
-  grid-auto-rows: minmax(150px, auto); /* 각 행 최소 높이 150px */
-  gap: 16px; /* 박스 간 간격 */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 10px 0;
 }
 
 .item-box {
@@ -83,19 +74,63 @@ const goToDetail = (diary) => {
 }
 .item-content {
   height: 40%;
-  padding: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  justify-content: space-between;
+}
+
+.item-content h3 {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.item-content h5 {
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.item-content small {
+  color: #999;
+  font-size: 0.85rem;
 }
 
 .thumbnail-wrapper {
   height: 60%;
+  overflow: hidden;
 }
 .thumbnail {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.image-placeholder i {
+  font-size: 2rem;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.image-placeholder span {
+  color: #999;
+  font-size: 0.85rem;
 }
 </style>

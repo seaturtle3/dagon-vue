@@ -1,30 +1,14 @@
 <script setup>
-import { onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed } from 'vue'
 import { useProductFishingCenterStore } from '@/store/product/product-detail/useProductFishingCenterStore'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
-const route = useRoute()
 const store = useProductFishingCenterStore()
-
-onMounted(() => {
-  const prodId = Number(route.params.prodId)
-  console.log('상세페이지 조황센터 - productId:', prodId)
-
-  if (!isNaN(prodId)) {
-    store.fetchFishingCenter(prodId).then(() => {
-      console.log('report:', store.report)
-      console.log('diary:', store.diary)
-    })
-  } else {
-    console.warn('올바르지 않은 productId입니다.')
-  }
-})
 
 const combinedList = computed(() => {
   const combined = [
-    ...store.report.map(center => ({ ...center, _type: 'report' })),
-    ...store.diary.map(center => ({ ...center, _type: 'diary' })),
+    ...(store.report ?? []).map(center => ({ ...center, _type: 'report' })),
+    ...(store.diary ?? []).map(center => ({ ...center, _type: 'diary' })),
   ]
   return combined
       .sort((a, b) => {
@@ -34,12 +18,6 @@ const combinedList = computed(() => {
         return new Date(b.fishingAt) - new Date(a.fishingAt)
       })
       .slice(0, 15)
-})
-
-const totalCount = computed(() => {
-  const reportCount = store.report ? store.report.length : 0
-  const diaryCount = store.diary ? store.diary.length : 0
-  return reportCount + diaryCount
 })
 
 // 상세 페이지로 이동 함수
@@ -56,11 +34,6 @@ const goToDetail = (item) => {
     <div v-if="store.loading">로딩중...</div>
     <div v-else-if="store.error" class="text-red-500">{{ store.error }}</div>
     <div v-else>
-
-      <h2 class="mb-3 font-bold text-lg">
-        조황정보/조행기 <span class="count">({{ totalCount }})</span>
-      </h2>
-
       <section v-if="combinedList.length > 0">
         <div class="combined-grid">
           <div
@@ -79,12 +52,17 @@ const goToDetail = (item) => {
             </div>
 
             <!-- 썸네일 -->
-            <div v-if="center.thumbnailUrl" class="thumbnail-wrapper">
+            <div class="thumbnail-wrapper">
               <img
+                  v-if="center.thumbnailUrl"
                   class="thumbnail"
                   :src="`${IMAGE_BASE_URL}/${center._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${center.thumbnailUrl}`"
                   alt="썸네일"
               />
+              <div v-else class="image-placeholder">
+                <i class="fas fa-image"></i>
+                <span>이미지 없음</span>
+              </div>
             </div>
 
             <!-- 텍스트 영역 -->
@@ -103,14 +81,13 @@ const goToDetail = (item) => {
 
 <style scoped>
 .list-container {
-  width: 80%;
+  width: 100%;
   margin: 0 auto;
 }
 
 .combined-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: minmax(150px, auto);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   padding: 10px 0;
 }
@@ -137,25 +114,69 @@ strong {
   height: 400px;
   padding: 0;
 }
+
 .combined-content {
   flex: 1;
-  padding: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  justify-content: space-between;
+  height: 40%;
 }
-.combined-content p {
-  margin: 0;
+
+.combined-content h3 {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.combined-content h5 {
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.combined-content small {
+  color: #999;
+  font-size: 0.85rem;
 }
 
 .thumbnail-wrapper {
   height: 60%; /* 전체 높이의 60% */
+  overflow: hidden;
 }
+
 .thumbnail {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.image-placeholder i {
+  font-size: 24px;
+  color: #999;
+}
+
+.image-placeholder span {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 8px;
 }
 
 .badge {
@@ -176,3 +197,4 @@ strong {
 }
 
 </style>
+
