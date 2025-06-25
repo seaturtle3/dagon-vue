@@ -77,7 +77,7 @@ const setTab = (tab) => {
             @click="setTab('info')"
           >
             <span class="tab-icon">📊</span>
-            <span class="tab-text">조황정보</span>
+            <span class="tab-text">조황센터</span>
           </button>
           <button
             class="tab-button"
