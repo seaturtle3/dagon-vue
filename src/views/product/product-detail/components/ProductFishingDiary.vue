@@ -2,12 +2,13 @@
 import {useRoute, useRouter} from 'vue-router'
 import { useProductFishingDiaryStore } from '@/store/product/product-detail/useProductFishingDiaryStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
-import {onMounted, onUnmounted, watch} from "vue";
+import {onMounted, onUnmounted, watch, computed} from "vue";
 
 const route = useRoute()
 const router = useRouter()
 const store = useProductFishingDiaryStore()
 const productId = route.params.prodId
+console.log("-------------33>",productId)
 
 onMounted(() => {
   store.fetchFishingDiary(productId)
@@ -27,6 +28,16 @@ onUnmounted(() => {
 const goToDetail = (diary) => {
   router.push(`/fishing-diary/${diary.fdId}`)
 }
+
+const filteredDiaries = computed(() => {
+  const diaryArr = Array.isArray(store.diary) ? store.diary : []
+  return diaryArr.filter(diary => String(diary.product?.prodId) === String(productId))
+})
+
+const emit = defineEmits(['update:count'])
+watch(filteredDiaries, (val) => {
+  emit('update:count', val.length)
+}, { immediate: true })
 </script>
 
 <template>
@@ -35,9 +46,9 @@ const goToDetail = (diary) => {
     <div v-else-if="store.error">{{ store.error }}</div>
     <div v-else>
 
-      <div v-if="store.diary && store.diary.length > 0" class="diary-grid">
+      <div v-if="filteredDiaries.length > 0" class="diary-grid">
         <div
-            v-for="diary in store.diary.slice(0, 15)"
+            v-for="diary in filteredDiaries"
             :key="diary.fdId"
             class="item-box"
             @click="goToDetail(diary)"
@@ -61,7 +72,7 @@ const goToDetail = (diary) => {
           </div>
         </div>
       </div>
-       <div v-else>조황정보가 없습니다.</div>
+       <div v-else>조행기가 없습니다.</div>
     </div>
   </div>
 </template>
