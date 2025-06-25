@@ -2,6 +2,9 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductDetailStore } from '@/store/product/product-detail/useProductDetailStore.js'
+import { useProductFishingCenterStore } from '@/store/product/product-detail/useProductFishingCenterStore'
+import { useProductFishingReportStore } from '@/store/product/product-detail/useProductFishingReportStore.js'
+import { useProductFishingDiaryStore } from '@/store/product/product-detail/useProductFishingDiaryStore.js'
 
 import ProductDetailInfo from '@/views/product/product-detail/components/ProductDetailInfo.vue'
 import ProductFishingCenter from '@/views/product/product-detail/components/ProductFishingCenter.vue'
@@ -15,11 +18,33 @@ const prodId = route.params.prodId
 const store = useProductDetailStore()
 const product = computed(() => store.product)
 
+// 각 스토어 인스턴스 생성
+const fishingCenterStore = useProductFishingCenterStore()
+const fishingReportStore = useProductFishingReportStore()
+const fishingDiaryStore = useProductFishingDiaryStore()
+
 const activeTab = ref('info')
 const activeSubTab = ref('center')
 
+// 개수 계산
+const centerCount = computed(() => {
+  const reportCount = fishingCenterStore.report ? fishingCenterStore.report.length : 0
+  const diaryCount = fishingCenterStore.diary ? fishingCenterStore.diary.length : 0
+  return reportCount + diaryCount
+})
+
+const reportCount = computed(() => fishingReportStore.report?.length || 0)
+const diaryCount = computed(() => fishingDiaryStore.diary?.length || 0)
+
 onMounted(() => {
   store.fetchProductDetail(prodId)
+  // 각 스토어에서 데이터 가져오기
+  const prodIdNum = Number(prodId)
+  if (!isNaN(prodIdNum)) {
+    fishingCenterStore.fetchFishingCenter(prodIdNum)
+    fishingReportStore.fetchFishingReport(prodIdNum)
+    fishingDiaryStore.fetchFishingDiary(prodIdNum)
+  }
 })
 
 onUnmounted(() => {
@@ -97,15 +122,15 @@ const setTab = (tab) => {
         <!-- 조황정보 탭 콘텐츠 -->
         <div v-if="activeTab === 'info'" class="info-content">
           <div v-if="activeSubTab === 'center'" class="content-section">
-            <h3 class="section-title">전체 조황 정보</h3>
+            <h3 class="section-title">전체 조황 정보/조행기 ({{ centerCount }})</h3>
             <ProductFishingCenter />
           </div>
           <div v-if="activeSubTab === 'report'" class="content-section">
-            <h3 class="section-title">조황 정보</h3>
+            <h3 class="section-title">조황 정보 ({{ reportCount }})</h3>
             <ProductFishingReport />
           </div>
           <div v-if="activeSubTab === 'diary'" class="content-section">
-            <h3 class="section-title">조행기</h3>
+            <h3 class="section-title">조행기 ({{ diaryCount }})</h3>
             <ProductFishingDiary />
           </div>
         </div>
