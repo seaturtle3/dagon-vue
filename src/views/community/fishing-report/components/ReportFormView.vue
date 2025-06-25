@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import axios from '@/lib/axios.js'
 import { useAdminAuthStore } from '@/store/auth/auth.js'
 import { useAuthStore } from '@/store/login/loginStore.js'
@@ -19,10 +19,11 @@ const emit = defineEmits(['thumbnail-change', 'file-change', 'submit-success', '
 
 const router = useRouter()
 const thumbnailFile = ref(null)
+const thumbnailPreviewUrl = ref('')
 const formData = ref({
   title: '',
   content: '',
-  fishingAt: '',
+  fishingAt: new Date().toISOString().split('T')[0],
   location: '',
   imageFileName: '',
   thumbnailUrl: '',
@@ -103,13 +104,23 @@ function checkTokenStatus() {
 function onThumbnailChange(event) {
   const file = event.target.files[0]
   if (file) {
+    // 기존 URL 정리
+    if (thumbnailPreviewUrl.value) {
+      URL.revokeObjectURL(thumbnailPreviewUrl.value)
+    }
+    
     thumbnailFile.value = file
+    thumbnailPreviewUrl.value = URL.createObjectURL(file)
     emit('thumbnail-change', event)
   }
 }
 
 function removeThumbnail() {
+  if (thumbnailPreviewUrl.value) {
+    URL.revokeObjectURL(thumbnailPreviewUrl.value)
+  }
   thumbnailFile.value = null
+  thumbnailPreviewUrl.value = ''
 }
 
 onMounted(async () => {
@@ -183,7 +194,7 @@ function resetForm() {
   formData.value = {
     title: '',
     content: '',
-    fishingAt: '',
+    fishingAt: new Date().toISOString().split('T')[0],
     location: '',
     productId: null,
     productName: '',
@@ -192,7 +203,11 @@ function resetForm() {
     user: null,
     comments: []
   }
+  if (thumbnailPreviewUrl.value) {
+    URL.revokeObjectURL(thumbnailPreviewUrl.value)
+  }
   thumbnailFile.value = null
+  thumbnailPreviewUrl.value = ''
   selectedProduct.value = null
   // RichTextEditor는 v-model로 자동으로 초기화됩니다
 }
@@ -247,6 +262,12 @@ function onProductInputBlur(e) {
     highlightedIndex.value = -1
   }, 120)
 }
+
+onUnmounted(() => {
+  if (thumbnailPreviewUrl.value) {
+    URL.revokeObjectURL(thumbnailPreviewUrl.value)
+  }
+})
 </script>
 
 <template>
@@ -277,12 +298,16 @@ function onProductInputBlur(e) {
         <div class="form-row">
           <div class="form-group">
             <label class="form-label required">낚시 날짜</label>
-            <input
-              v-model="formData.fishingAt"
-              type="date"
-              class="form-control"
-              required
-            />
+            <div class="date-input-container">
+              <input
+                v-model="formData.fishingAt"
+                type="date"
+                class="form-control date-input"
+                placeholder="날짜를 선택하세요"
+                required
+              />
+              <div class="calendar-icon">📅</div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -326,35 +351,58 @@ function onProductInputBlur(e) {
         </div>
       </div>
 
-      <!-- 이미지 업로드 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">📸 이미지 업로드</h3>
-
-        <div class="form-group">
-          <label class="form-label">대표 썸네일</label>
-          <input
-            type="file"
-            accept="image/*"
-            class="form-control"
-            @change="onThumbnailChange"
-          />
-          <div v-if="thumbnailFile" class="file-preview">
-            <span>선택된 파일: {{ thumbnailFile.name }}</span>
-            <button type="button" @click="removeThumbnail" class="remove-btn">삭제</button>
+      <!-- 이미지 & 내용 작성 섹션 -->
+      <div class="form-section content-section">
+        <h3 class="section-title">📝 조황정보 작성</h3>
+        
+        <div class="content-layout">
+          <!-- 이미지 업로드 영역 -->
+          <div class="image-upload-section">
+            <label class="form-label">대표 이미지</label>
+            <div class="image-upload-container">
+              <div class="image-preview-area">
+                <div v-if="!thumbnailFile" class="upload-placeholder">
+                  <div class="upload-icon">📸</div>
+                  <div class="upload-text">
+                    <span class="upload-title">이미지를 선택해주세요</span>
+                    <span class="upload-subtitle">클릭하여 파일 선택</span>
+                  </div>
+                </div>
+                <div v-else class="image-preview">
+                  <img 
+                    :src="thumbnailPreviewUrl" 
+                    alt="미리보기" 
+                    class="preview-image"
+                  />
+                  <div class="image-overlay">
+                    <button type="button" @click="removeThumbnail" class="remove-image-btn">
+                      <span>✕</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                class="upload-input"
+                @change="onThumbnailChange"
+              />
+            </div>
+            <div v-if="thumbnailFile" class="file-info">
+              <span class="file-name">{{ thumbnailFile.name }}</span>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <!-- 내용 작성 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">📝 상세 내용</h3>
-
-        <div class="form-group">
-          <label class="form-label required">조황정보 내용</label>
-          <RichTextEditor
-            v-model="formData.content"
-            editor-id="fishing-report-editor"
-          />
+          <!-- 내용 작성 영역 -->
+          <div class="content-editor-section">
+            <div class="form-group">
+              <label class="form-label required">조황정보 내용</label>
+              <RichTextEditor
+                v-model="formData.content"
+                editor-id="fishing-report-editor"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -458,6 +506,37 @@ function onProductInputBlur(e) {
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
+/* 날짜 입력 필드 스타일 */
+.date-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-input {
+  padding-right: 45px;
+  cursor: pointer;
+}
+
+.calendar-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: #1976d2;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.date-input-container:hover .calendar-icon {
+  transform: translateY(-50%) scale(1.1);
+}
+
+.date-input:focus + .calendar-icon {
+  color: #1565c0;
+}
+
 /* RichTextEditor 스타일 조정 */
 .form-group :deep(.note-editor) {
   border: 2px solid #e0e0e0;
@@ -470,37 +549,187 @@ function onProductInputBlur(e) {
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
-.file-preview, .file-list {
-  margin-top: 10px;
-  padding: 10px;
-  background: #f5f5f5;
-  border-radius: 4px;
+/* 새로운 콘텐츠 섹션 스타일 */
+.content-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+  border-left: 4px solid #1976d2;
 }
 
-.file-item {
+.content-layout {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.image-upload-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.image-upload-section:hover {
+  border-color: #1976d2;
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.15);
+}
+
+.image-upload-container {
+  position: relative;
+  cursor: pointer;
+}
+
+.image-preview-area {
+  border: 2px dashed #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  min-height: 200px;
+  display: flex;
   align-items: center;
-  padding: 5px 0;
-  border-bottom: 1px solid #ddd;
+  justify-content: center;
 }
 
-.file-item:last-child {
-  border-bottom: none;
+.image-upload-container:hover .image-preview-area {
+  border-color: #1976d2;
+  background: #f8f9fa;
 }
 
-.remove-btn {
+.upload-placeholder {
+  text-align: center;
+  padding: 40px 20px;
+  transition: all 0.3s ease;
+}
+
+.upload-placeholder:hover {
+  transform: translateY(-2px);
+}
+
+.upload-icon {
+  font-size: 3.5rem;
+  margin-bottom: 15px;
+  display: block;
+  opacity: 0.7;
+}
+
+.upload-text {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.upload-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.upload-subtitle {
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.upload-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.image-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-preview:hover .image-overlay {
+  opacity: 1;
+}
+
+.remove-image-btn {
   background: #f44336;
   color: white;
   border: none;
-  padding: 4px 8px;
-  border-radius: 4px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.remove-btn:hover {
+.remove-image-btn:hover {
   background: #d32f2f;
+  transform: scale(1.1);
+}
+
+.file-info {
+  margin-top: 15px;
+  text-align: center;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.file-name {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.content-editor-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e0e0e0;
+}
+
+.content-editor-section .form-group {
+  margin-bottom: 0;
+}
+
+.content-editor-section :deep(.note-editor) {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 350px;
+}
+
+.content-editor-section :deep(.note-editor:focus-within) {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
 .error-message {
@@ -567,6 +796,44 @@ function onProductInputBlur(e) {
 
   .btn {
     width: 100%;
+  }
+
+  .content-layout {
+    gap: 20px;
+  }
+
+  .image-upload-section {
+    padding: 20px;
+  }
+
+  .image-preview-area {
+    min-height: 150px;
+  }
+
+  .upload-placeholder {
+    padding: 30px 15px;
+  }
+
+  .upload-icon {
+    font-size: 3rem;
+  }
+
+  .upload-title {
+    font-size: 1.1rem;
+  }
+
+  .content-editor-section {
+    padding: 20px;
+  }
+
+  .content-editor-section :deep(.note-editor) {
+    min-height: 300px;
+  }
+
+  .remove-image-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 14px;
   }
 }
 

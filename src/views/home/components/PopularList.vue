@@ -56,8 +56,8 @@ const goToDetail = (report) => {
         </div>
 
         <div class="report-info">
-          <h6 class="report-title">{{ report.prodName }}</h6>
-          <p class="report-title">{{ report.title }}</p>
+          <div class="report-title">{{ report.prodName }}</div>
+          <small class="mb-3">{{ report.title }}</small>
           <p class="report-date">{{ report.fishingAt?.slice(0, 10) || '날짜 없음' }}</p>
         </div>
       </div>
