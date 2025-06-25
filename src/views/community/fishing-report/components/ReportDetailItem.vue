@@ -9,6 +9,11 @@ const props = defineProps({
   report: {
     type: Object,
     required: true
+  },
+  currentUser: {
+    type: Object,
+    required: false,
+    default: null
   }
 })
 
@@ -20,48 +25,17 @@ const reportReason = ref('');
 const reportTarget = ref(null);
 const reportType = ref(''); // 'report' 또는 'comment'
 
-// 현재 사용자 정보
-const currentUser = ref(null);
-
 // 현재 사용자가 조황정보 작성자인지 확인
 const isOwnReport = computed(() => {
-  return String(currentUser.value?.uid) === String(props.report?.user?.uid);
+  return String(props.currentUser?.uid) === String(props.report?.user?.uid);
 });
 
 // 현재 사용자가 댓글 작성자인지 확인
 const isOwnComment = (comment) => {
-  if (!currentUser.value || !comment.user) return false;
-  return currentUser.value.uid === comment.user.uid;
+  if (!props.currentUser || !comment.user) return false;
+  return props.currentUser.uid === comment.user.uid;
 };
 
-// 사용자 정보 초기화
-const initializeUserInfo = () => {
-  try {
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-      currentUser.value = JSON.parse(userInfo);
-      console.log('localStorage에서 사용자 정보 복원:', currentUser.value);
-    }
-    
-    // userInfo에 uno가 없으면 토큰에서 추출
-    if (!currentUser.value?.uno) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          if (payload.uno) {
-            currentUser.value = { ...currentUser.value, uno: payload.uno };
-            console.log('토큰에서 uno 추출:', payload.uno);
-          }
-        } catch (tokenError) {
-          console.log('토큰 디코딩 실패:', tokenError);
-        }
-      }
-    }
-  } catch (error) {
-    console.error('사용자 정보 파싱 실패:', error);
-  }
-};
 
 // 신고하기 버튼 클릭
 const openReportModal = (target, type) => {
@@ -133,15 +107,6 @@ const closeReportModal = () => {
   showReportModal.value = false;
   reportReason.value = '';
 };
-
-// 컴포넌트 마운트 시 사용자 정보 초기화
-onMounted(() => {
-  initializeUserInfo();
-
-  console.log('✅ currentUser:', currentUser.value)
-  console.log('✅ report.user:', props.report.user)
-  console.log('✅ UID 비교 결과:', currentUser.value?.uid === props.report.user?.uid)
-})
 
 const router = useRouter();
 const fishingReportStore = useFishingReportStore();
