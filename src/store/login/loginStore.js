@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from '@/lib/axios';
+import api from '@/lib/axios';
 import { useAdminAuthStore} from "@/store/auth/auth.js";
 
 export const useAuthStore = defineStore('auth', {
@@ -24,7 +24,7 @@ export const useAuthStore = defineStore('auth', {
             
             try {
                 // 1. 로그인 요청
-                const res = await axios.post('/api/auth/login', { uid, upw });
+                const res = await api.post('/api/auth/login', { uid, upw });
 
                 console.log(typeof res.data); // 'string' 이라면 문제!
                 // console.log(res.data); // '{"token":"...","userInfo":{...}}'

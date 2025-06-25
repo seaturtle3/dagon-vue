@@ -2,7 +2,7 @@
 import {useRoute, useRouter} from 'vue-router'
 import { useProductFishingDiaryStore } from '@/store/product/product-detail/useProductFishingDiaryStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
-import {onMounted, onUnmounted} from "vue";
+import {onMounted, onUnmounted, watch} from "vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -11,6 +11,13 @@ const productId = route.params.prodId
 
 onMounted(() => {
   store.fetchFishingDiary(productId)
+})
+
+watch(() => route.params.prodId, async (newId, oldId) => {
+  if (newId !== oldId) {
+    store.clearDiary()
+    await store.fetchFishingDiary(newId)
+  }
 })
 
 onUnmounted(() => {
