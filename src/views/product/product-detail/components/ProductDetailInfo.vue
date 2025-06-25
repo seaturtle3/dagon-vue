@@ -27,10 +27,35 @@ const reportReason = ref('')
 const currentUser = ref(null);
 
 // 현재 사용자가 상품 작성자인지 확인
-const isOwnProduct = computed(() => {
-  if (!currentUser.value || !props.product.user) return false;
-  return currentUser.value.uid === props.product.user.uid;
-});
+const isOwnProduct = ref(false);
+
+// 파트너 상품 목록에서 본인 상품인지 확인
+const checkOwnership = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      isOwnProduct.value = false;
+      return;
+    }
+
+    // 파트너 상품 목록 조회
+    const response = await partnerService.getPartnerProducts();
+    const myProducts = response.data;
+    
+    // 현재 상품이 내 상품 목록에 있는지 확인
+    isOwnProduct.value = myProducts.some(product => product.prodId === props.product.prodId);
+    
+    console.log('=== 본인 상품 확인 디버깅 ===');
+    console.log('내 상품 목록:', myProducts.map(p => p.prodId));
+    console.log('현재 상품 ID:', props.product.prodId);
+    console.log('본인 상품 여부:', isOwnProduct.value);
+    console.log('========================');
+    
+  } catch (error) {
+    console.error('상품 소유권 확인 실패:', error);
+    isOwnProduct.value = false;
+  }
+};
 
 // 사용자 정보 초기화
 const initializeUserInfo = () => {
@@ -61,10 +86,20 @@ function onContactClick() {
 
 // 신고 폼 열기
 function openReportForm() {
-  // 자기 자신 신고 방지
-  if (isOwnProduct.value) {
-    alert('자기 자신의 상품은 신고할 수 없습니다.');
-    return;
+  // 자기 자신 신고 방지 (uno로 확인)
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const userUno = payload.uno;
+      
+      if (userUno === props.product.uno) {
+        alert('자기 자신의 상품은 신고할 수 없습니다.');
+        return;
+      }
+    } catch (e) {
+      console.error('토큰에서 uno 추출 실패:', e);
+    }
   }
 
   // 이미 신고한 상품인지 확인
@@ -168,6 +203,7 @@ function editProduct() {
 // 컴포넌트 마운트 시 사용자 정보 초기화
 onMounted(() => {
   initializeUserInfo();
+  checkOwnership();
 });
 </script>
 
@@ -193,7 +229,7 @@ onMounted(() => {
             수정
           </button>
           <button @click="deleteProduct" class="btn btn-danger">
-            <i class="fas fa-trash"></i>
+            <i class="fa-solid fa-x"></i>
             삭제
           </button>
         </div>
