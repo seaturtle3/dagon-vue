@@ -13,10 +13,15 @@
         <!-- 빠른 링크 -->
         <div class="col-md-4 text-center">
           <h5 class="fw-bold mb-3">빠른 링크</h5>
-          <ul class="list-unstyled d-flex justify-content-center gap-4 mb-0">
+          <ul class="quick-links">
             <li><a href="/about" class="text-light text-decoration-none">소개</a></li>
             <li><a href="/tips" class="text-light text-decoration-none">낚시 팁</a></li>
             <li><a href="/spots" class="text-light text-decoration-none">낚시터 찾기</a></li>
+          </ul>
+          <ul class="quick-links">
+            <li><a href="/terms" class="text-light text-decoration-none">이용약관</a></li>
+            <li><a href="/finance-terms" class="text-light text-decoration-none">전자금융거래 이용약관</a></li>
+            <li><a href="/privacy-policy" class="text-light text-decoration-none">개인정보처리방침</a></li>
           </ul>
         </div>
 
@@ -54,11 +59,16 @@
   font-size: 0.9rem;
 }
 
-.fishing-footer ul {
+.fishing-footer .quick-links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
   padding-left: 0;
+  margin-bottom: 0.3rem;
 }
 
-.fishing-footer ul li {
-  display: inline;
+.fishing-footer .quick-links li {
+  display: block;
+  white-space: nowrap;
 }
 </style>

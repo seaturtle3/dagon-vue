@@ -4,7 +4,7 @@ import {BASE_URL} from "@/constants/baseUrl.js";
 console.log('BASE_URL:', BASE_URL)
 
 const api = axios.create({
-    baseURL: BASE_URL || '',
+    baseURL: BASE_URL || 'http://localhost:8095',
     timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ api.interceptors.request.use(
 // 응답 인터셉터
 api.interceptors.response.use(
     (response) => {
-        console.log('API 응답23333:', response.status, response.config.url)
+        console.log('API 응답:', response.status, response.config.url, response.data)
         return response
     },
     (error) => {

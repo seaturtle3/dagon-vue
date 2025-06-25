@@ -26,15 +26,25 @@ onMounted(() => {
           const formData = new FormData()
           formData.append('image', file)
           try {
+            const token = localStorage.getItem('token')
             const res = await fetch('/api/images/upload', {
               method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              },
               body: formData
             })
+            
+            if (!res.ok) {
+              throw new Error(`HTTP error! status: ${res.status}`)
+            }
+            
             const path = await res.text()
-            const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL
+            const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL || ''
             $(`#${props.editorId}`).summernote('insertImage', `${baseUrl}/${path}`)
           } catch (e) {
             console.error('이미지 업로드 실패', e)
+            alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.')
           }
         }
       }
