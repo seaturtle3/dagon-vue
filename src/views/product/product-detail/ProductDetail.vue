@@ -12,7 +12,9 @@ import ProductFishingReport from '@/views/product/product-detail/components/Prod
 import ProductFishingDiary from '@/views/product/product-detail/components/ProductFishingDiary.vue'
 import ReservationCalendar from '@/components/calendar/ReservationCalendar.vue'
 
+// 현재 라우트 정보 (path, params, query 등)
 const route = useRoute()
+// 전역 라우터 인스턴스 (페이지 이동, push 등)
 const router = useRouter()
 const prodId = route.params.prodId
 const store = useProductDetailStore()
@@ -26,7 +28,6 @@ const fishingDiaryStore = useProductFishingDiaryStore()
 const activeTab = ref('info')
 const activeSubTab = ref('center')
 const selectedOptionId = ref(null)
-
 onMounted(async () => {
   await store.fetchProductDetail(prodId)
   const prodIdNum = Number(prodId)
@@ -130,15 +131,15 @@ const setTab = (tab) => {
         <div v-if="activeTab === 'info'" class="info-content">
           <div v-if="activeSubTab === 'center'" class="content-section">
             <h3 class="section-title">전체 조황 정보/조행기 ({{ centerCount }})</h3>
-            <ProductFishingCenter />
+            <ProductFishingCenter  :product-id="prodId"/>
           </div>
           <div v-if="activeSubTab === 'report'" class="content-section">
             <h3 class="section-title">조황 정보 ({{ reportCount }})</h3>
-            <ProductFishingReport />
+            <ProductFishingReport  :product-id="prodId"/>
           </div>
           <div v-if="activeSubTab === 'diary'" class="content-section">
             <h3 class="section-title">조행기 ({{ diaryCount }})</h3>
-            <ProductFishingDiary />
+            <ProductFishingDiary :product="product"/>
           </div>
         </div>
 
@@ -146,7 +147,7 @@ const setTab = (tab) => {
         <div v-if="activeTab === 'reservation'" class="reservation-content">
           <div class="content-section">
             <h3 class="section-title">예약 캘린더</h3>
-            <ReservationCalendar :product="product" :option-id="selectedOptionId" />
+            <ReservationCalendar  :product-id="prodId" :option-id="selectedOptionId" />
           </div>
         </div>
       </div>

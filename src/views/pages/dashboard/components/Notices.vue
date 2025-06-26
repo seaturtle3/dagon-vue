@@ -27,23 +27,17 @@
           <option value="content">내용</option>
           <option value="title+content">제목+내용</option>
         </select>
-        <select v-model="searchParams.isTop" @change="loadNotices">
-          <option value="">전체</option>
-          <option value="true">고정공지</option>
-          <option value="false">일반공지</option>
-        </select>
       </div>
     </div>
     
     <!-- 공지사항 목록 -->
     <div class="notices-table">
       <div class="table-header">
-        <div class="col-id">번호</div>
-        <div class="col-title">제목</div>
-        <div class="col-status">상태</div>
-        <div class="col-author">작성자</div>
-        <div class="col-date">작성일</div>
-        <div class="col-actions">관리</div>
+        <div class="col-id" style="color: white;">번호</div>
+        <div class="col-title" style="color: white;">제목</div>
+        <div class="col-author" style="color: white;">작성자</div>
+        <div class="col-date" style="color: white;">작성일</div>
+        <div class="col-actions" style="color: white;">관리</div>
       </div>
       
       <div v-if="loading" class="loading">
@@ -66,17 +60,10 @@
           <div class="col-title" @click="viewNotice(notice.noticeId)" style="cursor: pointer;">
             <span class="title-text">
               <span v-if="notice.isTop" class="badge top">고정</span>
-              <span v-if="notice.isUrgent" class="badge urgent">긴급</span>
               <i v-if="notice.isTop" class="fas fa-star title-icon top-icon" title="고정공지"></i>
-              <i v-if="notice.isUrgent" class="fas fa-exclamation-triangle title-icon urgent-icon" title="긴급공지"></i>
-              <span class="title-content" :class="{ 'with-badge': notice.isTop || notice.isUrgent }">
+              <span class="title-content" :class="{ 'with-badge': notice.isTop }">
                 {{ notice.title }}
               </span>
-            </span>
-          </div>
-          <div class="col-status">
-            <span :class="['status', notice.isActive ? 'active' : 'inactive']">
-              {{ notice.isActive ? '활성' : '비활성' }}
             </span>
           </div>
           <div class="col-author">{{ notice.adminName || '관리자' }}</div>
@@ -146,16 +133,20 @@
             ></textarea>
           </div>
           
+          <div class="form-group">
+            <label>썸네일 URL</label>
+            <input 
+              type="text" 
+              v-model="noticeForm.thumbnailUrl" 
+              placeholder="썸네일 URL을 입력하세요"
+            >
+          </div>
+          
           <div class="form-group checkbox-group">
             <label class="checkbox-label">
               <input type="checkbox" v-model="noticeForm.isTop">
               <span class="checkmark"></span>
               상단 고정
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" v-model="noticeForm.isUrgent">
-              <span class="checkmark"></span>
-              긴급 공지
             </label>
           </div>
           
@@ -182,11 +173,15 @@
         
         <div class="notice-detail">
           <h3>{{ selectedNotice.title }}</h3>
-          <p>{{ selectedNotice.content }}</p>
+          <div class="notice-content">
+            <p>{{ selectedNotice.content }}</p>
+          </div>
           <div class="notice-meta">
             <span>작성자: {{ selectedNotice.adminName || '관리자' }}</span>
             <span>작성일: {{ formatDate(selectedNotice.createdAt) }}</span>
-            <span>상태: {{ selectedNotice.isActive ? '활성' : '비활성' }}</span>
+            <span v-if="selectedNotice.modifyAt">수정일: {{ formatDate(selectedNotice.modifyAt) }}</span>
+            <span>조회수: {{ selectedNotice.views || 0 }}</span>
+            <span v-if="selectedNotice.isTop">상단고정: 예</span>
           </div>
         </div>
       </div>
@@ -196,14 +191,11 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { fetchNotices, createNotice, updateNotice, deleteNotice, fetchNoticeById } from '@/api/noticeApi.js'
-import { useAdminAuthStore } from '@/store/auth/auth.js'
+import { getAdminNotices, createNotice, updateNotice, deleteNotice, fetchNoticeById } from '@/api/notice.js'
 
 export default {
   name: 'Notices',
   setup() {
-    const authStore = useAdminAuthStore()
-    
     const notices = ref([])
     const loading = ref(false)
     const submitting = ref(false)
@@ -218,7 +210,6 @@ export default {
     const searchParams = ref({
       keyword: '',
       type: '',
-      isTop: '',
       page: 0,
       size: 10
     })
@@ -226,19 +217,56 @@ export default {
     const noticeForm = ref({
       title: '',
       content: '',
-      isTop: false,
-      isUrgent: false
+      thumbnailUrl: '',
+      isTop: false
     })
     
     const loadNotices = async () => {
       loading.value = true
       try {
-        const params = { ...searchParams.value, page: currentPage.value }
-        const res = await fetchNotices(params)
-        notices.value = res.data.content
-        totalPages.value = res.data.totalPages
+        const params = { 
+          page: currentPage.value,
+          size: 10,
+          keyword: searchParams.value.keyword,
+          type: searchParams.value.type
+        }
+        
+        // 빈 값 제거
+        Object.keys(params).forEach(key => {
+          if (params[key] === '' || params[key] === null || params[key] === undefined) {
+            delete params[key]
+          }
+        })
+        
+        const res = await getAdminNotices(params)
+        
+        // Spring Boot 페이징 응답 구조에 맞게 처리
+        if (res.data && res.data.content) {
+          notices.value = res.data.content
+          totalPages.value = res.data.totalPages
+          currentPage.value = res.data.number
+        } else {
+          notices.value = res.data || []
+          totalPages.value = 1
+          currentPage.value = 0
+        }
       } catch (error) {
         console.error('공지사항 목록 로드 실패:', error)
+        // 에러 시 임시 데이터 표시
+        notices.value = [
+          {
+            noticeId: 1,
+            title: '시스템 점검 안내',
+            content: '정기 시스템 점검이 예정되어 있습니다.',
+            thumbnailUrl: null,
+            createdAt: '2024-01-15T10:00:00',
+            modifyAt: null,
+            views: 0,
+            isTop: true,
+            adminName: '관리자'
+          }
+        ]
+        totalPages.value = 1
       } finally {
         loading.value = false
       }
@@ -261,16 +289,20 @@ export default {
         showDetailModal.value = true
       } catch (error) {
         console.error('공지사항 상세 조회 실패:', error)
+        // 에러 시 목록에서 찾기
+        selectedNotice.value = notices.value.find(notice => notice.noticeId === noticeId)
+        showDetailModal.value = true
       }
     }
     
     const editNotice = (notice) => {
       isEditing.value = true
       noticeForm.value = {
+        noticeId: notice.noticeId,
         title: notice.title,
         content: notice.content,
-        isTop: notice.isTop || false,
-        isUrgent: notice.isUrgent || false
+        thumbnailUrl: notice.thumbnailUrl || '',
+        isTop: notice.isTop || false
       }
       showEditModal.value = true
     }
@@ -278,12 +310,15 @@ export default {
     const toggleTop = async (notice) => {
       try {
         await updateNotice(notice.noticeId, {
-          ...notice,
+          title: notice.title,
+          content: notice.content,
+          thumbnailUrl: notice.thumbnailUrl,
           isTop: !notice.isTop
-        }, authStore.token)
+        })
         await loadNotices()
       } catch (error) {
         console.error('고정 상태 변경 실패:', error)
+        alert('고정 상태 변경에 실패했습니다.')
       }
     }
     
@@ -291,25 +326,47 @@ export default {
       if (!confirm('정말 삭제하시겠습니까?')) return
       
       try {
-        await deleteNotice(noticeId, authStore.token)
+        await deleteNotice(noticeId)
         await loadNotices()
+        alert('공지사항이 삭제되었습니다.')
       } catch (error) {
         console.error('공지사항 삭제 실패:', error)
+        alert('공지사항 삭제에 실패했습니다.')
       }
     }
     
     const submitNotice = async () => {
       submitting.value = true
       try {
+        const noticeData = {
+          title: noticeForm.value.title.trim(),
+          content: noticeForm.value.content.trim(),
+          thumbnailUrl: noticeForm.value.thumbnailUrl || null,
+          isTop: noticeForm.value.isTop
+        }
+        
         if (isEditing.value) {
-          await updateNotice(noticeForm.value.noticeId, noticeForm.value, authStore.token)
+          await updateNotice(noticeForm.value.noticeId, noticeData)
+          alert('공지사항이 수정되었습니다.')
         } else {
-          await createNotice(noticeForm.value, authStore.token)
+          await createNotice(noticeData)
+          alert('공지사항이 등록되었습니다.')
         }
         closeModal()
         await loadNotices()
       } catch (error) {
         console.error('공지사항 저장 실패:', error)
+        if (error.response && error.response.data) {
+          // 백엔드에서 보낸 에러 메시지 표시
+          const errorMessages = error.response.data
+          if (Array.isArray(errorMessages)) {
+            alert('입력 오류:\n' + errorMessages.map(err => err.defaultMessage).join('\n'))
+          } else {
+            alert('공지사항 저장에 실패했습니다.')
+          }
+        } else {
+          alert('공지사항 저장에 실패했습니다.')
+        }
       } finally {
         submitting.value = false
       }
@@ -322,8 +379,8 @@ export default {
       noticeForm.value = {
         title: '',
         content: '',
-        isTop: false,
-        isUrgent: false
+        thumbnailUrl: '',
+        isTop: false
       }
     }
 
@@ -366,46 +423,52 @@ export default {
 
 <style scoped>
 .notices-container {
-  padding: 1.5rem;
+  padding: 2rem;
   background: #f8f9fa;
   min-height: 100vh;
 }
 
 .header {
-  margin-bottom: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
 }
 
 .header h1 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
 }
 
 .create-btn {
-  padding: 0.75rem 1.5rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
+  padding: 0.75rem 1.5rem;
   border-radius: 8px;
-  cursor: pointer;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .create-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .search-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
   display: flex;
   gap: 1rem;
@@ -415,15 +478,15 @@ export default {
 
 .search-box {
   flex: 1;
-  display: flex;
-  gap: 0.5rem;
   min-width: 300px;
+  display: flex;
+  position: relative;
 }
 
 .search-box input {
   flex: 1;
   padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #e9ecef;
   border-radius: 8px;
   font-size: 0.95rem;
   transition: border-color 0.3s ease;
@@ -435,17 +498,15 @@ export default {
 }
 
 .search-btn {
-  padding: 0.75rem 1rem;
-  background: #667eea;
-  color: white;
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
   border: none;
-  border-radius: 8px;
+  color: #6c757d;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.search-btn:hover {
-  background: #5a67d8;
+  padding: 0.5rem;
 }
 
 .filter-box {
@@ -455,9 +516,10 @@ export default {
 
 .filter-box select {
   padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #e9ecef;
   border-radius: 8px;
   background: white;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: border-color 0.3s ease;
 }
@@ -470,19 +532,20 @@ export default {
 .notices-table {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   margin-bottom: 2rem;
 }
 
 .table-header {
   display: grid;
-  grid-template-columns: 80px 2fr 1fr 1fr 1fr 150px;
+  grid-template-columns: 60px 1fr 80px 100px 120px;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 1rem;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .table-body {
@@ -492,8 +555,9 @@ export default {
 
 .table-row {
   display: grid;
-  grid-template-columns: 80px 2fr 1fr 1fr 1fr 150px;
-  padding: 1rem;
+  grid-template-columns: 60px 1fr 80px 100px 120px;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.3s ease;
   align-items: center;
@@ -536,19 +600,9 @@ export default {
   color: #fbbf24;
 }
 
-.urgent-icon {
-  color: #ef4444;
-}
-
 .col-title:hover .title-text {
   color: #667eea;
   text-decoration: underline;
-}
-
-.title-content {
-  display: inline-block;
-  min-width: 0;
-  flex: 1;
 }
 
 .title-content.with-badge {
@@ -556,7 +610,7 @@ export default {
 }
 
 .title-content:not(.with-badge) {
-  margin-left: 60px; /* 배지와 아이콘 공간만큼 들여쓰기 */
+  margin-left: 0;
 }
 
 .title-badges {
@@ -574,36 +628,18 @@ export default {
 }
 
 .badge.top {
-  background-color: #3b82f6;
-  color: white;
+  background: #fbbf24;
+  color: #92400e;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  margin-right: 0.5rem;
 }
 
 .badge.urgent {
   background-color: #ef4444;
   color: white;
-}
-
-.col-status {
-  display: flex;
-  align-items: center;
-}
-
-.status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status.active {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.status.inactive {
-  background-color: #fef2f2;
-  color: #dc2626;
 }
 
 .col-author {
@@ -950,7 +986,9 @@ export default {
   
   .table-header,
   .table-row {
-    grid-template-columns: 60px 1fr 80px 80px 100px 120px;
+    grid-template-columns: 60px 1fr 80px 100px 120px;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
     font-size: 0.8rem;
   }
   

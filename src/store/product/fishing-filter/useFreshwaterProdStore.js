@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
+import {defineStore} from 'pinia'
 import api from '@/lib/axios.js'
 
-    export const useFreshwaterProdStore = defineStore('freshwaterProd', {
+export const useFreshwaterProdStore = defineStore('freshwaterProd', {
     state: () => ({
         products: [],
         page: 0,
@@ -10,11 +10,16 @@ import api from '@/lib/axios.js'
         loading: false,
     }),
     actions: {
-        async fetchProducts({ page = 0, size = 1000, sortBy = 'prodId', direction = 'desc' } = {}) {
+        async fetchProducts({
+                                page = 0,
+                                size = 1000,
+                                sortBy = 'createdAt',
+                                direction = 'desc'
+                            } = {}) {
             this.loading = true
             try {
                 const res = await api.get('/api/product/get-all/freshwater', {
-                    params: { page, size, sortBy, direction }
+                    params: {page, size, sortBy, direction}
                 })
                 this.products = res.data.content
                 this.page = res.data.number
@@ -27,11 +32,17 @@ import api from '@/lib/axios.js'
             }
         },
 
-        async fetchFilteredProducts({ region = '', subType = '', species = '' } = {}) {
+        async fetchFilteredProducts({
+                                        region = '',
+                                        subType = '',
+                                        species = '',
+                                        sortBy = 'createdAt',
+                                        direction = 'desc'
+                                    } = {}) {
             this.loading = true
             try {
                 const res = await api.get('/api/product/get-all/freshwater/filter', {
-                    params: { region, subType, species }
+                    params: {region, subType, species, sortBy, direction }
                 })
                 this.products = res.data // 이건 List<ProductDTO> 반환이라고 가정
             } catch (error) {

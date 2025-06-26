@@ -5,8 +5,13 @@
       <!-- 로고 -->
       <router-link to="/" class="navbar-brand fs-3">DΛGON</router-link>
 
+      <!-- 햄버거 버튼 (모바일/태블릿에서만 보임) -->
+      <button class="navbar-toggler d-lg-none" type="button" @click="toggleMobileMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
       <!-- 메인 네비게이션 -->
-      <ul class="navbar-nav d-flex flex-row gap-4 position-absolute start-50 translate-middle-x">
+      <ul class="navbar-nav d-flex flex-row gap-4 position-absolute start-50 translate-middle-x d-none d-lg-flex">
         <li v-for="item in menuItems" :key="item.label" class="nav-item position-relative"
             @mouseenter="item.open = true" @mouseleave="item.open = false">
 
@@ -34,7 +39,7 @@
 
         <template v-if="!authStore.isAuthenticated">
           <router-link to="/signup" class="btn btn-outline-secondary btn-sm">회원가입</router-link>
-          <router-link to="/login" class="btn btn-outline-secondary btn-sm">로그인</router-link>
+          <router-link to="/login" class="btn btn-outline-secondary btn-sm">사용자 로그인</router-link>
           <router-link to="/admin/login" class="btn btn-outline-primary btn-sm">관리자 로그인</router-link>
         </template>
 
@@ -86,22 +91,23 @@
                   <small class="text-muted">불러오는 중...</small>
                 </div>
                 
-                <div v-else-if="notifications.length === 0" class="text-center py-3">
+                <div v-else-if="visibleNotifications.length === 0" class="text-center py-3">
                   <small class="text-muted">알림이 없습니다</small>
                 </div>
                 
                 <div v-else>
-                  <div v-for="notification in notifications.slice(0, 5)" :key="notification.id"
+                  <div v-for="notification in visibleNotifications.slice(0, 5)" :key="notification && notification.id"
                        class="notification-item"
-                       :class="{ unread: !notification.read }"
-                       @click.stop="markAsRead(notification.id)">
-                    <div class="notification-content">
+                       :class="{ unread: notification && !notification.read }"
+                       @click.stop="openNotificationModal(notification)">
+                    <div class="notification-content" v-if="notification">
                       <div class="notification-title">{{ notification.title }}</div>
                       <div class="notification-time">{{ formatTime(notification.time) }}</div>
                     </div>
+                    <button class="notification-close-btn" v-if="notification" @click.stop="hideNotification(notification.id)">×</button>
                   </div>
                   
-                  <div v-if="notifications.length > 5" class="text-center py-2">
+                  <div v-if="visibleNotifications.length > 5" class="text-center py-2">
                     <router-link to="/mypage/notifications" class="btn btn-sm btn-link" @click.stop>
                       더보기
                     </router-link>
@@ -113,8 +119,33 @@
         </template>
       </div>
 
+      <!-- 모바일/태블릿 메뉴 (햄버거 클릭 시 드롭다운) -->
+      <ul v-if="isMobileMenuOpen" class="mobile-menu d-lg-none">
+        <li v-for="item in menuItems" :key="item.label" class="nav-item">
+          <router-link class="nav-link" :to="item.link" @click="closeMobileMenu">{{ item.label }}</router-link>
+          <ul v-if="item.children">
+            <li v-for="sub in item.children" :key="sub.label">
+              <router-link class="dropdown-item" :to="sub.link" @click="closeMobileMenu">{{ sub.label }}</router-link>
+            </li>
+          </ul>
+        </li>
+      </ul>
+
     </div>
   </nav>
+
+  <div v-if="showNotificationModal" class="custom-modal-overlay" @click.self="closeNotificationModal">
+    <div class="custom-modal-content">
+      <div class="custom-modal-header">
+        <span>{{ selectedNotification?.title }}</span>
+        <button class="custom-modal-close" @click="closeNotificationModal">&times;</button>
+      </div>
+      <div class="custom-modal-body">
+        <div>{{ selectedNotification?.content }}</div>
+        <div class="text-muted mt-2" style="font-size:0.9em;">{{ formatTime(selectedNotification?.time) }}</div>
+      </div>
+    </div>
+  </div>
 
 </template>
 
@@ -133,11 +164,18 @@ const notifications = ref([])
 const loading = ref(false)
 const showNotificationDropdown = ref(false)
 const clickOutsideListener = ref(null)
+const showNotificationModal = ref(false)
+const selectedNotification = ref(null)
+const hiddenNotifications = ref([]);
 
 // 읽지 않은 알람 개수
 const unreadCount = computed(() => {
   return notifications.value.filter(n => !n.read).length
 })
+
+const visibleNotifications = computed(() =>
+  notifications.value.filter(n => n && n.id && !hiddenNotifications.value.includes(n.id))
+);
 
 const logout = () => {
   authStore.clearToken()
@@ -210,7 +248,7 @@ const fetchNotifications = async () => {
     console.log('API 응답1:', response)
     
     if (Array.isArray(response)) {
-      notifications.value = response.map(notification => {
+      notifications.value = (response || []).filter(n => n && n.id).map(notification => {
         console.log('원본 알림 데이터:', notification)
         console.log('createdAt 필드:', notification.createdAt)
         console.log('createdAt 타입:', typeof notification.createdAt)
@@ -349,6 +387,15 @@ const formatTime = (timeString) => {
   }
 }
 
+const openNotificationModal = (notification) => {
+  selectedNotification.value = notification
+  showNotificationModal.value = true
+}
+const closeNotificationModal = () => {
+  showNotificationModal.value = false
+  selectedNotification.value = null
+}
+
 onMounted(() => {
   authStore.loadTokenFromStorage()
   
@@ -385,6 +432,15 @@ onMounted(() => {
   
   // ESC 키 리스너 추가
   document.addEventListener('keydown', handleKeyDown)
+
+  const stored = localStorage.getItem('hiddenNotifications');
+  if (stored) {
+    try {
+      hiddenNotifications.value = JSON.parse(stored);
+    } catch (e) {
+      hiddenNotifications.value = [];
+    }
+  }
 })
 
 onUnmounted(() => {
@@ -424,10 +480,26 @@ const menuItems = ref([
     children: [
       {label: '공지사항', link: '/notice'},
       {label: '자주묻는질문', link: '/faq'},
-      {label: '1:1 문의', link: '/inquiry'}
+      {label: '1:1 문의', link: '/inquiry'},
+      {label: '파트너 신청', link: '/partner/apply'}
     ]
   }
 ])
+
+const isMobileMenuOpen = ref(false)
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
+}
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+}
+
+const hideNotification = (id) => {
+  if (!hiddenNotifications.value.includes(id)) {
+    hiddenNotifications.value.push(id);
+    localStorage.setItem('hiddenNotifications', JSON.stringify(hiddenNotifications.value));
+  }
+};
 </script>
 
 <style>
@@ -505,6 +577,7 @@ const menuItems = ref([
   border-bottom: 1px solid #f1f3f4;
   cursor: pointer;
   transition: background-color 0.2s;
+  position: relative;
 }
 
 .notification-item:hover {
@@ -532,6 +605,19 @@ const menuItems = ref([
   color: #6c757d;
 }
 
+.notification-close-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.1rem;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  cursor: pointer;
+  padding: 0;
+  z-index: 2;
+}
+
 /* 슬라이드 트랜지션 */
 .slide-fade-enter-active,
 .slide-fade-leave-active {
@@ -544,4 +630,81 @@ const menuItems = ref([
   transform: translateY(-10px);
 }
 
+/* 햄버거 버튼 스타일 */
+.navbar-toggler {
+  border: none;
+  background: transparent;
+  font-size: 2rem;
+  margin-left: 1rem;
+}
+
+/* 모바일 메뉴 스타일 */
+.mobile-menu {
+  position: absolute;
+  top: 60px; /* 네비게이션 높이에 맞게 조정 */
+  left: 0;
+  width: 100vw;
+  background: white;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 1rem 0;
+  list-style: none;
+}
+
+@media (max-width: 1024px) {
+  .navbar-nav.d-lg-flex {
+    display: none !important;
+  }
+  .navbar-toggler {
+    display: block !important;
+  }
+}
+@media (min-width: 1025px) {
+  .navbar-toggler {
+    display: none !important;
+  }
+  .mobile-menu {
+    display: none !important;
+  }
+}
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.custom-modal-content {
+  background: #fff;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 24px 20px 20px 20px;
+  position: relative;
+}
+.custom-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.custom-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #888;
+}
+.custom-modal-body {
+  font-size: 1rem;
+  color: #222;
+}
 </style>

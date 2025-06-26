@@ -20,7 +20,7 @@ export const useFishingReportStore = defineStore('fishingReport', {
                     params: {
                         page,
                         size,
-                        sortBy: 'frId',
+                        sortBy: 'createdAt',
                         direction: 'desc'
                     }
                 })
@@ -50,35 +50,6 @@ export const useFishingReportStore = defineStore('fishingReport', {
             }
         },
 
-        // 조황정보 생성 액션
-        async createFishingReport(formData) {
-            try {
-                const res = await api.post('/api/fishing-report/create', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    }
-                })
-                return res.data
-            } catch (err) {
-                console.error('조황정보 생성 실패', err)
-                throw err
-            }
-        },
-
-        // 조황정보 수정 액션 (application/json)
-        async updateFishingReport(id, reportDto) {
-            try {
-                const res = await api.put(`/api/fishing-report/update/${id}`, reportDto, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                return res.data
-            } catch (err) {
-                console.error('조황정보 수정 실패', err)
-                throw err
-            }
-        },
 
         // 조황정보 삭제 액션
         async deleteFishingReport(id) {
@@ -88,6 +59,36 @@ export const useFishingReportStore = defineStore('fishingReport', {
                 console.error('조황정보 삭제 실패', err)
                 throw err
             }
-        }
+        },
+
+        // 조황정보 생성 액션 (multipart)
+        async createFishingReport(dto, file) {
+            try {
+                const res = await api.multipartPost({
+                    url: '/api/fishing-report/create',
+                    dto,
+                    files: file
+                });
+                return res.data;
+            } catch (err) {
+                console.error('조황정보 생성 실패', err)
+                throw err;
+            }
+        },
+
+        // 조황정보 수정 액션 (application/json)
+        async updateFishingReport(id, reportDto, file) {
+            try {
+                const res = await api.multipartPut({
+                    url: `/api/fishing-report/update/${id}`,
+                    dto: reportDto,
+                    files: file
+                });
+                return res.data;
+            } catch (err) {
+                console.error('조황정보 수정 실패', err);
+                throw err;
+            }
+        },
     }
 })

@@ -225,6 +225,18 @@ const routes = [
     },
 
     {
+        path: '/fishing-report/create',
+        name: 'FishingReportCreate',
+        component: () => import('@/views/community/fishing-report/ReportForm.vue')
+    },
+    {
+        path: '/fishing-report/edit/:frId',
+        name: 'FishingReportEdit',
+        component: () => import('@/views/community/fishing-report/ReportForm.vue'),
+        props: true
+    },
+
+    {
         path: '/fishing-diary',
         children: [
             {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
@@ -310,6 +322,20 @@ const routes = [
         component: () => import('@/views/pages/partner-page/components/ProductRegister.vue')
     },
     { path: '/product-inquiry', component: () => import('@/views/support/inquiry/ProductInquiry.vue') },
+
+    // terms
+    {
+        path: '/terms',
+        component: () => import('@/components/common/TermsView.vue')
+    },
+    {
+        path: '/finance-terms',
+        component: () => import('@/components/common/FinanceTermsView.vue')
+    },
+    {
+        path: '/privacy-policy',
+        component: () => import('@/components/common/PrivacyPolicyView.vue')
+    },
 ]
 
 const router = createRouter({

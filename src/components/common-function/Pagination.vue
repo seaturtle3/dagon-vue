@@ -16,7 +16,7 @@ function goToPage(num) {
 </script>
 
 <template>
-  <div class="d-flex justify-content-center mt-4">
+  <div class="d-flex justify-content-center mt-5">
     <button
         class="btn btn-outline-secondary mx-1"
         :disabled="(zeroBased ? page === 0 : page === 1)"

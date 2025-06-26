@@ -5201,7 +5201,7 @@ C:.
     ��  
     ����api
     ��      api.js
-    ��      noticeApi.js
+    ��      notice.js
     ��      
     ����assets
     ��      base.css

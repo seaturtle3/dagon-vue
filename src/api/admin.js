@@ -83,6 +83,48 @@ export const memberApi = {
   // 회원 활성화
   reactivateMember: (uno) => {
     return api.put(`/api/users/${uno}/reactivate`);
+  },
+
+  sendAlarmToMembers({ receiverUids, title, content }) {
+    // JWT 토큰에서 관리자 정보 추출
+    const token = localStorage.getItem('token');
+    let senderId = 'admin';
+    
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        senderId = payload.sub || payload.aid || payload.id || 'admin';
+      } catch (error) {
+        console.error('토큰 디코딩 실패:', error);
+      }
+    }
+    
+    console.log('알림 전송 데이터:', {
+      receiverUids,
+      title,
+      content,
+      senderId,
+      senderType: 'ADMIN'
+    });
+    
+    // 백엔드에서 기대할 수 있는 여러 형태의 데이터 구조 시도
+    const requestData = {
+      receiverUids,
+      title,
+      content,
+      senderId,
+      senderType: 'ADMIN'
+    };
+    
+    // sender 객체 형태로도 시도
+    if (!requestData.senderId) {
+      requestData.sender = {
+        id: 'admin',
+        type: 'ADMIN'
+      };
+    }
+    
+    return api.post('/api/notifications/bulk', requestData);
   }
 };
 

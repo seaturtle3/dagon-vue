@@ -5,7 +5,7 @@ import BoardWriteButton from "@/components/common/BoardWriteButton.vue";
 import BoardListItem from "@/components/common/BoardListItem.vue";
 
 import {ref, onMounted, computed} from 'vue'
-import {fetchNotices} from '@/api/noticeApi'
+import {fetchNotices} from '@/api/notice.js'
 import {useRoute, useRouter} from 'vue-router'
 
 

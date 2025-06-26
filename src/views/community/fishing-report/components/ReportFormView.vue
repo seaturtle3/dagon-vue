@@ -1,18 +1,20 @@
 <script setup>
-import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
-import axios from '@/lib/axios.js'
-import { useAdminAuthStore } from '@/store/auth/auth.js'
-import { useAuthStore } from '@/store/login/loginStore.js'
-import { useRouter } from 'vue-router'
+import {ref, onMounted, computed, watch, onUnmounted, nextTick} from 'vue'
+import api from '@/lib/axios.js'
+import {useAdminAuthStore} from '@/store/auth/auth.js'
+import {useAuthStore} from '@/store/login/loginStore.js'
+import {useRouter} from 'vue-router'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
-import { useProductListStore } from '@/store/product/all-products/useProductListStore.js'
-import { getProductsByKeyword } from '@/api/product.js'
-import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
+import {useProductListStore} from '@/store/product/all-products/useProductListStore.js'
+import {getProductsByKeyword} from '@/api/product.js'
+import {useFishingReportStore} from '@/store/fishing-center/useFishingReportStore.js'
 
 const props = defineProps({
   dto: Object,
   loading: Boolean,
   error: String,
+  editMode: Boolean,
+  reportId: [String, Number]
 })
 
 const emit = defineEmits(['thumbnail-change', 'file-change', 'submit-success', 'submit-error'])
@@ -28,7 +30,8 @@ const formData = ref({
   imageFileName: '',
   thumbnailUrl: '',
   user: null,
-  comments: []
+  comments: [],
+  thumbnail_image_data: null
 })
 
 const adminAuthStore = useAdminAuthStore()
@@ -42,14 +45,17 @@ const highlightedIndex = ref(-1)
 const productInputRef = ref(null)
 const dateInputRef = ref(null)
 const fishingReportStore = useFishingReportStore()
+const titleInputRef = ref(null)
+const showAutocomplete = ref(false)
+const report = computed(() => fishingReportStore.currentReport)
 
 const isFormValid = computed(() => {
   return (
-    formData.value.title &&
-    formData.value.content &&
-    formData.value.fishingAt &&
-    formData.value.location &&
-    selectedProduct.value
+      formData.value.title &&
+      formData.value.content &&
+      formData.value.fishingAt &&
+      formData.value.location &&
+      selectedProduct.value
   )
 })
 
@@ -95,7 +101,7 @@ function checkTokenStatus() {
   console.log('=== 토큰 상태 확인 ===')
   console.log('localStorage token:', localStorage.getItem('token'))
   console.log('localStorage userInfo:', localStorage.getItem('userInfo'))
-  console.log('axios headers:', axios.defaults.headers.common['Authorization'])
+  console.log('axios headers:', api.defaults.headers.common['Authorization'])
   console.log('adminAuthStore token:', adminAuthStore.token)
   console.log('adminAuthStore isAuthenticated:', adminAuthStore.isAuthenticated)
   console.log('authStore isAuthenticated:', authStore.isAuthenticated)
@@ -109,7 +115,7 @@ function onThumbnailChange(event) {
     if (thumbnailPreviewUrl.value) {
       URL.revokeObjectURL(thumbnailPreviewUrl.value)
     }
-    
+
     thumbnailFile.value = file
     thumbnailPreviewUrl.value = URL.createObjectURL(file)
     emit('thumbnail-change', event)
@@ -147,6 +153,45 @@ onMounted(async () => {
 
   // RichTextEditor는 컴포넌트에서 자동으로 초기화됩니다
   await productListStore.fetchProducts()
+  // 수정 모드일 때 기존 데이터 불러오기
+  if (props.editMode && props.reportId) {
+    await fishingReportStore.fetchReportById(props.reportId)
+    const report = fishingReportStore.currentReport
+    if (report) {
+      formData.value.title = report.title
+      formData.value.content = report.content
+      formData.value.fishingAt = report.fishingAt
+      formData.value.location = report.location
+      formData.value.productId = report.product?.prodId
+      formData.value.productName = report.product?.prodName
+      formData.value.imageFileName = report.imageFileName
+      formData.value.thumbnailUrl = report.thumbnailUrl
+      formData.value.user = report.user
+      formData.value.comments = report.comments
+      formData.value.images = report.images // 또는 report.images를 별도 변수로 사용
+
+      console.log('report.images:', report.images)
+      // 상품 선택 세팅
+      if (report.product) {
+        selectedProduct.value = report.product
+        productSearch.value = report.product.prodName
+      }
+      // 썸네일 프리뷰
+      if (report.thumbnailUrl) {
+        thumbnailPreviewUrl.value = report.thumbnailUrl.startsWith('http') ? report.thumbnailUrl : `/api/fishing-report/images/${report.thumbnailUrl}`
+      }
+    }
+    // DOM 업데이트 후 blur 처리
+    await nextTick()
+    if (productInputRef.value) {
+      productInputRef.value.blur()
+    }
+    if (titleInputRef.value) {
+      titleInputRef.value.focus()
+    }
+  }
+
+  console.log('editMode:', props.editMode, 'reportId:', props.reportId)
 })
 
 async function onSubmit() {
@@ -166,7 +211,6 @@ async function onSubmit() {
       alert('이미지 파일 크기는 5MB 이하여야 합니다.');
       return;
     }
-    
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
     if (!allowedTypes.includes(thumbnailFile.value.type)) {
       alert('지원되는 이미지 형식: JPG, PNG, GIF');
@@ -174,7 +218,6 @@ async function onSubmit() {
     }
   }
 
-  const submitFormData = new FormData()
   const dtoToSend = {
     title: formData.value.title,
     content: formData.value.content,
@@ -186,39 +229,34 @@ async function onSubmit() {
       prodId: selectedProduct.value.prodId,
       prodName: selectedProduct.value.prodName
     } : null,
-    user: null,
+    user: report.value && report.value.user
+      ? report.value.user
+      : (authStore.user ? { userId: authStore.user.userId } : null),
     comments: [],
     thumbnailUrl: null
   }
-  
-  // DTO를 직접 JSON 객체로 추가 (Blob으로 감싸지 않음)
-  submitFormData.append('dto', JSON.stringify(dtoToSend))
-  
-  // 썸네일 이미지 추가
-  if (thumbnailFile.value) {
-    submitFormData.append('images', thumbnailFile.value)
-  }
-  
+
   try {
-    console.log('전송할 데이터:', dtoToSend)
-    console.log('FormData 내용:')
-    for (let [key, value] of submitFormData.entries()) {
-      console.log(key, value)
+    if (props.editMode && props.reportId) {
+      // 수정 모드: 수정 API 호출
+      await fishingReportStore.updateFishingReport(props.reportId, dtoToSend, thumbnailFile.value)
+      alert('조황정보가 성공적으로 수정되었습니다!')
+      router.push('/fishing-report')
+    } else {
+      // 등록 모드: 등록 API 호출
+      await fishingReportStore.createFishingReport(dtoToSend, thumbnailFile.value)
+      alert('조황정보가 성공적으로 등록되었습니다!')
+      router.push('/fishing-report')
     }
-    
-    await fishingReportStore.createFishingReport(submitFormData)
-    alert('조황정보가 성공적으로 등록되었습니다!')
-    router.push('/fishing-report')
+
   } catch (err) {
-    console.error('조황정보 등록 실패:', err)
-    
-    // 더 자세한 에러 메시지 표시
+    console.error('조황정보 등록/수정 실패:', err)
     if (err.response?.data?.message) {
-      alert(`조황정보 등록 실패: ${err.response.data.message}`)
+      alert(`조황정보 등록/수정 실패: ${err.response.data.message}`)
     } else if (err.response?.status === 500) {
       alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
     } else {
-      alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.')
+      alert('조황정보 등록/수정에 실패했습니다. 다시 시도해주세요.')
     }
   }
 }
@@ -234,7 +272,8 @@ function resetForm() {
     imageFileName: '',
     thumbnailUrl: '',
     user: null,
-    comments: []
+    comments: [],
+    thumbnail_image_data: null
   }
   if (thumbnailPreviewUrl.value) {
     URL.revokeObjectURL(thumbnailPreviewUrl.value)
@@ -289,11 +328,10 @@ watch(productOptions, (newVal) => {
 
 // 상품 자동완성 입력란 포커스 아웃 시 선택박스 닫기
 function onProductInputBlur(e) {
-  // blur 직후 클릭 이벤트로 선택이 안되는 문제 방지 (setTimeout)
   setTimeout(() => {
     productOptions.value = []
     highlightedIndex.value = -1
-  }, 120)
+  }, 200)
 }
 
 // 날짜 선택기 열기
@@ -313,13 +351,34 @@ onUnmounted(() => {
     URL.revokeObjectURL(thumbnailPreviewUrl.value)
   }
 })
+
+function selectProduct(option) {
+  selectedProduct.value = option
+  productSearch.value = option.prodName
+  showAutocomplete.value = false
+  highlightedIndex.value = -1
+  // input blur로 포커스 해제
+  if (productInputRef.value) {
+    productInputRef.value.blur()
+  }
+}
+
+function onProductInputFocus() {
+  if (productOptions.value.length > 0) {
+    showAutocomplete.value = true
+  }
+}
 </script>
 
 <template>
   <div class="form-container">
     <div class="form-header">
-      <h2 class="form-title">🎣 조황정보 등록</h2>
-      <p class="form-subtitle">오늘의 낚시 조황을 공유해보세요!</p>
+      <h2 class="form-title">
+        {{ editMode ? '🎣 조황정보 수정' : '🎣 조황정보 등록' }}
+      </h2>
+      <p class="form-subtitle">
+        {{ editMode ? '조황정보를 수정합니다.' : '오늘의 낚시 조황을 공유해보세요!' }}
+      </p>
     </div>
 
     <form @submit.prevent="onSubmit">
@@ -330,13 +389,8 @@ onUnmounted(() => {
         <div class="form-row">
           <div class="form-group">
             <label class="form-label required">제목</label>
-            <input
-              v-model="formData.title"
-              type="text"
-              class="form-control"
-              placeholder="조황정보 제목을 입력하세요"
-              required
-            />
+            <input v-model="formData.title" type="text" class="form-control" placeholder="조황정보 제목을 입력하세요" required
+                   ref="titleInputRef"/>
           </div>
         </div>
 
@@ -344,27 +398,14 @@ onUnmounted(() => {
           <div class="form-group">
             <label class="form-label required">낚시 날짜</label>
             <div class="date-input-container">
-              <input
-                v-model="formData.fishingAt"
-                type="date"
-                class="form-control date-input"
-                placeholder="날짜를 선택하세요"
-                required
-                ref="dateInputRef"
-                @click="onDateInputClick"
-              />
+              <input v-model="formData.fishingAt" type="date" class="form-control date-input" placeholder="날짜를 선택하세요"
+                     required ref="dateInputRef" @click="onDateInputClick"/>
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label required">낚시 장소</label>
-            <input
-              v-model="formData.location"
-              type="text"
-              class="form-control"
-              placeholder="낚시한 장소를 입력하세요"
-              required
-            />
+            <input v-model="formData.location" type="text" class="form-control" placeholder="낚시한 장소를 입력하세요" required/>
           </div>
         </div>
 
@@ -372,26 +413,32 @@ onUnmounted(() => {
           <div class="form-group" style="position:relative;">
             <label class="form-label required">상품 선택</label>
             <input
-              v-model="productSearch"
-              type="text"
-              class="form-control"
-              placeholder="상품명을 입력하세요 (2글자 이상)"
-              autocomplete="off"
-              ref="productInputRef"
-              @keydown="onProductInputKeydown"
-              @blur="onProductInputBlur"
+                v-model="productSearch"
+                type="text"
+                class="form-control"
+                placeholder="상품명을 입력하세요 (2글자 이상)"
+                autocomplete="off"
+                ref="productInputRef"
+                @keydown="onProductInputKeydown"
+                @blur="onProductInputBlur"
+                @focus="onProductInputFocus"
             />
             <div v-if="productSearchLoading" style="color: #1976d2; font-size: 0.9em;">검색 중...</div>
-            <ul v-if="productOptions.length > 0" class="autocomplete-list">
-              <li v-for="(option, idx) in productOptions" :key="option.prodId"
-                  @mousedown.prevent="selectedProduct = option; productSearch = option.prodName; productOptions = []; highlightedIndex = -1"
-                  :class="['autocomplete-item', { highlighted: idx === highlightedIndex }]">
+            <ul v-if="showAutocomplete" class="autocomplete-list">
+              <li
+                  v-for="(option, idx) in productOptions"
+                  :key="option.prodId"
+                  @click="selectProduct(option)"
+                  :class="['autocomplete-item', { highlighted: idx === highlightedIndex }]"
+              >
                 {{ option.prodName }}
               </li>
             </ul>
             <div v-if="selectedProduct" class="selected-product-info">
               선택된 상품: <strong>{{ selectedProduct.prodName }}</strong>
-              <button type="button" @click="selectedProduct = null; productSearch = ''" style="margin-left:8px; color:#f44336; background:none; border:none; cursor:pointer;">선택 취소</button>
+              <button type="button" @click="selectedProduct = null; productSearch = ''"
+                      style="margin-left:8px; color:#f44336; background:none; border:none; cursor:pointer;">선택 취소
+              </button>
             </div>
           </div>
         </div>
@@ -399,8 +446,8 @@ onUnmounted(() => {
 
       <!-- 이미지 & 내용 작성 섹션 -->
       <div class="form-section content-section">
-        <h3 class="section-title">📝 조황정보 작성</h3>
-        
+        <h3 class="section-title">📝 {{ editMode ? '조황정보 수정' : '조황정보 작성' }}</h3>
+
         <div class="content-layout">
           <!-- 이미지 업로드 영역 -->
           <div class="image-upload-section">
@@ -415,10 +462,18 @@ onUnmounted(() => {
                   </div>
                 </div>
                 <div v-else class="image-preview">
-                  <img 
-                    :src="thumbnailPreviewUrl" 
-                    alt="미리보기" 
-                    class="preview-image"
+                  <img
+                      v-if="thumbnailPreviewUrl"
+                      :src="thumbnailPreviewUrl"
+                      alt="미리보기"
+                      class="preview-image"
+                  />
+                  <!-- thumbnailPreviewUrl이 없고, image_data가 있다면 -->
+                  <img
+                      v-else-if="formData.thumbnail_image_data"
+                      :src="`data:image/jpeg;base64,${formData.thumbnail_image_data}`"
+                      alt="미리보기"
+                      class="preview-image"
                   />
                   <div class="image-overlay">
                     <button type="button" @click="removeThumbnail" class="remove-image-btn">
@@ -427,15 +482,27 @@ onUnmounted(() => {
                   </div>
                 </div>
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                class="upload-input"
-                @change="onThumbnailChange"
-              />
+              <input type="file" accept="image/*" class="upload-input" @change="onThumbnailChange"/>
             </div>
             <div v-if="thumbnailFile" class="file-info">
               <span class="file-name">{{ thumbnailFile.name }}</span>
+            </div>
+          </div>
+          <div v-if="editMode && report && report.images && report.images.length" class="image-list">
+            <div v-for="(img, idx) in report.images" :key="idx" class="image-preview">
+              <img
+                  v-if="img.imageData"
+                  :src="`data:image/jpeg;base64,${img.imageData}`"
+                  alt="등록된 이미지"
+                  style="max-width: 120px; max-height: 120px; margin: 8px;"
+              />
+              <img
+                  v-else-if="img.imageUrl"
+                  :src="img.imageUrl"
+                  alt="등록된 이미지"
+                  style="max-width: 120px; max-height: 120px; margin: 8px;"
+              />
+              <span v-else>이미지 없음</span>
             </div>
           </div>
 
@@ -443,10 +510,7 @@ onUnmounted(() => {
           <div class="content-editor-section">
             <div class="form-group">
               <label class="form-label required">조황정보 내용</label>
-              <RichTextEditor
-                v-model="formData.content"
-                editor-id="fishing-report-editor"
-              />
+              <RichTextEditor v-model="formData.content" editor-id="fishing-report-editor"/>
             </div>
           </div>
         </div>
@@ -467,6 +531,7 @@ onUnmounted(() => {
         </button>
       </div>
     </form>
+
   </div>
 </template>
 
@@ -880,16 +945,54 @@ onUnmounted(() => {
   top: 100%;
   box-sizing: border-box;
 }
+
 .autocomplete-item {
   padding: 8px 12px;
   cursor: pointer;
 }
-.autocomplete-item.highlighted, .autocomplete-item:hover {
+
+.autocomplete-item.highlighted,
+.autocomplete-item:hover {
   background: #e3f2fd;
 }
+
 .selected-product-info {
   margin-top: 8px;
   color: #1976d2;
   font-size: 0.95em;
+}
+
+.image-list {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.image-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-preview span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 0.9rem;
 }
 </style>
