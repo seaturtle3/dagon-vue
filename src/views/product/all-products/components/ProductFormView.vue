@@ -1,7 +1,8 @@
 <script setup>
 import {reactive, watch, toRefs, onMounted, ref, computed} from 'vue'
-import {createProduct} from "@/api/product.js";
+import { createProduct, updateProduct } from "@/api/product.js";
 import {useRoute, useRouter} from 'vue-router'
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const router = useRouter()
 const route = useRoute() // ← 이거 추가
@@ -18,37 +19,41 @@ const props = defineProps({
   subTypes: Array
 })
 
-const form = reactive({ ...props.form })
+const localForm = reactive({ ...props.form })
 
-console.log('***************form.prodId:', form.prodId)
-
-function goToEdit(product) {
-  router.push({
-    name: 'ProductEdit',
-    state: { form: product }
-  })
-}
-
-const isFormValid = computed(() => {
+const islocalFormValid = computed(() => {
   return (
-      form.prodName &&
-      form.prodRegion &&
-      form.mainType &&
-      form.subType &&
-      form.maxPerson &&
-      form.weight &&
-      form.prodAddress &&
+      localForm.prodName &&
+      localForm.prodRegion &&
+      localForm.mainType &&
+      localForm.subType &&
+      localForm.maxPerson &&
+      localForm.weight &&
+      localForm.prodAddress &&
     files.value.length > 0
   )
 })
 
+// 기존 이미지 미리보기용 배열
+const existingImages = ref([])
+
 watch(
-    () => props.form,
-    (newForm) => {
-      Object.assign(form, newForm) // form은 reactive니까 복사만 하면 됨
+    () => props.form.prodImageNames,
+    (newVal) => {
+      if (newVal && newVal.length > 0) {
+        existingImages.value = newVal.map((imgPath, idx) => ({
+          id: 'existing-' + idx,
+          url: BASE_URL + imgPath,
+          isExisting: true,
+        }))
+      } else {
+        existingImages.value = []
+      }
     },
-    { deep: true, immediate: true }
+    { immediate: true }
 )
+
+const allPreviews = computed(() => [...existingImages.value, ...imagePreviews.value])
 
 function onFileChange(event) {
   const uploadedFiles = Array.from(event.target.files)
@@ -78,6 +83,17 @@ function onFileChange(event) {
   })
 }
 
+// 기존 이미지 삭제
+const deletedImageNames = ref([])
+
+function removeExistingImage(index) {
+  const removed = localForm.prodImageNames.splice(index, 1)[0]
+  if (removed) {
+    deletedImageNames.value.push(removed)
+  }
+}
+
+// 새로 추가된 이미지 삭제
 function removeImage(imageId) {
   const index = imagePreviews.value.findIndex(img => img.id === imageId)
   if (index > -1) {
@@ -92,39 +108,50 @@ function removeAllImages() {
 }
 
 async function submit() {
-  if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요. (배 이름, 지역, 유형, 상세장소, 최대인원, 선박무게, 선박주소, 대표이미지)')
+  if (!islocalFormValid.value) {
+    alert("필수 항목을 모두 입력해주세요.")
     return
   }
 
-  const formData = new FormData()
+  const productJson = { ...localForm }
 
-  // 👉 여기를 JSON 전체로 묶어서 하나의 Blob으로 추가해야 함
-  const productJson = {...form}
+  const formData = new FormData()
   formData.append(
       "product",
-      new Blob([JSON.stringify(productJson)], {type: "application/json"})
+      new Blob([JSON.stringify({
+        ...localForm,
+        deleteImageNames: deletedImageNames.value
+      })], { type: "application/json" })
   )
-  console.log('**************mainType : ', productJson.mainType)
-
 
   files.value.forEach(file => {
-    formData.append("thumbnailFiles", file) // ✅ 키는 thumbnailFiles, 반복해서 append
+    formData.append("thumbnailFiles", file)
   })
 
   try {
-    const response = await createProduct(formData)
-    alert('등록 성공')
-    router.push('/products')
+    if (localForm.prodId) {
+      // ✅ 수정 API
+      await updateProduct(localForm.prodId, localForm)
+      alert("수정 성공")
+    } else {
+      // ✅ 등록 API
+      await createProduct(formData)
+      alert("등록 성공")
+    }
+
+    router.push("/products")
   } catch (err) {
     console.error(err)
-    alert('등록 실패')
+    alert("요청 실패")
   }
 }
 
 const filteredSubTypes = computed(() => {
-  return props.subTypes.filter(sub => sub.mainType === form.mainType)
+  return props.subTypes.filter(sub => sub.mainType === localForm.mainType)
 })
+
+console.log('***************localForm.prodId:', localForm.prodId)
+console.log('mainType 확인:', localForm.mainType)
 
 </script>
 
@@ -142,34 +169,44 @@ const filteredSubTypes = computed(() => {
         <!-- 이미지 업로드 영역 -->
         <div class="image-upload-section">
           <div class="upload-container">
-            <!-- 이미지 갤러리 -->
-            <div v-if="imagePreviews.length > 0" class="image-gallery">
+
+            <div v-if="allPreviews.length > 0" class="image-gallery">
               <div class="gallery-header">
                 <h4 class="gallery-title">
                   <i class="fas fa-images"></i>
-                  업로드된 이미지 ({{ imagePreviews.length }}장)
+                  업로드된 이미지 ({{ allPreviews.length }}장)
                 </h4>
                 <button type="button" @click="removeAllImages" class="clear-all-btn">
                   <i class="fas fa-trash"></i>
                   모두 삭제
                 </button>
               </div>
-              
+
               <div class="gallery-grid">
-                <div 
-                  v-for="(image, index) in imagePreviews" 
-                  :key="image.id"
-                  class="gallery-item"
-                  :class="{ 'main-image': index === 0 }"
+                <div
+                    v-for="(image, index) in allPreviews"
+                    :key="image.id"
+                    class="gallery-item"
+                    :class="{ 'main-image': index === 0 }"
                 >
                   <img :src="image.url" :alt="image.name" class="gallery-image" />
                   <div class="image-overlay">
                     <div class="image-actions">
-                      <button 
-                        type="button" 
-                        @click="removeImage(image.id)" 
-                        class="remove-btn"
-                        :title="'이미지 삭제'"
+                      <button
+                          v-if="image.isExisting"
+                          type="button"
+                          @click="removeExistingImage(image.id)"
+                          class="remove-btn"
+                          title="기존 이미지 삭제"
+                      >
+                        <i class="fas fa-times"></i>
+                      </button>
+                      <button
+                          v-else
+                          type="button"
+                          @click="removeImage(image.id)"
+                          class="remove-btn"
+                          title="이미지 삭제"
                       >
                         <i class="fas fa-times"></i>
                       </button>
@@ -179,13 +216,11 @@ const filteredSubTypes = computed(() => {
                       대표
                     </div>
                   </div>
-                  <div class="image-info">
-                    <span class="image-name">{{ image.name }}</span>
-                    <span class="image-size">{{ (image.file.size / 1024 / 1024).toFixed(1) }}MB</span>
-                  </div>
+                  <!-- 이미지 이름, 용량 표시 등 기존 코드 유지 -->
                 </div>
               </div>
             </div>
+
 
             <!-- 업로드 플레이스홀더 -->
             <div v-else class="upload-placeholder">
@@ -226,7 +261,7 @@ const filteredSubTypes = computed(() => {
             <div class="form-group">
               <label class="form-label required">배 이름</label>
               <input 
-                v-model="form.prodName"
+                v-model="localForm.prodName"
                 type="text" 
                 class="form-input" 
                 placeholder="배 이름을 입력하세요"
@@ -236,7 +271,7 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label required">지역</label>
-              <select v-model="form.prodRegion" class="form-select">
+              <select v-model="localForm.prodRegion" class="form-select">
                 <option v-for="region in regions" :key="region.name" :value="region.name">
                   {{ region.korean }}
                 </option>
@@ -245,7 +280,7 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label required">바다/민물 유형</label>
-              <select v-model="form.mainType" class="form-select">
+              <select v-model="localForm.mainType" class="form-select">
                 <option v-for="type in mainTypes" :key="type.name" :value="type.name">
                   {{ type.korean }}
                 </option>
@@ -254,7 +289,7 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label required">상세 장소</label>
-              <select v-model="form.subType" class="form-select">
+              <select v-model="localForm.subType" class="form-select">
                 <option v-for="sub in filteredSubTypes" :key="sub.name" :value="sub.name">
                   {{ sub.korean }}
                 </option>
@@ -264,7 +299,7 @@ const filteredSubTypes = computed(() => {
             <div class="form-group">
               <label class="form-label required">최대 인원</label>
               <input 
-                v-model.number="form.maxPerson"
+                v-model.number="localForm.maxPerson"
                 type="number" 
                 class="form-input" 
                 placeholder="최대 수용 인원"
@@ -275,7 +310,7 @@ const filteredSubTypes = computed(() => {
             <div class="form-group">
               <label class="form-label">최소 인원</label>
               <input 
-                v-model.number="form.minPerson"
+                v-model.number="localForm.minPerson"
                 type="number" 
                 class="form-input" 
                 placeholder="최소 필요 인원 (선택사항)"
@@ -298,7 +333,7 @@ const filteredSubTypes = computed(() => {
           <div class="form-group">
             <label class="form-label required">선박 무게</label>
             <input 
-              v-model.number="form.weight"
+              v-model.number="localForm.weight"
               step="0.01" 
               type="number" 
               class="form-input"
@@ -310,7 +345,7 @@ const filteredSubTypes = computed(() => {
           <div class="form-group">
             <label class="form-label required">선박 주소</label>
             <input 
-              v-model="form.prodAddress"
+              v-model="localForm.prodAddress"
               type="text" 
               class="form-input"
               placeholder="선박이 위치한 주소"
@@ -322,7 +357,7 @@ const filteredSubTypes = computed(() => {
         <div class="form-group full-width">
           <label class="form-label">상세 설명</label>
           <textarea 
-            v-model="form.prodDescription"
+            v-model="localForm.prodDescription"
             class="form-textarea"
             placeholder="선박에 대한 상세한 설명을 입력하세요"
             rows="4"
@@ -342,7 +377,7 @@ const filteredSubTypes = computed(() => {
         <div class="form-group full-width">
           <label class="form-label">공지 사항</label>
           <textarea
-              v-model="form.prodNotice"
+              v-model="localForm.prodNotice"
               class="form-textarea"
               placeholder="고객에게 알려야 할 중요한 공지사항을 입력하세요"
               rows="3"
@@ -352,7 +387,7 @@ const filteredSubTypes = computed(() => {
         <div class="form-group full-width">
           <label class="form-label">이벤트</label>
           <textarea
-            v-model="form.prodEvent"
+            v-model="localForm.prodEvent"
             class="form-textarea"
             placeholder="진행 중인 이벤트나 특별한 혜택이 있다면 입력하세요"
             rows="3"
@@ -365,7 +400,7 @@ const filteredSubTypes = computed(() => {
       <div class="form-actions">
         <button
             type="submit"
-            :disabled="!isFormValid"
+            :disabled="!islocalFormValid"
             class="submit-button"
         >
           <i class="fas fa-save"></i>
@@ -374,7 +409,6 @@ const filteredSubTypes = computed(() => {
       </div>
 
     </form>
-
   </div>
 </template>
 
