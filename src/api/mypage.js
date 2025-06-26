@@ -178,5 +178,15 @@ export const myPageAPI = {
             payMethod,
             paidAt
         })
+    },
+    // 알람 삭제
+    async deleteNotification(id) {
+        try {
+            const response = await api.delete(`/api/notifications/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error('알림 삭제 API 에러:', error);
+            throw error;
+        }
     }
 }; 

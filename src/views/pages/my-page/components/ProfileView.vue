@@ -59,7 +59,7 @@
 
       <div class="form-group">
         <label>이메일</label>
-        <input type="email" v-model="userInfo.email" :disabled="!isEditing" class="form-control" />
+        <input type="email" v-model="userInfo.email" disabled class="form-control" />
       </div>
 
       <div class="form-group">

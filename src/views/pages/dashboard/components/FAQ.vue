@@ -757,6 +757,7 @@ export default {
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.3s ease;
   align-items: center;
+  font-size: 0.95rem;
 }
 
 .table-row:hover {
@@ -1103,9 +1104,8 @@ export default {
   .table-header,
   .table-row {
     grid-template-columns: 60px 100px 1fr 80px 100px 100px;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
     font-size: 0.8rem;
+    padding: 0.75rem 1rem;
   }
   .modal-content {
     margin: 1rem;
@@ -1114,6 +1114,11 @@ export default {
   .faq-meta {
     flex-direction: column;
     gap: 0.5rem;
+  }
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
   }
 }
 </style> 

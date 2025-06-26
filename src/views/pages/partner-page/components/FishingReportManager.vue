@@ -11,9 +11,9 @@
       </div>
       
       <div class="filter-options">
-        <select v-model="typeFilter" @change="filterReports">
-          <option value="all">전체</option>
-          <!-- 필요한 경우 조황정보 유형 필터 추가 (예: 바다/민물) -->
+        <select v-model="sortOrder" @change="applyFilters">
+          <option value="desc">최근 날짜순</option>
+          <option value="asc">가장 오래된 순</option>
         </select>
       </div>
     </div>
@@ -64,14 +64,21 @@ export default {
       loading: true,
       error: null,
       searchQuery: '',
-      typeFilter: 'all',
+      sortOrder: 'desc',
       filteredReports: [],
       selectedStatus: 'ALL'
     };
   },
+  computed: {
+    uniqueProdNames() {
+      // reports에서 prodName의 고유값만 추출
+      const names = this.reports.map(r => r.prodName).filter(Boolean);
+      return [...new Set(names)];
+    }
+  },
   watch: {
     searchQuery: 'applyFilters',
-    typeFilter: 'applyFilters',
+    sortOrder: 'applyFilters',
     reports: 'applyFilters'
   },
   methods: {
@@ -84,13 +91,9 @@ export default {
     },
     async loadFishingReports() {
       try {
-        console.log('조황정보 로딩 시작, prodId:', this.prodId);
-        const response = await partnerService.getFishingReports(this.prodId);
-        console.log('조황정보 응답 데이터:', response.data);
-        this.reports = response.data.map(report => ({
-          ...report,
-          productName: report.prodName || '상품 정보 없음'
-        }));
+        const response = await partnerService.getMyFishingReports();
+        const arr = Array.isArray(response.data) ? response.data : [];
+        this.reports = arr;
         this.applyFilters();
       } catch (error) {
         console.error('조황정보 로딩 실패:', error);
@@ -98,16 +101,18 @@ export default {
       }
     },
     applyFilters() {
-      this.filteredReports = this.reports.filter(report => {
-        const matchesSearch = report.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-            report.content.toLowerCase().includes(this.searchQuery.toLowerCase());
-        return matchesSearch;
+      let filtered = this.reports.filter(report => {
+        return report.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+               report.content.toLowerCase().includes(this.searchQuery.toLowerCase());
       });
+      if (this.sortOrder === 'desc') {
+        filtered = filtered.slice().sort((a, b) => new Date(b.fishingAt) - new Date(a.fishingAt));
+      } else {
+        filtered = filtered.slice().sort((a, b) => new Date(a.fishingAt) - new Date(b.fishingAt));
+      }
+      this.filteredReports = filtered;
     },
     searchReports() {
-      this.applyFilters();
-    },
-    filterReports() {
       this.applyFilters();
     },
     viewReportDetail(frId) {
