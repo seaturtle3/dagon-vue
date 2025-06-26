@@ -34,23 +34,35 @@
     <div v-else class="product-grid">
       <div v-for="product in filteredProducts" :key="product.prodId" class="product-card" :class="{ 'deleted': product.deleted }">
         <div class="product-image" @click="$router.push(`/products/${product.prodId}`)">
-          <template v-if="product.prodImageNames && product.prodImageNames.length > 0">
-            <div class="image-thumbnails">
-              <div v-for="img in product.prodImageNames" :key="img">
-                <img 
-                :src="`${BASE_URL}/uploads/products/${img}`"
-                class="thumbnail-img"
-              >
-             
+          <div class="image-thumbnails">
+            <!-- 1. prodImageDataList가 있으면 그것만 보여줌 -->
+            <template v-if="product.prodImageDataList && product.prodImageDataList.length > 0">
+              <div v-for="(imgData, idx) in product.prodImageDataList" :key="idx">
+                <img
+                  :src="imgData.startsWith('data:image') ? imgData : `data:image/jpeg;base64,${imgData}`"
+                  class="thumbnail-img"
+                  @error="e => { e.target.src = defaultImage }"
+                >
               </div>
-            </div>
-          </template>
-          <template v-else>
-            <div class="image-placeholder">
-              <i class="fas fa-ship"></i>
-              <span>이미지 없음</span>
-            </div>
-          </template>
+            </template>
+            <!-- 2. prodImageNames가 있으면 그것만 보여줌 -->
+            <template v-else-if="product.prodImageNames && product.prodImageNames.length > 0">
+              <div v-for="img in product.prodImageNames" :key="img">
+                <img
+                  :src="img.startsWith('/') ? img : `${BASE_URL}/uploads/products/${img}`"
+                  class="thumbnail-img"
+                  @error="e => { e.target.src = defaultImage }"
+                >
+              </div>
+            </template>
+            <!-- 3. 둘 다 없으면 placeholder -->
+            <template v-else>
+              <div class="image-placeholder">
+                <i class="fas fa-ship"></i>
+                <span>이미지 없음</span>
+              </div>
+            </template>
+          </div>
           <span :class="['type-badge', product.mainType?.toLowerCase()]">
             {{ getTypeText(product.mainType) }}
           </span>

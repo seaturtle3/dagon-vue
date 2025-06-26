@@ -161,7 +161,7 @@ const routes = [
                 component: () => import('@/views/pages/partner-page/components/ReservationDetail.vue')
             },
             {path: 'products', component: () => import('@/views/pages/partner-page/components/ProductList.vue')},
-            {path: 'products/form', component: () => import('@/views/pages/partner-page/components/ProductFormView.vue')},
+            {path: 'products/form', component: () => import('@/views/pages/partner-page/ProductForm.vue')},
             {
                 path: 'market-info',
                 component: () => import('@/views/pages/partner-page/components/FishingReportManager.vue')
