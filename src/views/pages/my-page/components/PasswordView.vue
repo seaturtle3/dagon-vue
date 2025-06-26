@@ -128,7 +128,12 @@ const handleSubmit = async () => {
     }
   } catch (error) {
     console.error('비밀번호 변경 실패:', error);
-    alert(error.response?.data?.error || '비밀번호 변경에 실패했습니다.');
+    const errMsg = error.response?.data?.error || '';
+    if (errMsg.includes('기존 비밀번호') || errMsg.includes('현재 비밀번호') || errMsg.includes('old password') || errMsg.includes('Current password')) {
+      alert('기존 비밀번호가 틀렸습니다.');
+    } else {
+      alert(errMsg || '비밀번호 변경에 실패했습니다.');
+    }
   }
 };
 

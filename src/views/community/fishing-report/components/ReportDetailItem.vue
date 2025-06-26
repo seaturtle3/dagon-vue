@@ -9,11 +9,6 @@ const props = defineProps({
   report: {
     type: Object,
     required: true
-  },
-  currentUser: {
-    type: Object,
-    required: false,
-    default: null
   }
 })
 
@@ -25,17 +20,48 @@ const reportReason = ref('');
 const reportTarget = ref(null);
 const reportType = ref(''); // 'report' 또는 'comment'
 
+// 현재 사용자 정보
+const currentUser = ref(null);
+
 // 현재 사용자가 조황정보 작성자인지 확인
 const isOwnReport = computed(() => {
-  return String(props.currentUser?.uid) === String(props.report?.user?.uid);
+  return String(currentUser.value?.uno) === String(props.report?.user?.uno);
 });
 
 // 현재 사용자가 댓글 작성자인지 확인
 const isOwnComment = (comment) => {
-  if (!props.currentUser || !comment.user) return false;
-  return props.currentUser.uid === comment.user.uid;
+  if (!currentUser.value || !comment.user) return false;
+  return String(currentUser.value.uno) === String(comment.user.uno);
 };
 
+// 사용자 정보 초기화
+const initializeUserInfo = () => {
+  try {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      currentUser.value = JSON.parse(userInfo);
+      console.log('localStorage에서 사용자 정보 복원:', currentUser.value);
+    }
+
+    // userInfo에 uno가 없으면 토큰에서 추출
+    if (!currentUser.value?.uno) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.uno) {
+            currentUser.value = { ...currentUser.value, uno: payload.uno };
+            console.log('토큰에서 uno 추출:', payload.uno);
+          }
+        } catch (tokenError) {
+          console.log('토큰 디코딩 실패:', tokenError);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('사용자 정보 파싱 실패:', error);
+  }
+};
 
 // 신고하기 버튼 클릭
 const openReportModal = (target, type) => {
@@ -53,7 +79,7 @@ const openReportModal = (target, type) => {
   const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
   const itemId = type === 'report' ? target.frId : target.frCommentId;
   const itemType = type === 'report' ? 'report' : 'comment';
-  
+
   if (reportedItems.some(item => item.id === itemId && item.type === itemType)) {
     alert('이미 신고한 게시글/댓글입니다.');
     return;
@@ -86,13 +112,13 @@ const submitReport = async () => {
       reportedItems.push({ id: reportTarget.value.frCommentId, type: 'comment' });
       localStorage.setItem('reportedItems', JSON.stringify(reportedItems));
     }
-    
+
     alert('신고가 접수되었습니다.');
     showReportModal.value = false;
     reportReason.value = '';
   } catch (error) {
     console.error('신고 실패:', error);
-    
+
     // 서버에서 받은 에러 메시지가 있으면 사용
     if (error.response?.data?.message) {
       alert(error.response.data.message);
@@ -107,6 +133,15 @@ const closeReportModal = () => {
   showReportModal.value = false;
   reportReason.value = '';
 };
+
+// 컴포넌트 마운트 시 사용자 정보 초기화
+onMounted(() => {
+  initializeUserInfo();
+
+  console.log('✅ currentUser:', currentUser.value)
+  console.log('✅ report.user:', props.report.user)
+  console.log('✅ UID 비교 결과:', currentUser.value?.uno === props.report.user?.uno)
+})
 
 const router = useRouter();
 const fishingReportStore = useFishingReportStore();
@@ -127,26 +162,48 @@ const confirmDelete = async () => {
   }
 };
 
-const showImageModal = ref(false);
-const modalImageIndex = ref(0);
+const newComment = ref('');
+const submittingComment = ref(false);
 
-function openImageModal(index) {
-  modalImageIndex.value = index;
-  showImageModal.value = true;
-}
-function closeImageModal() {
-  showImageModal.value = false;
-}
-function prevImage() {
-  if (modalImageIndex.value > 0) {
-    modalImageIndex.value--;
+// 댓글 등록 함수
+const submitComment = async () => {
+  if (!newComment.value.trim()) {
+    alert('댓글 내용을 입력하세요.');
+    return;
   }
-}
-function nextImage() {
-  if (modalImageIndex.value < (props.report.images.length - 1)) {
-    modalImageIndex.value++;
+  if (!currentUser.value?.uno) {
+    alert('로그인 후 이용해 주세요.');
+    return;
   }
-}
+  submittingComment.value = true;
+  try {
+    await partnerService.createFishingReportComment(props.report.frId, newComment.value, currentUser.value.uno);
+    alert('댓글이 등록되었습니다.');
+    newComment.value = '';
+    // 댓글 목록 새로고침 (emit 또는 reload 필요)
+    location.reload(); // 임시: 새로고침, 추후 emit 등으로 개선 가능
+  } catch (e) {
+    alert('댓글 등록에 실패했습니다.');
+  } finally {
+    submittingComment.value = false;
+  }
+};
+
+// 댓글 삭제 함수
+const deleteComment = async (commentId) => {
+  if (!commentId) {
+    alert('댓글 ID가 없습니다.');
+    return;
+  }
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+  try {
+    await partnerService.deleteFishingReportComment(commentId);
+    alert('삭제되었습니다.');
+    location.reload(); // 또는 댓글 목록만 갱신
+  } catch (e) {
+    alert('삭제에 실패했습니다.');
+  }
+};
 </script>
 
 <template>
@@ -156,7 +213,16 @@ function nextImage() {
       <button class="btn btn-delete" @click="confirmDelete">삭제</button>
     </div>
     <!-- 제목 -->
-    <h2 class="detail-title">{{ report.title }}</h2>
+    <div class="detail-title-row">
+      <h2 class="detail-title">{{ report.title }}</h2>
+      <button
+          class="btn-report-post"
+          @click="openReportModal(report, 'report')"
+          title="게시글 신고"
+      >
+        <i class="fas fa-flag"></i> 신고
+      </button>
+    </div>
     <div class="meta-row">
       <span class="meta-item">
         <i class="fa fa-user"></i> {{ report.user?.uname || '익명' }}
@@ -167,9 +233,9 @@ function nextImage() {
       <span class="meta-item">
         <i class="fa fa-tag"></i>
         <router-link
-          v-if="report.product && report.product.prodId"
-          :to="`/products/${report.product.prodId}`"
-          class="product-link"
+            v-if="report.product && report.product.prodId"
+            :to="`/products/${report.product.prodId}`"
+            class="product-link"
         >
           {{ report.product.prodName }}
         </router-link>
@@ -179,26 +245,9 @@ function nextImage() {
 
     <div class="thumbnail-section">
       <img
-        class="thumbnail-img"
-        :src="
-          report.images && report.images.length
-            ? (
-                report.images[0].imageData
-                  ? `data:image/jpeg;base64,${report.images[0].imageData}`
-                  : (report.images[0].image_data
-                      ? `data:image/jpeg;base64,${report.images[0].image_data}`
-                      : (report.images[0].imageUrl
-                          ? report.images[0].imageUrl
-                          : (report.images[0].image_url
-                              ? report.images[0].image_url
-                              : '/images/no-image.png'
-                            )
-                        )
-                    )
-              )
-            : '/images/no-image.png'
-        "
-        alt="썸네일"
+          class="thumbnail-img"
+          :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+          alt="썸네일"
       />
     </div>
 
@@ -206,74 +255,69 @@ function nextImage() {
       <div class="content-text" v-html="report.content"></div>
     </div>
 
-    <div v-if="report.images && report.images.length" class="report-images">
+    <div v-if="report.imageUrls && report.imageUrls.length" class="report-images">
       <h5 class="section-label">추가 사진</h5>
       <div class="image-list">
         <img
-          v-for="(img, index) in report.images"
-          :key="index"
-          :src="
-            img.imageData
-              ? `data:image/jpeg;base64,${img.imageData}`
-              : (img.image_data
-                  ? `data:image/jpeg;base64,${img.image_data}`
-                  : (img.imageUrl
-                      ? img.imageUrl
-                      : (img.image_url
-                          ? img.image_url
-                          : '/images/no-image.png'
-                        )
-                    )
-                )
-          "
-          class="extra-image"
-          alt="조황 사진"
-          @click="openImageModal(index)"
-          style="cursor:pointer"
+            v-for="(img, index) in report.imageUrls"
+            :key="index"
+            :src="`${IMAGE_BASE_URL}/fishing-report/${img}`"
+            class="extra-image"
+            alt="조황 사진"
         />
-      </div>
-    </div>
-
-    <!-- 이미지 모달 -->
-    <div v-if="showImageModal" class="modal-overlay" @click.self="closeImageModal">
-      <div class="modal-image-content">
-        <button v-if="modalImageIndex > 0" class="modal-nav-btn left" @click.stop="prevImage">&#8592;</button>
-        <img
-          :src="
-            report.images[modalImageIndex].imageData
-              ? `data:image/jpeg;base64,${report.images[modalImageIndex].imageData}`
-              : (report.images[modalImageIndex].image_data
-                  ? `data:image/jpeg;base64,${report.images[modalImageIndex].image_data}`
-                  : (report.images[modalImageIndex].imageUrl
-                      ? report.images[modalImageIndex].imageUrl
-                      : (report.images[modalImageIndex].image_url
-                          ? report.images[modalImageIndex].image_url
-                          : '/images/no-image.png'
-                        )
-                    )
-                )
-          "
-          class="modal-large-image"
-          alt="큰 조황 사진"
-        />
-        <button v-if="modalImageIndex < report.images.length - 1" class="modal-nav-btn right" @click.stop="nextImage">&#8594;</button>
-        <button class="modal-close-btn" @click="closeImageModal">×</button>
       </div>
     </div>
 
     <div class="comment-box">
       <h5 class="section-label">댓글</h5>
+      <!-- 댓글 입력란: 항상 노출 -->
+      <div class="comment-input-row">
+        <textarea
+            v-model="newComment"
+            class="comment-input"
+            placeholder="댓글을 입력하세요..."
+            rows="2"
+            :disabled="submittingComment"
+        ></textarea>
+        <button
+            class="btn btn-primary comment-submit-btn"
+            @click="submitComment"
+            :disabled="submittingComment"
+        >
+          {{ submittingComment ? '등록 중...' : '등록' }}
+        </button>
+      </div>
       <div v-if="report.comments && report.comments.length">
         <div
-          v-for="(comment, index) in report.comments"
-          :key="comment.frCommentId"
-          class="comment-item"
+            v-for="(comment, index) in report.comments"
+            :key="comment.frCommentId"
+            class="comment-item"
         >
           <div class="comment-meta">
             <span class="comment-user">{{ comment.user?.uname || '익명' }}</span>
             <span class="comment-date">{{ comment.createdAt }}</span>
           </div>
           <div class="comment-content">{{ comment.comment }}</div>
+          <div class="comment-actions-row">
+            <button
+                v-if="!isOwnComment(comment)"
+                class="btn-action-comment"
+                @click="openReportModal(comment, 'comment')"
+                :disabled="submittingComment"
+                title="댓글 신고"
+            >
+              <i class="fas fa-flag"></i>신고
+            </button>
+            <button
+                v-if="isOwnComment(comment)"
+                class="btn-action-comment"
+                @click="deleteComment(comment.frCommentId)"
+                :disabled="submittingComment"
+                title="댓글 삭제"
+            >
+              <i class="fa-solid fa-x"></i>삭제
+            </button>
+          </div>
         </div>
       </div>
       <div v-else class="no-comment">아직 등록된 댓글이 없습니다.</div>
@@ -291,11 +335,11 @@ function nextImage() {
         <div class="mb-3">
           <label for="reportReason" class="form-label">신고 사유</label>
           <textarea
-            id="reportReason"
-            v-model="reportReason"
-            class="form-control"
-            rows="4"
-            placeholder="신고 사유를 입력해주세요..."
+              id="reportReason"
+              v-model="reportReason"
+              class="form-control"
+              rows="4"
+              placeholder="신고 사유를 입력해주세요..."
           ></textarea>
         </div>
       </div>
@@ -309,20 +353,26 @@ function nextImage() {
 
 <style scoped>
 .detail-container.card-style {
-  max-width: 1040px;
+  max-width: 1280px;
   margin: 40px auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-  padding: 36px 32px 32px 32px;
+  padding: 36px 48px 32px 48px;
   position: relative;
 }
-.detail-title {
-  font-size: 2.1rem;
-  font-weight: 700;
-  color: #1976d2;
+.detail-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 10px;
+}
+.detail-title {
+  flex: 1;
   text-align: center;
+  margin: 0;
+  color: #1976d2;
 }
 .meta-row {
   display: flex;
@@ -474,70 +524,70 @@ function nextImage() {
 /* 모달 스타일 */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 2000;
-}
-.modal-image-content {
-  position: relative;
-  background: #fff;
-  border-radius: 10px;
-  padding: 16px 48px;
-  max-width: 90vw;
-  max-height: 90vh;
-  display: flex;
   align-items: center;
-  justify-content: center;
+  z-index: 1050;
 }
-.modal-large-image {
-  max-width: 80vw;
-  max-height: 80vh;
+
+.modal-content {
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
-.modal-close-btn {
-  position: absolute;
-  top: 8px; right: 16px;
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 1rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.btn-close {
   background: none;
   border: none;
-  font-size: 2.2rem;
-  color: #333;
+  font-size: 1.5rem;
   cursor: pointer;
-  z-index: 10;
-}
-.modal-close-btn:hover {
-  color: #1976d2;
-}
-.modal-nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(25, 118, 210, 0.8);
-  color: #fff;
-  border: none;
-  font-size: 2.5rem;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 10;
+  padding: 0;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
 }
-.modal-nav-btn.left {
-  left: 8px;
+
+.btn-close:hover {
+  background-color: #f8f9fa;
+  border-radius: 4px;
 }
-.modal-nav-btn.right {
-  right: 8px;
-}
-.modal-nav-btn:hover {
-  background: #1565c0;
-}
+
 .detail-actions {
   display: flex;
   justify-content: flex-end;
@@ -558,5 +608,102 @@ function nextImage() {
   background: #f44336;
   color: #fff;
   border: none;
+}
+
+/* 댓글 입력란 스타일 */
+.comment-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+  align-items: flex-start;
+}
+.comment-input {
+  flex: 1;
+  border-radius: 6px;
+  border: 1.5px solid #b0bec5;
+  padding: 10px;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 38px;
+  max-height: 90px;
+  background: #fff;
+  transition: border 0.2s;
+}
+.comment-input:focus {
+  border: 1.5px solid #1976d2;
+  outline: none;
+}
+.comment-submit-btn {
+  min-width: 80px;
+  height: 38px;
+  border-radius: 6px;
+  background: #1976d2;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.comment-submit-btn:disabled {
+  background: #b0bec5;
+  cursor: not-allowed;
+}
+.comment-submit-btn:hover:not(:disabled) {
+  background: #1251a3;
+}
+
+/* 스타일 추가 */
+.btn-report-post {
+  background: #fff0f0;
+  color: #e74c3c;
+  border: 1.5px solid #e74c3c;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-report-post i {
+  font-size: 1.1em;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.btn-report-post:hover {
+  background: #e74c3c;
+  color: #fff;
+}
+.comment-actions-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.btn-action-comment {
+  background: #fff0f0;
+  color: #e74c3c;
+  border: 1.5px solid #e74c3c;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.98rem;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-action-comment:disabled {
+  background: #f8d7da;
+  color: #b0bec5;
+  border-color: #f8d7da;
+  cursor: not-allowed;
+}
+.btn-action-comment:hover:not(:disabled) {
+  background: #e74c3c;
+  color: #fff;
 }
 </style>

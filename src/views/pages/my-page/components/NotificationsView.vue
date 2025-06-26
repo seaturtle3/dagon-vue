@@ -11,16 +11,13 @@
     title="오류"
     :message="errorMessage"
     :onConfirm="() => showErrorModal = false"
-  />
-  <ModalDialog
-    :show="showConfirmModal"
-    title="알림 숨기기"
-    message="알림을 숨기면 복구할 수 없습니다. 계속하시겠습니까?"
-    confirmText="숨기기"
-    cancelText="취소"
-    :onConfirm="confirmHideNotification"
-    :onCancel="() => showConfirmModal = false"
-  />
+  >
+    <template #header-action>
+      <button class="header-action-btn" @click="showErrorModal = false" title="닫기">
+        <i class="fa-solid fa-x"></i>
+      </button>
+    </template>
+  </ModalDialog>
   <div class="notifications-container">
     <h2 class="page-title">내 알람</h2>
 
@@ -58,14 +55,9 @@
           <div class="notification-message">{{ notification.content }}</div>
           <div class="notification-time">{{ notification.time }}</div>
         </div>
-        <div class="notification-actions">
-          <button class="btn-hide" @click="hideNotification(notification.id)" title="알림 숨기기">
-            <i class="fa-solid fa-x"></i>
-          </button>
-          <div class="notification-action">
-
-          </div>
-        </div>
+        <button class="notification-delete-btn small" @click.stop="deleteNotification(notification.id)" title="알림 삭제">
+          <i class="fa-solid fa-x"></i>
+        </button>
       </div>
 
       <div v-else class="no-notifications">
@@ -86,14 +78,11 @@ const router = useRouter();
 const authStore = useAuthStore();
 const selectedFilter = ref('all');
 const notifications = ref([]);
-const hiddenNotifications = ref(new Set(JSON.parse(localStorage.getItem('hiddenNotifications') || '[]')));
 const loading = ref(false);
 const isInitialized = ref(false);
 const showLoginModal = ref(false);
 const showErrorModal = ref(false);
 const errorMessage = ref('');
-const showConfirmModal = ref(false);
-const notificationToHide = ref(null);
 
 // 사용자 정보 초기화 확인
 const initializeUserInfo = async () => {
@@ -159,8 +148,7 @@ const fetchNotifications = async () => {
 };
 
 const filteredNotifications = computed(() => {
-  let filtered = notifications.value.filter(n => !hiddenNotifications.value.has(n.id));
-  
+  let filtered = notifications.value;
   if (selectedFilter.value === 'unread') {
     return filtered.filter(n => !n.read);
   }
@@ -205,39 +193,20 @@ const markAllAsRead = async () => {
   }
 };
 
-// 알림 숨기기 함수 수정
-const hideNotification = (id) => {
-  if (confirm('알림을 숨기면 복구할 수 없습니다. 계속하시겠습니까?')) {
-    hiddenNotifications.value.add(id);
-    localStorage.setItem('hiddenNotifications', JSON.stringify([...hiddenNotifications.value]));
-  }
-};
-
-// 알림 숨기기 확인 함수 추가
-const confirmHideNotification = () => {
-  if (notificationToHide.value) {
-    hiddenNotifications.value.add(notificationToHide.value);
-    localStorage.setItem('hiddenNotifications', JSON.stringify([...hiddenNotifications.value]));
-    notificationToHide.value = null;
-  }
-  showConfirmModal.value = false;
-};
-
-// 알림 숨기기 취소 함수 수정
-const showHiddenNotification = (id) => {
-  hiddenNotifications.value.delete(id);
-  // localStorage 업데이트
-  localStorage.setItem('hiddenNotifications', JSON.stringify([...hiddenNotifications.value]));
-};
-
-// 숨긴 알림 모두 보이기 함수 추가
-const showAllHiddenNotifications = () => {
-  hiddenNotifications.value.clear();
-  localStorage.setItem('hiddenNotifications', JSON.stringify([]));
-};
-
 const goToLogin = () => {
   router.push('/login');
+};
+
+// 알림 삭제
+const deleteNotification = async (id) => {
+  if (!confirm('이 알림을 삭제하시겠습니까?')) return;
+  try {
+    await myPageAPI.deleteNotification(id);
+    // 삭제 후 목록에서 제거
+    notifications.value = notifications.value.filter(n => n.id !== id);
+  } catch (error) {
+    alert('알림 삭제에 실패했습니다.');
+  }
 };
 
 // 컴포넌트 마운트 시 초기화
@@ -463,6 +432,35 @@ watch(() => authStore.user, (newUser) => {
   font-size: 1.1rem;
   box-shadow: 0 4px 12px rgba(0, 105, 192, 0.15);
   border: 2px solid #90caf9;
+}
+
+.notification-delete-btn.small {
+  border: none;
+  background: none;
+  color: #d32f2f;
+  font-size: 1rem;
+  margin-left: 0.2rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.notification-delete-btn.small:hover {
+  background: #ffeaea;
+  color: #b71c1c;
+}
+
+.notification-delete-btn.small .delete-text {
+  display: none;
+}
+
+@media (max-width: 500px) {
+  .notification-delete-btn .delete-text {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
