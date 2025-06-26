@@ -117,9 +117,9 @@ async function submit() {
 
   const formData = new FormData()
   formData.append(
-      "product",
-      new Blob([JSON.stringify({
-        ...localForm,
+      "product", new Blob(
+          [JSON.stringify({
+        ...productJson,
         deleteImageNames: deletedImageNames.value
       })], { type: "application/json" })
   )
@@ -131,7 +131,7 @@ async function submit() {
   try {
     if (localForm.prodId) {
       // ✅ 수정 API
-      await updateProduct(localForm.prodId, localForm)
+      await updateProduct(localForm.prodId, formData)
       alert("수정 성공")
     } else {
       // ✅ 등록 API
