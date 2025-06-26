@@ -121,4 +121,24 @@ api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 
   });
 };
 
+// PUT용 멀티파트 업로드 메서드 추가
+api.multipartPut = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
+  const formData = new FormData();
+  const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
+  formData.append(dtoKey, blob);
+  if (Array.isArray(files)) {
+    files.forEach(file => {
+      if (file) formData.append(fileKey, file);
+    });
+  } else if (files) {
+    formData.append(fileKey, files);
+  }
+  const token = localStorage.getItem('token');
+  return api.put(url, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+};
+
 export default api
