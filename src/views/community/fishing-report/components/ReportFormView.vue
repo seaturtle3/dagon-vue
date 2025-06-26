@@ -229,7 +229,9 @@ async function onSubmit() {
       prodId: selectedProduct.value.prodId,
       prodName: selectedProduct.value.prodName
     } : null,
-    user: null,
+    user: report.value && report.value.user
+      ? report.value.user
+      : (authStore.user ? { userId: authStore.user.userId } : null),
     comments: [],
     thumbnailUrl: null
   }
@@ -246,6 +248,7 @@ async function onSubmit() {
       alert('조황정보가 성공적으로 등록되었습니다!')
       router.push('/fishing-report')
     }
+
   } catch (err) {
     console.error('조황정보 등록/수정 실패:', err)
     if (err.response?.data?.message) {
