@@ -26,9 +26,15 @@ const statusClass = computed(() => {
 })
 
 function formatDate(str) {
-  if (!str || str.trim() === '') return '미정'
-  const [y, m, d] = str.split('-')
-  return `${y}. ${m}. ${d}`
+  if (!str || str.trim() === '' || str === 'null' || str === 'undefined') return '미정'
+  try {
+    const [y, m, d] = str.split('-')
+    if (!y || !m || !d) return '미정'
+    return `${y}. ${m}. ${d}`
+  } catch (error) {
+    console.error('날짜 형식 오류:', error)
+    return '미정'
+  }
 }
 
 const formattedPeriod = computed(() => {

@@ -35,7 +35,7 @@
     <div class="info-section">
       <h3>사업자 등록증</h3>
       <div class="license-image">
-        <img :src="getFullLicenseImgPath(partnerInfo.licenseImg)" alt="사업자 등록증"/>
+        <img :src="getFullLicenseImgPath(partnerInfo.licenseImg)" alt="사업자 등록증 이미지가 없습니다."/>
       </div>
     </div>
 
@@ -59,6 +59,7 @@
 
 <script>
 import {partnerService} from '@/api/partner';
+import { BASE_URL } from '@/constants/baseUrl.js';
 
 export default {
   name: 'PartnerInfo',
@@ -93,8 +94,11 @@ export default {
       if (!path) {
         return '/img/default-license.png';
       }
-      const fileName = path.split(/[/\\\\]/).pop(); // 마지막 파일명만 추출
-  return `/uploads/${fileName}`;
+      if (path.startsWith('http')) {
+        return path;
+      }
+      let fileName = path.split(/[/\\]/).pop();
+      return `${BASE_URL}/uploads/${fileName}`;
     },
     goToInquiry() {
       this.$router.push('/partner/inquiries');

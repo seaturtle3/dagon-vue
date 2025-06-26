@@ -7,13 +7,17 @@
 
     <div v-if="reservation" class="detail-card">
       <div class="status-section">
-        <h2>{{ reservation.productName || '상품명 없음' }}</h2>
+        <h2>{{ reservation.productName }}</h2>
         <span :class="['status-badge', (reservation.reservationStatus || '').toLowerCase()]">
           {{ getStatusText(reservation.reservationStatus) }}
         </span>
       </div>
 
       <div class="info-grid">
+        <div class="info-item">
+          <label>상품명</label>
+          <p>{{ reservation.productName }}</p>
+        </div>
         <div class="info-item">
           <label>예약자</label>
           <p>{{ reservation.userName }}</p>
@@ -73,7 +77,7 @@ export default {
         console.log('예약 상세 API 응답:', response.data);
         this.reservation = {
           ...response.data,
-          productName: response.data.prod_name || '상품명 없음'
+          productName: response.data.productName || response.data.prod_name || '상품명 없음'
         };
         console.log('매핑된 예약 상세:', this.reservation);
       } catch (error) {

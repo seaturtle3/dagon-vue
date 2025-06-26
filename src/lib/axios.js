@@ -6,13 +6,13 @@ console.log('BASE_URL:', BASE_URL)
 const api = axios.create({
     baseURL: BASE_URL || 'http://localhost:8095',
     timeout: 30000,
-    // headers: {
-    //     'Content-Type': 'application/json',
-    // }
     headers: {
         'Content-Type': 'application/json; charset=utf-8',
         'Accept': 'application/json; charset=utf-8'
     }
+    // headers: {
+    //     'Content-Type': 'application/json',
+    // }
 })
 
 // 요청 인터셉터

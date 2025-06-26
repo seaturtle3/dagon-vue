@@ -82,7 +82,7 @@
             <div class="comment-content">{{ comment.comment || comment.content || comment.text }}</div>
             <div class="comment-actions">
               <button
-                @click="openReportModal(comment.user?.uid || comment.user?.uno)"
+                @click="openReportModal(comment.fdCommentId)"
                 class="btn-report-comment"
                 :aria-label="'댓글 신고'"
                 :disabled="reporting"

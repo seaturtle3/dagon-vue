@@ -228,9 +228,21 @@ export const useAuthStore = defineStore('auth', {
 
                 return true;
             } catch (err) {
-                console.error('인증 확인 실패', err);
-                this.logout();
-                return false;
+                if (err.response?.status === 401) {
+                    // 401만 로그아웃 처리
+                    this.logout();
+                    return false;
+                } else if (err.response?.status === 404) {
+                    // 404는 엔드포인트 없음 → 로그아웃 처리 X, 경고만
+                    console.warn(`${userInfoEndpoint} 엔드포인트 없음 (404)`);
+                    // 인증 상태는 그대로 유지
+                    return true;
+                } else {
+                    // 기타 에러
+                    console.error('인증 확인 실패', err);
+                    this.logout();
+                    return false;
+                }
             }
         },
 

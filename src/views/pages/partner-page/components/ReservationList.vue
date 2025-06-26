@@ -103,7 +103,7 @@ export default {
         console.log('예약 목록 API 응답:', response.data);
         this.reservations = response.data.map(reservation => ({
           ...reservation,
-          productName: reservation.prod_name || '상품명 없음'
+          productName: reservation.productName || reservation.prod_name || reservation.product_name || '상품명 없음'
         }));
         console.log('매핑된 예약 목록:', this.reservations);
       } catch (error) {
