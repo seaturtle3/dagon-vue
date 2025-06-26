@@ -12,9 +12,18 @@ const imagePreviews = ref([]) // 여러 이미지 미리보기
 
 const props = defineProps({
   form: Object,
-  regions: Array,
-  mainTypes: Array,
-  subTypes: Array,
+  regions: {
+    type: Array,
+    default: () => []
+  },
+  mainTypes: {
+    type: Array,
+    default: () => []
+  },
+  subTypes: {
+    type: Array,
+    default: () => []
+  },
   editMode: Boolean,
   prodId: [String, Number]
 })
@@ -109,7 +118,6 @@ async function submit() {
     if (props.editMode && props.prodId) {
       await productFormStore.updateProductAction(props.prodId, dtoToSend, files.value, router)
       router.push('/partner/products')
-
     } else {
       await productFormStore.createProductAction(dtoToSend, files.value, router)
       router.push('/partner/products')
@@ -127,7 +135,7 @@ async function submit() {
 }
 
 const filteredSubTypes = computed(() => {
-  return props.subTypes.filter(sub => sub.mainType === localForm.mainType)
+  return (props.subTypes || []).filter(sub => sub.mainType === localForm.mainType)
 })
 
 </script>

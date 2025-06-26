@@ -52,6 +52,7 @@
   </div>
 </template>
 
+
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -67,9 +68,13 @@ import FishingReportDetail from './components/FishingReportDetail.vue'
 import InquiryList from './components/InquiryList.vue'
 import PartnerInfo from './components/PartnerInfo.vue'
 import PartnerWithdrawal from './components/PartnerWithdrawal.vue'
+import ProductFormView from './components/ProductFormView.vue'
 
 export default {
   name: 'PartnerPage',
+  components: {
+    ProductFormView
+  },
   mounted() {
     // 위임 토큰 체크 제거 - 단순 로그아웃만 사용
   },
@@ -104,7 +109,6 @@ export default {
   color: #2c3e50;
   padding: 20px 0;
   position: fixed;
-  height: 100vh;
   overflow-y: auto;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   top: 0;

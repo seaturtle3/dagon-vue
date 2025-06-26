@@ -27,19 +27,30 @@
       </div>
     </div>
 
-    <div class="product-grid">
+    <div v-if="loading" class="loading-overlay">로딩 중...</div>
+    <div v-else-if="products.length === 0" class="no-products">
+      등록된 상품이 없습니다.
+    </div>
+    <div v-else class="product-grid">
       <div v-for="product in filteredProducts" :key="product.prodId" class="product-card" :class="{ 'deleted': product.deleted }">
         <div class="product-image" @click="$router.push(`/products/${product.prodId}`)">
-          <img
-            v-if="hasImage(product)"
-            :src="getThumbnailUrl(product)"
-            :alt="product.prodName"
-            @error="e => { e.target.src = defaultImage }"
-          >
-          <div v-else class="image-placeholder">
-            <i class="fas fa-ship"></i>
-            <span>이미지 없음</span>
-          </div>
+          <template v-if="product.prodImageNames && product.prodImageNames.length > 0">
+            <div class="image-thumbnails">
+              <div v-for="img in product.prodImageNames" :key="img">
+                <img 
+                :src="`${BASE_URL}/uploads/products/${img}`"
+                class="thumbnail-img"
+              >
+             
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div class="image-placeholder">
+              <i class="fas fa-ship"></i>
+              <span>이미지 없음</span>
+            </div>
+          </template>
           <span :class="['type-badge', product.mainType?.toLowerCase()]">
             {{ getTypeText(product.mainType) }}
           </span>
@@ -66,10 +77,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div v-if="products.length === 0" class="no-products">
-      등록된 상품이 없습니다.
     </div>
 
     <!-- 조황 등록 폼 (오버레이) -->
@@ -119,244 +126,223 @@
   </div>
 </template>
 
-<script>
-import { BASE_URL } from '@/constants/baseUrl.js';
-import { partnerService } from '@/api/partner';
-import ReportFormView from '@/views/community/fishing-report/components/ReportFormView.vue';
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { BASE_URL } from '@/constants/baseUrl.js'
+import { partnerService } from '@/api/partner'
+import ReportFormView from '@/views/community/fishing-report/components/ReportFormView.vue'
 
-export default {
-  name: 'ProductList',
-  components: {
-    ReportFormView
-  },
-  data() {
-    return {
-      searchQuery: '',
-      typeFilter: 'all',
-      statusFilter: 'all',
-      products: [],
-      defaultImage: '/images/default-product.jpg',
-      showCreateReportFormForProduct: false,
-      selectedProdId: null,
-      reportDto: {
-        title: '',
-        content: '',
-        fishingAt: '',
-        product: null
-      },
-      reportLoading: false,
-      reportError: null,
-      thumbnailFile: null,
-      thumbnailPreview: null,
-    }
-  },
-  computed: {
-    filteredProducts() {
-      return this.products.filter(product => {
-        const matchesSearch = product.prodName.toLowerCase().includes(this.searchQuery.toLowerCase());
-        const matchesType = this.typeFilter === 'all' || product.mainType === this.typeFilter;
-        const matchesStatus = this.statusFilter === 'all' || 
-          (this.statusFilter === 'active' && !product.deleted) ||
-          (this.statusFilter === 'deleted' && product.deleted);
-        return matchesSearch && matchesType && matchesStatus;
-      });
-    }
-  },
-  methods: {
-    async loadProducts() {
-      try {
-        const response = await partnerService.getPartnerAllProducts();
-        console.log('받아온 상품 데이터:', response.data);
-        this.products = response.data.map(product => {
-          console.log(`상품 ${product.prodId}의 deleted 상태:`, product.deleted);
-          return {
-            ...product,
-            deleted: product.deleted || false // deleted가 undefined인 경우 false로 설정
-          };
-        });
-      } catch (error) {
-        console.error("상품 목록 로딩 실패:", error);
-        alert("상품 목록을 불러오는데 실패했습니다.");
-      }
-    },
-    getThumbnailUrl(product) {
-      if (product.prodImageNames && product.prodImageNames.length > 0) {
-        const firstImage = product.prodImageNames[0];
-        if (firstImage) {
-          return `${BASE_URL}${firstImage}`;
-        }
-      }
-      // fallback: prodThumbnail 사용
-      if (product.prodThumbnail) {
-        return partnerService.getThumbnailUrl(product.prodThumbnail);
-      }
-      return this.defaultImage;
-    },
-    hasImage(product) {
-      return (
-        (product.prodImageNames && product.prodImageNames.length > 0 && product.prodImageNames[0]) ||
-        product.prodThumbnail
-      );
-    },
-    getTypeText(type) {
-      return type === 'SEA' ? '바다낚시' : type === 'FRESHWATER' ? '민물낚시' : '미지정';
-    },
-    getSubTypeText(subType) {
-      const subTypeMap = {
-        'BREAK_WATER': '방파제',
-        'ROCKY_SHORE': '갯바위',
-        'ESTUARY': '하구',
-        'BOAT': '선상',
-        'MUD_FLAT': '갯벌',
-        'ARTIFICIAL': '인공낚시터',
-        'OPEN_SEA': '해상',
-        'BEACH': '해변',
-        'REEF': '암초',
-        'OTHER_SEA': '기타_바다',
-        'RIVER': '강',
-        'RESERVOIR': '저수지',
-        'DAM': '댐',
-        'POND': '연못',
-        'SMALL_LAKE': '소류지',
-        'CANAL': '수로',
-        'FLOATING_PLATFORM': '좌대',
-        'OPEN_AREA': '노지',
-        'OTHER_FRESHWATER': '기타_민물'
-      };
-      return subTypeMap[subType] || '미지정';
-    },
-    searchProducts() {
-      // 검색 로직은 computed 속성에서 처리됨
-    },
-    filterProducts() {
-      // 필터링 로직은 computed 속성에서 처리됨
-    },
-    deleteProduct(prodId) {
-      alert('준비중입니다.');
-    },
-    async restoreProduct(prodId) {
-      if (!confirm('이 상품을 다시 공개하시겠습니까?')) {
-        return;
-      }
+const router = useRouter()
 
-      try {
-        await partnerService.restoreProduct(prodId);
-        alert('상품이 성공적으로 복구되었습니다.');
-        await this.loadProducts();
-      } catch (error) {
-        console.error('상품 복구 실패:', error);
-        if (error.response?.status === 403) {
-          alert('복구 권한이 없습니다.');
-        } else {
-          alert(error.response?.data?.message || '상품 복구에 실패했습니다.');
-        }
-      }
-    },
-    // 조황 등록 폼 열기
-    openCreateReportForm(prodId) {
-      this.selectedProdId = prodId;
-      this.showCreateReportFormForProduct = true;
-      this.resetNewReportForm();
-      
-      // 선택된 상품 정보를 reportDto에 설정
-      const selectedProduct = this.products.find(p => p.prodId === prodId);
-      if (selectedProduct) {
-        this.reportDto.product = {
-          prodId: selectedProduct.prodId,
-          prodName: selectedProduct.prodName
-        };
-        console.log('선택된 상품 정보:', this.reportDto.product);
-      }
-    },
-    // 조황 등록 폼 닫기 및 초기화
-    cancelCreateReport() {
-      this.showCreateReportFormForProduct = false;
-      this.selectedProdId = null;
-      this.resetNewReportForm();
-    },
-    // 새 조황정보 폼 데이터 초기화
-    resetNewReportForm() {
-      this.reportDto = {
-        title: '',
-        content: '',
-        fishingAt: '',
-        product: null
-      };
-      this.reportLoading = false;
-      this.reportError = null;
-      this.thumbnailFile = null;
-      this.thumbnailPreview = null;
-    },
-    // ReportFormView에서 성공 이벤트 처리
-    handleReportSuccess(data) {
-      console.log('조황정보 등록 성공:', data);
-      alert('조황정보가 성공적으로 등록되었습니다.');
-      this.cancelCreateReport();
-    },
-    // ReportFormView에서 에러 이벤트 처리
-    handleReportError(error) {
-      console.error('조황정보 등록 실패:', error);
-      this.reportError = error.message || '조황정보 등록에 실패했습니다.';
-    },
-    // 썸네일 이미지 변경 처리
-    handleThumbnailChange(event) {
-      const file = event.target.files[0];
-      if (file) {
-        this.thumbnailFile = file;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.thumbnailPreview = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      } else {
-        this.thumbnailFile = null;
-        this.thumbnailPreview = null;
-      }
-    },
-    // 폼 제목에 상품명 표시
-    getProductNameForReport() {
-      const product = this.products.find(p => p.prodId === this.selectedProdId);
-      return product ? product.prodName : '';
-    },
-    openReportProductForm(prodId, prodName) {
-      // 신고 제품 폼 열기
-      console.log(`신고 제품 폼을 열기, prodId: ${prodId}, prodName: ${prodName}`);
-      this.selectedProdId = prodId;
-      this.showReportProductForm = true;
-    },
-    cancelReportProduct() {
-      this.showReportProductForm = false;
-      this.selectedProdId = null;
-      this.productReport = {
-        reason: '',
-      };
-    },
-    async submitProductReport() {
-      if (!confirm('제품을 신고하시겠습니까?')) {
-        return;
-      }
+const searchQuery = ref('')
+const typeFilter = ref('all')
+const statusFilter = ref('all')
+const products = ref([])
+const defaultImage = '/images/default-product.jpg'
+const showCreateReportFormForProduct = ref(false)
+const selectedProdId = ref(null)
+const reportDto = ref({
+  title: '',
+  content: '',
+  fishingAt: '',
+  product: null
+})
+const reportLoading = ref(false)
+const reportError = ref(null)
+const thumbnailFile = ref(null)
+const thumbnailPreview = ref(null)
+const loading = ref(false)
+const showReportProductForm = ref(false)
+const productReport = ref({ reason: '' })
 
-      try {
-        await partnerService.reportProduct(this.selectedProdId, this.productReport.reason);
-        alert('제품이 성공적으로 신고되었습니다.');
-        this.cancelReportProduct();
-      } catch (error) {
-        console.error('제품 신고 실패:', error);
-        const errorMessage = error.response?.data?.message || '제품 신고에 실패했습니다. 다시 시도해주세요.';
-        alert(errorMessage);
-      }
-    },
-    goToProductForm() {
-      this.$router.push('/products/form');
-    },
-    goToCreateReport(prodId) {
-      this.$router.push({ path: '/fishing-report/create', query: { prodId } });
-    },
-  },
-  mounted() {
-    this.loadProducts();
+const filteredProducts = computed(() => {
+  return products.value.filter(product => {
+    const matchesSearch = product.prodName.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesType = typeFilter.value === 'all' || product.mainType === typeFilter.value
+    const matchesStatus = statusFilter.value === 'all' ||
+      (statusFilter.value === 'active' && !product.deleted) ||
+      (statusFilter.value === 'deleted' && product.deleted)
+    return matchesSearch && matchesType && matchesStatus
+  })
+})
+
+async function loadProducts() {
+  try {
+    loading.value = true
+    const response = await partnerService.getPartnerAllProducts()
+    products.value = response.data.map(product => ({
+      ...product,
+      deleted: product.deleted || false
+    }))
+  } catch (error) {
+    alert('상품 목록을 불러오는데 실패했습니다.')
+  } finally {
+    loading.value = false
   }
 }
+
+function getThumbnailUrl(product) {
+  if (product.prodImageNames && product.prodImageNames.length > 0) {
+    const firstImage = product.prodImageNames[0]
+    if (firstImage) {
+      return `${BASE_URL}${firstImage}`
+    }
+  }
+  if (product.prodThumbnail) {
+    return partnerService.getThumbnailUrl(product.prodThumbnail)
+  }
+  return defaultImage
+}
+
+function hasImage(product) {
+  return (
+    (product.prodImageNames && product.prodImageNames.length > 0 && product.prodImageNames[0]) ||
+    product.prodThumbnail
+  )
+}
+
+function getTypeText(type) {
+  return type === 'SEA' ? '바다낚시' : type === 'FRESHWATER' ? '민물낚시' : '미지정'
+}
+
+function getSubTypeText(subType) {
+  const subTypeMap = {
+    'BREAK_WATER': '방파제',
+    'ROCKY_SHORE': '갯바위',
+    'ESTUARY': '하구',
+    'BOAT': '선상',
+    'MUD_FLAT': '갯벌',
+    'ARTIFICIAL': '인공낚시터',
+    'OPEN_SEA': '해상',
+    'BEACH': '해변',
+    'REEF': '암초',
+    'OTHER_SEA': '기타_바다',
+    'RIVER': '강',
+    'RESERVOIR': '저수지',
+    'DAM': '댐',
+    'POND': '연못',
+    'SMALL_LAKE': '소류지',
+    'CANAL': '수로',
+    'FLOATING_PLATFORM': '좌대',
+    'OPEN_AREA': '노지',
+    'OTHER_FRESHWATER': '기타_민물'
+  }
+  return subTypeMap[subType] || '미지정'
+}
+
+function searchProducts() {}
+function filterProducts() {}
+
+function deleteProduct(prodId) {
+  alert('준비중입니다.')
+}
+
+async function restoreProduct(prodId) {
+  if (!confirm('이 상품을 다시 공개하시겠습니까?')) return
+  try {
+    await partnerService.restoreProduct(prodId)
+    alert('상품이 성공적으로 복구되었습니다.')
+    await loadProducts()
+  } catch (error) {
+    alert(error.response?.data?.message || '상품 복구에 실패했습니다.')
+  }
+}
+
+function openCreateReportForm(prodId) {
+  selectedProdId.value = prodId
+  showCreateReportFormForProduct.value = true
+  resetNewReportForm()
+  const selectedProduct = products.value.find(p => p.prodId === prodId)
+  if (selectedProduct) {
+    reportDto.value.product = {
+      prodId: selectedProduct.prodId,
+      prodName: selectedProduct.prodName
+    }
+  }
+}
+
+function cancelCreateReport() {
+  showCreateReportFormForProduct.value = false
+  selectedProdId.value = null
+  resetNewReportForm()
+}
+
+function resetNewReportForm() {
+  reportDto.value = {
+    title: '',
+    content: '',
+    fishingAt: '',
+    product: null
+  }
+  reportLoading.value = false
+  reportError.value = null
+  thumbnailFile.value = null
+  thumbnailPreview.value = null
+}
+
+function handleReportSuccess(data) {
+  alert('조황정보가 성공적으로 등록되었습니다.')
+  cancelCreateReport()
+}
+
+function handleReportError(error) {
+  reportError.value = error.message || '조황정보 등록에 실패했습니다.'
+}
+
+function handleThumbnailChange(event) {
+  const file = event.target.files[0]
+  if (file) {
+    thumbnailFile.value = file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      thumbnailPreview.value = e.target.result
+    }
+    reader.readAsDataURL(file)
+  } else {
+    thumbnailFile.value = null
+    thumbnailPreview.value = null
+  }
+}
+
+function getProductNameForReport() {
+  const product = products.value.find(p => p.prodId === selectedProdId.value)
+  return product ? product.prodName : ''
+}
+
+function openReportProductForm(prodId, prodName) {
+  selectedProdId.value = prodId
+  showReportProductForm.value = true
+}
+
+function cancelReportProduct() {
+  showReportProductForm.value = false
+  selectedProdId.value = null
+  productReport.value = { reason: '' }
+}
+
+async function submitProductReport() {
+  if (!confirm('제품을 신고하시겠습니까?')) return
+  try {
+    await partnerService.reportProduct(selectedProdId.value, productReport.value.reason)
+    alert('제품이 성공적으로 신고되었습니다.')
+    cancelReportProduct()
+  } catch (error) {
+    alert(error.response?.data?.message || '제품 신고에 실패했습니다. 다시 시도해주세요.')
+  }
+}
+
+function goToProductForm() {
+  router.push('/partner/products/form')
+}
+
+function goToCreateReport(prodId) {
+  router.push({ path: '/fishing-report/create', query: { prodId } })
+}
+
+onMounted(() => {
+  loadProducts()
+})
 </script>
 
 <style scoped>
@@ -500,11 +486,12 @@ export default {
   box-shadow: 0 8px 16px rgba(0,0,0,0.15);
 }
 
-.product-image {
+.product-image, .image-placeholder {
   position: relative;
   height: 220px;
   overflow: hidden;
   border-bottom: 1px solid #f0f0f0;
+  background-color: #f5f5f5 !important;
 }
 
 .product-image img {
@@ -906,15 +893,24 @@ export default {
   background-color: #5a6268;
 }
 
-.status-badge {
-  &.active {
-    background-color: #1976d2;
-  }
-  &.inactive {
-    background-color: #90caf9;
-  }
-  &.sold-out {
-    background-color: #e57373;
-  }
+.status-badge.active {
+  background-color: #1976d2;
+}
+.status-badge.inactive {
+  background-color: #90caf9;
+}
+.status-badge.sold-out {
+  background-color: #e57373;
+}
+
+.image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 </style> 

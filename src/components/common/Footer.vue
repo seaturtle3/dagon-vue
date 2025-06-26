@@ -1,5 +1,5 @@
 <template>
-  <footer class="fishing-footer text-white py-4">
+  <footer class="fishing-footer">
     <div class="container-fluid">
       <div class="row g-3">
         <!-- 로고 및 사이트 설명 -->
@@ -48,6 +48,15 @@
 .fishing-footer {
   background-color: #1a3c5e; /* 낚시 테마에 어울리는 깊은 바다 색상 */
   color: #ffffff;
+  margin-left: 0px;
+  width: 100vw;
+  border: 1px solid red;
+}
+
+@media (max-width: 768px) {
+  .fishing-footer {
+    margin-left: 0;
+  }
 }
 
 .fishing-footer a:hover {
