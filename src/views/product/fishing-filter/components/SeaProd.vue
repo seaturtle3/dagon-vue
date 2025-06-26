@@ -42,9 +42,9 @@ function onPageChange(newPage) {
         class="product-card"
         v-for="product in paginatedProducts"
         :key="product.prodId"
+        @click="openDetail(product)"
+        style="cursor: pointer"
     >
-      <!-- 상품명 + 배경 -->
-      <div class="prod-name" @click="openDetail(product)">{{ product.prodName }}</div>
 
       <!-- 썸네일 -->
       <div class="thumbnail-wrapper">
@@ -57,9 +57,7 @@ function onPageChange(newPage) {
 
       <!-- 본문 -->
       <div class="content">
-        <p style="margin-bottom: 1%">어종 : </p>
-        <p style="margin-bottom: 1%">비용 : </p>
-        <p style="margin-bottom: 1%">시간 : </p>
+        <p class="prod-name mb-2 fs-5">{{ product.prodName }}</p>
         <p class="address">위치 : {{ product.prodAddress }}</p>
       </div>
 
@@ -79,6 +77,7 @@ function onPageChange(newPage) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* ✅ 반응형 열 */
   gap: 32px;
+  place-items: center; /* ✅ 아이템들을 가운데 정렬 */
 }
 
 @media (max-width: 1200px) {
@@ -106,9 +105,12 @@ function onPageChange(newPage) {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
+  max-width: 320px;  /* ✅ 고정된 카드 폭 */
+  margin: 0 auto;    /* ✅ 가운데 정렬 */
 }
 
-.prod-name {
+/* .prod-name {
   font-weight: bold;
   font-size: 1.1rem;
   background-color: cornflowerblue;
@@ -117,6 +119,13 @@ function onPageChange(newPage) {
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   cursor:pointer;
+} */
+
+.prod-name {
+  display: block;       /* ✅ 줄바꿈 방지 */
+  overflow: hidden;
+  text-overflow: ellipsis; /* ✅ 말줄임 표시 */
+  white-space: nowrap;  /* ✅ 한 줄로 고정 */
 }
 
 .thumbnail-wrapper {
