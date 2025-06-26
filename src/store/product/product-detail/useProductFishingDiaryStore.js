@@ -22,7 +22,7 @@ export const useProductFishingDiaryStore = defineStore('productFishingDiary', {
             this.lastFetchedProductId = productId
 
             try {
-                const response = await api.get(`/product/fishing-diary/${productId}`)
+                const response = await api.get(`api/product/fishing-diary/${productId}`)
                 this.diary = response.data
             } catch (err) {
                 this.error = err.response?.data?.message || '조행기 조회 실패'

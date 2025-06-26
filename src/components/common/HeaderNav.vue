@@ -39,7 +39,7 @@
 
         <template v-if="!authStore.isAuthenticated">
           <router-link to="/signup" class="btn btn-outline-secondary btn-sm">회원가입</router-link>
-          <router-link to="/login" class="btn btn-outline-secondary btn-sm">사용자 로그인</router-link>
+          <router-link to="/login" class="btn btn-outline-secondary btn-sm">로그인</router-link>
           <router-link to="/admin/login" class="btn btn-outline-primary btn-sm">관리자 로그인</router-link>
         </template>
 
@@ -48,19 +48,39 @@
             <a class="dropdown-toggle d-flex align-items-center text-dark text-decoration-none"
                href="#" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
               <img :src="authStore.user?.profileImage || '/default.png'" width="32" />
-              {{ authStore.user?.name || '사용자' }}
+              {{ displayName }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <router-link class="dropdown-item" to="/mypage">내 정보</router-link>
-              </li>
-              <li>
-                <router-link class="dropdown-item" to="/mypage/reservations">예약조회</router-link>
-              </li>
-              <li>
-                <hr class="dropdown-divider"/>
-              </li>
-              <li><a class="dropdown-item" href="#" @click="logout">로그아웃</a></li>
+              <template v-if="isAdmin">
+                <li>
+                  <router-link class="dropdown-item" to="/admin/dashboard">관리자페이지</router-link>
+                </li>
+                <li>
+                  <hr class="dropdown-divider"/>
+                </li>
+                <li><a class="dropdown-item" href="#" @click="logout">로그아웃</a></li>
+              </template>
+              <template v-else-if="isPartner">
+                <li>
+                  <router-link class="dropdown-item" to="/partner-page">파트너페이지</router-link>
+                </li>
+                <li>
+                  <hr class="dropdown-divider"/>
+                </li>
+                <li><a class="dropdown-item" href="#" @click="logout">로그아웃</a></li>
+              </template>
+              <template v-else>
+                <li>
+                  <router-link class="dropdown-item" to="/mypage">마이페이지</router-link>
+                </li>
+                <li>
+                  <router-link class="dropdown-item" to="/mypage/reservations">예약조회</router-link>
+                </li>
+                <li>
+                  <hr class="dropdown-divider"/>
+                </li>
+                <li><a class="dropdown-item" href="#" @click="logout">로그아웃</a></li>
+              </template>
             </ul>
           </div>
 
@@ -173,6 +193,19 @@ const unreadCount = computed(() => {
   return notifications.value.filter(n => !n.read).length
 })
 
+// 사용자 타입 판별
+const isAdmin = computed(() => {
+  if (!authStore.user || !authStore.user.role) return false;
+  const role = String(authStore.user.role).toUpperCase();
+  return role === 'ADMIN' || role === 'SUPER_ADMIN';
+})
+
+const isPartner = computed(() => {
+  if (!authStore.user || !authStore.user.role) return false;
+  const role = String(authStore.user.role).toUpperCase();
+  return role === 'PARTNER';
+})
+
 const visibleNotifications = computed(() =>
   notifications.value.filter(n => n && n.id && !hiddenNotifications.value.includes(n.id))
 );
@@ -222,8 +255,13 @@ const fetchNotifications = async () => {
           // JWT 토큰 디코딩 (간단한 방법)
           const payload = JSON.parse(atob(token.split('.')[1]))
           console.log('토큰 페이로드:', payload)
-          if (payload.uno || payload.id || payload.userId) {
-            userInfo = payload
+          
+          // 한글 변환 없이 그대로 사용
+          if (payload.uno || payload.id || payload.userId || payload.aid) {
+            userInfo = {
+              ...payload,
+              name: payload.aname || payload.uname || payload.name
+            }
             console.log('토큰에서 사용자 정보 추출:', userInfo)
           }
         } catch (tokenError) {
@@ -397,42 +435,22 @@ const closeNotificationModal = () => {
 }
 
 onMounted(() => {
-  authStore.loadTokenFromStorage()
-  
-  // 사용자 정보 초기화
-  const initializeUserInfo = () => {
-    try {
-      const storedUser = localStorage.getItem('userInfo')
-      if (storedUser && !authStore.user) {
-        const userInfo = JSON.parse(storedUser)
-        console.log('localStorage에서 사용자 정보 복원:', userInfo)
-        // authStore에 사용자 정보 설정 (store에 setUser 메서드가 있다면)
-        if (authStore.setUser) {
-          authStore.setUser(userInfo)
-        }
-      }
-    } catch (error) {
-      console.error('사용자 정보 초기화 실패:', error)
-    }
-  }
-  
-  // 약간의 지연 후 사용자 정보 초기화 및 알람 로드
-  setTimeout(() => {
-    initializeUserInfo()
-    
-    // 클릭 외부 감지 리스너 추가
-    clickOutsideListener.value = handleClickOutside
-    document.addEventListener('click', clickOutsideListener.value, true)
-    
-    // 초기 알람 로드
-    if (authStore.isAuthenticated) {
-      fetchNotifications()
-    }
-  }, 100)
-  
-  // ESC 키 리스너 추가
-  document.addEventListener('keydown', handleKeyDown)
+  // 1. 토큰/인증상태 복원
+  authStore.loadTokenFromStorage();
 
+  // 2. localStorage의 userInfo를 store에 동기화
+  try {
+    const storedUser = localStorage.getItem('userInfo');
+    if (storedUser) {
+      const userInfo = JSON.parse(storedUser);
+      if (authStore.setUser) {
+        authStore.setUser(userInfo);
+      }
+    }
+  } catch (e) {}
+
+  // ESC 키 리스너 추가
+  document.addEventListener('keydown', handleKeyDown);
   const stored = localStorage.getItem('hiddenNotifications');
   if (stored) {
     try {
@@ -500,6 +518,14 @@ const hideNotification = (id) => {
     localStorage.setItem('hiddenNotifications', JSON.stringify(hiddenNotifications.value));
   }
 };
+
+const displayName = computed(() => {
+  if (isAdmin.value) {
+    return authStore.user?.name || authStore.user?.aname || '관리자';
+  } else {
+    return authStore.user?.nickname || authStore.user?.uname || authStore.user?.name || '사용자';
+  }
+});
 </script>
 
 <style>

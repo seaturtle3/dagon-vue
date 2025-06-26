@@ -131,16 +131,12 @@ async function submitInquiry() {
       partnerUno: form.value.partnerUno,
       title: `${form.value.productName} 문의 - ${form.value.title}`,
       content: form.value.content,
-      inquiryType: form.value.inquiryType
+      inquiryType: form.value.inquiryType,
+      name: form.value.name,
+      email: form.value.email,
+      phone: form.value.phone,
+      writerType: 'NON_MEMBER'
     };
-    
-    // 비로그인 상태일 때 추가 정보 포함
-    if (!isLoggedIn.value) {
-      inquiryData.name = form.value.name;
-      inquiryData.email = form.value.email;
-      inquiryData.phone = form.value.phone;
-      inquiryData.writerType = 'NON_MEMBER';
-    }
     
     await partnerService.createPartnerInquiry(inquiryData);
     alert('문의가 등록되었습니다.');

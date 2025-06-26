@@ -7,7 +7,8 @@ const api = axios.create({
     baseURL: BASE_URL || 'http://localhost:8095',
     timeout: 30000,
     headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accept': 'application/json; charset=utf-8'
     }
 })
 
@@ -17,6 +18,7 @@ api.interceptors.request.use(
         // localStorage에서 토큰 가져와서 헤더에 추가
         const token = localStorage.getItem('token')
         if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
             config.headers.Authorization = `Bearer ${token}`
         }
         

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
-import axios from '@/lib/axios.js'
+import api from '@/lib/axios.js'
 import { useAdminAuthStore } from '@/store/auth/auth.js'
 import { useAuthStore } from '@/store/login/loginStore.js'
 import { useRouter } from 'vue-router'
@@ -95,7 +95,7 @@ function checkTokenStatus() {
   console.log('=== 토큰 상태 확인 ===')
   console.log('localStorage token:', localStorage.getItem('token'))
   console.log('localStorage userInfo:', localStorage.getItem('userInfo'))
-  console.log('axios headers:', axios.defaults.headers.common['Authorization'])
+  console.log('axios headers:', api.defaults.headers.common['Authorization'])
   console.log('adminAuthStore token:', adminAuthStore.token)
   console.log('adminAuthStore isAuthenticated:', adminAuthStore.isAuthenticated)
   console.log('authStore isAuthenticated:', authStore.isAuthenticated)
