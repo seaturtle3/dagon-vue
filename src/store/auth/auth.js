@@ -15,8 +15,11 @@ export const useAdminAuthStore = defineStore('adminAuth', {
         },
         clearToken() {
             this.token = null
+            this.user = null; // ← 이 부분이 중요!
             this.isAuthenticated = false
             localStorage.removeItem('token')
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('loginType');
             console.log('토큰 삭제됨')
         },
         loadTokenFromStorage() {

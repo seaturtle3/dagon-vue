@@ -76,7 +76,7 @@
               <i class="fas fa-star"></i>
             </button>
             <button @click="deleteNotice(notice.noticeId)" class="action-btn delete" title="삭제">
-              <i class="fas fa-trash"></i>
+              <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
         </div>
@@ -191,7 +191,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { getAdminNotices, createNotice, updateNotice, deleteNotice, fetchNoticeById } from '@/api/notice.js'
+import { getAdminNotices, createNotice, updateNotice, deleteNotice as deleteNoticeApi, fetchNoticeById } from '@/api/notice.js'
 
 export default {
   name: 'Notices',
@@ -326,7 +326,7 @@ export default {
       if (!confirm('정말 삭제하시겠습니까?')) return
       
       try {
-        await deleteNotice(noticeId)
+        await deleteNoticeApi(noticeId)
         await loadNotices()
         alert('공지사항이 삭제되었습니다.')
       } catch (error) {
@@ -545,7 +545,7 @@ export default {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 .table-body {
@@ -561,6 +561,7 @@ export default {
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.3s ease;
   align-items: center;
+  color: #1e293b;
 }
 
 .table-row:hover {
