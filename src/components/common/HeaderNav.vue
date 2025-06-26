@@ -83,59 +83,7 @@
               </template>
             </ul>
           </div>
-
-          <!-- 알람 드롭다운 -->
-          <div class="dropdown notification-dropdown">
-            <button class="btn btn-link text-danger fs-4 p-0 position-relative"
-                    @click="toggleNotificationDropdown"
-                    style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: none; background: none;">
-              <SirenIcon style="font-size: 1.5rem;"/>
-              <!-- 읽지 않은 알람 개수 표시 -->
-              <span v-if="unreadCount > 0" class="badge bg-danger position-absolute top-0 start-100 translate-middle" 
-                    style="font-size: 0.6rem; min-width: 16px; height: 16px;">
-                {{ unreadCount > 9 ? '9+' : unreadCount }}
-              </span>
-            </button>
-            
-            <!-- 알람 드롭다운 메뉴 -->
-            <div v-if="showNotificationDropdown" class="dropdown-menu notification-dropdown-menu show" @click.stop>
-              <div class="dropdown-header d-flex justify-content-between align-items-center">
-                <span>알림</span>
-                <button v-if="unreadCount > 0" @click.stop="markAllAsRead" class="btn btn-sm btn-link p-0">
-                  전체 읽음
-                </button>
-              </div>
-              
-              <div class="notification-list">
-                <div v-if="loading" class="text-center py-3">
-                  <small class="text-muted">불러오는 중...</small>
-                </div>
-                
-                <div v-else-if="visibleNotifications.length === 0" class="text-center py-3">
-                  <small class="text-muted">알림이 없습니다</small>
-                </div>
-                
-                <div v-else>
-                  <div v-for="notification in visibleNotifications.slice(0, 5)" :key="notification && notification.id"
-                       class="notification-item"
-                       :class="{ unread: notification && !notification.read }"
-                       @click.stop="openNotificationModal(notification)">
-                    <div class="notification-content" v-if="notification">
-                      <div class="notification-title">{{ notification.title }}</div>
-                      <div class="notification-time">{{ formatTime(notification.time) }}</div>
-                    </div>
-                    <button class="notification-close-btn" v-if="notification" @click.stop="hideNotification(notification.id)">×</button>
-                  </div>
-                  
-                  <div v-if="visibleNotifications.length > 5" class="text-center py-2">
-                    <router-link to="/mypage/notifications" class="btn btn-sm btn-link" @click.stop>
-                      더보기
-                    </router-link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <NotificationDropdown :user="authStore.user" :token="authStore.token" />
         </template>
       </div>
 
@@ -179,6 +127,7 @@ import SirenIcon from '@/components/icons/SirenIcon.vue'
 import {useAdminAuthStore} from "@/store/auth/auth.js";
 import {myPageAPI} from '@/api/mypage.js'
 import {useRouter} from 'vue-router'
+import NotificationDropdown from '@/components/common/NotificationDropdown.vue'
 
 const authStore = useAdminAuthStore()
 const router = useRouter()
@@ -463,10 +412,10 @@ onMounted(() => {
       if (authStore.setUser) {
         authStore.setUser(userInfo);
       }
-    } catch (error) {
-      console.error('사용자 정보 초기화 실패:', error)
     }
-  } catch (e) {}
+  } catch (error) {
+    console.error('사용자 정보 초기화 실패:', error)
+  }
 
   // ESC 키 리스너 추가
   document.addEventListener('keydown', handleKeyDown);
