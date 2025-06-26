@@ -6,6 +6,9 @@ console.log('BASE_URL:', BASE_URL)
 const api = axios.create({
     baseURL: BASE_URL || 'http://localhost:8095',
     timeout: 30000,
+    // headers: {
+    //     'Content-Type': 'application/json',
+    // }
     headers: {
         'Content-Type': 'application/json; charset=utf-8',
         'Accept': 'application/json; charset=utf-8'
@@ -22,6 +25,15 @@ api.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`
         }
         
+        // data가 FormData인지 확인해서 Content-Type을 동적으로 설정
+        if (config.data instanceof FormData) {
+            // FormData일 때는 Content-Type을 axios가 자동으로 설정하도록 둔다
+            config.headers['Content-Type'] = 'multipart/form-data'
+        } else {
+            // JSON 데이터일 때만 Content-Type을 명시
+            config.headers['Content-Type'] = 'application/json'
+        }
+
         console.log('API 요청:', config.method?.toUpperCase(), config.url, config.data)
         console.log('요청 헤더:', config.headers)
         return config
@@ -93,5 +105,45 @@ api.interceptors.response.use(
         return Promise.reject(error)
     }
 )
+
+// 멀티파트 업로드 전용 메서드 추가
+api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
+  const formData = new FormData();
+  const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
+  formData.append(dtoKey, blob);
+  if (Array.isArray(files)) {
+    files.forEach(file => {
+      if (file) formData.append(fileKey, file);
+    });
+  } else if (files) {
+    formData.append(fileKey, files);
+  }
+  const token = localStorage.getItem('token');
+  return api.post(url, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+};
+
+// PUT용 멀티파트 업로드 메서드 추가
+api.multipartPut = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
+  const formData = new FormData();
+  const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
+  formData.append(dtoKey, blob);
+  if (Array.isArray(files)) {
+    files.forEach(file => {
+      if (file) formData.append(fileKey, file);
+    });
+  } else if (files) {
+    formData.append(fileKey, files);
+  }
+  const token = localStorage.getItem('token');
+  return api.put(url, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+};
 
 export default api

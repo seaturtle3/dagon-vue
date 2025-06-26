@@ -225,6 +225,18 @@ const routes = [
     },
 
     {
+        path: '/fishing-report/create',
+        name: 'FishingReportCreate',
+        component: () => import('@/views/community/fishing-report/ReportForm.vue')
+    },
+    {
+        path: '/fishing-report/edit/:frId',
+        name: 'FishingReportEdit',
+        component: () => import('@/views/community/fishing-report/ReportForm.vue'),
+        props: true
+    },
+
+    {
         path: '/fishing-diary',
         children: [
             {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
