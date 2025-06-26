@@ -50,21 +50,6 @@ export const useFishingReportStore = defineStore('fishingReport', {
             }
         },
 
-        // 조황정보 생성 액션
-        async createFishingReport(formData) {
-            try {
-                const res = await api.post('/api/fishing-report/create', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    }
-                })
-                return res.data
-            } catch (err) {
-                console.error('조황정보 생성 실패', err)
-                throw err
-            }
-        },
-
         // 조황정보 수정 액션 (application/json)
         async updateFishingReport(id, reportDto) {
             try {
@@ -88,6 +73,21 @@ export const useFishingReportStore = defineStore('fishingReport', {
                 console.error('조황정보 삭제 실패', err)
                 throw err
             }
-        }
+        },
+
+        // 조황정보 생성 액션 (multipart)
+        async createFishingReport(dto, file) {
+            try {
+                const res = await api.multipartPost({
+                    url: '/api/fishing-report/create',
+                    dto,
+                    files: file
+                });
+                return res.data;
+            } catch (err) {
+                console.error('조황정보 생성 실패', err)
+                throw err;
+            }
+        },
     }
 })
