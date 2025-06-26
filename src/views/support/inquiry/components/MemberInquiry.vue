@@ -16,8 +16,8 @@
       <h3>문의하기 작성</h3>
       <form @submit.prevent="submitForm">
         <div class="form-group">
-          <label></label>
-          <input type="text" :value="userInfo.uid" readonly class="readonly-input">
+          <label>작성자</label>
+          <input type="text" :value="userInfo?.uid || ''" readonly class="readonly-input">
         </div>
         <div class="form-group">
           <label>작성자 유형</label>
@@ -82,7 +82,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useInquiryStore } from '@/store/inquiries/inquiryStore';
 import { useAuthStore } from '@/store/login/loginStore';
-import { myPageAPI } from '@/api/mypage.js';
 import { inquiryApi } from '@/api/inquiry.js';
 import MemberInquiryModal from './MemberInquiryModal.vue';
 
@@ -91,11 +90,7 @@ const router = useRouter();
 const store = useInquiryStore();
 const authStore = useAuthStore();
 
-const userInfo = ref({
-  uid: '',
-  role: '',
-  uno: null
-});
+const userInfo = ref({});
 
 const form = ref({
   title: '',
@@ -108,22 +103,6 @@ const form = ref({
 const showLoginModal = ref(false)
 const productInfo = ref(null)
 
-const inquiryTypes = {
-  USER: [
-    { value: 'PRODUCT', label: '상품 문의' },
-    { value: 'RESERVATION', label: '예약 문의' },
-    { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
-  ],
-  PARTNER: [
-    { value: 'PRODUCT', label: '상품 문의' },
-    { value: 'RESERVATION', label: '예약 문의' },
-    { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
-  ]
-};
-
-const availableInquiryTypes = computed(() => {
-  return inquiryTypes[userInfo.value.role] || [];
-});
 
 const initializeProductInfo = () => {
   // URL 쿼리 파라미터에서 상품 정보 가져오기
@@ -147,15 +126,15 @@ const initializeProductInfo = () => {
 const fetchUserInfo = async () => {
   try {
     console.log('사용자 정보 조회 시작...');
-    const response = await myPageAPI.getMyInfo();
-    console.log('사용자 정보 응답:', response.data);
+    const user = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    console.log('사용자 정보 응답:', user);
     
     userInfo.value = {
-      uid: response.data.uid,
-      role: response.data.role,
-      uno: response.data.uno
+      uid: user.uid,
+      role: user.role,
+      uno: user.uno
     };
-    form.value.writerType = response.data.role;
+    form.value.writerType = user.role;
     
     console.log('설정된 사용자 정보:', userInfo.value);
     
@@ -164,6 +143,7 @@ const fetchUserInfo = async () => {
       console.warn('사용자 ID가 없습니다. 로그인 모달을 표시합니다.');
       showLoginModal.value = true;
     }
+
   } catch (error) {
     console.error('사용자 정보 조회 실패:', error);
     console.error('에러 응답:', error.response?.data);

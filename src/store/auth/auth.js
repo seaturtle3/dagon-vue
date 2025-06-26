@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { clearAuthData } from '@/utils/authUtils'
 
 export const useAdminAuthStore = defineStore('adminAuth', {
     state: () => ({
@@ -15,11 +16,9 @@ export const useAdminAuthStore = defineStore('adminAuth', {
         },
         clearToken() {
             this.token = null
-            this.user = null; // ← 이 부분이 중요!
+            this.user = null;
             this.isAuthenticated = false
-            localStorage.removeItem('token')
-            localStorage.removeItem('userInfo');
-            localStorage.removeItem('loginType');
+            clearAuthData()
             console.log('토큰 삭제됨')
         },
         loadTokenFromStorage() {
@@ -61,6 +60,12 @@ export const useAdminAuthStore = defineStore('adminAuth', {
                 this.clearToken()
                 return false
             }
+        },
+        logout() {
+            clearAuthData();
+            this.user = null;
+            this.isAuthenticated = false;
+            // ...기타 상태 초기화
         }
     }
 })

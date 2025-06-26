@@ -159,7 +159,7 @@ export const useAuthStore = defineStore('auth', {
                 this.error = err.response?.data?.message || '로그인에 실패했습니다.';
                 this.user = null;
                 this.isAuthenticated = false;
-                this.clearAuthData();
+                // this.clearAuthData();
                 throw err;
             } finally {
                 this.loading = false;

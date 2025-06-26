@@ -1,5 +1,6 @@
 import axios from 'axios'
 import {BASE_URL} from "@/constants/baseUrl.js";
+import { clearAuthData } from '@/utils/authUtils'
 
 console.log('BASE_URL:', BASE_URL)
 
@@ -73,7 +74,7 @@ api.interceptors.response.use(
         // 401 에러 시 토큰 삭제 및 로그인 페이지로 리다이렉트
         if (errorStatus === 401) {
             console.log('인증 실패, 토큰 삭제 및 로그인 페이지로 이동')
-            localStorage.removeItem('token')
+            clearAuthData()
             const path = window.location.pathname
             if (path.startsWith('/admin')) {
                 if (window.location.pathname !== '/admin/login') {

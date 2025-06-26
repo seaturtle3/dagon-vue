@@ -36,11 +36,13 @@
     <!-- 항상 보이는 문의하기 작성 폼 -->
     <div class="inquiry-form">
       <h3>문의하기 작성</h3>
-      <form @submit.prevent="submitForm">
+      <form @submit.prevent="onSubmit">
+        <slot name="user-info"></slot>
+        <slot name="product-info"></slot>
         <div class="form-group">
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
-            <option value="">유형을 선택하세요.</option>
+            <option value="">유형 선택</option>
             <option v-for="type in inquiryTypes" :key="type.value" :value="type.value">
               {{ type.label }}
             </option>
@@ -52,11 +54,11 @@
         </div>
         <div class="form-group">
           <label>내용</label>
-          <textarea v-model="form.content" required placeholder="문의 내용을 입력해주세요."></textarea>
+          <textarea v-model="form.content" required></textarea>
         </div>
         <div class="form-actions">
           <button type="submit">등록</button>
-          <button type="button" @click="resetForm">초기화</button>
+          <button type="button" @click="onReset">초기화</button>
         </div>
       </form>
     </div>
