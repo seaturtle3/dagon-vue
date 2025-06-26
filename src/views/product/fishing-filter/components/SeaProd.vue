@@ -46,6 +46,10 @@ function onPageChange(newPage) {
         style="cursor: pointer"
     >
 
+      <div class="card-top">
+        {{ product.weight }}t & {{ product.maxPerson }}명
+      </div>
+
       <!-- 썸네일 -->
       <div class="thumbnail-wrapper">
         <img
@@ -110,7 +114,10 @@ function onPageChange(newPage) {
   margin: 0 auto;    /* ✅ 가운데 정렬 */
 }
 
-/* .prod-name {
+.card-top {
+  display: flex;            /* ✅ flex 컨테이너로 만들고 */
+  justify-content: center;
+  align-items: center;      /* (선택) 수직 정렬 */
   font-weight: bold;
   font-size: 1.1rem;
   background-color: cornflowerblue;
@@ -119,7 +126,7 @@ function onPageChange(newPage) {
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   cursor:pointer;
-} */
+}
 
 .prod-name {
   display: block;       /* ✅ 줄바꿈 방지 */
@@ -148,6 +155,9 @@ function onPageChange(newPage) {
   font-size: 0.9rem;
   color: #666;
   margin-bottom: 5%;
+  overflow: hidden;
+  text-overflow: ellipsis; /* ✅ 말줄임 표시 */
+  white-space: nowrap;  /* ✅ 한 줄로 고정 */
 }
 
 button {
