@@ -114,6 +114,7 @@ const filteredSubTypes = computed(() => {
   return props.subTypes.filter(sub => sub.mainType === localForm.mainType)
 })
 
+
 </script>
 
 <template>
