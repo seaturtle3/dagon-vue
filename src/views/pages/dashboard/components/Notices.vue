@@ -60,7 +60,6 @@
           <div class="col-title" @click="viewNotice(notice.noticeId)" style="cursor: pointer;">
             <span class="title-text">
               <span v-if="notice.isTop" class="badge top">고정</span>
-              <i v-if="notice.isTop" class="fas fa-star title-icon top-icon" title="고정공지"></i>
               <span class="title-content" :class="{ 'with-badge': notice.isTop }">
                 {{ notice.title }}
               </span>
@@ -581,6 +580,53 @@ export default {
   gap: 0.5rem;
 }
 
+.title-text {
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+
+.title-content.with-badge {
+  margin-left: 0;
+}
+
+.title-content:not(.with-badge) {
+  margin-left: 0;
+}
+
+.title-badges {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge.top {
+  background: #fbbf24;
+  color: #92400e;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.badge.urgent {
+  background-color: #ef4444;
+  color: white;
+}
+
 .col-author, .col-date {
   color: #64748b;
   font-weight: 500;
@@ -605,6 +651,13 @@ export default {
   transition: all 0.3s ease;
   color: white;
   font-size: 0.9rem;
+}
+
+.action-btn.top-active {
+  background-color: #fbbf24;
+}
+.action-btn.top:hover, .action-btn.top-active:hover {
+  filter: brightness(0.95);
 }
 
 .action-btn.edit { background-color: #f59e0b; }
