@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from '@/lib/axios.js'
+import api from '@/lib/axios.js'
 
 export const useFishingCenterStore = defineStore('fishingCenter', {
     state: () => ({
@@ -15,7 +15,7 @@ export const useFishingCenterStore = defineStore('fishingCenter', {
         async checkServerStatus() {
             try {
                 // 실제 존재하는 API 엔드포인트로 서버 상태 확인
-                const response = await axios.get('/api/fishing-report/get-all', { timeout: 5000 })
+                const response = await api.get('/api/fishing-report/get-all', { timeout: 5000 })
                 this.serverStatus = 'connected'
                 return true
             } catch (error) {
@@ -41,8 +41,8 @@ export const useFishingCenterStore = defineStore('fishingCenter', {
                 
                 // 조황정보와 조행기를 개별적으로 가져오기
                 const [reportResponse, diaryResponse] = await Promise.all([
-                    axios.get('/api/fishing-report/get-all'),
-                    axios.get('/api/fishing-diary/get-all')
+                    api.get('/api/fishing-report/get-all'),
+                    api.get('/api/fishing-diary/get-all')
                 ])
                 
                 console.log('조황정보 응답:', reportResponse.data)

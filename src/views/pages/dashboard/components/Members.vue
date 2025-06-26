@@ -62,9 +62,13 @@
     </table>
     
     <div class="pagination">
-      <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">이전</button>
+      <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
+        <i class="fas fa-chevron-left"></i> 이전
+      </button>
       <span>{{ currentPage }} / {{ totalPages }}</span>
-      <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">다음</button>
+      <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">
+        다음 <i class="fas fa-chevron-right"></i>
+      </button>
     </div>
 
     <!-- 수정 모달 -->

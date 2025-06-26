@@ -1,11 +1,11 @@
 <template>
   <div class="layout-wrapper">
-    <HeaderNav />
-
+    <HeaderNav :key="navKey" />
+    
     <div class="spacer" /> <!-- 헤더 고정용 여백 -->
 
     <main class="main-content">
-      <router-view />
+      <router-view @loginSuccess="refreshNav" @logout="refreshNav" />
     </main>
 
     <Footer />
@@ -15,6 +15,11 @@
 <script>
 import HeaderNav from './components/common/HeaderNav.vue';
 import Footer from './components/common/Footer.vue';
+import { ref } from 'vue'
+const navKey = ref(0)
+function refreshNav() {
+  navKey.value += 1
+}
 
 export default {
   name: 'Home',

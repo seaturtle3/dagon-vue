@@ -231,25 +231,8 @@ export default {
     filterProducts() {
       // 필터링 로직은 computed 속성에서 처리됨
     },
-    async deleteProduct(prodId) {
-      if (!confirm('이 상품을 비공개로 설정하시겠습니까?')) {
-        return;
-      }
-
-      try {
-        await partnerService.deleteProduct(prodId);
-        alert('상품이 비공개로 설정되었습니다.');
-        await this.loadProducts();
-      } catch (error) {
-        console.error('상품 비공개 설정 실패:', error);
-        if (error.response?.status === 403) {
-          alert('권한이 없습니다.');
-        } else if (error.response?.status === 404) {
-          alert('상품을 찾을 수 없습니다.');
-        } else {
-          alert(error.response?.data?.message || '상품 비공개 설정에 실패했습니다.');
-        }
-      }
+    deleteProduct(prodId) {
+      alert('준비중입니다.');
     },
     async restoreProduct(prodId) {
       if (!confirm('이 상품을 다시 공개하시겠습니까?')) {

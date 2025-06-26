@@ -53,10 +53,38 @@ export default {
           const authStore = useAdminAuthStore();
           const token = response.data.token;
           authStore.setToken(token);
-          
+
+          // JWT에서 관리자 정보 파싱 및 저장
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            
+            // UTF-8 디코딩 처리
+            const decodeUTF8 = (str) => {
+              if (!str) return str;
+              try {
+                return decodeURIComponent(escape(str));
+              } catch (e) {
+                return str;
+              }
+            };
+            
+            const userInfo = {
+              uid: payload.sub,
+              aid: payload.aid,
+              name: decodeUTF8(payload.aname),
+              role: payload.role,
+              type: 'admin'
+            };
+            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+            authStore.setUser(userInfo); // 또는 authStore.user = userInfo;
+            console.log('저장할 사용자 정보:', userInfo);
+          } catch (e) {
+            console.error('JWT 파싱 실패:', e);
+          }
+
           // axios 헤더에 토큰 설정
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
+
           console.log('로그인 성공, 토큰 저장됨:', token);
           alert('로그인 성공');
           this.$router.push('/admin/dashboard');

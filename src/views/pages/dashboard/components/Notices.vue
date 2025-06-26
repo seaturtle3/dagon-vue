@@ -60,7 +60,6 @@
           <div class="col-title" @click="viewNotice(notice.noticeId)" style="cursor: pointer;">
             <span class="title-text">
               <span v-if="notice.isTop" class="badge top">고정</span>
-              <i v-if="notice.isTop" class="fas fa-star title-icon top-icon" title="고정공지"></i>
               <span class="title-content" :class="{ 'with-badge': notice.isTop }">
                 {{ notice.title }}
               </span>
@@ -76,7 +75,7 @@
               <i class="fas fa-star"></i>
             </button>
             <button @click="deleteNotice(notice.noticeId)" class="action-btn delete" title="삭제">
-              <i class="fas fa-trash"></i>
+              <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
         </div>
@@ -191,7 +190,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { getAdminNotices, createNotice, updateNotice, deleteNotice, fetchNoticeById } from '@/api/notice.js'
+import { getAdminNotices, createNotice, updateNotice, deleteNotice as deleteNoticeApi, fetchNoticeById } from '@/api/notice.js'
 
 export default {
   name: 'Notices',
@@ -326,7 +325,7 @@ export default {
       if (!confirm('정말 삭제하시겠습니까?')) return
       
       try {
-        await deleteNotice(noticeId)
+        await deleteNoticeApi(noticeId)
         await loadNotices()
         alert('공지사항이 삭제되었습니다.')
       } catch (error) {
@@ -545,7 +544,7 @@ export default {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 .table-body {
@@ -561,19 +560,18 @@ export default {
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.3s ease;
   align-items: center;
+  color: #1e293b;
+  font-size: 0.95rem;
 }
 
 .table-row:hover {
   background-color: #f8fafc;
 }
 
-.table-row:last-child {
-  border-bottom: none;
-}
-
 .col-id {
   font-weight: 600;
   color: #64748b;
+  text-align: center;
 }
 
 .col-title {
@@ -591,19 +589,6 @@ export default {
   gap: 0.5rem;
 }
 
-.title-icon {
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.top-icon {
-  color: #fbbf24;
-}
-
-.col-title:hover .title-text {
-  color: #667eea;
-  text-decoration: underline;
-}
 
 .title-content.with-badge {
   margin-left: 0;
@@ -642,14 +627,10 @@ export default {
   color: white;
 }
 
-.col-author {
+.col-author, .col-date {
   color: #64748b;
   font-weight: 500;
-}
-
-.col-date {
-  color: #64748b;
-  font-size: 0.9rem;
+  text-align: center;
 }
 
 .col-actions {
@@ -672,25 +653,18 @@ export default {
   font-size: 0.9rem;
 }
 
-.action-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.action-btn.edit {
-  background-color: #f59e0b;
-}
-
-.action-btn.top {
-  background-color: #6b7280;
-}
-
 .action-btn.top-active {
   background-color: #fbbf24;
 }
+.action-btn.top:hover, .action-btn.top-active:hover {
+  filter: brightness(0.95);
+}
 
-.action-btn.delete {
-  background-color: #ef4444;
+.action-btn.edit { background-color: #f59e0b; }
+.action-btn.delete { background-color: #ef4444; }
+.action-btn.edit:hover, .action-btn.delete:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .loading, .empty-state {
@@ -986,10 +960,9 @@ export default {
   
   .table-header,
   .table-row {
-    grid-template-columns: 60px 1fr 80px 100px 120px;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
+    grid-template-columns: 60px 1fr 80px 80px 80px;
     font-size: 0.8rem;
+    padding: 0.75rem 1rem;
   }
   
   .col-actions {

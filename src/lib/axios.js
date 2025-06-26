@@ -1,14 +1,16 @@
 import axios from 'axios'
 import {BASE_URL} from "@/constants/baseUrl.js";
+import { clearAuthData } from '@/utils/authUtils'
 
 console.log('BASE_URL:', BASE_URL)
 
 const api = axios.create({
     baseURL: BASE_URL || 'http://localhost:8095',
     timeout: 30000,
-    // headers: {
-    //     'Content-Type': 'application/json',
-    // }
+    headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accept': 'application/json; charset=utf-8'
+    }
 })
 
 // 요청 인터셉터
@@ -17,6 +19,7 @@ api.interceptors.request.use(
         // localStorage에서 토큰 가져와서 헤더에 추가
         const token = localStorage.getItem('token')
         if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
             config.headers.Authorization = `Bearer ${token}`
         }
         
@@ -28,7 +31,7 @@ api.interceptors.request.use(
             // JSON 데이터일 때만 Content-Type을 명시
             config.headers['Content-Type'] = 'application/json'
         }
-        
+
         console.log('API 요청:', config.method?.toUpperCase(), config.url, config.data)
         console.log('요청 헤더:', config.headers)
         return config
@@ -80,7 +83,7 @@ api.interceptors.response.use(
         // 401 에러 시 토큰 삭제 및 로그인 페이지로 리다이렉트
         if (errorStatus === 401) {
             console.log('인증 실패, 토큰 삭제 및 로그인 페이지로 이동')
-            localStorage.removeItem('token')
+            clearAuthData()
             const path = window.location.pathname
             if (path.startsWith('/admin')) {
                 if (window.location.pathname !== '/admin/login') {

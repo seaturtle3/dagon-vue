@@ -6,15 +6,15 @@
       </div>
       <nav class="sidebar-nav">
         <router-link to="/admin/dashboard" class="nav-item" active-class="nav-item-active" exact>
-          <i class="fa-solid fa-comments"></i>
+          <i class="fas fa-chart-bar"></i>
           <span>대시보드</span>
         </router-link>
         <router-link to="/admin/members" class="nav-item" active-class="nav-item-active">
-          <i class="fa-solid fa-bookmark"></i>
+          <i class="fas fa-thumbs-up"></i>
           <span>회원 정보</span>
         </router-link>
         <router-link to="/admin/partners" class="nav-item" active-class="nav-item-active">
-          <i class="fa-solid fa-handshake"></i>
+          <i class="fas fa-handshake"></i>
           <span>파트너 관리</span>
         </router-link>
         <router-link to="/admin/partner-applications" class="nav-item" active-class="nav-item-active">
@@ -38,11 +38,11 @@
           <span>이벤트</span>
         </router-link>
         <router-link to="/admin/notices" class="nav-item" active-class="nav-item-active">
-          <i class="fa-solid fa-paper-plane"></i>
+          <i class="fas fa-paper-plane"></i>
           <span>공지사항</span>
         </router-link>
         <router-link to="/admin/fishing-reports" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-chart-bar"></i>
+          <i class="fas fa-bookmark"></i>
           <span>조황정보 관리</span>
         </router-link>
         <router-link to="/admin/fishing-diaries" class="nav-item" active-class="nav-item-active">
@@ -57,14 +57,15 @@
           <i class="fas fa-comments"></i>
           <span>1:1 문의</span>
         </router-link>
-        <router-link to="/admin/logout" class="nav-item" active-class="nav-item-active">
-          <i class="fa-solid fa-eye-slash"></i>
-          <span>로그아웃</span>
-        </router-link>
         <router-link to="/admin/register" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-user-plus"></i>
+          <i class="fa-solid fa-user"></i>
           <span>관리자 회원가입</span>
         </router-link>
+        <router-link to="/admin/logout" class="nav-item" active-class="nav-item-active">
+          <i class="fas fa-eye-slash"></i>
+          <span>로그아웃</span>
+        </router-link>
+
       </nav>
     </aside>
     <main class="main-content">

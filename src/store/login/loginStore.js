@@ -82,32 +82,50 @@ export const useAuthStore = defineStore('auth', {
                 // 사용자 정보는 토큰에서 추출하거나 별도 요청으로 가져오기
                 // JWT 토큰에서 사용자 정보 추출 시도
                 let userInfo = {};
+                function base64UrlDecode(str) {
+                    str = str.replace(/-/g, '+').replace(/_/g, '/');
+                    while (str.length % 4) {
+                        str += '=';
+                    }
+                    return decodeURIComponent(escape(atob(str)));
+                }
                 try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
                     console.log('JWT 페이로드:', payload);
-                    userInfo = {
-                        uid: payload.sub,
-                        uname: payload.uname,
-                        uno: payload.uno,
-                        nickname: payload.nickname,
-                        email: payload.email,
-                        role: payload.role
-                    };
+                    if (type === 'admin' && payload.aid && payload.aname && payload.role) {
+                        // 관리자 로그인
+                        userInfo = {
+                            uid: payload.sub,
+                            aid: payload.aid,
+                            name: payload.aname, // 관리자명
+                            role: payload.role,  // 'ADMIN'
+                            type: type
+                        };
+                    } else {
+                        // 일반 사용자/파트너
+                        userInfo = {
+                            uid: payload.sub,
+                            name: payload.uname || payload.name,
+                            uno: payload.uno,
+                            nickname: payload.nickname,
+                            email: payload.email,
+                            role: payload.role,
+                            type: type
+                        };
+                    }
                 } catch (e) {
                     console.log('JWT 파싱 실패, 기본값 사용:', e);
                     userInfo = {
                         uid: 'unknown',
-                        uname: '사용자',
-                        uno: null
+                        name: '사용자',
+                        uno: null,
+                        role: '',
+                        type: type
                     };
                 }
                 
-                const userInfoToStore = {
-                    ...userInfo,
-                    type: type
-                };
-                console.log('저장할 사용자 정보:', userInfoToStore);
-                localStorage.setItem('userInfo', JSON.stringify(userInfoToStore));
+                console.log('저장할 사용자 정보:', userInfo);
+                localStorage.setItem('userInfo', JSON.stringify(userInfo));
 
                 // 3. 토큰을 Authorization 헤더에 설정
                 console.log('axios 헤더에 토큰 설정 중...');
@@ -124,10 +142,12 @@ export const useAuthStore = defineStore('auth', {
                 adminAuthStore.setToken(token);
                 adminAuthStore.setUser({
                     uid: userInfo.uid,
-                    name: userInfo.uname,
+                    aid: userInfo.aid,
+                    name: userInfo.name, // 관리자명
                     profileImage: userInfo.profileImg || null,
                     uno: userInfo.uno,
-                    type: type
+                    type: type,
+                    role: userInfo.role // 반드시 포함
                 });
 
                 console.log('로그인 완료! 인증 상태:', this.isAuthenticated);
@@ -139,7 +159,7 @@ export const useAuthStore = defineStore('auth', {
                 this.error = err.response?.data?.message || '로그인에 실패했습니다.';
                 this.user = null;
                 this.isAuthenticated = false;
-                this.clearAuthData();
+                // this.clearAuthData();
                 throw err;
             } finally {
                 this.loading = false;
@@ -208,9 +228,21 @@ export const useAuthStore = defineStore('auth', {
 
                 return true;
             } catch (err) {
-                console.error('인증 확인 실패', err);
-                this.logout();
-                return false;
+                if (err.response?.status === 401) {
+                    // 401만 로그아웃 처리
+                    this.logout();
+                    return false;
+                } else if (err.response?.status === 404) {
+                    // 404는 엔드포인트 없음 → 로그아웃 처리 X, 경고만
+                    console.warn(`${userInfoEndpoint} 엔드포인트 없음 (404)`);
+                    // 인증 상태는 그대로 유지
+                    return true;
+                } else {
+                    // 기타 에러
+                    console.error('인증 확인 실패', err);
+                    this.logout();
+                    return false;
+                }
             }
         },
 

@@ -7,7 +7,7 @@
           <label for="uid" class="form-label">아이디 <span class="text-danger">*</span></label>
           <div class="input-group">
             <span class="input-group-text">
-              <i class="fas fa-user"></i>
+            <i class="fa-solid fa-circle-user"></i>
             </span>
             <input
               type="text"
@@ -30,7 +30,7 @@
           <label for="upw" class="form-label">비밀번호 <span class="text-danger">*</span></label>
           <div class="input-group">
             <span class="input-group-text">
-              <i class="fas fa-lock"></i>
+<i class="fa-solid fa-bookmark"></i>
             </span>
             <input
               type="password"
@@ -52,7 +52,7 @@
           <label for="confirmPassword" class="form-label">비밀번호 확인 <span class="text-danger">*</span></label>
           <div class="input-group">
             <span class="input-group-text">
-              <i class="fas fa-lock"></i>
+           <i class="fa-solid fa-bookmark"></i>
             </span>
             <input
               type="password"
@@ -476,10 +476,10 @@ export default {
       }
     },
     validatePassword() {
-      // 특수기호 포함 8자 이상
-      const pwRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-={}\[\]:";'<>?,./]).{8,}$/;
+      // 영문+숫자 8자 이상(특수문자 없어도 됨)
+      const pwRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-={}[\]:";'<>?,./]{8,}$/;
       if (!pwRegex.test(this.formData.upw)) {
-        this.validationErrors.upw = '비밀번호는 8자 이상의 영문, 숫자, 특수기호를 포함해야 합니다.';
+        this.validationErrors.upw = '비밀번호는 8자 이상의 영문과 숫자를 포함해야 합니다.';
       } else {
         this.validationErrors.upw = '';
       }
@@ -567,256 +567,152 @@ document.head.appendChild(fontAwesomeScript);
 </script>
 
 <style scoped>
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
 .register-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  background: #ffffff;
-  padding: 20px;
-  position: relative;
-}
-
-.register-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23f0f0f0" opacity="0.3"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f6f8fb;
+  font-family: 'Inter', 'Noto Sans KR', Arial, sans-serif;
 }
 
 .register-form {
-  background: #ffffff;
-  padding: 3rem 4rem;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(30, 64, 175, 0.08);
+  padding: 3rem 4rem 2.5rem 4rem;
   width: 100%;
-  max-width: 800px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 1;
-  border: 1px solid #e2e8f0;
-}
-
-.register-form::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
-  border-radius: 20px;
-  z-index: -1;
-  opacity: 0.1;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 h2 {
-  color: #2d3748;
-  font-weight: 700;
-  font-size: 2.5rem;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1e40af;
   margin-bottom: 2rem;
   text-align: center;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: -1px;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.3rem;
 }
 
 .form-label {
   font-weight: 600;
-  color: #4a5568;
+  color: #222;
   font-size: 1rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   display: block;
 }
 
 .input-group {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
-
-.input-group:focus-within {
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  transform: translateY(-2px);
-}
-
-.input-group-text {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border: none;
-  color: white;
-  padding: 1rem;
-  font-size: 1.1rem;
-  min-width: 50px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  background: #f3f6fa;
+  border-radius: 10px;
+  border: 1px solid #e5eaf2;
+  padding: 0.1rem 0.7rem;
+  transition: border 0.2s;
 }
-
-.form-control, .form-select {
+.input-group:focus-within {
+  border: 1.5px solid #2563eb;
+}
+.input-group-text {
+  color: #2563eb;
+  font-size: 1.1rem;
+  margin-right: 0.5rem;
+  background: none;
   border: none;
-  background: #f8fafc;
-  padding: 1rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  padding: 0;
 }
-
-.form-control:focus, .form-select:focus {
-  background: white;
-  box-shadow: none;
+.form-control, .form-select {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 1rem 0.2rem;
+  font-size: 1rem;
+  color: #222;
   outline: none;
 }
-
+.form-control:focus, .form-select:focus {
+  background: transparent;
+}
 .form-control::placeholder {
-  color: #a0aec0;
+  color: #b6b9c7;
+}
+.form-select {
+  min-width: 110px;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  width: 100%;
+  background: #2563eb;
+  color: #fff;
   border: none;
-  padding: 1rem 2rem;
+  border-radius: 10px;
+  padding: 1rem 0;
   font-size: 1.1rem;
   font-weight: 600;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  margin-top: 2rem;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  position: relative;
-  overflow: hidden;
+  margin-top: 1.5rem;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+  transition: background 0.2s, box-shadow 0.2s;
+  cursor: pointer;
 }
-
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
+.btn-primary:hover:not(:disabled) {
+  background: #1e40af;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.13);
 }
-
-.btn-primary:hover::before {
-  left: 100%;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-}
-
 .btn-primary:disabled {
-  background: #cbd5e0;
-  transform: none;
-  box-shadow: none;
+  background: #b6b9c7;
+  color: #fff;
+  cursor: not-allowed;
 }
 
 .form-text {
-  font-size: 0.875rem;
-  color: #718096;
-  margin-top: 0.5rem;
+  font-size: 0.92rem;
+  color: #7b8fa1;
+  margin-top: 0.3rem;
 }
-
 .text-danger {
   color: #e53e3e !important;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+  font-size: 0.92rem;
+  margin-top: 0.3rem;
   display: block;
 }
-
+.text-center {
+  text-align: center;
+  margin-top: 1.2rem;
+}
 .text-center a {
   font-size: 1rem;
-  color: #667eea;
+  color: #2563eb;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: color 0.2s;
 }
-
 .text-center a:hover {
-  color: #764ba2;
+  color: #1e40af;
   text-decoration: underline;
 }
-
-/* 애니메이션 */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.register-form {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .register-form {
-    padding: 2rem;
-    margin: 1rem;
-    border-radius: 15px;
-  }
-  
-  h2 {
-    font-size: 2rem;
-  }
-  
-  .input-group-text {
-    padding: 0.875rem;
-    font-size: 1rem;
-  }
-  
-  .form-control, .form-select {
-    padding: 0.875rem;
-  }
-  
-  .btn-primary {
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .register-form {
-    padding: 1.5rem;
-  }
-  
-  h2 {
-    font-size: 1.75rem;
-  }
-}
-
 .link-text {
-  color: #667eea;
+  color: #2563eb;
   text-decoration: underline;
   cursor: pointer;
   font-weight: 500;
 }
 .link-text:hover {
-  color: #764ba2;
+  color: #1e40af;
 }
+
+/* 모달 스타일 */
 .custom-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.4);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -824,10 +720,10 @@ h2 {
 }
 .custom-modal-content {
   background: #fff;
-  border-radius: 10px;
-  max-width: 700px;
+  border-radius: 12px;
+  max-width: 520px;
   width: 95%;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 32px rgba(30,64,175,0.13);
   padding: 24px 20px 20px 20px;
   position: relative;
   max-height: 80vh;
@@ -837,9 +733,9 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .custom-modal-close {
   background: none;
@@ -856,5 +752,23 @@ h2 {
   max-height: 60vh;
   overflow-y: auto;
   padding-right: 8px;
+}
+
+@media (max-width: 600px) {
+  .register-form {
+    padding: 1.2rem 0.5rem 1rem 0.5rem;
+    border-radius: 10px;
+    max-width: 98vw;
+  }
+  h2 {
+    font-size: 1.3rem;
+  }
+  .form-label {
+    font-size: 0.98rem;
+  }
+  .btn-primary {
+    padding: 0.8rem 0;
+    font-size: 1rem;
+  }
 }
 </style>
