@@ -28,32 +28,32 @@
     <!-- 문의 목록 -->
     <div class="inquiries-list">
       <div v-for="inquiry in paginatedInquiries" :key="inquiry.id" class="inquiry-item">
-            <div class="inquiry-header">
-              <span class="inquiry-status" :class="inquiry.status">{{ inquiry.status }}</span>
-              <h3>{{ inquiry.title }}</h3>
-              <span class="inquiry-author">{{ inquiry.userName || inquiry.author }}</span>
-              <span class="inquiry-date">{{ formatDate(inquiry.createdAt) }}</span>
+        <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
+          <span class="inquiry-status" :class="inquiry.status">{{ inquiry.status }}</span>
+          <h3>{{ inquiry.title }}</h3>
+          <span class="inquiry-author">{{ inquiry.userName || inquiry.author }}</span>
+          <span class="inquiry-date">{{ formatDate(inquiry.createdAt) }}</span>
+        </div>
+        <!-- 문의 상세 펼침 영역 -->
+        <div v-if="expandedInquiries.includes(inquiry.id)" class="inquiry-content">
+          <div class="inquiry-message">
+            <h4>문의 내용</h4>
+            <p>{{ inquiry.content }}</p>
+          </div>
+          <!-- 답변이 있을 경우 -->
+          <div v-if="inquiry.answerContent" class="inquiry-reply">
+            <h4>답변</h4>
+            <p class="reply-label">[관리자 답변]</p>
+            <p class="reply-content">{{ inquiry.answerContent }}</p>
+            <p class="reply-date">{{ formatDate(inquiry.answeredAt) }}</p>
+            <div class="reply-actions">
+              <button @click="editReply(inquiry.id)">수정</button>
+              <button @click="deleteReply(inquiry.id)">삭제</button>
             </div>
-            <!-- 문의 상세 펼침 영역 -->
-            <div v-if="expandedInquiries.includes(inquiry.id)" class="inquiry-content">
-              <div class="inquiry-message">
-                <h4>문의 내용</h4>
-                <p>{{ inquiry.content }}</p>
-              </div>
-              <!-- 답변이 있을 경우 -->
-              <div v-if="inquiry.answerContent" class="inquiry-reply">
-                <h4>답변</h4>
-                <p class="reply-label">[관리자 답변]</p>
-                <p class="reply-content">{{ inquiry.answerContent }}</p>
-                <p class="reply-date">{{ formatDate(inquiry.answeredAt) }}</p>
-                <div class="reply-actions">
-                  <button @click="editReply(inquiry.id)">수정</button>
-                  <button @click="deleteReply(inquiry.id)">삭제</button>
-                </div>
-              </div>
-              <!-- 답변이 없을 경우 -->
-              <div v-else class="inquiry-actions">
-                <button @click="openReplyModal(inquiry.id)">답변하기</button>
+          </div>
+          <!-- 답변이 없을 경우 -->
+          <div v-else class="inquiry-actions">
+            <button @click="openReplyModal(inquiry.id)">답변하기</button>
           </div>
         </div>
       </div>

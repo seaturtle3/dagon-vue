@@ -7,6 +7,12 @@
         <input v-model="form.productName" type="text" readonly />
       </div>
       
+      <!-- 로그인 시 작성자 자동입력 -->
+      <div v-if="isLoggedIn" class="form-group">
+        <label>작성자</label>
+        <input v-model="form.name" type="text" readonly />
+      </div>
+      
       <!-- 비로그인 상태일 때만 표시되는 문의자 정보 입력 필드 -->
       <div v-if="!isLoggedIn" class="inquirer-info-section">
         <h3>문의자 정보</h3>
@@ -86,6 +92,19 @@ onMounted(() => {
   if (route.query.productName) form.value.productName = route.query.productName;
   if (route.query.productId) form.value.productId = Number(route.query.productId);
   if (route.query.partnerUno) form.value.partnerUno = Number(route.query.partnerUno);
+
+  // 로그인 시 작성자 자동입력 (아이디)
+  if (isLoggedIn.value) {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const user = JSON.parse(userInfo);
+        form.value.name = user.uid || user.id || '';
+      } catch (e) {
+        form.value.name = '';
+      }
+    }
+  }
 });
 
 async function submitInquiry() {

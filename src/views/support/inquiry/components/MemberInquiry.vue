@@ -16,7 +16,7 @@
       <h3>문의하기 작성</h3>
       <form @submit.prevent="submitForm">
         <div class="form-group">
-          <label>아이디</label>
+          <label>작성자</label>
           <input type="text" :value="userInfo.uid" readonly class="readonly-input">
         </div>
         <div class="form-group">
