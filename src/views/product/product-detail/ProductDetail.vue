@@ -28,7 +28,6 @@ const fishingDiaryStore = useProductFishingDiaryStore()
 const activeTab = ref('info')
 const activeSubTab = ref('center')
 const selectedOptionId = ref(null)
-
 onMounted(async () => {
   await store.fetchProductDetail(prodId)
   const prodIdNum = Number(prodId)
@@ -132,15 +131,15 @@ const setTab = (tab) => {
         <div v-if="activeTab === 'info'" class="info-content">
           <div v-if="activeSubTab === 'center'" class="content-section">
             <h3 class="section-title">전체 조황 정보/조행기 ({{ centerCount }})</h3>
-            <ProductFishingCenter />
+            <ProductFishingCenter  :product-id="prodId"/>
           </div>
           <div v-if="activeSubTab === 'report'" class="content-section">
             <h3 class="section-title">조황 정보 ({{ reportCount }})</h3>
-            <ProductFishingReport />
+            <ProductFishingReport  :product-id="prodId"/>
           </div>
           <div v-if="activeSubTab === 'diary'" class="content-section">
             <h3 class="section-title">조행기 ({{ diaryCount }})</h3>
-            <ProductFishingDiary />
+            <ProductFishingDiary :product="product"/>
           </div>
         </div>
 
@@ -148,7 +147,7 @@ const setTab = (tab) => {
         <div v-if="activeTab === 'reservation'" class="reservation-content">
           <div class="content-section">
             <h3 class="section-title">예약 캘린더</h3>
-            <ReservationCalendar :product="product" :option-id="selectedOptionId" />
+            <ReservationCalendar  :product-id="prodId" :option-id="selectedOptionId" />
           </div>
         </div>
       </div>
