@@ -120,8 +120,8 @@ function onPageChange(newPage) {
   align-items: center;      /* (선택) 수직 정렬 */
   font-weight: bold;
   font-size: 1.1rem;
-  background-color: cornflowerblue;
-  color: #ffffff;
+  background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%);
+  color: black;
   padding: 12px 16px 8px 16px;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
@@ -129,6 +129,7 @@ function onPageChange(newPage) {
 }
 
 .prod-name {
+  font-weight: bold;
   display: block;       /* ✅ 줄바꿈 방지 */
   overflow: hidden;
   text-overflow: ellipsis; /* ✅ 말줄임 표시 */
