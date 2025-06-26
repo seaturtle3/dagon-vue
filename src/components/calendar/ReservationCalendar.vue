@@ -56,30 +56,84 @@
               </div>
             </div>
 
-            <!-- 옵션 선택 섹션: counter-item 디자인 적용 -->
-            <div v-if="props.product && props.product.options && props.product.options.length" class="counter-item" style="margin-top: 12px; align-items: baseline;">
-              <label style="font-weight:600; font-size:1.1rem; margin-bottom:0; display:flex; align-items:center; height:100%;">옵션 선택</label>
-              <select
-                v-model="localOptionId"
-                :key="props.product && props.product.options ? props.product.options.map(o => o.id).join(',') : ''"
-                class="form-select"
-                
-                style="min-width:160px; max-width:240px; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:1rem; margin-left: 16px;"
-              >
-                <option value="default" selected>옵션을 선택하세요.</option>
-                <option value="1">낚시 장비 세트 (100원)</option>
-                <option value="2">보호 장구 세트 (100원)</option>
-                <option value="3">미끼 (50원)</option>
-              </select>
+            <!-- 옵션1 섹션 -->
+            <div class="counter-item" style="margin-top: 12px;">
+              <div style="display: flex; flex-direction: column; width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                  <label style="font-weight:600; font-size:1.1rem;">옵션1 선택</label>
+                  <select
+                    v-model="localOptionId"
+                    class="form-select"
+                    style="min-width:160px; max-width:240px; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:1rem;"
+                  >
+                    <option value="default">옵션을 선택하세요.</option>
+                    <option value="1">낚시 장비 세트 (100원)</option>
+                    <option value="2">보호 장구 세트 (100원)</option>
+                    <option value="3">미끼 (50원)</option>
+                  </select>
+                </div>
+                <div v-if="localOptionId && localOptionId !== 'default'" style="display: flex; justify-content: space-between; align-items: center;">
+                  <label style="font-weight:600; font-size:1.1rem;">옵션1 수량</label>
+                  <div class="counter-controls">
+                    <button @click="decreaseOptionCount" :disabled="optionCount <= 0">-</button>
+                    <span>{{ optionCount }}</span>
+                    <button @click="increaseOptionCount" :disabled="optionCount >= 10">+</button>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- 옵션 수량 선택 counter-item (옵션이 선택된 경우에만 노출) -->
-            <div v-if="localOptionId && localOptionId !== 'default'" class="counter-item" style="margin-top: 12px;">
-              <label style="font-weight:600; font-size:1.1rem;">옵션 수량</label>
-              <div class="counter-controls">
-                <button @click="decreaseOptionCount" :disabled="optionCount <= 0">-</button>
-                <span>{{ optionCount }}</span>
-                <button @click="increaseOptionCount" :disabled="optionCount >= 10">+</button>
+            <!-- 옵션2 섹션 -->
+            <div class="counter-item" style="margin-top: 12px;">
+              <div style="display: flex; flex-direction: column; width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                  <label style="font-weight:600; font-size:1.1rem;">옵션2 선택</label>
+                  <select
+                    v-model="localOptionId2"
+                    class="form-select"
+                    style="min-width:160px; max-width:240px; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:1rem;"
+                  >
+                    <option value="default">옵션을 선택하세요.</option>
+                    <option value="1">낚시 장비 세트 (100원)</option>
+                    <option value="2">보호 장구 세트 (100원)</option>
+                    <option value="3">미끼 (50원)</option>
+                  </select>
+                </div>
+                <div v-if="localOptionId2 && localOptionId2 !== 'default'" style="display: flex; justify-content: space-between; align-items: center;">
+                  <label style="font-weight:600; font-size:1.1rem;">옵션2 수량</label>
+                  <div class="counter-controls">
+                    <button @click="decreaseOptionCount2" :disabled="optionCount2 <= 0">-</button>
+                    <span>{{ optionCount2 }}</span>
+                    <button @click="increaseOptionCount2" :disabled="optionCount2 >= 10">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 옵션3 섹션 -->
+            <div class="counter-item" style="margin-top: 12px;">
+              <div style="display: flex; flex-direction: column; width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                  <label style="font-weight:600; font-size:1.1rem;">옵션3 선택</label>
+                  <select
+                    v-model="localOptionId3"
+                    class="form-select"
+                    style="min-width:160px; max-width:240px; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:1rem;"
+                  >
+                    <option value="default">옵션을 선택하세요.</option>
+                    <option value="1">낚시 장비 세트 (100원)</option>
+                    <option value="2">보호 장구 세트 (100원)</option>
+                    <option value="3">미끼 (50원)</option>
+                  </select>
+                </div>
+                <div v-if="localOptionId3 && localOptionId3 !== 'default'" style="display: flex; justify-content: space-between; align-items: center;">
+                  <label style="font-weight:600; font-size:1.1rem;">옵션3 수량</label>
+                  <div class="counter-controls">
+                    <button @click="decreaseOptionCount3" :disabled="optionCount3 <= 0">-</button>
+                    <span>{{ optionCount3 }}</span>
+                    <button @click="increaseOptionCount3" :disabled="optionCount3 >= 10">+</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -99,6 +153,43 @@
     
     <div v-else class="no-selection">
       <p>날짜를 선택하세요.</p>
+    </div>
+
+    <div v-if="props.people || (props.options && props.options.length > 0)" class="summary-table-section">
+      <h4>예약 요약</h4>
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>이름/옵션</th>
+            <th>수량</th>
+            <th>단가</th>
+            <th>금액</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="props.people">
+            <td>인원</td>
+            <td>예약 인원</td>
+            <td>{{ props.people }}</td>
+            <td>{{ ADULT_PRICE }}</td>
+            <td>{{ props.people * ADULT_PRICE }}</td>
+          </tr>
+          <tr v-for="(opt, idx) in props.options" :key="idx">
+            <td>옵션{{ idx+1 }}</td>
+            <td>{{ opt.name }}</td>
+            <td>{{ opt.count }}</td>
+            <td>{{ opt.price }}</td>
+            <td>{{ opt.count * opt.price }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" style="text-align:right; font-weight:bold;">합계</td>
+            <td style="font-weight:bold;">{{ summaryTotal }}</td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   </div>
 </template>
@@ -126,12 +217,31 @@ const totalPeople = computed(() => adultCount.value + childCount.value);
 const localOptionId = ref('default');
 const optionCount = ref(0);
 
+const localOptionId2 = ref('default');
+const optionCount2 = ref(0);
+
+const localOptionId3 = ref('default');
+const optionCount3 = ref(0);
+
 const estimatedPrice = computed(() => {
   let base = (adultCount.value * ADULT_PRICE) + (childCount.value * CHILD_PRICE);
   let optionPrice = 0;
-  if (localOptionId === '1') optionPrice = 100 * optionCount.value;
-  else if (localOptionId === '2') optionPrice = 100 * optionCount.value;
-  else if (localOptionId === '3') optionPrice = 50 * optionCount.value;
+  
+  // 옵션1 가격 계산
+  if (localOptionId.value === '1') optionPrice += 100 * optionCount.value;
+  else if (localOptionId.value === '2') optionPrice += 100 * optionCount.value;
+  else if (localOptionId.value === '3') optionPrice += 50 * optionCount.value;
+  
+  // 옵션2 가격 계산
+  if (localOptionId2.value === '1') optionPrice += 100 * optionCount2.value;
+  else if (localOptionId2.value === '2') optionPrice += 100 * optionCount2.value;
+  else if (localOptionId2.value === '3') optionPrice += 50 * optionCount2.value;
+  
+  // 옵션3 가격 계산
+  if (localOptionId3.value === '1') optionPrice += 100 * optionCount3.value;
+  else if (localOptionId3.value === '2') optionPrice += 100 * optionCount3.value;
+  else if (localOptionId3.value === '3') optionPrice += 50 * optionCount3.value;
+  
   return Number(base) + Number(optionPrice);
 });
 
@@ -158,6 +268,8 @@ const selectMonth = (month) => {
 const selectDate = (date) => {
   selectedDate.value = new Date(date);
   resetCounts();
+  console.log('Date selected:', selectedDate.value);
+  console.log('Formatted date:', formatDate(selectedDate.value));
 };
 
 const resetCounts = () => {
@@ -226,6 +338,11 @@ const generateDates = () => {
 const props = defineProps({
   product: { type: Object, required: false, default: null },
   optionId: { type: [String, Number], required: false, default: null },
+  people: { type: Number, default: 0 },
+  options: {
+    type: Array,
+    default: () => []
+  }
 });
 
 const emit = defineEmits(['update:optionId']);
@@ -246,6 +363,10 @@ watch(
 );
 
 watch(localOptionId, () => { optionCount.value = 0; });
+
+watch(localOptionId2, () => { optionCount2.value = 0; });
+
+watch(localOptionId3, () => { optionCount3.value = 0; });
 
 watch([adultCount, childCount], () => {
   console.log('[인원 변경] adultCount:', adultCount.value, 'childCount:', childCount.value, 'estimatedPrice:', estimatedPrice.value);
@@ -287,10 +408,21 @@ const goToPayment = () => {
       prodId: props.product?.prodId || '',
       prodName: props.product?.prodName || '',
       prodAddress: props.product?.prodAddress || '',
+      // 옵션1 정보
       optionId: localOptionId.value,
       optionName: getOptionName(localOptionId.value),
       optionCount: optionCount.value,
-      optionPrice: getOptionPrice(localOptionId.value)
+      optionPrice: getOptionPrice(localOptionId.value),
+      // 옵션2 정보
+      optionId2: localOptionId2.value,
+      optionName2: getOptionName(localOptionId2.value),
+      optionCount2: optionCount2.value,
+      optionPrice2: getOptionPrice(localOptionId2.value),
+      // 옵션3 정보
+      optionId3: localOptionId3.value,
+      optionName3: getOptionName(localOptionId3.value),
+      optionCount3: optionCount3.value,
+      optionPrice3: getOptionPrice(localOptionId3.value)
     }
   });
 };
@@ -303,6 +435,22 @@ const decreaseOptionCount = () => {
   if (optionCount.value > 0) optionCount.value--;
 };
 
+const increaseOptionCount2 = () => {
+  if (optionCount2.value < 10) optionCount2.value++;
+};
+
+const decreaseOptionCount2 = () => {
+  if (optionCount2.value > 0) optionCount2.value--;
+};
+
+const increaseOptionCount3 = () => {
+  if (optionCount3.value < 10) optionCount3.value++;
+};
+
+const decreaseOptionCount3 = () => {
+  if (optionCount3.value > 0) optionCount3.value--;
+};
+
 // 옵션명 반환 함수
 function getOptionName(id) {
   if (id === '1') return '낚시 장비 세트';
@@ -311,8 +459,23 @@ function getOptionName(id) {
   return '-';
 }
 
+// 합계 계산 (props 기반)
+const summaryTotal = computed(() => {
+  let total = 0;
+  if (props.people) total += props.people * ADULT_PRICE;
+  if (props.options && props.options.length > 0) {
+    props.options.forEach(opt => {
+      total += (opt.count || 0) * (opt.price || 0);
+    });
+  }
+  return total;
+});
+
 onMounted(() => {
   generateDates();
+  console.log('ReservationCalendar mounted');
+  console.log('Product props:', props.product);
+  console.log('Selected date:', selectedDate.value);
 });
 </script>
 
@@ -344,6 +507,8 @@ onMounted(() => {
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  display: block !important; /* 강제로 표시 */
+  visibility: visible !important; /* 강제로 보이게 */
 }
 
 .selected-date-info {
@@ -357,6 +522,8 @@ onMounted(() => {
   margin: 0 auto 0 auto;
   padding-left: 32px;
   padding-right: 0.5rem;
+  display: block !important; /* 강제로 표시 */
+  visibility: visible !important; /* 강제로 보이게 */
 }
 
 .people-counter-with-summary {
@@ -549,5 +716,22 @@ onMounted(() => {
   font-weight: bold;
   color: #222;
   margin-right: 8px;
+}
+
+.summary-table-section {
+  margin: 2rem 0;
+}
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+.summary-table th, .summary-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+.summary-table th {
+  background: #f5f5f5;
 }
 </style>

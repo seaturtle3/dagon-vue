@@ -48,16 +48,16 @@
             <span class="value">{{ reservationInfo.totalPeople }}명</span>
           </div>
           <div class="user-reservation-info-item">
-            <span class="label">옵션명:</span>
-            <span class="value">{{ reservationInfo.optionName || '-' }}</span>
+            <span class="label">옵션1:</span>
+            <span class="value">{{ reservationInfo.optionName || '-' }} ({{ reservationInfo.optionCount || 0 }}개)</span>
           </div>
-          <div class="user-reservation-info-item">
-            <span class="label">옵션수:</span>
-            <span class="value">{{ reservationInfo.optionCount || 0 }}개</span>
+          <div class="user-reservation-info-item" v-if="reservationInfo.optionName2">
+            <span class="label">옵션2:</span>
+            <span class="value">{{ reservationInfo.optionName2 }} ({{ reservationInfo.optionCount2 }}개)</span>
           </div>
-          <div class="user-reservation-info-item">
-            <span class="label">이용 금액:</span>
-            <span class="value">{{ reservationInfo.estimatedPrice?.toLocaleString() }}원</span>
+          <div class="user-reservation-info-item" v-if="reservationInfo.optionName3">
+            <span class="label">옵션3:</span>
+            <span class="value">{{ reservationInfo.optionName3 }} ({{ reservationInfo.optionCount3 }}개)</span>
           </div>
         </div>
       </div>
@@ -113,20 +113,21 @@
             <span class="value">{{ reservationInfo.totalPeople }}명</span>
           </div>
           <div class="reservation-info-item">
-            <span class="label">옵션명:</span>
-            <span class="value">{{ reservationInfo.optionName || '-' }}</span>
+            <span class="label">옵션1:</span>
+            <span class="value">{{ reservationInfo.optionName || '-' }} ({{ reservationInfo.optionCount || 0 }}개)</span>
           </div>
-          <div class="reservation-info-item">
-            <span class="label">옵션수:</span>
-            <span class="value">{{ reservationInfo.optionCount || 0 }}개</span>
+          <div class="reservation-info-item" v-if="reservationInfo.optionName2">
+            <span class="label">옵션2:</span>
+            <span class="value">{{ reservationInfo.optionName2 }} ({{ reservationInfo.optionCount2 }}개)</span>
           </div>
-          <div class="reservation-info-item">
-            <span class="label">이용 금액:</span>
-            <span class="value">{{ reservationInfo.estimatedPrice?.toLocaleString() }}원</span>
+          <div class="reservation-info-item" v-if="reservationInfo.optionName3">
+            <span class="label">옵션3:</span>
+            <span class="value">{{ reservationInfo.optionName3 }} ({{ reservationInfo.optionCount3 }}개)</span>
           </div>
         </div>
       </div>
 
+      <!-- 결제 금액 항상 표시 -->
       <div class="summary-item total-price">
         <span class="label">결제 금액:</span>
         <span class="value">{{ reservationInfo.estimatedPrice?.toLocaleString() }}원</span>
@@ -206,9 +207,22 @@ export default {
     }
 
     // 옵션 가격 합산하여 estimatedPrice 재계산
-    const basePrice = parseInt(this.$route.query.estimatedPrice) || 0;
-    const optionTotal = (this.reservationInfo.optionPrice || 0) * (this.reservationInfo.optionCount || 0);
-    this.reservationInfo.estimatedPrice = basePrice + optionTotal;
+    const adultCount = parseInt(this.$route.query.adultCount) || 0;
+    const childCount = parseInt(this.$route.query.childCount) || 0;
+    const ADULT_PRICE = 100; // 실제 단가로 교체
+    const CHILD_PRICE = 50;  // 실제 단가로 교체
+
+    const optionCount = parseInt(this.$route.query.optionCount) || 0;
+    const optionPrice = parseInt(this.$route.query.optionPrice) || 0;
+    const optionCount2 = parseInt(this.$route.query.optionCount2) || 0;
+    const optionPrice2 = parseInt(this.$route.query.optionPrice2) || 0;
+    const optionCount3 = parseInt(this.$route.query.optionCount3) || 0;
+    const optionPrice3 = parseInt(this.$route.query.optionPrice3) || 0;
+
+    const peoplePrice = (adultCount * ADULT_PRICE) + (childCount * CHILD_PRICE);
+    const optionsPrice = (optionCount * optionPrice) + (optionCount2 * optionPrice2) + (optionCount3 * optionPrice3);
+
+    this.reservationInfo.estimatedPrice = peoplePrice + optionsPrice;
 
     // prodId가 있으면 상품 상세 정보 DB에서 가져오기
     if (this.reservationInfo.prodId) {
@@ -253,6 +267,11 @@ export default {
     } else {
       window.IMP.init("imp64386158");
     }
+
+    this.reservationInfo.optionName2 = this.$route.query.optionName2 || '';
+    this.reservationInfo.optionCount2 = parseInt(this.$route.query.optionCount2) || 0;
+    this.reservationInfo.optionName3 = this.$route.query.optionName3 || '';
+    this.reservationInfo.optionCount3 = parseInt(this.$route.query.optionCount3) || 0;
   },
   methods: {
     async loadUserInfo() {

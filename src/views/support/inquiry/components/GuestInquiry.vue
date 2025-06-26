@@ -12,22 +12,31 @@
       </div>
     </div>
 
+    <!-- 상품명 상단 추가 입력 필드 -->
+    <div class="additional-info-section">
+      <h3>문의자 정보</h3>
+      <div class="additional-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>작성자</label>
+            <input type="text" v-model="form.name" required placeholder="이름을 입력하세요">
+          </div>
+          <div class="form-group">
+            <label>이메일</label>
+            <input type="email" v-model="form.email" required placeholder="이메일을 입력하세요">
+          </div>
+          <div class="form-group">
+            <label>연락처</label>
+            <input type="tel" v-model="form.phone" required placeholder="연락처를 입력하세요">
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 항상 보이는 문의하기 작성 폼 -->
     <div class="inquiry-form">
       <h3>문의하기 작성</h3>
       <form @submit.prevent="submitForm">
-        <div class="form-group">
-          <label>작성자</label>
-          <input type="text" v-model="form.name" required placeholder="이름을 입력하세요">
-        </div>
-        <div class="form-group">
-          <label>이메일</label>
-          <input type="email" v-model="form.email" required placeholder="이메일을 입력하세요">
-        </div>
-        <div class="form-group">
-          <label>연락처</label>
-          <input type="tel" v-model="form.phone" required placeholder="연락처를 입력하세요">
-        </div>
         <div class="form-group">
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
@@ -297,6 +306,31 @@ export default {
 .product-info strong {
   color: #007BFF;
   font-weight: 600;
+}
+
+.additional-info-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #28a745;
+}
+
+.additional-info-section h3 {
+  margin: 0 0 15px 0;
+  color: #28a745;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.additional-form {
+  margin-top: 10px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
 }
 
 .form-group {
