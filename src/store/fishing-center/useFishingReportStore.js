@@ -20,7 +20,7 @@ export const useFishingReportStore = defineStore('fishingReport', {
                     params: {
                         page,
                         size,
-                        sortBy: 'frId',
+                        sortBy: 'createdAt',
                         direction: 'desc'
                     }
                 })
