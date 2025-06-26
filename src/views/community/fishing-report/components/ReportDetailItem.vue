@@ -147,7 +147,7 @@ const router = useRouter();
 const fishingReportStore = useFishingReportStore();
 
 const goToEdit = () => {
-  router.push(`/fishing-report/form/${props.report.frId}`);
+  router.push(`/fishing-report/edit/${props.report.frId}`);
 };
 
 const confirmDelete = async () => {
