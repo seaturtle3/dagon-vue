@@ -64,6 +64,22 @@ export const useProductFormStore = defineStore('productForm', {
         },
         toggleForm() {
             this.showForm = !this.showForm
+        },
+
+        setForm(product) {
+            this.form = {
+                prodName: product.prodName || '',
+                prodRegion: product.prodRegion || '',
+                mainType: product.mainType || '',
+                subType: product.subType || '',
+                maxPerson: product.maxPerson || null,
+                minPerson: product.minPerson || null,
+                weight: product.weight || null,
+                prodAddress: product.prodAddress || '',
+                prodDescription: product.prodDescription || '',
+                prodEvent: product.prodEvent || '',
+                prodNotice: product.prodNotice || ''
+            }
         }
     }
 })

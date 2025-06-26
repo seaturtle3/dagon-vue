@@ -5,6 +5,7 @@ import {BASE_URL} from "@/constants/baseUrl.js";
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination } from 'swiper/modules';
 import { useRouter } from 'vue-router'
+import { useProductFormStore } from '@/store/product/all-products/useProductFormStore'
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -185,6 +186,18 @@ async function submitReport() {
   }
 }
 
+// 상품 수정 페이지로 이동
+// function editProduct() {
+//   router.push(`/products/edit/${props.product.prodId}`)
+// }
+
+// 상품 수정 페이지로 이동
+function editProduct(product) {
+  const store = useProductFormStore()
+  store.setForm(product)         // 이걸 새로 추가하면 됨
+  router.push({ name: 'ProductEdit' })
+}
+
 // 상품 삭제 함수
 async function deleteProduct() {
   if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) {
@@ -200,11 +213,6 @@ async function deleteProduct() {
     const errorMessage = error.response?.data?.message || '상품 삭제에 실패했습니다. 다시 시도해주세요.'
     alert(errorMessage)
   }
-}
-
-// 상품 수정 페이지로 이동
-function editProduct() {
-  router.push(`/products/edit/${props.product.prodId}`)
 }
 
 // 컴포넌트 마운트 시 사용자 정보 초기화
@@ -231,7 +239,7 @@ onMounted(() => {
         </div>
         <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
         <div v-if="isOwnProduct" class="header-actions">
-          <button @click="editProduct" class="btn btn-primary">
+          <button @click="editProduct(product)" class="btn btn-primary">
             <i class="fas fa-edit"></i>
             수정
           </button>

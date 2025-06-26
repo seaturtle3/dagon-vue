@@ -1,41 +1,53 @@
 <script setup>
 import {reactive, watch, toRefs, onMounted, ref, computed} from 'vue'
 import {createProduct} from "@/api/product.js";
-import { useRouter } from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 
 const router = useRouter()
+const route = useRoute() // ← 이거 추가
 const files = ref([])  // 여러 파일 업로드 지원
 const imagePreviews = ref([]) // 여러 이미지 미리보기
 
 const props = defineProps({
-  form: Object,
+  form: {
+    type: Object,
+    default: () => ({})
+  },
   regions: Array,
   mainTypes: Array,
   subTypes: Array
 })
 
-const localForm = reactive({...props.form})
+const form = reactive({ ...props.form })
+
+console.log('***************form.prodId:', form.prodId)
+
+function goToEdit(product) {
+  router.push({
+    name: 'ProductEdit',
+    state: { form: product }
+  })
+}
 
 const isFormValid = computed(() => {
   return (
-    localForm.prodName &&
-    localForm.prodRegion &&
-    localForm.mainType &&
-    localForm.subType &&
-    localForm.maxPerson &&
-    localForm.weight &&
-    localForm.prodAddress &&
+      form.prodName &&
+      form.prodRegion &&
+      form.mainType &&
+      form.subType &&
+      form.maxPerson &&
+      form.weight &&
+      form.prodAddress &&
     files.value.length > 0
   )
 })
 
-// props.form이 바뀌면 localForm도 반영
 watch(
     () => props.form,
     (newForm) => {
-      Object.assign(localForm, newForm)
+      Object.assign(form, newForm) // form은 reactive니까 복사만 하면 됨
     },
-    {deep: true}
+    { deep: true, immediate: true }
 )
 
 function onFileChange(event) {
@@ -88,7 +100,7 @@ async function submit() {
   const formData = new FormData()
 
   // 👉 여기를 JSON 전체로 묶어서 하나의 Blob으로 추가해야 함
-  const productJson = {...localForm}
+  const productJson = {...form}
   formData.append(
       "product",
       new Blob([JSON.stringify(productJson)], {type: "application/json"})
@@ -111,7 +123,7 @@ async function submit() {
 }
 
 const filteredSubTypes = computed(() => {
-  return props.subTypes.filter(sub => sub.mainType === localForm.mainType)
+  return props.subTypes.filter(sub => sub.mainType === form.mainType)
 })
 
 </script>
@@ -214,7 +226,7 @@ const filteredSubTypes = computed(() => {
             <div class="form-group">
               <label class="form-label required">배 이름</label>
               <input 
-                v-model="localForm.prodName" 
+                v-model="form.prodName"
                 type="text" 
                 class="form-input" 
                 placeholder="배 이름을 입력하세요"
@@ -224,7 +236,7 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label required">지역</label>
-              <select v-model="localForm.prodRegion" class="form-select">
+              <select v-model="form.prodRegion" class="form-select">
                 <option v-for="region in regions" :key="region.name" :value="region.name">
                   {{ region.korean }}
                 </option>
@@ -233,7 +245,7 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label required">바다/민물 유형</label>
-              <select v-model="localForm.mainType" class="form-select">
+              <select v-model="form.mainType" class="form-select">
                 <option v-for="type in mainTypes" :key="type.name" :value="type.name">
                   {{ type.korean }}
                 </option>
@@ -242,7 +254,7 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label required">상세 장소</label>
-              <select v-model="localForm.subType" class="form-select">
+              <select v-model="form.subType" class="form-select">
                 <option v-for="sub in filteredSubTypes" :key="sub.name" :value="sub.name">
                   {{ sub.korean }}
                 </option>
@@ -252,7 +264,7 @@ const filteredSubTypes = computed(() => {
             <div class="form-group">
               <label class="form-label required">최대 인원</label>
               <input 
-                v-model.number="localForm.maxPerson" 
+                v-model.number="form.maxPerson"
                 type="number" 
                 class="form-input" 
                 placeholder="최대 수용 인원"
@@ -263,7 +275,7 @@ const filteredSubTypes = computed(() => {
             <div class="form-group">
               <label class="form-label">최소 인원</label>
               <input 
-                v-model.number="localForm.minPerson" 
+                v-model.number="form.minPerson"
                 type="number" 
                 class="form-input" 
                 placeholder="최소 필요 인원 (선택사항)"
@@ -286,7 +298,7 @@ const filteredSubTypes = computed(() => {
           <div class="form-group">
             <label class="form-label required">선박 무게</label>
             <input 
-              v-model.number="localForm.weight" 
+              v-model.number="form.weight"
               step="0.01" 
               type="number" 
               class="form-input"
@@ -298,7 +310,7 @@ const filteredSubTypes = computed(() => {
           <div class="form-group">
             <label class="form-label required">선박 주소</label>
             <input 
-              v-model="localForm.prodAddress" 
+              v-model="form.prodAddress"
               type="text" 
               class="form-input"
               placeholder="선박이 위치한 주소"
@@ -310,7 +322,7 @@ const filteredSubTypes = computed(() => {
         <div class="form-group full-width">
           <label class="form-label">상세 설명</label>
           <textarea 
-            v-model="localForm.prodDescription" 
+            v-model="form.prodDescription"
             class="form-textarea"
             placeholder="선박에 대한 상세한 설명을 입력하세요"
             rows="4"
@@ -330,7 +342,7 @@ const filteredSubTypes = computed(() => {
         <div class="form-group full-width">
           <label class="form-label">공지 사항</label>
           <textarea
-              v-model="localForm.prodNotice"
+              v-model="form.prodNotice"
               class="form-textarea"
               placeholder="고객에게 알려야 할 중요한 공지사항을 입력하세요"
               rows="3"
@@ -340,7 +352,7 @@ const filteredSubTypes = computed(() => {
         <div class="form-group full-width">
           <label class="form-label">이벤트</label>
           <textarea
-            v-model="localForm.prodEvent"
+            v-model="form.prodEvent"
             class="form-textarea"
             placeholder="진행 중인 이벤트나 특별한 혜택이 있다면 입력하세요"
             rows="3"
@@ -349,14 +361,20 @@ const filteredSubTypes = computed(() => {
 
       </div>
 
-      <!-- 제출 버튼 -->
+      <!-- 제출/수정 버튼 -->
       <div class="form-actions">
-        <button type="submit" :disabled="!isFormValid" class="submit-button">
+        <button
+            type="submit"
+            :disabled="!isFormValid"
+            class="submit-button"
+        >
           <i class="fas fa-save"></i>
-          {{ isFormValid ? '상품 등록' : '필수 항목을 입력해주세요' }}
+          {{ form.prodId ? '상품 수정' : '상품 등록' }}
         </button>
       </div>
+
     </form>
+
   </div>
 </template>
 

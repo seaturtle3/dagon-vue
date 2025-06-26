@@ -118,7 +118,6 @@ function onPageChange(newPage) {
   display: flex;            /* ✅ flex 컨테이너로 만들고 */
   justify-content: center;
   align-items: center;      /* (선택) 수직 정렬 */
-  font-weight: bold;
   font-size: 1.1rem;
   background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%);
   color: black;
