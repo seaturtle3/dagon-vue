@@ -300,7 +300,9 @@ export default {
           apiParams.categoryId = categoryNameToIdMap[searchParams.value.category]
         }
         
+        console.log('FAQ API 호출 파라미터:', apiParams)
         const response = await getAdminFAQs(apiParams)
+        console.log('FAQ API 응답:', response)
         
         // API 응답 구조에 따라 데이터 추출
         let faqData = []
@@ -327,39 +329,32 @@ export default {
           category: categoryIdToNameMap[faq.categoryId] || '기타'
         }))
         
+        console.log('처리된 FAQ 데이터:', faqs.value)
+        
       } catch (error) {
         console.error('FAQ 목록 로드 실패:', error)
-        // 에러 시 임시 데이터 표시
-        faqs.value = [
-          {
-            faqId: 1,
-            category: '이용방법',
-            question: '어떻게 예약하나요?',
-            answer: '홈페이지에서 원하는 날짜와 시간을 선택하여 예약할 수 있습니다. 예약 페이지에서 선사와 날짜를 선택한 후 결제를 진행하시면 됩니다.',
-            createdAt: '2024-01-15',
-            isActive: true,
-            displayOrder: 1
-          },
-          {
-            faqId: 2,
-            category: '예약',
-            question: '예약 취소는 언제까지 가능한가요?',
-            answer: '예약 취소는 출발 24시간 전까지 가능합니다. 24시간 이내 취소 시 환불이 제한될 수 있습니다.',
-            createdAt: '2024-01-20',
-            isActive: true,
-            displayOrder: 2
-          },
-          {
-            faqId: 3,
-            category: '결제',
-            question: '어떤 결제 방법을 지원하나요?',
-            answer: '신용카드, 계좌이체, 간편결제(카카오페이, 네이버페이)를 지원합니다.',
-            createdAt: '2024-01-25',
-            isActive: true,
-            displayOrder: 3
+        console.error('에러 응답:', error.response)
+        
+        // 에러 시 빈 배열로 설정 (더미 데이터 제거)
+        faqs.value = []
+        totalPages.value = 0
+        
+        // 사용자에게 에러 메시지 표시
+        let errorMessage = 'FAQ 목록을 불러오는데 실패했습니다.'
+        if (error.response) {
+          if (error.response.status === 401) {
+            errorMessage = '인증이 만료되었습니다. 다시 로그인해주세요.'
+            authStore.clearToken()
+            setTimeout(() => {
+              window.location.href = '/admin/login'
+            }, 1000)
+          } else if (error.response.status === 403) {
+            errorMessage = 'FAQ 조회 권한이 없습니다.'
+          } else if (error.response.data && error.response.data.message) {
+            errorMessage = error.response.data.message
           }
-        ]
-        totalPages.value = 1
+        }
+        alert(errorMessage)
       } finally {
         loading.value = false
       }
@@ -377,14 +372,32 @@ export default {
     
     const viewFAQ = async (faqId) => {
       try {
+        console.log('FAQ 상세 조회 시도:', faqId)
         const response = await getFAQById(faqId)
+        console.log('FAQ 상세 조회 응답:', response)
         selectedFAQ.value = response.data
         showDetailModal.value = true
       } catch (error) {
         console.error('FAQ 상세 조회 실패:', error)
-        // 에러 시 목록에서 찾기
-        selectedFAQ.value = faqs.value.find(faq => faq.faqId === faqId)
-        showDetailModal.value = true
+        console.error('에러 응답:', error.response)
+        
+        let errorMessage = 'FAQ 상세 정보를 불러오는데 실패했습니다.'
+        if (error.response) {
+          if (error.response.status === 401) {
+            errorMessage = '인증이 만료되었습니다. 다시 로그인해주세요.'
+            authStore.clearToken()
+            setTimeout(() => {
+              window.location.href = '/admin/login'
+            }, 1000)
+          } else if (error.response.status === 403) {
+            errorMessage = 'FAQ 조회 권한이 없습니다.'
+          } else if (error.response.status === 404) {
+            errorMessage = '해당 FAQ를 찾을 수 없습니다.'
+          } else if (error.response.data && error.response.data.message) {
+            errorMessage = error.response.data.message
+          }
+        }
+        alert(errorMessage)
       }
     }
     

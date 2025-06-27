@@ -142,10 +142,10 @@ const loadFAQs = async () => {
     const response = await fetchFAQs(params)
     const faqData = response.data.content || response.data || []
 
-    // API 응답 데이터에 categoryName 추가
+    // categoryName이 이미 있으면 그대로, 없으면 매핑
     faqs.value = faqData.map(faq => ({
       ...faq,
-      categoryName: categoryIdToNameMap[faq.categoryId] || '기타'
+      categoryName: faq.categoryName || categoryIdToNameMap[faq.categoryId] || '기타'
     }))
 
   } catch (error) {

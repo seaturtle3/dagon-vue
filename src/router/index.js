@@ -114,7 +114,12 @@ const routes = [
             },
             {
                 path: 'inquiries',
-                component: () => import('@/views/pages/dashboard/components/Inquiries.vue'),
+                component: () => import('@/views/pages/dashboard/components/MemberInquiries.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'guest-inquiries',
+                component: () => import('@/views/pages/dashboard/components/GuestInquiries.vue'),
                 meta: {requiresAuth: true}
             },
             {

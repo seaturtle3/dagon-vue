@@ -1,6 +1,6 @@
 <template>
   <div class="inquiries">
-    <h1>1:1 문의 관리</h1>
+    <h2>회원 문의 관리</h2>
 
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="제목 또는 작성자로 검색">
