@@ -10,7 +10,7 @@ const props = defineProps({
   }
 })
 
-const pageSize = 10
+const pageSize = 12
 const visibleCount = ref(pageSize)
 
 const visibleReports = computed(() => props.reports.slice(0, visibleCount.value))

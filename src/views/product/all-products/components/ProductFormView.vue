@@ -146,7 +146,7 @@ async function submit() {
     alert("필수 항목을 모두 입력해주세요.")
     return
   }
-  // dtoToSend 객체 생성 (ReportFormView.vue 방식 참고)
+
   const dtoToSend = {
     prodName: localForm.prodName,
     prodRegion: localForm.prodRegion,
@@ -158,7 +158,8 @@ async function submit() {
     prodAddress: localForm.prodAddress,
     prodDescription: localForm.prodDescription,
     prodNotice: localForm.prodNotice,
-    prodEvent: localForm.prodEvent
+    prodEvent: localForm.prodEvent,
+    deletedImageNames: deletedImageNames.value // 서버에 삭제할 이미지 이름 전달
   }
 
   try {
