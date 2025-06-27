@@ -28,7 +28,7 @@
         <div class="col-title">제목</div>
         <div class="col-period">기간</div>
         <div class="col-status">상태</div>
-        <div class="col-top">상단고정</div>
+        <div class="col-top"></div>
         <div class="col-actions">관리</div>
       </div>
       <div v-if="loading" class="loading">
@@ -42,16 +42,20 @@
       <div v-else class="table-body">
         <div v-for="(event, idx) in events" :key="event.eventId" class="table-row">
           <div class="col-id">{{ idx + 1 + searchParams.page * searchParams.size }}</div>
-          <div class="col-title" @click="openDetailModal(event.eventId)" style="cursor:pointer;">{{ event.title }}</div>
+          <div class="col-title" @click="openDetailModal(event.eventId)" style="cursor:pointer;">
+            <span v-if="event.isTop" class="top-badge">고정</span>
+            <span>{{ event.title }}</span>
+          </div>
           <div class="col-period">{{ formatDate(event.startAt) }} ~ {{ formatDate(event.endAt) }}</div>
           <div class="col-status">
             <span :class="['status-badge', event.eventStatus]">{{ statusText(event.eventStatus) }}</span>
           </div>
-          <div class="col-top">
-            <span v-if="event.isTop" class="top-badge">고정</span>
-          </div>
+          <div class="col-top"></div>
           <div class="col-actions">
             <button @click="openEditModal(event)" class="action-btn edit" title="수정"><i class="fas fa-edit"></i></button>
+            <button @click="toggleTop(event)" class="action-btn" :class="event.isTop ? 'top-active' : 'top'" :title="event.isTop ? '고정해제' : '고정'">
+              <i class="fas fa-star"></i>
+            </button>
             <button @click="deleteEventHandler(event.eventId)" class="action-btn delete" title="삭제">
               <i class="fas fa-trash"></i>
             </button>
@@ -73,7 +77,10 @@
     <div v-if="showModal" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
-          <h2>{{ modalMode === 'create' ? '이벤트 작성' : modalMode === 'edit' ? '이벤트 수정' : '이벤트 상세' }}</h2>
+          <h2>
+            <span v-if="eventForm.isTop" class="top-badge">고정</span>
+            {{ modalMode === 'create' ? '이벤트 작성' : modalMode === 'edit' ? '이벤트 수정' : '이벤트 상세' }}
+          </h2>
           <button @click="closeModal" class="close-btn"><i class="fas fa-xmark"></i></button>
         </div>
         <form v-if="modalMode !== 'detail'" @submit.prevent="submitEvent" class="modal-form">
@@ -112,7 +119,10 @@
           </div>
         </form>
         <div v-else class="event-detail">
-          <h3>{{ eventForm.title }}</h3>
+          <h3>
+            <span v-if="eventForm.isTop" class="top-badge">고정</span>
+            {{ eventForm.title }}
+          </h3>
           <div class="event-meta">
             <span>기간: {{ formatDate(eventForm.startAt) }} ~ {{ formatDate(eventForm.endAt) }}</span>
             <span v-if="eventForm.isTop" class="top-badge">상단고정</span>
@@ -267,6 +277,18 @@ const deleteEventHandler = async (eventId) => {
     await loadEvents()
   } catch (error) {
     alert('삭제 실패')
+  }
+}
+
+const toggleTop = async (event) => {
+  try {
+    await updateEvent(event.eventId, {
+      ...event,
+      isTop: !event.isTop
+    });
+    await loadEvents();
+  } catch (error) {
+    alert('고정 상태 변경 실패');
   }
 }
 
@@ -431,6 +453,7 @@ onMounted(() => {
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   font-weight: 600;
+  margin-right: 0.5rem;
 }
 .col-actions {
   display: flex;
@@ -456,6 +479,7 @@ onMounted(() => {
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+
 .loading, .empty-state {
   display: flex;
   flex-direction: column;
