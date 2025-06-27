@@ -1,8 +1,14 @@
 <script setup>
 import {ref, computed} from 'vue'
-import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+import {IMAGE_BASE_URL, BASE_URL} from "@/constants/imageBaseUrl.js";
 import {useRouter} from 'vue-router'
 import Pagination from "@/components/common-function/Pagination.vue";
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import { Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/autoplay';
 
 const props = defineProps({
   seaProducts: {
@@ -45,29 +51,66 @@ function onPageChange(newPage) {
         @click="openDetail(product)"
         style="cursor: pointer"
     >
-
       <div class="card-top">
         {{ product.weight }}t & {{ product.maxPerson }}명
       </div>
-
       <!-- 썸네일 -->
       <div class="thumbnail-wrapper">
-        <img
-            :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
-            alt="thumbnail"
-            class="thumbnail"
-        />
+        <!-- 1. prodImageDataList가 여러 개면 Swiper로 -->
+        <template v-if="product.prodImageDataList && product.prodImageDataList.length > 1">
+          <Swiper :modules="[Autoplay]" :slides-per-view="1" :pagination="true" :navigation="true" :autoplay="{ delay: 2500, disableOnInteraction: false }" style="width:100%;height:180px;">
+            <SwiperSlide v-for="(imgData, idx) in product.prodImageDataList" :key="idx">
+              <img
+                :src="imgData.startsWith('data:image') ? imgData : `data:image/jpeg;base64,${imgData}`"
+                class="thumbnail-img"
+                @error="e => { e.target.src = defaultImage }"
+              >
+            </SwiperSlide>
+          </Swiper>
+        </template>
+        <!-- 2. prodImageNames가 여러 개면 Swiper로 -->
+        <template v-else-if="product.prodImageNames && product.prodImageNames.length > 1">
+          <Swiper :modules="[Autoplay]" :slides-per-view="1" :pagination="true" :navigation="true" :autoplay="{ delay: 2500, disableOnInteraction: false }" style="width:100%;height:180px;">
+            <SwiperSlide v-for="img in product.prodImageNames" :key="img">
+              <img
+                :src="img.startsWith('/') ? img : `${BASE_URL}/uploads/products/${img}`"
+                class="thumbnail-img"
+                @error="e => { e.target.src = defaultImage }"
+              >
+            </SwiperSlide>
+          </Swiper>
+        </template>
+        <!-- 3. prodImageDataList가 1개면 단일 이미지 -->
+        <template v-else-if="product.prodImageDataList && product.prodImageDataList.length === 1">
+          <img
+            :src="product.prodImageDataList[0].startsWith('data:image') ? product.prodImageDataList[0] : `data:image/jpeg;base64,${product.prodImageDataList[0]}`"
+            class="thumbnail-img"
+            @error="e => { e.target.src = defaultImage }"
+          >
+        </template>
+        <!-- 4. prodImageNames가 1개면 단일 이미지 -->
+        <template v-else-if="product.prodImageNames && product.prodImageNames.length === 1">
+          <img
+            :src="product.prodImageNames[0].startsWith('/') ? product.prodImageNames[0] : `${BASE_URL}/uploads/products/${product.prodImageNames[0]}`"
+            class="thumbnail-img"
+            @error="e => { e.target.src = defaultImage }"
+          >
+        </template>
+        <!-- 5. 둘 다 없으면 placeholder -->
+        <template v-else>
+          <div class="image-placeholder">
+            <i class="fas fa-ship"></i>
+            <span>이미지 없음</span>
+          </div>
+        </template>
       </div>
-
       <!-- 본문 -->
       <div class="content">
         <p class="prod-name mb-2 fs-5">{{ product.prodName }}</p>
         <p class="address">위치 : {{ product.prodAddress }}</p>
       </div>
-
     </div>
   </div>
-
   <Pagination
       :page="currentPage"
       :total-pages="totalPages"
@@ -139,7 +182,7 @@ function onPageChange(newPage) {
   position: relative;
 }
 
-.thumbnail {
+.thumbnail-img {
   width: 100%;
   height: 180px;
   object-fit: cover;

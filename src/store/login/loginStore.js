@@ -144,6 +144,7 @@ export const useAuthStore = defineStore('auth', {
                     uid: userInfo.uid,
                     aid: userInfo.aid,
                     name: userInfo.name, // 관리자명
+                    nickname: userInfo.nickname,
                     profileImage: userInfo.profileImg || null,
                     uno: userInfo.uno,
                     type: type,

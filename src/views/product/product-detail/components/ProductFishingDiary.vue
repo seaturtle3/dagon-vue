@@ -8,11 +8,14 @@ const route = useRoute()
 const router = useRouter()
 const store = useProductFishingDiaryStore()
 const productId = route.params.prodId
-console.log("-------------33>",productId)
+console.log("-------------2222222222221>",productId)
 
 onMounted(() => {
   store.fetchFishingDiary(productId)
 })
+
+const diaryList = computed(() => store.getDiaryByProductId(productId))
+
 
 watch(() => route.params.prodId, async (newId, oldId) => {
   if (newId !== oldId) {
@@ -46,9 +49,9 @@ watch(filteredDiaries, (val) => {
     <div v-else-if="store.error">{{ store.error }}</div>
     <div v-else>
 
-      <div v-if="filteredDiaries.length > 0" class="diary-grid">
+      <div v-if="diaryList.length > 0" class="diary-grid">
         <div
-            v-for="diary in filteredDiaries"
+            v-for="diary in diaryList"
             :key="diary.fdId"
             class="item-box"
             @click="goToDetail(diary)"
@@ -56,14 +59,28 @@ watch(filteredDiaries, (val) => {
         >
           <div class="thumbnail-wrapper">
             <img
-                v-if="diary.thumbnailUrl"
-                class="thumbnail"
-                :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
-            />
-            <div v-else class="image-placeholder">
-              <i class="fas fa-image"></i>
-              <span>이미지 없음</span>
-            </div>
+          class="thumbnail-img"
+          :src="
+            report.images && report.images.length
+              ? (
+                  report.images[0].imageData
+                    ? `data:image/jpeg;base64,${report.images[0].imageData}`
+                    : (report.images[0].image_data
+                        ? `data:image/jpeg;base64,${report.images[0].image_data}`
+                        : (report.images[0].imageUrl
+                            ? report.images[0].imageUrl
+                            : (report.images[0].image_url
+                                ? report.images[0].image_url
+                                : '/images/no-image.png'
+                              )
+                          )
+                      )
+                )
+              : '/images/no-image.png'
+          "
+          alt="썸네일"
+      />
+
           </div>
           <div class="item-content">
             <h3>{{ diary.product?.prodName }}</h3>
