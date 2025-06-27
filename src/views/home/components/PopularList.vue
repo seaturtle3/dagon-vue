@@ -41,14 +41,35 @@ const goToDetail = (report) => {
       >
         <!-- 썸네일 영역 (60% 고정) -->
         <div class="thumbnail-section">
-          <!-- 썸네일 이미지가 있는 경우 -->
           <img
-              v-if="report.thumbnailUrl"
-              class="thumbnail"
-              :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
-              alt="썸네일"
+            class="thumbnail"
+            :src="
+            report.images && report.images.length
+              ? (
+                  report.images[0].imageData
+                    ? `data:image/jpeg;base64,${report.images[0].imageData}`
+                    : (report.images[0].image_data
+                        ? `data:image/jpeg;base64,${report.images[0].image_data}`
+                        : (report.images[0].imageUrl
+                            ? report.images[0].imageUrl
+                            : (report.images[0].image_url
+                                ? report.images[0].image_url
+                                : '/images/no-image.png'
+                              )
+                          )
+                      )
+                )
+              : '/images/no-image.png'
+          "
+            alt="썸네일"
+            v-if="
+              report.images?.imageData ||
+              report.images?.image_data ||
+              report.images?.imageUrl ||
+              report.images?.image_url ||
+              report.images
+            "
           />
-          <!-- 썸네일이 없는 경우 플레이스홀더 -->
           <div v-else class="image-placeholder">
             <i class="fas fa-image"></i>
             <span>이미지 없음</span>

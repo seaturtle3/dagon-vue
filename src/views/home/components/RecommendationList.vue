@@ -29,18 +29,26 @@ function openDetail(productId) {
       >
         <!-- 썸네일 영역 (60% 고정) -->
         <div class="thumbnail-section">
-          <!-- 썸네일 이미지가 있는 경우 -->
-          <img
-              v-if="product.prodThumbnail"
-              :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
-              alt="썸네일"
-              class="product-img"
-          />
-          <!-- 썸네일이 없는 경우 플레이스홀더 -->
-          <div v-else class="image-placeholder">
-            <i class="fas fa-ship"></i>
-            <span>이미지 없음</span>
-          </div>
+            <!-- 1. prodImageDataList가 있으면 그것만 보여줌 -->
+            <template v-if="product.prodImageDataList && product.prodImageDataList.length > 0">
+              <div v-for="(imgData, idx) in product.prodImageDataList" :key="idx">
+                <img
+                  :src="imgData.startsWith('data:image') ? imgData : `data:image/jpeg;base64,${imgData}`"
+                  class="thumbnail-img"
+                  @error="e => { e.target.src = defaultImage }"
+                >
+              </div>
+            </template>
+            <!-- 2. prodImageNames가 있으면 그것만 보여줌 -->
+            <template v-else-if="product.prodImageNames && product.prodImageNames.length > 0">
+              <div v-for="img in product.prodImageNames" :key="img">
+                <img
+                  :src="img.startsWith('/') ? img : `${BASE_URL}/uploads/products/${img}`"
+                  class="thumbnail-img"
+                  @error="e => { e.target.src = defaultImage }"
+                >
+              </div>
+            </template>
         </div>
         
         <div class="product-info">
