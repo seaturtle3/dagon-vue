@@ -12,6 +12,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary" @click="onConfirm">{{ confirmText || '확인' }}</button>
+        <button v-if="onCancel" class="btn btn-secondary" @click="onCancel">취소</button>
       </div>
     </div>
   </div>
@@ -23,7 +24,8 @@ defineProps({
   title: String,
   message: String,
   confirmText: String,
-  onConfirm: Function
+  onConfirm: Function,
+  onCancel: Function
 });
 </script>
 

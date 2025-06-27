@@ -49,27 +49,32 @@ export const useProductFormStore = defineStore('productForm', {
             }
         },
         // ProductFormView.vue submit 로직을 store 액션으로 구현
-        async createProductAction(dtoToSend, files, router) {
+        async createProductAction(dtoToSend, files) {
             try {
                 const res = await createProduct(dtoToSend, files)
                 alert('등록 성공')
-                if (router) router.push('/products')
                 this.resetForm()
+                // 임시: 상품 전체 리스트를 불러와 가장 최신(prodId가 가장 큰) 상품의 prodId 반환
+                const listRes = await api.get('/api/product/get-all', { params: { page: 0, size: 1, sort: 'prodId,DESC' } })
+                const prodId = listRes.data?.content?.[0]?.prodId || null
+                return { data: { prodId } }
             } catch (err) {
                 console.error('등록 실패', err)
                 alert('등록 실패')
+                throw err
             }
         },
         // 상품 수정 액션
-        async updateProductAction(prodId, dtoToSend, files, router) {
+        async updateProductAction(prodId, dtoToSend, files) {
             try {
                 const res = await updateProduct(prodId, dtoToSend, files)
                 alert('수정 성공')
-                if (router) router.push('/products')
                 this.resetForm()
+                return prodId // prodId 반환
             } catch (err) {
                 console.error('수정 실패', err)
                 alert('수정 실패')
+                throw err
             }
         },
         resetForm() {
