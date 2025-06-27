@@ -2,10 +2,10 @@
 import {reactive, watch, toRefs, onMounted, ref, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductFormStore } from '@/store/product/all-products/useProductFormStore'
+import {BASE_URL} from "@/constants/baseUrl.js";
+import {createProduct, updateProduct} from "@/api/product.js";
 
 const productFormStore = useProductFormStore()
-import { createProduct, updateProduct } from "@/api/product.js";
-import {BASE_URL} from "@/constants/baseUrl.js";
 
 const router = useRouter()
 const files = ref([])  // 여러 파일 업로드 지원
@@ -23,7 +23,13 @@ const props = defineProps({
   prodId: [String, Number]
 })
 
-const localForm = reactive({ ...props.form })
+// 수정 모드인지 판단 (라우터 이름이 'ProductEdit'이거나 ID가 있는 경우)
+const isEditMode = route.name === 'ProductEdit' || !!route.params.id;
+
+// localForm 초기화
+const localForm = reactive({
+  ...props.form
+})
 
 const islocalFormValid = computed(() => {
   return (
@@ -37,6 +43,31 @@ const islocalFormValid = computed(() => {
     files.value.length > 0
   )
 })
+
+function handleSubmit() {
+  if (isEditMode) {
+    // 수정 API 호출
+    updateProduct(localForm).then(() => {
+      alert('수정 완료!');
+      router.push(`/product/${localForm.prodId}`);
+    });
+  } else {
+    // 등록 API 호출
+    createProduct(localForm).then(() => {
+      alert('등록 완료!');
+      router.push('/product/list');
+    });
+  }
+}
+
+// 컴포넌트 마운트 시 폼 데이터 복사
+onMounted(() => {
+  if (isEditMode && store.form) {
+    Object.assign(localForm, store.form); // 수정모드일 때 store에서 복사
+  } else {
+    // 등록 모드일 땐 빈 폼이 이미 준비되어 있음
+  }
+});
 
 // 기존 이미지 미리보기용 배열
 const existingImages = ref([])
@@ -167,7 +198,9 @@ const filteredSubTypes = computed(() => {
       <p class="page-subtitle">{{ props.editMode ? '선박 상품 정보를 수정합니다' : '새로운 선박 상품을 등록해보세요' }}</p>
     </div>
 
-    <form @submit.prevent="submit" class="product-form">
+    <form @submit.prevent="handleSubmit"
+          class="product-form"
+    >
       <!-- 메인 정보 섹션 -->
       <div class="form-main-section">
         <!-- 이미지 업로드 영역 -->
@@ -402,13 +435,8 @@ const filteredSubTypes = computed(() => {
 
       <!-- 제출/수정 버튼 -->
       <div class="form-actions">
-        <button
-            type="submit"
-            :disabled="!islocalFormValid"
-            class="submit-button"
-        >
-          <i class="fas fa-save"></i>
-          {{ props.editMode ? '상품 수정' : '상품 등록' }}
+        <button type="submit" class="btn btn-primary">
+          {{ isEditMode ? '상품 수정하기' : '상품 등록하기' }}
         </button>
       </div>
 
