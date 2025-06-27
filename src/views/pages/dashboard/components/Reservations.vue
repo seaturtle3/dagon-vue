@@ -1,6 +1,10 @@
 <template>
   <div class="reservations">
     <h1>예약 목록</h1>
+    <div class="reservation-tabs">
+      <button :class="{active: activeTab==='member'}" @click="activeTab='member'">회원 예약 목록</button>
+      <button :class="{active: activeTab==='guest'}" @click="activeTab='guest'">비회원 예약 목록</button>
+    </div>
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="예약번호, 회원명, 파트너명으로 검색">
       <input type="date" v-model="dateFilter">
@@ -14,7 +18,7 @@
       <button @click="searchReservations">검색</button>
     </div>
     
-    <table class="reservations-table">
+    <table v-if="activeTab==='member'" class="reservations-table">
       <thead>
         <tr>
           <th>예약번호</th>
@@ -28,9 +32,44 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="reservation in reservations" :key="reservation.id">
+        <tr v-for="reservation in memberReservations" :key="reservation.id">
           <td>{{ reservation.id }}</td>
           <td>{{ reservation.memberName }}</td>
+          <td>{{ reservation.partnerName }}</td>
+          <td>{{ reservation.date }}</td>
+          <td>{{ reservation.people }}</td>
+          <td>{{ reservation.amount.toLocaleString() }}원</td>
+          <td>{{ reservation.status }}</td>
+          <td>
+            <button @click="viewReservationDetails(reservation.id)">상세</button>
+            <button v-if="reservation.status === '예약대기'" @click="approveReservation(reservation.id)">승인</button>
+            <button v-if="reservation.status === '예약대기'" @click="rejectReservation(reservation.id)">거절</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table v-if="activeTab==='guest'" class="reservations-table">
+      <thead>
+        <tr>
+          <th>예약번호</th>
+          <th>예약자명</th>
+          <th>이메일</th>
+          <th>연락처</th>
+          <th>파트너명</th>
+          <th>예약일</th>
+          <th>인원</th>
+          <th>금액</th>
+          <th>상태</th>
+          <th>관리</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="reservation in guestReservations" :key="reservation.id">
+          <td>{{ reservation.id }}</td>
+          <td>{{ reservation.memberName }}</td>
+          <td>{{ reservation.email }}</td>
+          <td>{{ reservation.contact }}</td>
           <td>{{ reservation.partnerName }}</td>
           <td>{{ reservation.date }}</td>
           <td>{{ reservation.people }}</td>
@@ -176,7 +215,8 @@ export default {
       totalPages: 1,
       itemsPerPage: 10,
       showDetailModal: false,
-      selectedReservation: null
+      selectedReservation: null,
+      activeTab: 'member',
     }
   },
   computed: {
@@ -184,6 +224,12 @@ export default {
       const startIndex = (this.currentPage - 1) * this.itemsPerPage;
       const endIndex = startIndex + this.itemsPerPage;
       return this.allReservations.slice(startIndex, endIndex);
+    },
+    memberReservations() {
+      return this.reservations.filter(r => r.isMember !== false);
+    },
+    guestReservations() {
+      return this.reservations.filter(r => r.isMember === false);
     }
   },
   methods: {
@@ -193,272 +239,122 @@ export default {
         {
           id: 'R001',
           memberName: '홍길동',
+          email: 'hong@example.com',
+          contact: '010-1234-5678',
           partnerName: '바다낚시터',
           date: '2024-03-20',
           people: 4,
           amount: 200000,
-          status: '예약대기'
+          status: '예약대기',
+          isMember: true
         },
         {
           id: 'R002',
           memberName: '김철수',
+          email: 'kim@example.com',
+          contact: '010-2345-6789',
           partnerName: '강물낚시터',
           date: '2024-03-21',
           people: 2,
           amount: 120000,
-          status: '예약확정'
+          status: '예약확정',
+          isMember: true
         },
         {
           id: 'R003',
           memberName: '이영희',
+          email: 'lee@example.com',
+          contact: '010-3456-7890',
           partnerName: '호수낚시터',
           date: '2024-03-22',
-          people: 6,
-          amount: 300000,
-          status: '이용완료'
+          people: 3,
+          amount: 150000,
+          status: '이용완료',
+          isMember: true
         },
         {
           id: 'R004',
-          memberName: '박민수',
-          partnerName: '바다낚시터',
+          memberName: '비회원A',
+          email: 'guestA@example.com',
+          contact: '010-4567-8901',
+          partnerName: '비회원낚시터A',
           date: '2024-03-23',
-          people: 3,
-          amount: 180000,
-          status: '예약취소'
+          people: 2,
+          amount: 90000,
+          status: '예약대기',
+          isMember: false
         },
         {
           id: 'R005',
-          memberName: '정수진',
-          partnerName: '강물낚시터',
+          memberName: '비회원B',
+          email: 'guestB@example.com',
+          contact: '010-5678-9012',
+          partnerName: '비회원낚시터B',
           date: '2024-03-24',
-          people: 5,
-          amount: 250000,
-          status: '예약대기'
+          people: 1,
+          amount: 70000,
+          status: '예약확정',
+          isMember: false
         },
         {
           id: 'R006',
-          memberName: '최동욱',
-          partnerName: '호수낚시터',
+          memberName: '정수진',
+          email: 'jung@example.com',
+          contact: '010-6789-0123',
+          partnerName: '강물낚시터',
           date: '2024-03-25',
-          people: 2,
-          amount: 100000,
-          status: '예약확정'
+          people: 5,
+          amount: 250000,
+          status: '예약대기',
+          isMember: true
         },
         {
           id: 'R007',
-          memberName: '윤서연',
-          partnerName: '바다낚시터',
+          memberName: '비회원C',
+          email: 'guestC@example.com',
+          contact: '010-7890-1234',
+          partnerName: '비회원낚시터C',
           date: '2024-03-26',
-          people: 4,
-          amount: 220000,
-          status: '예약대기'
+          people: 3,
+          amount: 120000,
+          status: '예약취소',
+          isMember: false
         },
         {
           id: 'R008',
-          memberName: '강현우',
-          partnerName: '강물낚시터',
+          memberName: '최동욱',
+          email: 'choi@example.com',
+          contact: '010-8901-2345',
+          partnerName: '호수낚시터',
           date: '2024-03-27',
-          people: 3,
-          amount: 150000,
-          status: '이용완료'
+          people: 2,
+          amount: 100000,
+          status: '예약확정',
+          isMember: true
         },
         {
           id: 'R009',
-          memberName: '임지은',
-          partnerName: '호수낚시터',
+          memberName: '비회원D',
+          email: 'guestD@example.com',
+          contact: '010-9012-3456',
+          partnerName: '비회원낚시터D',
           date: '2024-03-28',
-          people: 7,
-          amount: 350000,
-          status: '예약확정'
+          people: 4,
+          amount: 160000,
+          status: '이용완료',
+          isMember: false
         },
         {
           id: 'R010',
-          memberName: '송태호',
-          partnerName: '바다낚시터',
+          memberName: '한미영',
+          email: 'han@example.com',
+          contact: '010-0123-4567',
+          partnerName: '강물낚시터',
           date: '2024-03-29',
           people: 2,
           amount: 110000,
-          status: '예약취소'
-        },
-        {
-          id: 'R011',
-          memberName: '한미영',
-          partnerName: '강물낚시터',
-          date: '2024-03-30',
-          people: 4,
-          amount: 200000,
-          status: '예약대기'
-        },
-        {
-          id: 'R012',
-          memberName: '조성민',
-          partnerName: '호수낚시터',
-          date: '2024-04-01',
-          people: 5,
-          amount: 250000,
-          status: '예약확정'
-        },
-        {
-          id: 'R013',
-          memberName: '오혜진',
-          partnerName: '바다낚시터',
-          date: '2024-04-02',
-          people: 3,
-          amount: 165000,
-          status: '이용완료'
-        },
-        {
-          id: 'R014',
-          memberName: '류준호',
-          partnerName: '강물낚시터',
-          date: '2024-04-03',
-          people: 6,
-          amount: 300000,
-          status: '예약대기'
-        },
-        {
-          id: 'R015',
-          memberName: '배수아',
-          partnerName: '호수낚시터',
-          date: '2024-04-04',
-          people: 2,
-          amount: 100000,
-          status: '예약확정'
-        },
-        {
-          id: 'R016',
-          memberName: '신동현',
-          partnerName: '바다낚시터',
-          date: '2024-04-05',
-          people: 4,
-          amount: 220000,
-          status: '예약취소'
-        },
-        {
-          id: 'R017',
-          memberName: '권은지',
-          partnerName: '강물낚시터',
-          date: '2024-04-06',
-          people: 3,
-          amount: 150000,
-          status: '예약대기'
-        },
-        {
-          id: 'R018',
-          memberName: '남기준',
-          partnerName: '호수낚시터',
-          date: '2024-04-07',
-          people: 8,
-          amount: 400000,
-          status: '예약확정'
-        },
-        {
-          id: 'R019',
-          memberName: '백소영',
-          partnerName: '바다낚시터',
-          date: '2024-04-08',
-          people: 2,
-          amount: 110000,
-          status: '이용완료'
-        },
-        {
-          id: 'R020',
-          memberName: '전우진',
-          partnerName: '강물낚시터',
-          date: '2024-04-09',
-          people: 5,
-          amount: 250000,
-          status: '예약대기'
-        },
-        {
-          id: 'R021',
-          memberName: '차미라',
-          partnerName: '호수낚시터',
-          date: '2024-04-10',
-          people: 3,
-          amount: 150000,
-          status: '예약확정'
-        },
-        {
-          id: 'R022',
-          memberName: '구태영',
-          partnerName: '바다낚시터',
-          date: '2024-04-11',
-          people: 4,
-          amount: 220000,
-          status: '예약취소'
-        },
-        {
-          id: 'R023',
-          memberName: '문하나',
-          partnerName: '강물낚시터',
-          date: '2024-04-12',
-          people: 6,
-          amount: 300000,
-          status: '예약대기'
-        },
-        {
-          id: 'R024',
-          memberName: '양준석',
-          partnerName: '호수낚시터',
-          date: '2024-04-13',
-          people: 2,
-          amount: 100000,
-          status: '이용완료'
-        },
-        {
-          id: 'R025',
-          memberName: '구본철',
-          partnerName: '바다낚시터',
-          date: '2024-04-14',
-          people: 5,
-          amount: 275000,
-          status: '예약확정'
-        },
-        {
-          id: 'R026',
-          memberName: '안지현',
-          partnerName: '강물낚시터',
-          date: '2024-04-15',
-          people: 3,
-          amount: 150000,
-          status: '예약대기'
-        },
-        {
-          id: 'R027',
-          memberName: '유재석',
-          partnerName: '호수낚시터',
-          date: '2024-04-16',
-          people: 7,
-          amount: 350000,
-          status: '예약취소'
-        },
-        {
-          id: 'R028',
-          memberName: '정다은',
-          partnerName: '바다낚시터',
-          date: '2024-04-17',
-          people: 4,
-          amount: 220000,
-          status: '예약확정'
-        },
-        {
-          id: 'R029',
-          memberName: '최준호',
-          partnerName: '강물낚시터',
-          date: '2024-04-18',
-          people: 2,
-          amount: 100000,
-          status: '이용완료'
-        },
-        {
-          id: 'R030',
-          memberName: '김민지',
-          partnerName: '호수낚시터',
-          date: '2024-04-19',
-          people: 6,
-          amount: 300000,
-          status: '예약대기'
+          status: '예약취소',
+          isMember: true
         }
       ]
 
@@ -841,6 +737,43 @@ export default {
 
 .btn-cancel {
   background-color: #f8f9fa;
+  color: #333;
+}
+
+.reservation-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  /* border-bottom: 2px solid #e0e0e0; */
+  /* padding-bottom: 0.5rem; */
+}
+.reservation-tabs button {
+  padding: 0.75rem 1.5rem;
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+  color: #666;
+}
+.reservation-tabs button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+.reservation-tabs button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #007bff;
+}
+.reservation-tabs button:not(.active):hover {
+  background: #e9ecef;
   color: #333;
 }
 </style>

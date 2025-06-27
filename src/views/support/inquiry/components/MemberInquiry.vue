@@ -36,11 +36,11 @@
         </div>
         <div class="form-group">
           <label>제목</label>
-          <input type="text" v-model="form.title" required>
+          <input type="text" v-model="form.title" required placeholder="제목을 입력하세요">
         </div>
         <div class="form-group">
           <label>내용</label>
-          <textarea v-model="form.content" required placeholder="문의 내용을 입력해주세요."></textarea>
+          <textarea v-model="form.content" required placeholder="내용을 입력하세요"></textarea>
         </div>
         <div class="form-actions">
           <button type="submit">등록</button>
