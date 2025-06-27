@@ -1,3 +1,6 @@
+
+
+
 <template>
   <div class="inquiry-list">
     <h1 class="page-title">문의 목록</h1>

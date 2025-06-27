@@ -72,12 +72,12 @@ const initializeUserInfo = () => {
 };
 
 function onContactClick() {
-  // 상품명과 ID를 쿼리로 넘기며 문의 페이지로 이동
   router.push({
     path: '/product-inquiry',
     query: {
       productName: props.product.prodName,
-      productId: props.product.prodId
+      productId: props.product.prodId,
+      partnerUno: props.product.uno
     }
   });
 }

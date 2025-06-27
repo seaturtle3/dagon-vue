@@ -12,23 +12,37 @@
       </div>
     </div>
 
+    <!-- 상품명 상단 추가 입력 필드 -->
+    <div class="additional-info-section">
+      <h3>문의자 정보</h3>
+      <div class="additional-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>작성자</label>
+            <input type="text" v-model="form.name" required placeholder="이름을 입력하세요">
+          </div>
+          <div class="form-group">
+            <label>이메일</label>
+            <input type="email" v-model="form.email" required placeholder="이메일을 입력하세요">
+          </div>
+          <div class="form-group">
+            <label>연락처</label>
+            <input type="tel" v-model="form.phone" required placeholder="연락처를 입력하세요">
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 항상 보이는 문의하기 작성 폼 -->
     <div class="inquiry-form">
       <h3>문의하기 작성</h3>
-      <form @submit.prevent="submitForm">
-        <div class="form-group">
-          <label>작성자</label>
-          <input type="text" value="비회원" disabled>
-        </div>
-        <div class="form-group">
-          <label>작성자 유형</label>
-          <input type="text" value="비회원 문의" disabled>
-
-        </div>
+      <form @submit.prevent="onSubmit">
+        <slot name="user-info"></slot>
+        <slot name="product-info"></slot>
         <div class="form-group">
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
-            <option value="">유형을 선택하세요.</option>
+            <option value="">유형 선택</option>
             <option v-for="type in inquiryTypes" :key="type.value" :value="type.value">
               {{ type.label }}
             </option>
@@ -40,11 +54,11 @@
         </div>
         <div class="form-group">
           <label>내용</label>
-          <textarea v-model="form.content" required placeholder="문의 내용을 입력해주세요."></textarea>
+          <textarea v-model="form.content" required></textarea>
         </div>
         <div class="form-actions">
           <button type="submit">등록</button>
-          <button type="button" @click="resetForm">초기화</button>
+          <button type="button" @click="onReset">초기화</button>
         </div>
       </form>
     </div>
@@ -61,6 +75,9 @@ export default {
   data() {
     return {
       form: {
+        name: '',
+        email: '',
+        phone: '',
         title: '',
         content: '',
         writerType: 'NON_MEMBER',
@@ -68,6 +85,8 @@ export default {
       },
       inquiryTypes: [
         { value: 'PRODUCT', label: '상품 문의' },
+        { value: 'BUSINESS', label: '제휴 문의' },
+        { value: 'SYSTEM', label: '시스템 문의' },
         { value: 'RESERVATION', label: '예약 문의' },
         { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
       ],
@@ -129,6 +148,7 @@ export default {
         await inquiryApi.createInquiry(inquiryData);
         alert('문의가 등록되었습니다.');
         this.resetForm();
+        this.$router.push('/admin/inquiries');
       } catch (error) {
         console.error('문의 저장 실패:', error);
         alert('문의 등록에 실패했습니다. 다시 시도해주세요.');
@@ -137,6 +157,9 @@ export default {
     
     resetForm() {
       this.form = {
+        name: '',
+        email: '',
+        phone: '',
         title: '',
         content: '',
         writerType: 'NON_MEMBER',
@@ -285,6 +308,31 @@ export default {
 .product-info strong {
   color: #007BFF;
   font-weight: 600;
+}
+
+.additional-info-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #28a745;
+}
+
+.additional-info-section h3 {
+  margin: 0 0 15px 0;
+  color: #28a745;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.additional-form {
+  margin-top: 10px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
 }
 
 .form-group {

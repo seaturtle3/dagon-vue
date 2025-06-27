@@ -10,6 +10,8 @@ const authStore = useAuthStore()
 authStore.checkAuth()
 const { isAuthenticated } = authStore
 
+console.log('isAuthenticated:', isAuthenticated)
+
 </script>
 
 <template>
