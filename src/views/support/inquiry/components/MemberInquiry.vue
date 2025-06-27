@@ -2,6 +2,15 @@
   <div class="inquiry-container">
     <h2 class="page-title">1:1 문의(회원전용)</h2>
 
+    <!-- 상품 정보 표시 섹션 -->
+    <div v-if="productInfo" class="product-info-section">
+      <h3>상품 정보</h3>
+      <div class="product-info">
+        <p><strong>상품명:</strong> {{ productInfo.productName }}</p>
+        <p><strong>상품ID:</strong> {{ productInfo.productId }}</p>
+      </div>
+    </div>
+
     <!-- 항상 보이는 문의하기 작성 폼 -->
     <div class="inquiry-form">
       <h3>문의하기 작성</h3>
@@ -18,9 +27,11 @@
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
             <option value="">문의 유형을 선택하세요.</option>
-            <option v-for="type in availableInquiryTypes" :key="type.value" :value="type.value">
-              {{ type.label }}
-            </option>
+            <option value="PRODUCT">상품 문의</option>
+            <option value="BUSINESS">제휴 문의</option>
+            <option value="SYSTEM">시스템 문의</option>
+            <option value="RESERVATION">예약 문의</option>
+            <option value="CANCEL">예약 취소 문의</option>
           </select>
         </div>
         <div class="form-group">
@@ -29,7 +40,7 @@
         </div>
         <div class="form-group">
           <label>내용</label>
-          <textarea v-model="form.content" required></textarea>
+          <textarea v-model="form.content" required placeholder="문의 내용을 입력해주세요."></textarea>
         </div>
         <div class="form-actions">
           <button type="submit">등록</button>
@@ -95,18 +106,16 @@ const form = ref({
 });
 
 const showLoginModal = ref(false)
+const productInfo = ref(null)
 
 const inquiryTypes = {
   USER: [
     { value: 'PRODUCT', label: '상품 문의' },
-    { value: 'PARTNERSHIP', label: '제휴 문의' },
-    { value: 'SYSTEM', label: '시스템 문의' },
     { value: 'RESERVATION', label: '예약 문의' },
     { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
   ],
   PARTNER: [
     { value: 'PRODUCT', label: '상품 문의' },
-    { value: 'SYSTEM', label: '시스템 문의' },
     { value: 'RESERVATION', label: '예약 문의' },
     { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
   ]
@@ -115,6 +124,25 @@ const inquiryTypes = {
 const availableInquiryTypes = computed(() => {
   return inquiryTypes[userInfo.value.role] || [];
 });
+
+const initializeProductInfo = () => {
+  // URL 쿼리 파라미터에서 상품 정보 가져오기
+  if (route.query.productId && route.query.productName) {
+    productInfo.value = {
+      productId: route.query.productId,
+      productName: route.query.productName,
+      productType: route.query.productType || 'product'
+    };
+    
+    console.log('상품 정보 받음:', productInfo.value);
+    
+    // 상품 문의인 경우 자동으로 문의 유형만 설정
+    if (productInfo.value.productType === 'product') {
+      form.value.inquiryType = 'PRODUCT';
+      // 제목은 자동 설정하지 않고 회원이 직접 입력하도록 함
+    }
+  }
+};
 
 const fetchUserInfo = async () => {
   try {
@@ -169,8 +197,15 @@ const submitForm = async () => {
     return;
   }
 
+  // 상품 정보가 있으면 문의 내용에 추가
+  let content = form.value.content;
+  if (productInfo.value) {
+    content = `상품 정보:\n- 상품명: ${productInfo.value.productName}\n- 상품ID: ${productInfo.value.productId}\n\n문의 내용:\n${content}`;
+  }
+
   const inquiryData = {
     ...form.value,
+    content: content,
     writerId: userInfo.value.uno,
     writerType: userInfo.value.role,
     status: '대기중',
@@ -181,35 +216,43 @@ const submitForm = async () => {
   console.log('문의 데이터 준비:', inquiryData);
   console.log('사용자 정보:', userInfo.value);
 
-  openModal(inquiryData); // ✅ 모달 열기
+  try {
+    // 실제 API 호출
+    await inquiryApi.createInquiry(inquiryData);
+    alert('문의가 정상 등록되었습니다.');
+    
+    // Inquiries.vue로 데이터 전달을 위해 store에 저장
+    store.addNewInquiry({
+      id: Date.now(), // 임시 ID 생성
+      title: inquiryData.title,
+      content: inquiryData.content,
+      status: '대기중',
+      createdAt: inquiryData.createdAt,
+      userName: inquiryData.userName,
+      author: inquiryData.userName,
+      inquiryType: inquiryData.inquiryType,
+      answerContent: null,
+      answeredAt: null
+    });
+    
+    resetForm();
+    
+    // 관리자 문의 페이지로 이동 (해당 문의 유형 탭 선택)
+    router.push({
+      path: '/admin/inquiries',
+      query: { type: inquiryData.inquiryType }
+    });
+  } catch (error) {
+    console.error('문의 저장 실패:', error);
+    alert('저장에 실패했습니다.');
+  }
 };
-
-//   try {
-//     const inquiryData = {
-//       ...form.value,
-//       writerId: userInfo.value.uno,
-//       writerType: userInfo.value.role,
-//       status: '대기중',
-//       createdAt: new Date().toISOString(),
-//       userName: userInfo.value.uid
-//     };
-//
-//     await inquiryApi.createInquiry(inquiryData);
-//     alert('문의가 정상 등록되었습니다.');
-//     resetForm();
-//
-//     router.push('/admin/inquiries');
-//   } catch (error) {
-//     console.error('문의 저장 실패:', error);
-//     alert('저장에 실패했습니다.');
-//   }
-// };
 
 const resetForm = () => {
   form.value = {
     title: '',
     content: '',
-    inquiryType: '',
+    inquiryType: productInfo.value ? 'PRODUCT' : '',
     writerType: userInfo.value.role,
     receiverId: null
   };
@@ -220,7 +263,22 @@ const goToLogin = () => {
 }
 
 onMounted(async () => {
+  // 로그인 상태 확인
+  const token = localStorage.getItem('token');
+  const userInfo = localStorage.getItem('userInfo');
+  
+  if (!token || !userInfo) {
+    console.log('비로그인 사용자가 MemberInquiry에 접근 - GuestInquiry로 리다이렉트');
+    alert('로그인이 필요한 서비스입니다.');
+    router.push({
+      name: 'GuestInquiry',
+      query: route.query
+    });
+    return;
+  }
+  
   await fetchUserInfo();
+  initializeProductInfo();
 });
 
 </script>
@@ -285,6 +343,32 @@ onMounted(async () => {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.product-info-section {
+  background: #e8f4fd;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #007BFF;
+}
+
+.product-info-section h3 {
+  margin: 0 0 15px 0;
+  color: #007BFF;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.product-info p {
+  margin: 8px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.product-info strong {
+  color: #007BFF;
+  font-weight: 600;
 }
 
 .form-group {

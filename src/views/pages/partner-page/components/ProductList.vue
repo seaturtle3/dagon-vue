@@ -30,7 +30,16 @@
     <div class="product-grid">
       <div v-for="product in filteredProducts" :key="product.prodId" class="product-card" :class="{ 'deleted': product.deleted }">
         <div class="product-image" @click="$router.push(`/products/${product.prodId}`)">
-          <img :src="getThumbnailUrl(product.prodThumbnail)" :alt="product.prodName">
+          <img
+            v-if="hasImage(product)"
+            :src="getThumbnailUrl(product)"
+            :alt="product.prodName"
+            @error="e => { e.target.src = defaultImage }"
+          >
+          <div v-else class="image-placeholder">
+            <i class="fas fa-ship"></i>
+            <span>이미지 없음</span>
+          </div>
           <span :class="['type-badge', product.mainType?.toLowerCase()]">
             {{ getTypeText(product.mainType) }}
           </span>
@@ -51,7 +60,7 @@
           <div class="product-actions">
             <button v-if="!product.deleted" class="delete-button" @click.stop="deleteProduct(product.prodId)">비공개</button>
             <button v-else class="restore-button" @click.stop="restoreProduct(product.prodId)">복구</button>
-            <button class="report-button" @click="$router.push(`/partner/market-info/create/${product.prodId}`)">
+            <button class="report-button" @click="goToCreateReport(product.prodId)">
               조황 등록
             </button>
           </div>
@@ -111,6 +120,7 @@
 </template>
 
 <script>
+import { BASE_URL } from '@/constants/baseUrl.js';
 import { partnerService } from '@/api/partner';
 import ReportFormView from '@/views/community/fishing-report/components/ReportFormView.vue';
 
@@ -169,8 +179,24 @@ export default {
         alert("상품 목록을 불러오는데 실패했습니다.");
       }
     },
-    getThumbnailUrl(filename) {
-      return partnerService.getThumbnailUrl(filename);
+    getThumbnailUrl(product) {
+      if (product.prodImageNames && product.prodImageNames.length > 0) {
+        const firstImage = product.prodImageNames[0];
+        if (firstImage) {
+          return `${BASE_URL}${firstImage}`;
+        }
+      }
+      // fallback: prodThumbnail 사용
+      if (product.prodThumbnail) {
+        return partnerService.getThumbnailUrl(product.prodThumbnail);
+      }
+      return this.defaultImage;
+    },
+    hasImage(product) {
+      return (
+        (product.prodImageNames && product.prodImageNames.length > 0 && product.prodImageNames[0]) ||
+        product.prodThumbnail
+      );
     },
     getTypeText(type) {
       return type === 'SEA' ? '바다낚시' : type === 'FRESHWATER' ? '민물낚시' : '미지정';
@@ -205,25 +231,8 @@ export default {
     filterProducts() {
       // 필터링 로직은 computed 속성에서 처리됨
     },
-    async deleteProduct(prodId) {
-      if (!confirm('이 상품을 비공개로 설정하시겠습니까?')) {
-        return;
-      }
-
-      try {
-        await partnerService.deleteProduct(prodId);
-        alert('상품이 비공개로 설정되었습니다.');
-        await this.loadProducts();
-      } catch (error) {
-        console.error('상품 비공개 설정 실패:', error);
-        if (error.response?.status === 403) {
-          alert('권한이 없습니다.');
-        } else if (error.response?.status === 404) {
-          alert('상품을 찾을 수 없습니다.');
-        } else {
-          alert(error.response?.data?.message || '상품 비공개 설정에 실패했습니다.');
-        }
-      }
+    deleteProduct(prodId) {
+      alert('준비중입니다.');
     },
     async restoreProduct(prodId) {
       if (!confirm('이 상품을 다시 공개하시겠습니까?')) {
@@ -338,7 +347,10 @@ export default {
       }
     },
     goToProductForm() {
-      this.$router.push('/partner/product/register');
+      this.$router.push('/products/form');
+    },
+    goToCreateReport(prodId) {
+      this.$router.push({ path: '/fishing-report/create', query: { prodId } });
     },
   },
   mounted() {

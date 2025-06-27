@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
-import axios from '@/lib/axios.js'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
+import api from '@/lib/axios.js'
 import { useAdminAuthStore } from '@/store/auth/auth.js'
 import { useAuthStore } from '@/store/login/loginStore.js'
 import { useRouter } from 'vue-router'
@@ -18,21 +18,15 @@ const props = defineProps({
 const emit = defineEmits(['thumbnail-change', 'file-change', 'submit-success', 'submit-error'])
 
 const router = useRouter()
-const images = ref([])
 const thumbnailFile = ref(null)
+const thumbnailPreviewUrl = ref('')
 const formData = ref({
   title: '',
   content: '',
-  fishingAt: '',
+  fishingAt: new Date().toISOString().split('T')[0],
   location: '',
-  weather: '',
-  temperature: '',
-  waterTemperature: '',
-  fishingMethod: '',
-  catchInfo: '',
   imageFileName: '',
   thumbnailUrl: '',
-  images: [],
   user: null,
   comments: []
 })
@@ -46,36 +40,8 @@ const productOptions = ref([])
 const productSearchLoading = ref(false)
 const highlightedIndex = ref(-1)
 const productInputRef = ref(null)
+const dateInputRef = ref(null)
 const fishingReportStore = useFishingReportStore()
-
-// 날씨 옵션
-const weatherOptions = [
-  { value: 'SUNNY', label: '맑음' },
-  { value: 'CLOUDY', label: '흐림' },
-  { value: 'RAINY', label: '비' },
-  { value: 'SNOWY', label: '눈' },
-  { value: 'WINDY', label: '바람' }
-]
-
-// 낚시 방법 옵션
-const fishingMethodOptions = [
-  { value: 'ROD', label: '대물낚시' },
-  { value: 'SPINNING', label: '스피닝' },
-  { value: 'FLY', label: '플라이낚시' },
-  { value: 'NET', label: '그물' },
-  { value: 'TRAP', label: '통발' }
-]
-
-// 어종 옵션
-const fishSpeciesOptions = [
-  { value: 'BASS', label: '배스' },
-  { value: 'CRAPPIE', label: '블루길' },
-  { value: 'CATFISH', label: '메기' },
-  { value: 'CARP', label: '잉어' },
-  { value: 'TROUT', label: '송어' },
-  { value: 'SALMON', label: '연어' },
-  { value: 'OTHER', label: '기타' }
-]
 
 const isFormValid = computed(() => {
   return (
@@ -91,7 +57,7 @@ const isFormValid = computed(() => {
 async function validateAndRefreshToken() {
   try {
     console.log('토큰 검증 시작...')
-    
+
     // 현재 토큰 상태 확인
     const currentToken = localStorage.getItem('token')
     if (!currentToken) {
@@ -109,7 +75,7 @@ async function validateAndRefreshToken() {
 
     console.log('토큰이 존재합니다. API 요청을 시도합니다.')
     return true
-    
+
   } catch (error) {
     console.error('토큰 검증 중 오류:', error)
     // 토큰을 초기화하지 않고 에러만 로그
@@ -129,7 +95,7 @@ function checkTokenStatus() {
   console.log('=== 토큰 상태 확인 ===')
   console.log('localStorage token:', localStorage.getItem('token'))
   console.log('localStorage userInfo:', localStorage.getItem('userInfo'))
-  console.log('axios headers:', axios.defaults.headers.common['Authorization'])
+  console.log('axios headers:', api.defaults.headers.common['Authorization'])
   console.log('adminAuthStore token:', adminAuthStore.token)
   console.log('adminAuthStore isAuthenticated:', adminAuthStore.isAuthenticated)
   console.log('authStore isAuthenticated:', authStore.isAuthenticated)
@@ -139,23 +105,23 @@ function checkTokenStatus() {
 function onThumbnailChange(event) {
   const file = event.target.files[0]
   if (file) {
+    // 기존 URL 정리
+    if (thumbnailPreviewUrl.value) {
+      URL.revokeObjectURL(thumbnailPreviewUrl.value)
+    }
+    
     thumbnailFile.value = file
+    thumbnailPreviewUrl.value = URL.createObjectURL(file)
     emit('thumbnail-change', event)
   }
 }
 
-function onFileChange(event) {
-  const files = Array.from(event.target.files)
-  images.value = files
-  emit('file-change', event)
-}
-
-function removeImage(index) {
-  images.value.splice(index, 1)
-}
-
 function removeThumbnail() {
+  if (thumbnailPreviewUrl.value) {
+    URL.revokeObjectURL(thumbnailPreviewUrl.value)
+  }
   thumbnailFile.value = null
+  thumbnailPreviewUrl.value = ''
 }
 
 onMounted(async () => {
@@ -165,20 +131,20 @@ onMounted(async () => {
     console.log('페이지 로드 시 토큰 설정')
     adminAuthStore.setToken(token)
   }
-  
+
   // 현재 토큰 상태 확인
   checkTokenStatus()
-  
+
   // 페이지 로드 시 토큰 검증
   const tokenValid = await validateAndRefreshToken()
   if (!tokenValid) {
     console.log('토큰 검증 실패, 페이지 로드 중단')
     return
   }
-  
+
   // 검증 후 토큰 상태 재확인
   checkTokenStatus()
-  
+
   // RichTextEditor는 컴포넌트에서 자동으로 초기화됩니다
   await productListStore.fetchProducts()
 })
@@ -192,10 +158,21 @@ async function onSubmit() {
     alert('낚시 날짜를 입력하세요.');
     return;
   }
-  // if (images.value.length === 0) {
-  //   alert('이미지는 최소 1장 이상 업로드해주세요.')
-  //   return
-  // }
+
+  // 이미지 파일 검증
+  if (thumbnailFile.value) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (thumbnailFile.value.size > maxSize) {
+      alert('이미지 파일 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(thumbnailFile.value.type)) {
+      alert('지원되는 이미지 형식: JPG, PNG, GIF');
+      return;
+    }
+  }
 
   const submitFormData = new FormData()
   const dtoToSend = {
@@ -203,6 +180,7 @@ async function onSubmit() {
     content: formData.value.content,
     prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
     fishingAt: formData.value.fishingAt,
+    location: formData.value.location,
     imageFileName: thumbnailFile.value ? thumbnailFile.value.name : null,
     product: selectedProduct.value ? {
       prodId: selectedProduct.value.prodId,
@@ -210,24 +188,38 @@ async function onSubmit() {
     } : null,
     user: null,
     comments: [],
-    images: [],
     thumbnailUrl: null
   }
-  submitFormData.append('dto', new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' }))
-  const allImages = []
+  
+  // DTO를 직접 JSON 객체로 추가 (Blob으로 감싸지 않음)
+  submitFormData.append('dto', JSON.stringify(dtoToSend))
+  
+  // 썸네일 이미지 추가
   if (thumbnailFile.value) {
-    allImages.push(thumbnailFile.value)
+    submitFormData.append('images', thumbnailFile.value)
   }
-  allImages.push(...images.value)
-  allImages.forEach(file => {
-    submitFormData.append('images', file)
-  })
+  
   try {
+    console.log('전송할 데이터:', dtoToSend)
+    console.log('FormData 내용:')
+    for (let [key, value] of submitFormData.entries()) {
+      console.log(key, value)
+    }
+    
     await fishingReportStore.createFishingReport(submitFormData)
     alert('조황정보가 성공적으로 등록되었습니다!')
     router.push('/fishing-report')
   } catch (err) {
-    alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.')
+    console.error('조황정보 등록 실패:', err)
+    
+    // 더 자세한 에러 메시지 표시
+    if (err.response?.data?.message) {
+      alert(`조황정보 등록 실패: ${err.response.data.message}`)
+    } else if (err.response?.status === 500) {
+      alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    } else {
+      alert('조황정보 등록에 실패했습니다. 다시 시도해주세요.')
+    }
   }
 }
 
@@ -235,23 +227,20 @@ function resetForm() {
   formData.value = {
     title: '',
     content: '',
-    fishingAt: '',
+    fishingAt: new Date().toISOString().split('T')[0],
     location: '',
-    weather: '',
-    temperature: '',
-    waterTemperature: '',
-    fishingMethod: '',
-    catchInfo: '',
     productId: null,
     productName: '',
     imageFileName: '',
     thumbnailUrl: '',
-    images: [],
     user: null,
     comments: []
   }
-  images.value = []
+  if (thumbnailPreviewUrl.value) {
+    URL.revokeObjectURL(thumbnailPreviewUrl.value)
+  }
   thumbnailFile.value = null
+  thumbnailPreviewUrl.value = ''
   selectedProduct.value = null
   // RichTextEditor는 v-model로 자동으로 초기화됩니다
 }
@@ -306,29 +295,47 @@ function onProductInputBlur(e) {
     highlightedIndex.value = -1
   }, 120)
 }
+
+// 날짜 선택기 열기
+function openDatePicker() {
+  if (dateInputRef.value) {
+    dateInputRef.value.showPicker()
+  }
+}
+
+// 날짜 입력 필드 클릭 시 달력 열기
+function onDateInputClick() {
+  openDatePicker()
+}
+
+onUnmounted(() => {
+  if (thumbnailPreviewUrl.value) {
+    URL.revokeObjectURL(thumbnailPreviewUrl.value)
+  }
+})
 </script>
 
 <template>
-  <div class="report-form-container">
+  <div class="form-container">
     <div class="form-header">
       <h2 class="form-title">🎣 조황정보 등록</h2>
       <p class="form-subtitle">오늘의 낚시 조황을 공유해보세요!</p>
     </div>
 
-    <form @submit.prevent="onSubmit" class="report-form">
+    <form @submit.prevent="onSubmit">
       <!-- 기본 정보 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📝 기본 정보</h3>
-        
+
         <div class="form-row">
           <div class="form-group">
             <label class="form-label required">제목</label>
-            <input 
-              v-model="formData.title" 
-              type="text" 
-              class="form-control" 
+            <input
+              v-model="formData.title"
+              type="text"
+              class="form-control"
               placeholder="조황정보 제목을 입력하세요"
-              required 
+              required
             />
           </div>
         </div>
@@ -336,22 +343,27 @@ function onProductInputBlur(e) {
         <div class="form-row">
           <div class="form-group">
             <label class="form-label required">낚시 날짜</label>
-            <input 
-              v-model="formData.fishingAt" 
-              type="date" 
-              class="form-control" 
-              required 
-            />
+            <div class="date-input-container">
+              <input
+                v-model="formData.fishingAt"
+                type="date"
+                class="form-control date-input"
+                placeholder="날짜를 선택하세요"
+                required
+                ref="dateInputRef"
+                @click="onDateInputClick"
+              />
+            </div>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label required">낚시 장소</label>
-            <input 
-              v-model="formData.location" 
-              type="text" 
-              class="form-control" 
+            <input
+              v-model="formData.location"
+              type="text"
+              class="form-control"
               placeholder="낚시한 장소를 입력하세요"
-              required 
+              required
             />
           </div>
         </div>
@@ -385,116 +397,58 @@ function onProductInputBlur(e) {
         </div>
       </div>
 
-      <!-- 날씨 정보 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">🌤️ 날씨 정보</h3>
+      <!-- 이미지 & 내용 작성 섹션 -->
+      <div class="form-section content-section">
+        <h3 class="section-title">📝 조황정보 작성</h3>
         
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">날씨</label>
-            <select v-model="formData.weather" class="form-control">
-              <option value="">날씨를 선택하세요</option>
-              <option v-for="option in weatherOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">기온 (°C)</label>
-            <input 
-              v-model="formData.temperature" 
-              type="number" 
-              class="form-control" 
-              placeholder="기온을 입력하세요"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">수온 (°C)</label>
-            <input 
-              v-model="formData.waterTemperature" 
-              type="number" 
-              class="form-control" 
-              placeholder="수온을 입력하세요"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- 낚시 정보 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">🎯 낚시 정보</h3>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">낚시 방법</label>
-            <select v-model="formData.fishingMethod" class="form-control">
-              <option value="">낚시 방법을 선택하세요</option>
-              <option v-for="option in fishingMethodOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">어종</label>
-            <select v-model="formData.catchInfo" class="form-control">
-              <option value="">잡은 어종을 선택하세요</option>
-              <option v-for="option in fishSpeciesOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- 이미지 업로드 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">📸 이미지 업로드</h3>
-        
-        <div class="form-group">
-          <label class="form-label">대표 썸네일</label>
-          <input 
-            type="file" 
-            accept="image/*" 
-            class="form-control" 
-            @change="onThumbnailChange" 
-          />
-          <div v-if="thumbnailFile" class="file-preview">
-            <span>선택된 파일: {{ thumbnailFile.name }}</span>
-            <button type="button" @click="removeThumbnail" class="remove-btn">삭제</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">추가 이미지</label>
-          <input 
-            type="file" 
-            accept="image/*" 
-            multiple 
-            class="form-control" 
-            @change="onFileChange" 
-          />
-          <div v-if="images.length > 0" class="file-list">
-            <div v-for="(file, index) in images" :key="index" class="file-item">
-              <span>{{ file.name }}</span>
-              <button type="button" @click="removeImage(index)" class="remove-btn">삭제</button>
+        <div class="content-layout">
+          <!-- 이미지 업로드 영역 -->
+          <div class="image-upload-section">
+            <label class="form-label">대표 이미지</label>
+            <div class="image-upload-container">
+              <div class="image-preview-area">
+                <div v-if="!thumbnailFile" class="upload-placeholder">
+                  <div class="upload-icon">📸</div>
+                  <div class="upload-text">
+                    <span class="upload-title">이미지를 선택해주세요</span>
+                    <span class="upload-subtitle">클릭하여 파일 선택</span>
+                  </div>
+                </div>
+                <div v-else class="image-preview">
+                  <img 
+                    :src="thumbnailPreviewUrl" 
+                    alt="미리보기" 
+                    class="preview-image"
+                  />
+                  <div class="image-overlay">
+                    <button type="button" @click="removeThumbnail" class="remove-image-btn">
+                      <span>✕</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                class="upload-input"
+                @change="onThumbnailChange"
+              />
+            </div>
+            <div v-if="thumbnailFile" class="file-info">
+              <span class="file-name">{{ thumbnailFile.name }}</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- 내용 작성 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">📝 상세 내용</h3>
-        
-        <div class="form-group">
-          <label class="form-label required">조황정보 내용</label>
-          <RichTextEditor 
-            v-model="formData.content"
-            editor-id="fishing-report-editor"
-          />
+          <!-- 내용 작성 영역 -->
+          <div class="content-editor-section">
+            <div class="form-group">
+              <label class="form-label required">조황정보 내용</label>
+              <RichTextEditor
+                v-model="formData.content"
+                editor-id="fishing-report-editor"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -517,7 +471,7 @@ function onProductInputBlur(e) {
 </template>
 
 <style scoped>
-.report-form-container {
+.form-container {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
@@ -598,6 +552,17 @@ function onProductInputBlur(e) {
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
+/* 날짜 입력 필드 스타일 */
+.date-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-input {
+  cursor: pointer;
+}
+
 /* RichTextEditor 스타일 조정 */
 .form-group :deep(.note-editor) {
   border: 2px solid #e0e0e0;
@@ -610,37 +575,187 @@ function onProductInputBlur(e) {
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
-.file-preview, .file-list {
-  margin-top: 10px;
-  padding: 10px;
-  background: #f5f5f5;
-  border-radius: 4px;
+/* 새로운 콘텐츠 섹션 스타일 */
+.content-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+  border-left: 4px solid #1976d2;
 }
 
-.file-item {
+.content-layout {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.image-upload-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.image-upload-section:hover {
+  border-color: #1976d2;
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.15);
+}
+
+.image-upload-container {
+  position: relative;
+  cursor: pointer;
+}
+
+.image-preview-area {
+  border: 2px dashed #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  min-height: 200px;
+  display: flex;
   align-items: center;
-  padding: 5px 0;
-  border-bottom: 1px solid #ddd;
+  justify-content: center;
 }
 
-.file-item:last-child {
-  border-bottom: none;
+.image-upload-container:hover .image-preview-area {
+  border-color: #1976d2;
+  background: #f8f9fa;
 }
 
-.remove-btn {
+.upload-placeholder {
+  text-align: center;
+  padding: 40px 20px;
+  transition: all 0.3s ease;
+}
+
+.upload-placeholder:hover {
+  transform: translateY(-2px);
+}
+
+.upload-icon {
+  font-size: 3.5rem;
+  margin-bottom: 15px;
+  display: block;
+  opacity: 0.7;
+}
+
+.upload-text {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.upload-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.upload-subtitle {
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.upload-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.image-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-preview:hover .image-overlay {
+  opacity: 1;
+}
+
+.remove-image-btn {
   background: #f44336;
   color: white;
   border: none;
-  padding: 4px 8px;
-  border-radius: 4px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.remove-btn:hover {
+.remove-image-btn:hover {
   background: #d32f2f;
+  transform: scale(1.1);
+}
+
+.file-info {
+  margin-top: 15px;
+  text-align: center;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.file-name {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.content-editor-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e0e0e0;
+}
+
+.content-editor-section .form-group {
+  margin-bottom: 0;
+}
+
+.content-editor-section :deep(.note-editor) {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 350px;
+}
+
+.content-editor-section :deep(.note-editor:focus-within) {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
 .error-message {
@@ -700,13 +815,51 @@ function onProductInputBlur(e) {
   .form-row {
     grid-template-columns: 1fr;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .btn {
     width: 100%;
+  }
+
+  .content-layout {
+    gap: 20px;
+  }
+
+  .image-upload-section {
+    padding: 20px;
+  }
+
+  .image-preview-area {
+    min-height: 150px;
+  }
+
+  .upload-placeholder {
+    padding: 30px 15px;
+  }
+
+  .upload-icon {
+    font-size: 3rem;
+  }
+
+  .upload-title {
+    font-size: 1.1rem;
+  }
+
+  .content-editor-section {
+    padding: 20px;
+  }
+
+  .content-editor-section :deep(.note-editor) {
+    min-height: 300px;
+  }
+
+  .remove-image-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 14px;
   }
 }
 

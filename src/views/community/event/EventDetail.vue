@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/lib/axios'
 import {useAdminAuthStore} from "@/store/auth/auth.js";
 
 import BoardDetailBox from "@/components/common/BoardDetailBox.vue";
@@ -18,7 +18,7 @@ onMounted(async () => {
   authStore.loadTokenFromStorage()
   isAdmin.value = !!authStore.token
 
-  const res = await axios.get(`/api/event/${route.params.id}`)
+  const res = await api.get(`/event/${route.params.id}`)
   event.value = res.data
 })
 
@@ -28,7 +28,7 @@ const handleEdit = () => {
 
 const handleDelete = async () => {
   if (!confirm('정말 삭제하시겠습니까?')) return
-  await axios.delete(`/api/admin/event/${route.params.id}`, {
+  await api.delete(`/admin/event/${route.params.id}`, {
     headers: {
       Authorization: `Bearer ${authStore.token}`
     }

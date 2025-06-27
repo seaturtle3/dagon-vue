@@ -30,6 +30,12 @@ onMounted(async () => {
     
     <!-- 정상 상태 -->
     <div v-else>
+      <div class="page-header">
+        <h2 class="page-title">
+          📊 조황센터
+          <span class="count">({{ (store.reportList?.length || 0) + (store.diaryList?.length || 0) }})</span>
+        </h2>
+      </div>
       <FishingCenterList :centers="[{ reports: store.reportList, diaries: store.diaryList }]" />
     </div>
   </div>
@@ -79,5 +85,28 @@ onMounted(async () => {
 
 .retry-button:hover {
   background-color: #2980b9;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a365d;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.count {
+  color: #4a90e2;
+  font-weight: 600;
+  margin-left: 8px;
 }
 </style>

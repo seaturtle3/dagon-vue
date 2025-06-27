@@ -12,6 +12,12 @@
     :message="errorMessage"
     :onConfirm="() => showErrorModal = false"
   />
+  <ModalDialog
+    :show="showSuccessModal"
+    title="성공"
+    message="회원정보가 성공적으로 수정되었습니다."
+    :onConfirm="handleSuccessConfirm"
+  />
   <div class="profile-container">
     <h2 class="page-title">회원정보</h2>
     <div class="profile-form">
@@ -53,7 +59,7 @@
 
       <div class="form-group">
         <label>이메일</label>
-        <input type="email" v-model="userInfo.email" :disabled="!isEditing" class="form-control" />
+        <input type="email" v-model="userInfo.email" disabled class="form-control" />
       </div>
 
       <div class="form-group">
@@ -101,6 +107,7 @@ const originalUserInfo = ref(null);
 const showLoginModal = ref(false);
 const showErrorModal = ref(false);
 const errorMessage = ref('');
+const showSuccessModal = ref(false);
 
 const userInfo = ref({
   uid: '',
@@ -228,14 +235,11 @@ const goToLogin = () => {
   router.push('/login')
 }
 
-const confirmWithdrawal = async () => {
-  try {
-    await myPageAPI.withdrawMembership({ password: password.value });
-    showSuccessModal.value = true;
-  } catch (error) {
-    errorMessage.value = error.response?.data?.error || '회원 탈퇴 처리 중 오류가 발생했습니다.';
-    showErrorModal.value = true;
-  }
+const handleSuccessConfirm = async () => {
+  showSuccessModal.value = false;
+  isEditing.value = false;
+  selectedImage.value = null;
+  await loadUserInfo();
 };
 </script>
 

@@ -87,13 +87,109 @@ const goBackToLogin = () => {
 const handleLogin = async () => {
   errorMessage.value = '';
   successMessage.value = '';
+  
+  // 입력값 검증
+  if (!username.value.trim()) {
+    errorMessage.value = '아이디를 입력해주세요.';
+    return;
+  }
+  
+  if (!password.value.trim()) {
+    errorMessage.value = '비밀번호를 입력해주세요.';
+    return;
+  }
+  
   try {
     await authStore.login(username.value, password.value);
     router.push('/');
   } catch (err) {
+    console.error('로그인 에러:', err);
+    
+    // 백엔드에서 보내는 구체적인 에러 메시지 처리
     if (err.response && err.response.data) {
-      errorMessage.value = err.response.data;
+      const errorData = err.response.data;
+      const status = err.response.status;
+      
+      console.log('에러 응답 데이터:', errorData);
+      console.log('HTTP 상태:', status);
+      
+      // HTTP 상태 코드별 처리
+      if (status === 401) {
+        // 인증 실패 - 백엔드에서 구체적인 에러 정보를 보내는 경우
+        if (errorData.error) {
+          switch (errorData.error) {
+            case 'USER_NOT_FOUND':
+              errorMessage.value = '존재하지 않는 아이디입니다.';
+              break;
+            case 'INVALID_PASSWORD':
+              errorMessage.value = '비밀번호가 일치하지 않습니다.';
+              break;
+            case 'BOTH_INVALID':
+              errorMessage.value = '아이디와 비밀번호가 모두 일치하지 않습니다.';
+              break;
+            case 'ACCOUNT_DISABLED':
+              errorMessage.value = '비활성화된 계정입니다. 관리자에게 문의하세요.';
+              break;
+            default:
+              errorMessage.value = '아이디 또는 비밀번호가 일치하지 않습니다.';
+          }
+        } else if (errorData.message) {
+          // 백엔드에서 보내는 메시지 처리
+          errorMessage.value = errorData.message;
+        } else if (typeof errorData === 'string') {
+          // 백엔드에서 보내는 문자열 형태의 에러 메시지
+          if (errorData === '아이디가 존재하지 않습니다.') {
+            errorMessage.value = '존재하지 않는 아이디입니다.';
+          } else if (errorData === '비밀번호가 일치하지 않습니다.') {
+            errorMessage.value = '비밀번호가 일치하지 않습니다.';
+          } else if (errorData.includes('아이디') && errorData.includes('비밀번호')) {
+            errorMessage.value = '아이디와 비밀번호가 모두 일치하지 않습니다.';
+          } else if (errorData.includes('아이디')) {
+            errorMessage.value = '존재하지 않는 아이디입니다.';
+          } else if (errorData.includes('비밀번호')) {
+            errorMessage.value = '비밀번호가 일치하지 않습니다.';
+          } else {
+            errorMessage.value = errorData;
+          }
+        } else {
+          // 기본 401 에러 메시지
+          errorMessage.value = '아이디 또는 비밀번호가 일치하지 않습니다.';
+        }
+      } else if (status === 400) {
+        // 잘못된 요청
+        if (errorData.message) {
+          errorMessage.value = errorData.message;
+        } else {
+          errorMessage.value = '입력 정보를 확인해주세요.';
+        }
+      } else if (status === 403) {
+        // 권한 없음
+        errorMessage.value = '로그인 권한이 없습니다. 관리자에게 문의하세요.';
+      } else if (status === 500) {
+        // 서버 오류
+        errorMessage.value = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      } else {
+        // 기타 HTTP 에러
+        if (errorData.message) {
+          errorMessage.value = errorData.message;
+        } else if (typeof errorData === 'string') {
+          errorMessage.value = errorData;
+        } else {
+          errorMessage.value = '로그인에 실패했습니다. 다시 시도해주세요.';
+        }
+      }
+    } else if (err.request) {
+      // 요청은 보냈지만 응답을 받지 못한 경우 (네트워크 에러)
+      errorMessage.value = '서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.';
+    } else if (err.message) {
+      // 기타 에러
+      if (err.message.includes('timeout')) {
+        errorMessage.value = '요청 시간이 초과되었습니다. 다시 시도해주세요.';
+      } else {
+        errorMessage.value = '로그인 중 오류가 발생했습니다. 다시 시도해주세요.';
+      }
     } else {
+      // 알 수 없는 에러
       errorMessage.value = '로그인 중 알 수 없는 오류가 발생했습니다.';
     }
   }

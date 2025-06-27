@@ -20,7 +20,13 @@
       <div class="level-card">
         <div class="level-info">
           <div class="level-badge">
-            <span class="level-text">{{ pointInfo.levelKorean }}</span>
+            <!-- 레벨별 아이콘 -->
+            <span v-if="pointInfo.level === 'BRONZE'" class="level-icon-badge">🥉</span>
+            <span v-else-if="pointInfo.level === 'SILVER'" class="level-icon-badge">🥈</span>
+            <span v-else-if="pointInfo.level === 'GOLD'" class="level-icon-badge">🥇</span>
+            <span v-else-if="pointInfo.level === 'PLATINUM'" class="level-icon-badge">💎</span>
+            <span v-else-if="pointInfo.level === 'DIAMOND'" class="level-icon-badge">👑</span>
+            <span v-else class="level-icon-badge">⭐</span>
           </div>
           <div class="level-details">
             <h3>현재 레벨</h3>
@@ -165,20 +171,19 @@ const goToLogin = () => {
 .level-badge {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #1976d2, #0d47a1);
+  background: transparent;
   border-radius: 50%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
-  border: 3px solid #90caf9;
+  box-shadow: none;
+  border: 3px solid #000;
+  padding-top: 8px;
 }
 
-.level-text {
-  color: white;
-  font-size: 1.2rem;
-  font-weight: 600;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.level-icon-badge {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .level-details h3 {

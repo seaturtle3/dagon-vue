@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, computed, onUnmounted, watch } from 'vue'
+import { onMounted, computed, onUnmounted, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFishingReportStore } from "@/store/fishing-center/useFishingReportStore.js"
 import ReportDetailItem from "@/views/community/fishing-report/components/ReportDetailItem.vue";
@@ -8,6 +8,16 @@ const store = useFishingReportStore()
 const route = useRoute()
 const router = useRouter()
 const id = computed(() => route.params.frId)
+
+const currentUser = ref(null)
+
+onMounted(() => {
+  // localStorage에서 로그인 정보 불러오기
+  const userInfo = localStorage.getItem('userInfo')
+  if (userInfo) {
+    currentUser.value = JSON.parse(userInfo)
+  }
+})
 
 onMounted(async () => {
   await store.fetchReports()
@@ -52,7 +62,7 @@ onUnmounted(() => {
       <button v-if="prevReport" class="nav-btn" @click="goToReport(prevReport.frId)">&lt; 이전글</button>
       <button v-if="nextReport" class="nav-btn" @click="goToReport(nextReport.frId)">다음글 &gt;</button>
     </div>
-    <ReportDetailItem :report="store.currentReport" v-if="store.currentReport"/>
+    <ReportDetailItem :report="store.currentReport" :current-user="currentUser" v-if="store.currentReport"/>
     <p v-else>조황 정보를 불러오는 중입니다...</p>
   </div>
 </template>

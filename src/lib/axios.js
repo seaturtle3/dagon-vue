@@ -72,8 +72,19 @@ api.interceptors.response.use(
         if (errorStatus === 401) {
             console.log('인증 실패, 토큰 삭제 및 로그인 페이지로 이동')
             localStorage.removeItem('token')
-            if (window.location.pathname !== '/admin/login') {
-                window.location.href = '/admin/login'
+            const path = window.location.pathname
+            if (path.startsWith('/admin')) {
+                if (window.location.pathname !== '/admin/login') {
+                    window.location.href = '/admin/login'
+                }
+            } else if (path.startsWith('/partner')) {
+                if (window.location.pathname !== '/partner/login') {
+                    window.location.href = '/partner/login'
+                }
+            } else {
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login'
+                }
             }
         }
         

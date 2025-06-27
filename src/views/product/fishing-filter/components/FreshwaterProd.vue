@@ -33,6 +33,20 @@ function openDetail(product) {
 function onPageChange(newPage) {
   currentPage.value = newPage
 }
+
+// 마운트 시 초기 필터 옵션 불러오기 및 상품 조회
+onMounted(async () => {
+  const { data } = await api.get('/product/freshwater/filter')
+  filters.value = data
+
+  fetchProducts({})  // 전체 조회
+})
+
+// 선택 값 변경 감지
+watch(selected, (val) => {
+  emit('update:filter', val)
+  fetchProducts(val)
+}, { deep: true })
 </script>
 
 <template>
@@ -41,16 +55,27 @@ function onPageChange(newPage) {
         class="product-card"
         v-for="product in paginatedProducts"
         :key="product.prodId"
-        @click="openDetail(product)"
     >
-      <img :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
-           alt="thumbnail" class="thumbnail"/>
+      <!-- 상품명 + 배경 -->
+      <div class="prod-name" @click="openDetail(product)">{{ product.prodName }}</div>
 
-      <div>
-        <h5>{{ product.prodId }}</h5>
-        <h4>{{ product.prodName }}</h4>
-        <p class="address">{{ product.prodAddress }}</p>
+      <!-- 썸네일 -->
+      <div class="thumbnail-wrapper">
+        <img
+            :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
+            alt="thumbnail"
+            class="thumbnail"
+        />
       </div>
+
+      <!-- 본문 -->
+      <div class="content">
+        <p style="margin-bottom: 1%">어종 : </p>
+        <p style="margin-bottom: 1%">비용 : </p>
+        <p style="margin-bottom: 1%">시간 : </p>
+        <p class="address">위치 : {{ product.prodAddress }}</p>
+      </div>
+
     </div>
   </div>
 
@@ -66,8 +91,8 @@ function onPageChange(newPage) {
 <style scoped>
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* 넓게, 꽉 차게 */
-  gap: 32px; /* 카드 사이 간격 넓힘 */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 32px;
 }
 
 .product-card {
@@ -76,40 +101,57 @@ function onPageChange(newPage) {
   background: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s;
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }
 
-.product-card > div {
-  padding-left: 5%;
+.prod-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  background-color: cornflowerblue;
+  color: #ffffff;
+  padding: 12px 16px 8px 16px;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  cursor:pointer;
 }
 
-.product-card:hover {
-  transform: translateY(-4px);
+.thumbnail-wrapper {
+  position: relative;
 }
 
 .thumbnail {
   width: 100%;
-  height: 180px; /* 조금 더 커진 썸네일 */
+  height: 180px;
   object-fit: cover;
-  border-radius: 10px 10px 0 0;
-  margin-bottom: 12px;
+  border-radius: 0 0 10px 10px;
+  display: block;
+}
+
+.content {
+  padding: 16px 16px 0 16px;
 }
 
 .address {
   font-size: 0.9rem;
   color: #666;
+  margin-bottom: 5%;
 }
 
 button {
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #f8f8f8;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 2px solid #007bff;
+  background: #ffffff;
+  color: #007bff;
+  font-weight: bold;
+  font-size: 1rem;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+button:hover {
+  background: #e6f0ff;
 }
 </style>

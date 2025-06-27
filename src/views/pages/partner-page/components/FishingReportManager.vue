@@ -11,9 +11,9 @@
       </div>
       
       <div class="filter-options">
-        <select v-model="typeFilter" @change="filterReports">
-          <option value="all">전체</option>
-          <!-- 필요한 경우 조황정보 유형 필터 추가 (예: 바다/민물) -->
+        <select v-model="sortOrder" @change="applyFilters">
+          <option value="desc">최근 날짜순</option>
+          <option value="asc">가장 오래된 순</option>
         </select>
       </div>
     </div>
@@ -22,7 +22,7 @@
       <div v-if="reports.length === 0" class="no-reports-grid">
         등록된 조황정보가 없습니다.
       </div>
-      <div v-for="report in filteredReports" :key="report.frId" class="report-card" @click="viewReportDetail(report.frId)">
+      <div v-for="report in filteredReports" :key="report.frId" class="report-card" @click="goToPublicDetail(report.frId)">
         <div class="report-image">
           <img :src="getThumbnailUrl(report.thumbnailUrl)" :alt="report.title" @error="handleImageError">
           <span class="date-badge">
@@ -38,6 +38,7 @@
             <span class="product-name">{{ report.prodName || '상품 정보 없음' }}</span>
           </div>
           <div class="report-actions">
+            <button class="detail-button" @click.stop="viewReportDetail(report.frId)">상세보기</button>
             <button class="delete-button" @click.stop="deleteReport(report.frId)">삭제</button>
           </div>
         </div>
@@ -63,14 +64,21 @@ export default {
       loading: true,
       error: null,
       searchQuery: '',
-      typeFilter: 'all',
+      sortOrder: 'desc',
       filteredReports: [],
       selectedStatus: 'ALL'
     };
   },
+  computed: {
+    uniqueProdNames() {
+      // reports에서 prodName의 고유값만 추출
+      const names = this.reports.map(r => r.prodName).filter(Boolean);
+      return [...new Set(names)];
+    }
+  },
   watch: {
     searchQuery: 'applyFilters',
-    typeFilter: 'applyFilters',
+    sortOrder: 'applyFilters',
     reports: 'applyFilters'
   },
   methods: {
@@ -83,13 +91,9 @@ export default {
     },
     async loadFishingReports() {
       try {
-        console.log('조황정보 로딩 시작, prodId:', this.prodId);
-        const response = await partnerService.getFishingReports(this.prodId);
-        console.log('조황정보 응답 데이터:', response.data);
-        this.reports = response.data.map(report => ({
-          ...report,
-          productName: report.prodName || '상품 정보 없음'
-        }));
+        const response = await partnerService.getMyFishingReports();
+        const arr = Array.isArray(response.data) ? response.data : [];
+        this.reports = arr;
         this.applyFilters();
       } catch (error) {
         console.error('조황정보 로딩 실패:', error);
@@ -97,22 +101,24 @@ export default {
       }
     },
     applyFilters() {
-      this.filteredReports = this.reports.filter(report => {
-        const matchesSearch = report.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-            report.content.toLowerCase().includes(this.searchQuery.toLowerCase());
-        return matchesSearch;
+      let filtered = this.reports.filter(report => {
+        return report.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+               report.content.toLowerCase().includes(this.searchQuery.toLowerCase());
       });
+      if (this.sortOrder === 'desc') {
+        filtered = filtered.slice().sort((a, b) => new Date(b.fishingAt) - new Date(a.fishingAt));
+      } else {
+        filtered = filtered.slice().sort((a, b) => new Date(a.fishingAt) - new Date(b.fishingAt));
+      }
+      this.filteredReports = filtered;
     },
     searchReports() {
-      this.applyFilters();
-    },
-    filterReports() {
       this.applyFilters();
     },
     viewReportDetail(frId) {
       if (frId) {
         sessionStorage.setItem('fishing-report-scroll', window.scrollY);
-        this.$router.push(`/fishing-report/${frId}`);
+        this.$router.push(`/partner/market-info/${frId}`);
       } else {
         alert('상세보기 ID가 올바르지 않습니다.');
       }
@@ -138,6 +144,13 @@ export default {
       } catch (error) {
         console.error('조황정보 삭제 실패:', error);
         alert('조황정보 삭제에 실패했습니다.');
+      }
+    },
+    goToPublicDetail(frId) {
+      if (frId) {
+        this.$router.push(`/fishing-report/${frId}`);
+      } else {
+        alert('상세보기 ID가 올바르지 않습니다.');
       }
     }
   },
@@ -371,6 +384,23 @@ export default {
   margin-top: 10px;
   display: flex;
   justify-content: flex-end;
+}
+
+.detail-button {
+  padding: 6px 12px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+.detail-button:hover {
+  background-color: #1565c0;
+  transform: translateY(-2px);
 }
 
 .delete-button {

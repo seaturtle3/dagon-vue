@@ -1,21 +1,34 @@
 <script setup>
-import {onMounted, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {useFreshwaterProdStore} from '@/store/product/fishing-filter/useFreshwaterProdStore.js'
 import FreshwaterProd from "@/views/product/fishing-filter/components/FreshwaterProd.vue"
+import FreshwaterFilter from "@/views/product/fishing-filter/components/FreshwaterFilter.vue";
 
 const store = useFreshwaterProdStore()
 
 onMounted(async () => {
   await store.fetchProducts()
 })
+
+const productStore = useFreshwaterProdStore()
+const products = computed(() => productStore.products)
+
+const onFilterChange = async (filter) => {
+  await productStore.fetchFilteredProducts(filter)
+}
 </script>
 
 <template>
   <div class="fresh">
-    <div style="margin-bottom: 3%">
+    <div class="fresh-title">
       <h4>민물낚시</h4>
     </div>
-    <FreshwaterProd :filteredProducts="store.products"/>
+
+    <div class="filter-detail-wrapper">
+      <FreshwaterFilter @update:filter="onFilterChange" />
+    </div>
+
+    <FreshwaterProd :filteredProducts="products"/>
   </div>
 </template>
 
@@ -23,5 +36,28 @@ onMounted(async () => {
 .fresh {
   width: 80%;
   margin: 5% auto;
+}
+
+.fresh-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 3%;
+}
+.fresh-title h4 {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #388e3c;
+  letter-spacing: 0.1em;
+  padding: 0.5em 2em;
+  border-radius: 2em;
+  background: linear-gradient(90deg, #e8f5e9 0%, #c8e6c9 100%);
+  box-shadow: 0 2px 8px rgba(56, 142, 60, 0.08);
+}
+
+.filter-detail-wrapper {
+  display: flex;
+  justify-content: center; /* 수평 중앙 정렬 */
+  margin-bottom: 5rem; /* 아래쪽 여백 */
 }
 </style>

@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, watch} from 'vue'
-import axios from 'axios'
+import api from '@/lib/axios'
 import EventCard from "@/views/community/event/components/EventCard.vue";
 import BoardPagination from "@/components/common/BoardPagination.vue";
 import BoardSearchBox from "@/components/common/BoardSearchBox.vue";
@@ -22,7 +22,7 @@ const size = ref(9)
 const fetchEvents = async () => {
   loading.value = true
   try {
-    const res = await axios.get('/api/event', {
+    const res = await api.get('/event', {
       params: {
         page: page.value,
         size: size.value,
