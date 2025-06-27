@@ -52,7 +52,7 @@ function onPageChange(newPage) {
         style="cursor: pointer"
     >
       <div class="card-top">
-        {{ product.weight }}t & {{ product.maxPerson }}명
+        {{ product.weight }}t · {{ product.maxPerson }}명
       </div>
       <!-- 썸네일 -->
       <div class="thumbnail-wrapper">
