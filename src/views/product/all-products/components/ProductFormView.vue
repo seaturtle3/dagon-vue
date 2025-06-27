@@ -2,10 +2,10 @@
 import {reactive, watch, toRefs, onMounted, ref, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductFormStore } from '@/store/product/all-products/useProductFormStore'
-import {BASE_URL} from "@/constants/baseUrl.js";
-import {createProduct, updateProduct} from "@/api/product.js";
 
 const productFormStore = useProductFormStore()
+import { createProduct, updateProduct } from "@/api/product.js";
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const router = useRouter()
 const files = ref([])  // 여러 파일 업로드 지원
@@ -20,54 +20,39 @@ const props = defineProps({
   mainTypes: Array,
   subTypes: Array,
   editMode: Boolean,
-  prodId: [String, Number]
+  // prodId: [String, Number]
 })
 
-// 수정 모드인지 판단 (라우터 이름이 'ProductEdit'이거나 ID가 있는 경우)
-const isEditMode = route.name === 'ProductEdit' || !!route.params.id;
-
-// localForm 초기화
-const localForm = reactive({
-  ...props.form
-})
-
-const islocalFormValid = computed(() => {
-  return (
-      localForm.prodName &&
-      localForm.prodRegion &&
-      localForm.mainType &&
-      localForm.subType &&
-      localForm.maxPerson &&
-      localForm.weight &&
-      localForm.prodAddress &&
-    files.value.length > 0
-  )
-})
-
-function handleSubmit() {
-  if (isEditMode) {
-    // 수정 API 호출
-    updateProduct(localForm).then(() => {
-      alert('수정 완료!');
-      router.push(`/product/${localForm.prodId}`);
-    });
-  } else {
-    // 등록 API 호출
-    createProduct(localForm).then(() => {
-      alert('등록 완료!');
-      router.push('/product/list');
-    });
-  }
-}
-
-// 컴포넌트 마운트 시 폼 데이터 복사
 onMounted(() => {
-  if (isEditMode && store.form) {
-    Object.assign(localForm, store.form); // 수정모드일 때 store에서 복사
-  } else {
-    // 등록 모드일 땐 빈 폼이 이미 준비되어 있음
-  }
-});
+  console.log('✅ editMode:', props.editMode)
+  console.log('✅ form.prodId:', props.form?.prodId)
+})
+
+const localForm = reactive({
+  prodName: '',
+  prodRegion: '',
+  mainType: '',
+  subType: '',
+  maxPerson: 0,
+  minPerson: 0,
+  weight: 0,
+  prodAddress: '',
+  prodDescription: '',
+  prodNotice: '',
+  prodEvent: '',
+  prodImageNames: [],
+})
+
+// props.form이 바뀔 때마다 localForm에 반영 (초기 진입 포함)
+watch(
+    () => props.form,
+    (newForm) => {
+      if (props.editMode && newForm) {
+        Object.assign(localForm, newForm);
+      }
+    },
+    { immediate: true }
+)
 
 // 기존 이미지 미리보기용 배열
 const existingImages = ref([])
@@ -88,11 +73,25 @@ watch(
     { immediate: true }
 )
 
+const islocalFormValid = computed(() => {
+  return (
+      localForm.prodName &&
+      localForm.prodRegion &&
+      localForm.mainType &&
+      localForm.subType &&
+      localForm.maxPerson &&
+      localForm.weight &&
+      localForm.prodAddress &&
+    files.value.length > 0
+  )
+})
+
+
 const allPreviews = computed(() => [...existingImages.value, ...imagePreviews.value])
 
 function onFileChange(event) {
   const uploadedFiles = Array.from(event.target.files)
-  
+
   uploadedFiles.forEach(file => {
     if (file && file.type.startsWith('image/')) {
       // 파일 크기 체크 (5MB 제한)
@@ -100,7 +99,7 @@ function onFileChange(event) {
         alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
         return
       }
-      
+
       // 이미지 미리보기 생성
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -112,7 +111,7 @@ function onFileChange(event) {
         })
       }
       reader.readAsDataURL(file)
-      
+
       files.value.push(file)
     }
   })
@@ -147,7 +146,6 @@ async function submit() {
     alert("필수 항목을 모두 입력해주세요.")
     return
   }
-
   // dtoToSend 객체 생성 (ReportFormView.vue 방식 참고)
   const dtoToSend = {
     prodName: localForm.prodName,
@@ -164,14 +162,17 @@ async function submit() {
   }
 
   try {
-    if (props.editMode && props.prodId) {
-      await productFormStore.updateProductAction(props.prodId, dtoToSend, files.value, router)
-      router.push('/partner/products')
-
+    if (props.editMode && props.form?.prodId) {
+      await productFormStore.updateProductAction(
+          props.form.prodId,
+          dtoToSend,
+          files.value,
+          router
+      )
     } else {
       await productFormStore.createProductAction(dtoToSend, files.value, router)
-      router.push('/partner/products')
     }
+    await router.push('/partner/products')
   } catch (err) {
     console.error('제품정보 등록/수정 실패:', err)
     if (err.response?.data?.message) {
@@ -198,9 +199,7 @@ const filteredSubTypes = computed(() => {
       <p class="page-subtitle">{{ props.editMode ? '선박 상품 정보를 수정합니다' : '새로운 선박 상품을 등록해보세요' }}</p>
     </div>
 
-    <form @submit.prevent="handleSubmit"
-          class="product-form"
-    >
+    <form @submit.prevent="submit" class="product-form">
       <!-- 메인 정보 섹션 -->
       <div class="form-main-section">
         <!-- 이미지 업로드 영역 -->
@@ -270,10 +269,10 @@ const filteredSubTypes = computed(() => {
               <p class="upload-hint required-text">* 필수 항목입니다</p>
             </div>
 
-            <input 
-              type="file" 
-              accept="image/*" 
-              @change="onFileChange" 
+            <input
+              type="file"
+              accept="image/*"
+              @change="onFileChange"
               class="file-input"
               id="imageUpload"
               multiple
@@ -297,10 +296,10 @@ const filteredSubTypes = computed(() => {
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label required">배 이름</label>
-              <input 
+              <input
                 v-model="localForm.prodName"
-                type="text" 
-                class="form-input" 
+                type="text"
+                class="form-input"
                 placeholder="배 이름을 입력하세요"
                 required
               />
@@ -335,10 +334,10 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label required">최대 인원</label>
-              <input 
+              <input
                 v-model.number="localForm.maxPerson"
-                type="number" 
-                class="form-input" 
+                type="number"
+                class="form-input"
                 placeholder="최대 수용 인원"
                 required
               />
@@ -346,10 +345,10 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label">최소 인원</label>
-              <input 
+              <input
                 v-model.number="localForm.minPerson"
-                type="number" 
-                class="form-input" 
+                type="number"
+                class="form-input"
                 placeholder="최소 필요 인원 (선택사항)"
               />
             </div>
@@ -369,10 +368,10 @@ const filteredSubTypes = computed(() => {
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label required">선박 무게</label>
-            <input 
+            <input
               v-model.number="localForm.weight"
-              step="0.01" 
-              type="number" 
+              step="0.01"
+              type="number"
               class="form-input"
               placeholder="선박 무게 (t)"
               required
@@ -381,9 +380,9 @@ const filteredSubTypes = computed(() => {
 
           <div class="form-group">
             <label class="form-label required">선박 주소</label>
-            <input 
+            <input
               v-model="localForm.prodAddress"
-              type="text" 
+              type="text"
               class="form-input"
               placeholder="선박이 위치한 주소"
               required
@@ -393,7 +392,7 @@ const filteredSubTypes = computed(() => {
 
         <div class="form-group full-width">
           <label class="form-label">상세 설명</label>
-          <textarea 
+          <textarea
             v-model="localForm.prodDescription"
             class="form-textarea"
             placeholder="선박에 대한 상세한 설명을 입력하세요"
@@ -435,8 +434,13 @@ const filteredSubTypes = computed(() => {
 
       <!-- 제출/수정 버튼 -->
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">
-          {{ isEditMode ? '상품 수정하기' : '상품 등록하기' }}
+        <button
+            type="submit"
+            :disabled="!islocalFormValid"
+            class="submit-button"
+        >
+          <i class="fas fa-save"></i>
+          {{ props.editMode ? '상품 수정' : '상품 등록' }}
         </button>
       </div>
 

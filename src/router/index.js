@@ -203,14 +203,18 @@ const routes = [
         path: '/products',
         children: [
             {path: '', component: () => import('@/views/product/all-products/ProductList.vue')},
-            {path: 'form', component: () => import('@/views/product/all-products/ProductForm.vue')},
             {path: 'sea', component: () => import('@/views/product/fishing-filter/Sea.vue')},
             {path: 'freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
             {
                 path: ':prodId',
                 name: 'ProductDetail',
                 component: () => import('@/views/product/product-detail/ProductDetail.vue'),
-            },            {
+            },
+            {
+                path: 'form',
+                name: 'ProductCreate',
+                component: () => import('@/views/product/all-products/ProductForm.vue')},
+            {
                 path: 'edit/:prodId',
                 name: 'ProductEdit',
                 component: () => import('@/views/product/all-products/ProductForm.vue'),

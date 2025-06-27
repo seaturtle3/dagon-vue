@@ -26,6 +26,7 @@ onMounted(async () => {
         :regions="enumStore.regions"
         :mainTypes="enumStore.mainTypes"
         :subTypes="enumStore.subTypes"
+        :editMode="true"
     />
   </div>
 </template>
