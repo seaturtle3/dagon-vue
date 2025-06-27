@@ -50,7 +50,6 @@
   color: #ffffff;
   margin-left: 0px;
   width: 100vw;
-  border: 1px solid red;
 }
 
 @media (max-width: 768px) {

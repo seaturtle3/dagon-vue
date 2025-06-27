@@ -169,13 +169,28 @@ const hideNotification = (id) => {
     localStorage.setItem('hiddenNotifications', JSON.stringify(hiddenNotifications.value))
   }
 }
+const handleClickOutside = (event) => {
+  // 알림 버튼/팝업 내부 클릭이면 무시
+  const dropdown = document.querySelector('.notification-dropdown-menu');
+  const button = document.querySelector('.notification-dropdown button');
+  if (
+    (dropdown && dropdown.contains(event.target)) ||
+    (button && button.contains(event.target))
+  ) {
+    return;
+  }
+  showNotificationDropdown.value = false;
+};
 onMounted(() => {
   const stored = localStorage.getItem('hiddenNotifications')
   if (stored) {
     try { hiddenNotifications.value = JSON.parse(stored) } catch { hiddenNotifications.value = [] }
   }
+  document.addEventListener('click', handleClickOutside);
 })
-onUnmounted(() => {})
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+})
 </script>
 <style scoped>
 /* 필요한 알림 스타일만 직접 작성하세요. */

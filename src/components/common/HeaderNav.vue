@@ -714,6 +714,18 @@ const handleMobileMenuClickOutside = (event) => {
     }
   }
 }
+
+console.log('authStore.user:', authStore.user);
+
+watch(
+  () => authStore.user,
+  async (newUser) => {
+    await nextTick();
+    // 필요하다면 강제 리렌더 트리거 등 추가
+    // console.log('user 변경됨:', newUser)
+  },
+  { deep: true }
+)
 </script>
 
 <style>
