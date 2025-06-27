@@ -8,7 +8,7 @@ const route = useRoute()
 const router = useRouter()
 const store = useProductFishingReportStore()
 const productId = route.params.prodId
-console.log("-------------1>",productId)
+console.log("-------------1111111111111>",productId)
 
 onMounted(() => {
   store.fetchFishingReport(productId)
@@ -16,7 +16,7 @@ onMounted(() => {
 
 const reportList = computed(() => store.getReportByProductId(productId))
 
-console.log("-------------2>",reportList)
+console.log("-------------11111111111112>",reportList)
 
 const goToDetail = (report) => {
   router.push(`/fishing-report/${report.frId}`)
@@ -37,15 +37,28 @@ const goToDetail = (report) => {
         >
           <div class="thumbnail-wrapper">
             <img
-                v-if="report.thumbnailUrl"
-                class="thumbnail"
-                :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
-                alt="썸네일"
-            />
-            <div v-else class="image-placeholder">
-              <i class="fas fa-image"></i>
-              <span>이미지 없음</span>
-            </div>
+          class="thumbnail-img"
+          :src="
+            report.images && report.images.length
+              ? (
+                  report.images[0].imageData
+                    ? `data:image/jpeg;base64,${report.images[0].imageData}`
+                    : (report.images[0].image_data
+                        ? `data:image/jpeg;base64,${report.images[0].image_data}`
+                        : (report.images[0].imageUrl
+                            ? report.images[0].imageUrl
+                            : (report.images[0].image_url
+                                ? report.images[0].image_url
+                                : '/images/no-image.png'
+                              )
+                          )
+                      )
+                )
+              : '/images/no-image.png'
+          "
+          alt="썸네일"
+      />
+
           </div>
           <div class="item-content">
             <h3>{{ report.product?.prodName }}</h3>

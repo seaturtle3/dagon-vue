@@ -5,6 +5,10 @@ import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 
 const store = useProductFishingCenterStore()
 
+const reportList = computed(() => store.getReportByProductId(productId))
+const diaryList = computed(() => store.getDiaryByProductId(productId))
+
+
 const combinedList = computed(() => {
   const combined = [
     ...(store.report ?? []).map(center => ({ ...center, _type: 'report' })),
@@ -54,15 +58,27 @@ const goToDetail = (item) => {
             <!-- 썸네일 -->
             <div class="thumbnail-wrapper">
               <img
-                  v-if="center.thumbnailUrl"
-                  class="thumbnail"
-                  :src="`${IMAGE_BASE_URL}/${center._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${center.thumbnailUrl}`"
-                  alt="썸네일"
+                class="thumbnail-img"
+                :src="
+                  center.images && center.images.length
+                    ? (
+                        center.images[0].imageData
+                          ? `data:image/jpeg;base64,${center.images[0].imageData}`
+                          : (center.images[0].image_data
+                              ? `data:image/jpeg;base64,${center.images[0].image_data}`
+                              : (center.images[0].imageUrl
+                                  ? center.images[0].imageUrl
+                                  : (center.images[0].image_url
+                                      ? center.images[0].image_url
+                                      : '/images/no-image.png'
+                                    )
+                                )
+                            )
+                      )
+                    : '/images/no-image.png'
+                "
+                alt="썸네일"
               />
-              <div v-else class="image-placeholder">
-                <i class="fas fa-image"></i>
-                <span>이미지 없음</span>
-              </div>
             </div>
 
             <!-- 텍스트 영역 -->
@@ -153,7 +169,7 @@ strong {
   overflow: hidden;
 }
 
-.thumbnail {
+.thumbnail-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
