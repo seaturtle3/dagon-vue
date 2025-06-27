@@ -74,12 +74,12 @@ const routes = [
             },
             {
                 path: 'events',
-                component: () => import('@/views/pages/dashboard/components/Events.vue'),
+                component: () => import('@/views/pages/dashboard/components/AdminEvent.vue'),
                 meta: {requiresAuth: true}
             },
             {
                 path: 'notices',
-                component: () => import('@/views/pages/dashboard/components/Notices.vue'),
+                component: () => import('@/views/pages/dashboard/components/AdminNotice.vue'),
                 meta: {requiresAuth: true}
             },
             {
@@ -109,7 +109,7 @@ const routes = [
             },
             {
                 path: 'faq',
-                component: () => import('@/views/pages/dashboard/components/FAQ.vue'),
+                component: () => import('@/views/pages/dashboard/components/AdminFAQ.vue'),
                 meta: {requiresAuth: true}
             },
             {
