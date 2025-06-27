@@ -186,7 +186,7 @@
           </div>
         </div>
       </div>
-    
+
     </div>
   </nav>
 
@@ -255,12 +255,12 @@ const visibleNotifications = computed(() =>
 // 화면 크기 감지
 const windowWidth = ref(window.innerWidth)
 const isLargeScreen = computed(() => windowWidth.value >= 1200)
-const isMediumScreen = computed(() => windowWidth.value >= 720 && windowWidth.value < 1200)
+const isMediumScreen = computed(() => windowWidth.value >= 768 && windowWidth.value < 1200)
 
 // 화면 크기 변경 감지
 const handleResize = () => {
   windowWidth.value = window.innerWidth
-  
+
   // 1200px 이상으로 화면이 커지면 모바일 메뉴 닫기
   if (isLargeScreen.value && isMobileMenuOpen.value) {
     closeMobileMenu()
@@ -286,7 +286,7 @@ watch(() => localStorage.getItem('userInfo'), (newUserInfo) => {
       console.error('사용자 정보 파싱 실패:', error);
     }
   }
-}, { immediate: true })
+}, {immediate: true})
 
 const logout = () => {
   authStore.clearToken()
@@ -544,13 +544,13 @@ onMounted(() => {
 
   // ESC 키 리스너 추가
   document.addEventListener('keydown', handleKeyDown);
-  
+
   // 화면 크기 변경 리스너 추가
   window.addEventListener('resize', handleResize);
-  
+
   // 모바일 메뉴 외부 클릭 리스너 추가
   document.addEventListener('click', handleMobileMenuClickOutside);
-  
+
   const stored = localStorage.getItem('hiddenNotifications');
   if (stored) {
     try {
@@ -630,7 +630,7 @@ const displayName = computed(() => {
       return authStore.user?.nickname || authStore.user?.uname || authStore.user?.name || '사용자';
     }
   }
-  
+
   // 2. localStorage에서 사용자 정보 확인
   try {
     const storedUser = localStorage.getItem('userInfo');
@@ -649,7 +649,7 @@ const displayName = computed(() => {
   } catch (error) {
     console.error('localStorage 사용자 정보 파싱 실패:', error);
   }
-  
+
   // 3. 토큰에서 사용자 정보 추출 시도
   try {
     const token = localStorage.getItem('token');
@@ -667,7 +667,7 @@ const displayName = computed(() => {
   } catch (error) {
     console.error('토큰에서 사용자 정보 추출 실패:', error);
   }
-  
+
   return '사용자';
 });
 
@@ -707,7 +707,7 @@ const handleMobileMenuClickOutside = (event) => {
     const mobileMenuBox = event.target.closest('.mobile-menu-box')
     const mobileMenuOverlay = event.target.closest('.mobile-menu-overlay')
     const hamburgerButton = event.target.closest('.navbar-toggler')
-    
+
     // mobile-menu-box를 클릭했지만 mobile-menu-overlay는 클릭하지 않았을 때 (즉, 회색 배경을 클릭했을 때)
     if (mobileMenuBox && !mobileMenuOverlay && !hamburgerButton) {
       closeMobileMenu()
@@ -715,16 +715,14 @@ const handleMobileMenuClickOutside = (event) => {
   }
 }
 
-console.log('authStore.user:', authStore.user);
-
 watch(
-  () => authStore.user,
-  async (newUser) => {
-    await nextTick();
-    // 필요하다면 강제 리렌더 트리거 등 추가
-    // console.log('user 변경됨:', newUser)
-  },
-  { deep: true }
+    () => authStore.user,
+    async (newUser) => {
+      await nextTick();
+      // 필요하다면 강제 리렌더 트리거 등 추가
+      // console.log('user 변경됨:', newUser)
+    },
+    {deep: true}
 )
 </script>
 
@@ -910,16 +908,16 @@ watch(
   transform: translateX(0);
 }
 
-/* 720px 이상 1200px 미만일 때 사이드바 스타일 */
-@media (min-width: 720px) and (max-width: 1199.98px) {
+/* 768px 이상 1200px 미만일 때 사이드바 스타일 */
+@media (min-width: 768px) and (max-width: 1199.98px) {
   .mobile-menu-overlay {
-    width: 720px;
+    width: 768px;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   }
 }
 
-/* 720px 미만일 때 전체 화면 스타일 */
-@media (max-width: 719.98px) {
+/* 768px 미만일 때 전체 화면 스타일 */
+@media (max-width: 767.98px) {
   .mobile-menu-overlay {
     width: 100%;
   }
