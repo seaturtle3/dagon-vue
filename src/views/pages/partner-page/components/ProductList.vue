@@ -140,10 +140,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { BASE_URL } from '@/constants/baseUrl.js'
 import { partnerService } from '@/api/partner'
 import ReportFormView from '@/views/community/fishing-report/components/ReportFormView.vue'
+import { createProduct, updateProduct } from "@/api/product.js";
+import { useRoute, useRouter } from 'vue-router'
+import { useProductFormStore } from '@/store/product/all-products/useProductFormStore'
 
 const router = useRouter()
 
@@ -167,6 +169,8 @@ const thumbnailPreview = ref(null)
 const loading = ref(false)
 const showReportProductForm = ref(false)
 const productReport = ref({ reason: '' })
+
+const productFormStore = useProductFormStore()
 
 const filteredProducts = computed(() => {
   return products.value.filter(product => {

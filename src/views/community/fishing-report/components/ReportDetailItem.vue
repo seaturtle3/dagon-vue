@@ -1,7 +1,7 @@
 <script setup>
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 import { partnerService } from '@/api/partner';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js';
 
@@ -9,6 +9,10 @@ const props = defineProps({
   report: {
     type: Object,
     required: true
+  },
+  currentUser: {
+    type: Object,
+    required: false
   }
 })
 
@@ -63,15 +67,39 @@ const initializeUserInfo = () => {
   }
 };
 
+// 커스텀 알림 모달 상태 및 함수
+const alertModal = ref({ show: false, message: '' });
+function showAlertModal(msg) {
+  alertModal.value.message = msg;
+  alertModal.value.show = true;
+}
+function closeAlertModal() {
+  alertModal.value.show = false;
+  alertModal.value.message = '';
+}
+
+// 커스텀 confirm 모달 상태 및 함수
+const confirmModal = ref({ show: false, message: '', onConfirm: null });
+function showConfirmModal(msg, onConfirm) {
+  confirmModal.value.message = msg;
+  confirmModal.value.onConfirm = onConfirm;
+  confirmModal.value.show = true;
+}
+function closeConfirmModal() {
+  confirmModal.value.show = false;
+  confirmModal.value.message = '';
+  confirmModal.value.onConfirm = null;
+}
+
 // 신고하기 버튼 클릭
 const openReportModal = (target, type) => {
   // 자기 자신 신고 방지
   if (type === 'report' && isOwnReport.value) {
-    alert('자기 자신의 게시글은 신고할 수 없습니다.');
+    showAlertModal('자기 자신의 게시글은 신고할 수 없습니다.');
     return;
   }
   if (type === 'comment' && isOwnComment(target)) {
-    alert('자기 자신의 댓글은 신고할 수 없습니다.');
+    showAlertModal('자기 자신의 댓글은 신고할 수 없습니다.');
     return;
   }
 
@@ -81,7 +109,7 @@ const openReportModal = (target, type) => {
   const itemType = type === 'report' ? 'report' : 'comment';
 
   if (reportedItems.some(item => item.id === itemId && item.type === itemType)) {
-    alert('이미 신고한 게시글/댓글입니다.');
+    showAlertModal('이미 신고한 게시글/댓글입니다.');
     return;
   }
 
@@ -94,7 +122,7 @@ const openReportModal = (target, type) => {
 // 신고 제출
 const submitReport = async () => {
   if (!reportReason.value.trim()) {
-    alert('신고 사유를 입력해주세요.');
+    showAlertModal('신고 사유를 입력해주세요.');
     return;
   }
 
@@ -113,7 +141,7 @@ const submitReport = async () => {
       localStorage.setItem('reportedItems', JSON.stringify(reportedItems));
     }
 
-    alert('신고가 접수되었습니다.');
+    showAlertModal('신고가 접수되었습니다.');
     showReportModal.value = false;
     reportReason.value = '';
   } catch (error) {
@@ -121,9 +149,9 @@ const submitReport = async () => {
 
     // 서버에서 받은 에러 메시지가 있으면 사용
     if (error.response?.data?.message) {
-      alert(error.response.data.message);
+      showAlertModal(error.response.data.message);
     } else {
-      alert('신고 처리 중 오류가 발생했습니다.');
+      showAlertModal('신고 처리 중 오류가 발생했습니다.');
     }
   }
 };
@@ -141,7 +169,24 @@ onMounted(() => {
   console.log('✅ currentUser:', currentUser.value)
   console.log('✅ report.user:', props.report.user)
   console.log('✅ UID 비교 결과:', currentUser.value?.uno === props.report.user?.uno)
-})
+
+  // 키보드 좌우 방향키 지원
+  const handleKeydown = (e) => {
+    if (!showImageModal.value) return;
+    if (e.key === 'ArrowLeft') {
+      prevImage();
+    } else if (e.key === 'ArrowRight') {
+      nextImage();
+    } else if (e.key === 'Escape') {
+      closeImageModal();
+    }
+  }
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
 
 const router = useRouter();
 const fishingReportStore = useFishingReportStore();
@@ -154,56 +199,144 @@ const confirmDelete = async () => {
   if (confirm('정말 삭제하시겠습니까?')) {
     try {
       await fishingReportStore.deleteFishingReport(props.report.frId);
-      alert('삭제되었습니다.');
+      showAlertModal('삭제되었습니다.');
       router.push('/fishing-report');
     } catch (e) {
-      alert('삭제에 실패했습니다.');
+      showAlertModal('삭제에 실패했습니다.');
     }
   }
 };
 
+const comments = ref(props.report.comments ? [...props.report.comments] : []);
 const newComment = ref('');
 const submittingComment = ref(false);
+
+async function fetchComments() {
+  try {
+    const res = await partnerService.getFishingReportComments(props.report.frId);
+    // res.data.comments 또는 res.data의 구조에 맞게 할당
+    if (res.data && Array.isArray(res.data.comments)) {
+      comments.value = res.data.comments;
+    } else if (Array.isArray(res.data)) {
+      comments.value = res.data;
+    } else {
+      comments.value = [];
+    }
+  } catch (e) {
+    comments.value = [];
+  }
+}
 
 // 댓글 등록 함수
 const submitComment = async () => {
   if (!newComment.value.trim()) {
-    alert('댓글 내용을 입력하세요.');
+    showAlertModal('댓글 내용을 입력하세요.');
     return;
   }
   if (!currentUser.value?.uno) {
-    alert('로그인 후 이용해 주세요.');
+    showAlertModal('로그인 후 이용해 주세요.');
     return;
   }
   submittingComment.value = true;
   try {
     await partnerService.createFishingReportComment(props.report.frId, newComment.value, currentUser.value.uno);
-    alert('댓글이 등록되었습니다.');
+    showAlertModal('댓글이 등록되었습니다.');
     newComment.value = '';
-    // 댓글 목록 새로고침 (emit 또는 reload 필요)
-    location.reload(); // 임시: 새로고침, 추후 emit 등으로 개선 가능
+    await fetchComments();
   } catch (e) {
-    alert('댓글 등록에 실패했습니다.');
+    showAlertModal('댓글 등록에 실패했습니다.');
   } finally {
     submittingComment.value = false;
   }
 };
 
 // 댓글 삭제 함수
-const deleteComment = async (commentId) => {
+function deleteComment(commentId) {
   if (!commentId) {
-    alert('댓글 ID가 없습니다.');
+    showAlertModal('댓글 ID가 없습니다.');
     return;
   }
-  if (!confirm('정말 삭제하시겠습니까?')) return;
-  try {
-    await partnerService.deleteFishingReportComment(commentId);
-    alert('삭제되었습니다.');
-    location.reload(); // 또는 댓글 목록만 갱신
-  } catch (e) {
-    alert('삭제에 실패했습니다.');
+  showConfirmModal('정말 삭제하시겠습니까?', async () => {
+    try {
+      await partnerService.deleteFishingReportComment(commentId);
+      showAlertModal('삭제되었습니다.');
+      await fetchComments();
+    } catch (e) {
+      showAlertModal('삭제에 실패했습니다.');
+    }
+    closeConfirmModal();
+  });
+}
+
+// 이미지 확대 모달 상태 및 핸들러
+const showImageModal = ref(false);
+const modalImages = ref([]); // 전체 이미지 배열
+const modalImageIndex = ref(0); // 현재 인덱스
+
+function getImageSrc(img) {
+  if (img.imageData) {
+    return `data:image/jpeg;base64,${img.imageData}`;
+  } else if (img.image_data) {
+    return `data:image/jpeg;base64,${img.image_data}`;
+  } else if (img.imageUrl) {
+    return img.imageUrl;
+  } else if (img.image_url) {
+    return img.image_url;
+  } else {
+    return '/images/no-image.png';
   }
-};
+}
+
+function openImageModal(img) {
+  // 전체 이미지 배열과 현재 인덱스 세팅
+  if (Array.isArray(props.report.images)) {
+    modalImages.value = props.report.images;
+    modalImageIndex.value = props.report.images.findIndex(i => i === img);
+    if (modalImageIndex.value === -1) modalImageIndex.value = 0;
+  } else {
+    modalImages.value = [img];
+    modalImageIndex.value = 0;
+  }
+  showImageModal.value = true;
+}
+
+function closeImageModal() {
+  showImageModal.value = false;
+  modalImageIndex.value = 0;
+  modalImages.value = [];
+}
+
+function prevImage() {
+  if (modalImages.value.length > 0) {
+    modalImageIndex.value = (modalImageIndex.value - 1 + modalImages.value.length) % modalImages.value.length;
+  }
+}
+
+function nextImage() {
+  if (modalImages.value.length > 0) {
+    modalImageIndex.value = (modalImageIndex.value + 1) % modalImages.value.length;
+  }
+}
+
+// 키보드 좌우 방향키 지원
+function handleKeydown(e) {
+  if (!showImageModal.value) return;
+  if (e.key === 'ArrowLeft') {
+    prevImage();
+  } else if (e.key === 'ArrowRight') {
+    nextImage();
+  } else if (e.key === 'Escape') {
+    closeImageModal();
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>
@@ -246,7 +379,24 @@ const deleteComment = async (commentId) => {
     <div class="thumbnail-section">
       <img
           class="thumbnail-img"
-          :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
+          :src="
+            report.images && report.images.length
+              ? (
+                  report.images[0].imageData
+                    ? `data:image/jpeg;base64,${report.images[0].imageData}`
+                    : (report.images[0].image_data
+                        ? `data:image/jpeg;base64,${report.images[0].image_data}`
+                        : (report.images[0].imageUrl
+                            ? report.images[0].imageUrl
+                            : (report.images[0].image_url
+                                ? report.images[0].image_url
+                                : '/images/no-image.png'
+                              )
+                          )
+                      )
+                )
+              : '/images/no-image.png'
+          "
           alt="썸네일"
       />
     </div>
@@ -255,15 +405,30 @@ const deleteComment = async (commentId) => {
       <div class="content-text" v-html="report.content"></div>
     </div>
 
-    <div v-if="report.imageUrls && report.imageUrls.length" class="report-images">
+    <div v-if="report.images && report.images.length" class="report-images">
       <h5 class="section-label">추가 사진</h5>
       <div class="image-list">
         <img
-            v-for="(img, index) in report.imageUrls"
+            v-for="(img, index) in report.images"
             :key="index"
-            :src="`${IMAGE_BASE_URL}/fishing-report/${img}`"
+            :src="
+              img.imageData
+                ? `data:image/jpeg;base64,${img.imageData}`
+                : (img.image_data
+                    ? `data:image/jpeg;base64,${img.image_data}`
+                    : (img.imageUrl
+                        ? img.imageUrl
+                        : (img.image_url
+                            ? img.image_url
+                            : '/images/no-image.png'
+                          )
+                      )
+                  )
+            "
             class="extra-image"
             alt="조황 사진"
+            @click="openImageModal(img)"
+            style="cursor:pointer;"
         />
       </div>
     </div>
@@ -287,9 +452,9 @@ const deleteComment = async (commentId) => {
           {{ submittingComment ? '등록 중...' : '등록' }}
         </button>
       </div>
-      <div v-if="report.comments && report.comments.length">
+      <div v-if="comments && comments.length">
         <div
-            v-for="(comment, index) in report.comments"
+            v-for="(comment, index) in comments"
             :key="comment.frCommentId"
             class="comment-item"
         >
@@ -346,6 +511,44 @@ const deleteComment = async (commentId) => {
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" @click="closeReportModal">취소</button>
         <button type="button" class="btn btn-danger" @click="submitReport">신고하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 이미지 확대 모달 -->
+  <div v-if="showImageModal" class="modal-overlay" @click="closeImageModal">
+    <div class="modal-content image-slide-modal" @click.stop>
+      <button v-if="modalImages.length > 1" @click.stop="prevImage" class="slide-arrow left-arrow">
+        <span>&#60;</span>
+      </button>
+      <img :src="getImageSrc(modalImages[modalImageIndex])" alt="확대 이미지" class="slide-image" />
+      <button v-if="modalImages.length > 1" @click.stop="nextImage" class="slide-arrow right-arrow">
+        <span>&#62;</span>
+      </button>
+      <button class="btn-close" @click="closeImageModal">&times;</button>
+      <div v-if="modalImages.length > 1" class="slide-index">
+        {{ modalImageIndex + 1 }} / {{ modalImages.length }}
+      </div>
+    </div>
+  </div>
+
+  <!-- 커스텀 알림 모달 -->
+  <div v-if="alertModal.show" class="modal-overlay" @click="closeAlertModal">
+    <div class="modal-content" style="max-width:350px;min-width:220px;text-align:center;" @click.stop>
+      <div style="padding:32px 18px 18px 18px;font-size:1.1rem;">{{ alertModal.message }}</div>
+      <div style="padding-bottom:24px;">
+        <button class="btn btn-primary" @click="closeAlertModal" style="min-width:80px;">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 커스텀 confirm 모달 -->
+  <div v-if="confirmModal.show" class="modal-overlay" @click="closeConfirmModal">
+    <div class="modal-content" style="max-width:350px;min-width:220px;text-align:center;" @click.stop>
+      <div style="padding:32px 18px 18px 18px;font-size:1.1rem;">{{ confirmModal.message }}</div>
+      <div style="padding-bottom:24px;display:flex;justify-content:center;gap:16px;">
+        <button class="btn btn-secondary" @click="closeConfirmModal" style="min-width:80px;">취소</button>
+        <button class="btn btn-danger" @click="confirmModal.onConfirm && confirmModal.onConfirm()" style="min-width:80px;">확인</button>
       </div>
     </div>
   </div>
@@ -705,5 +908,95 @@ const deleteComment = async (commentId) => {
 .btn-action-comment:hover:not(:disabled) {
   background: #e74c3c;
   color: #fff;
+}
+
+/* 이미지 슬라이드 모달 스타일 */
+.image-slide-modal {
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: transparent;
+  box-shadow: none;
+}
+.slide-image {
+  max-width: 100vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+.slide-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  border: none;
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.2s, transform 0.2s;
+}
+.slide-arrow:hover {
+  background: rgba(0,0,0,0.8);
+  transform: translateY(-50%) scale(1.08);
+}
+.left-arrow {
+  left: 10px;
+}
+.right-arrow {
+  right: 10px;
+}
+.btn-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 2rem;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  z-index: 3;
+  transition: color 0.2s;
+}
+.btn-close:hover {
+  color: #f44336;
+}
+.slide-index {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  background: rgba(0,0,0,0.4);
+  padding: 4px 16px;
+  border-radius: 12px;
+  font-size: 1rem;
+  z-index: 2;
+}
+@media (max-width: 600px) {
+  .slide-arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
+  .btn-close {
+    font-size: 1.5rem;
+    top: 10px;
+    right: 10px;
+  }
+  .slide-index {
+    font-size: 0.95rem;
+    bottom: 10px;
+  }
 }
 </style>

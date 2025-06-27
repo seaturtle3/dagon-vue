@@ -12,6 +12,7 @@ export const createProduct = (product, files) => {
     });
 };
 
+
 // 상품명 키워드로 검색 (신규 API)
 export const getProductsByKeyword = (keyword) => {
     return api.get('/api/product/search', {

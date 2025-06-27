@@ -6,6 +6,7 @@ import api from '@/lib/axios.js'
 export const useProductFormStore = defineStore('productForm', {
     state: () => ({
         form: {
+            prodId: null,
             prodName: '',
             prodRegion: '',
             mainType: '',
@@ -16,7 +17,8 @@ export const useProductFormStore = defineStore('productForm', {
             prodAddress: '',
             prodDescription: '',
             prodEvent: '',
-            prodNotice: ''
+            prodNotice: '',
+            prodImageNames: []  // 추가
         },
         thumbnailFiles: [], // ✅ 이미지 첨부용
         showForm: false
@@ -72,6 +74,7 @@ export const useProductFormStore = defineStore('productForm', {
         },
         resetForm() {
             this.form = {
+                prodId: null,  // 추가
                 prodName: '',
                 prodRegion: '',
                 mainType: '',
@@ -82,12 +85,32 @@ export const useProductFormStore = defineStore('productForm', {
                 prodAddress: '',
                 prodDescription: '',
                 prodEvent: '',
-                prodNotice: ''
+                prodNotice: '',
+                prodImageNames: [],
             }
             this.thumbnailFiles = []
         },
         toggleForm() {
             this.showForm = !this.showForm
+        },
+
+        setForm(product) {
+            this.form = {
+                prodId: product.prodId || null,
+                prodName: product.prodName || '',
+                prodRegion: product.prodRegion || '',
+                mainType: product.mainType || '',
+                subType: product.subType || '',
+                maxPerson: product.maxPerson || null,
+                minPerson: product.minPerson || null,
+                weight: product.weight || null,
+                prodAddress: product.prodAddress || '',
+                prodDescription: product.prodDescription || '',
+                prodEvent: product.prodEvent || '',
+                prodNotice: product.prodNotice || '',
+                prodImageNames: product.prodImageNames || []  // 추가
+            }
+            this.thumbnailFiles = [] // 초기화 or 필요한 경우 기존 파일 유지 로직 추가 가능
         }
     }
 })
