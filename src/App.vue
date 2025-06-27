@@ -44,9 +44,10 @@ loadFontAwesome();
 
 <style>
 .layout-wrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  position: relative;
+  margin-bottom: 3%;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
 }
 
 .spacer {

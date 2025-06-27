@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { createProduct } from '@/api/product.js'
+import { createProduct, updateProduct } from '@/api/product.js'
 import api from '@/lib/axios.js'
 
 
@@ -46,6 +46,30 @@ export const useProductFormStore = defineStore('productForm', {
             } catch (err) {
                 console.error('등록 실패', err)
                 alert('등록 실패')
+            }
+        },
+        // ProductFormView.vue submit 로직을 store 액션으로 구현
+        async createProductAction(dtoToSend, files, router) {
+            try {
+                const res = await createProduct(dtoToSend, files)
+                alert('등록 성공')
+                if (router) router.push('/products')
+                this.resetForm()
+            } catch (err) {
+                console.error('등록 실패', err)
+                alert('등록 실패')
+            }
+        },
+        // 상품 수정 액션
+        async updateProductAction(prodId, dtoToSend, files, router) {
+            try {
+                const res = await updateProduct(prodId, dtoToSend, files)
+                alert('수정 성공')
+                if (router) router.push('/products')
+                this.resetForm()
+            } catch (err) {
+                console.error('수정 실패', err)
+                alert('수정 실패')
             }
         },
         resetForm() {

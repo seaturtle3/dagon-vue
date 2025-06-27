@@ -150,6 +150,7 @@ const routes = [
     // partner pages
     {
         path: '/partner',
+        name: 'PartnerPage',
         component: () => import('@/views/pages/partner-page/PartnerPage.vue'),
         redirect: '/partner/dashboard',
         meta: {requiresAuth: true},
@@ -166,6 +167,7 @@ const routes = [
                 component: () => import('@/views/pages/partner-page/components/ReservationDetail.vue')
             },
             {path: 'products', component: () => import('@/views/pages/partner-page/components/ProductList.vue')},
+            {path: 'products/form', component: () => import('@/views/pages/partner-page/ProductForm.vue')},
             {
                 path: 'market-info',
                 component: () => import('@/views/pages/partner-page/components/FishingReportManager.vue')

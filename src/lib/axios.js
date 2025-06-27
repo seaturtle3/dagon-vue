@@ -4,6 +4,16 @@ import { clearAuthData } from '@/utils/authUtils'
 
 console.log('BASE_URL:', BASE_URL)
 
+function base64UrlDecode(str) {
+  // Base64Url → Base64 변환
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  // 패딩 추가
+  while (str.length % 4) {
+    str += '=';
+  }
+  return atob(str);
+}
+
 const api = axios.create({
     baseURL: BASE_URL || 'http://localhost:8095',
     timeout: 30000,
@@ -22,7 +32,7 @@ api.interceptors.request.use(
         // localStorage에서 토큰 가져와서 헤더에 추가
         const token = localStorage.getItem('token')
         if (token) {
-            const payload = JSON.parse(atob(token.split('.')[1]));
+            const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
             config.headers.Authorization = `Bearer ${token}`
         }
         
