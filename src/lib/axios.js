@@ -11,6 +11,9 @@ const api = axios.create({
         'Content-Type': 'application/json; charset=utf-8',
         'Accept': 'application/json; charset=utf-8'
     }
+    // headers: {
+    //     'Content-Type': 'application/json',
+    // }
 })
 
 // 요청 인터셉터

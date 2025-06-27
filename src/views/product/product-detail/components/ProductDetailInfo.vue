@@ -6,6 +6,8 @@ import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination } from 'swiper/modules';
 import { useRouter } from 'vue-router'
 
+import ProductEditButton from "@/views/product/product-detail/components/ProductEditButton.vue";
+
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -68,17 +70,6 @@ const initializeUserInfo = () => {
     console.error('사용자 정보 파싱 실패:', error);
   }
 };
-
-console.log('***********prodImageNames:', props.product.prodImageNames)
-
-function formatDate(dateStr) {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
 
 function onContactClick() {
   router.push({
@@ -202,11 +193,6 @@ async function deleteProduct() {
   }
 }
 
-// 상품 수정 페이지로 이동
-function editProduct() {
-  router.push(`/products/edit/${props.product.prodId}`)
-}
-
 // 컴포넌트 마운트 시 사용자 정보 초기화
 onMounted(() => {
   initializeUserInfo();
@@ -229,17 +215,17 @@ onMounted(() => {
             <span>{{ props.product.prodName }}</span>
           </div>
         </div>
+
         <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
-        <div v-if="isOwnProduct" class="header-actions">
-          <button @click="editProduct" class="btn btn-primary">
-            <i class="fas fa-edit"></i>
-            수정
-          </button>
+        <div class="header-actions">
+            <ProductEditButton :product="product" v-if="isOwnProduct" />
+
           <button @click="deleteProduct" class="btn btn-danger">
             <i class="fa-solid fa-x"></i>
             삭제
           </button>
         </div>
+
       </div>
     </div>
 
