@@ -8,11 +8,15 @@ const router = useRouter()
 const store = useFishingDiaryStore()
 
 onMounted(async () => {
-  await store.fetchDiaries()
+  await store.fetchDiaries(store.page, store.size)
 })
 
 const goToCreateDiary = () => {
   router.push('/fishing-diary/create')
+}
+
+const onPageChange = async (page) => {
+  await store.fetchDiaries(page, store.size)
 }
 </script>
 
@@ -25,7 +29,13 @@ const goToCreateDiary = () => {
       </button>
     </div>
 
-    <DiaryListView v-if="store.diaries.length" :diaries="store.diaries" />
+    <DiaryListView
+      v-if="store.diaries.length"
+      :diaries="store.diaries"
+      :page="store.page"
+      :totalPages="store.totalPages"
+      :onPageChange="onPageChange"
+    />
     <div v-else class="loading-message">
       <p>조행기를 불러오는 중입니다...</p>
     </div>
