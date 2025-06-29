@@ -124,21 +124,7 @@
           
           <div class="form-group">
             <label>내용 *</label>
-            <textarea 
-              v-model="noticeForm.content" 
-              required
-              rows="10"
-              placeholder="공지사항 내용을 입력하세요"
-            ></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label>썸네일 URL</label>
-            <input 
-              type="text" 
-              v-model="noticeForm.thumbnailUrl" 
-              placeholder="썸네일 URL을 입력하세요"
-            >
+            <RichTextEditor v-model="noticeForm.content" editor-id="notice-editor" />
           </div>
           
           <div class="form-group checkbox-group">
@@ -173,7 +159,7 @@
         <div class="notice-detail">
           <h3>{{ selectedNotice.title }}</h3>
           <div class="notice-content">
-            <p>{{ selectedNotice.content }}</p>
+            <div v-html="selectedNotice.content"></div>
           </div>
           <div class="notice-meta">
             <span>작성자: {{ selectedNotice.adminName || '관리자' }}</span>
@@ -190,10 +176,12 @@
 
 <script>
 import { ref, onMounted } from 'vue'
+import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import { getAdminNotices, createNotice, updateNotice, deleteNotice as deleteNoticeApi, fetchNoticeById } from '@/api/notice.js'
 
 export default {
   name: 'Notices',
+  components: { RichTextEditor },
   setup() {
     const notices = ref([])
     const loading = ref(false)
@@ -216,7 +204,6 @@ export default {
     const noticeForm = ref({
       title: '',
       content: '',
-      thumbnailUrl: '',
       isTop: false
     })
     
@@ -257,7 +244,6 @@ export default {
             noticeId: 1,
             title: '시스템 점검 안내',
             content: '정기 시스템 점검이 예정되어 있습니다.',
-            thumbnailUrl: null,
             createdAt: '2024-01-15T10:00:00',
             modifyAt: null,
             views: 0,
@@ -300,7 +286,6 @@ export default {
         noticeId: notice.noticeId,
         title: notice.title,
         content: notice.content,
-        thumbnailUrl: notice.thumbnailUrl || '',
         isTop: notice.isTop || false
       }
       showEditModal.value = true
@@ -311,7 +296,6 @@ export default {
         await updateNotice(notice.noticeId, {
           title: notice.title,
           content: notice.content,
-          thumbnailUrl: notice.thumbnailUrl,
           isTop: !notice.isTop
         })
         await loadNotices()
@@ -339,8 +323,7 @@ export default {
       try {
         const noticeData = {
           title: noticeForm.value.title.trim(),
-          content: noticeForm.value.content.trim(),
-          thumbnailUrl: noticeForm.value.thumbnailUrl || null,
+          content: noticeForm.value.content,
           isTop: noticeForm.value.isTop
         }
         
@@ -378,7 +361,6 @@ export default {
       noticeForm.value = {
         title: '',
         content: '',
-        thumbnailUrl: '',
         isTop: false
       }
     }
@@ -414,7 +396,8 @@ export default {
       deleteNotice,
       submitNotice,
       closeModal,
-      closeDetailModal
+      closeDetailModal,
+      RichTextEditor
     }
   }
 }

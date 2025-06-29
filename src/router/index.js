@@ -313,6 +313,17 @@ const routes = [
     {path: '/faq', component: () => import('@/views/support/faq/FAQ.vue')},
     {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
     {
+        path: '/notice/write',
+        component: () => import('@/views/support/notice/NoticeWrite.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/notice/edit/:id',
+        component: () => import('@/views/support/notice/NoticeWrite.vue'),
+        props: true,
+        meta: { requiresAuth: true }
+    },
+    {
         path: '/notice/:id',
         name: 'NoticeDetail',
         component: () => import('@/views/support/notice/NoticeDetail.vue'),
