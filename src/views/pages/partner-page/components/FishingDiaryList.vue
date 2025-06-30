@@ -31,7 +31,7 @@
           <div class="diary-image-wrapper">
             <img
               v-if="diary.images && diary.images.length > 0"
-              :src="diary.images[0].imageUrl"
+              :src="getDiaryThumbnail(diary)"
               :alt="diary.images[0].imageName"
               class="diary-image"
             />
@@ -71,6 +71,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { partnerService } from '@/api/partner.js';
+import { BASE_URL } from '@/constants/baseUrl.js';
 
 const diaries = ref([]);
 const loading = ref(true);
@@ -82,6 +83,31 @@ const search = ref('');
 const sortBy = ref('createdAt');
 const page = ref(1);
 const pageSize = 8;
+
+// 이미지 URL 생성 함수
+function getImageUrl(image) {
+  if (!image) return '/images/default-product.jpg';
+  
+  if (image.imageData) {
+    // base64 데이터가 있으면 직접 사용
+    return `data:image/jpeg;base64,${image.imageData}`;
+  } else if (image.imageUrl) {
+    // imageUrl이 상대 경로인 경우 base URL과 결합
+    if (image.imageUrl.startsWith('/')) {
+      return `${BASE_URL}${image.imageUrl}`;
+    }
+    return image.imageUrl;
+  }
+  return '/images/default-product.jpg';
+}
+
+// 조행기 썸네일 이미지 가져오기
+function getDiaryThumbnail(diary) {
+  if (diary.images && diary.images.length > 0) {
+    return getImageUrl(diary.images[0]);
+  }
+  return '/images/default-product.jpg';
+}
 
 onMounted(async () => {
   await fetchDiaries();
@@ -109,9 +135,16 @@ function goDetail(fdId) {
 function editDiary(fdId) {
   alert('수정 기능은 준비 중입니다.');
 }
-function deleteDiary(fdId) {
+async function deleteDiary(fdId) {
   if (confirm('정말로 삭제하시겠습니까?')) {
-    alert('삭제 기능은 준비 중입니다.');
+    try {
+      await partnerService.deleteFishingDiary(fdId);
+      alert('조행기가 삭제되었습니다.');
+      await fetchDiaries(); // 목록 새로고침
+    } catch (err) {
+      console.error('조행기 삭제 실패:', err);
+      alert('조행기 삭제에 실패했습니다.');
+    }
   }
 }
 function reportDiary(fdId) {

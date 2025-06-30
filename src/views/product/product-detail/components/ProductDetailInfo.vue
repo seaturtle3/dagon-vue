@@ -259,17 +259,6 @@ console.log('swiperInstance.value.swiper:', swiperInstance.value?.swiper);
   <div class="product-detail-container">
     <!-- 페이지 헤더 -->
     <div class="page-header">
-
-      <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
-      <div class="header-actions">
-        <ProductEditButton :product="product" v-if="isOwnProduct" />
-
-        <button @click="deleteProduct" class="btn btn-danger">
-          <i class="fa-solid fa-x"></i>
-          삭제
-        </button>
-      </div>
-
       <div class="header-content">
         <div class="header-left">
           <h1 class="page-title">{{ props.product.prodName }}</h1>
@@ -281,6 +270,17 @@ console.log('swiperInstance.value.swiper:', swiperInstance.value?.swiper);
             <span>{{ props.product.prodName }}</span>
           </div>
         </div>
+
+        <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
+        <div class="header-actions">
+            <ProductEditButton :product="product" v-if="isOwnProduct" />
+
+          <button v-if="isOwnProduct" @click="deleteProduct" class="btn btn-danger">
+            <i class="fa-solid fa-x"></i>
+            삭제
+          </button>
+        </div>
+
       </div>
     </div>
 
@@ -574,7 +574,6 @@ console.log('swiperInstance.value.swiper:', swiperInstance.value?.swiper);
   display: flex;
   gap: 12px;
   flex-shrink: 0;
-  justify-content: flex-end
 }
 
 .no-image-placeholder {
