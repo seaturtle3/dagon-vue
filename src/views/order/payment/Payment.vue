@@ -189,6 +189,12 @@ export default {
     // 로그인 상태 확인 및 사용자 정보 동기화
     await this.checkAuthStatus();
     
+    console.log('=== URL 쿼리 파라미터 확인 ===');
+    console.log('전체 쿼리:', this.$route.query);
+    console.log('optionId 쿼리값:', this.$route.query.optionId);
+    console.log('optionId2 쿼리값:', this.$route.query.optionId2);
+    console.log('optionId3 쿼리값:', this.$route.query.optionId3);
+    
     // URL 쿼리 파라미터에서 예약 및 상품 정보 가져오기
     this.reservationInfo = {
       fishingAt: this.$route.query.fishingAt,
@@ -205,6 +211,11 @@ export default {
       optionPrice: parseInt(this.$route.query.optionPrice) || 0,
       optionCount: parseInt(this.$route.query.optionCount) || 0,
     }
+
+    console.log('=== 초기 reservationInfo 설정 ===');
+    console.log('설정된 optionId:', this.reservationInfo.optionId);
+    console.log('설정된 optionName:', this.reservationInfo.optionName);
+    console.log('설정된 optionCount:', this.reservationInfo.optionCount);
 
     // prodId가 있으면 상품 상세 정보 DB에서 가져오기 (우선순위 높음)
     if (this.reservationInfo.prodId) {
@@ -303,6 +314,11 @@ export default {
     this.reservationInfo.optionCount2 = parseInt(this.$route.query.optionCount2) || 0;
     this.reservationInfo.optionName3 = this.$route.query.optionName3 || '';
     this.reservationInfo.optionCount3 = parseInt(this.$route.query.optionCount3) || 0;
+
+    console.log('=== 최종 reservationInfo 설정 완료 ===');
+    console.log('최종 optionId:', this.reservationInfo.optionId);
+    console.log('최종 optionName:', this.reservationInfo.optionName);
+    console.log('최종 optionCount:', this.reservationInfo.optionCount);
   },
   methods: {
     async loadUserInfo() {
@@ -471,9 +487,12 @@ export default {
           payMethod: this.getPaymentsMethod(rsp.pay_method),
           paidAt: rsp.paid_at
         });
-        if (verifyRes.data && verifyRes.data.success === "true") {
-          // 검증 성공 시 예약 저장
-          this.saveReservation(rsp);
+        
+        console.log('결제 검증 응답:', verifyRes.data);
+        
+        if (verifyRes.data && verifyRes.data.success === true) {
+          // 검증 성공 시 예약 저장 (paymentId 전달)
+          this.saveReservation(rsp, verifyRes.data.paymentId);
         } else {
           alert("결제 검증에 실패했습니다. 관리자에게 문의하세요.");
         }
@@ -488,29 +507,44 @@ export default {
       alert(`결제에 실패했습니다: ${rsp.error_msg}`);
     },
 
-    async saveReservation(paymentResult) {
+    async saveReservation(paymentResult, paymentId) {
       try {
+        console.log('=== 예약 데이터 처리 시작 ===');
+        console.log('원본 reservationInfo:', this.reservationInfo);
+        console.log('optionId 원본값:', this.reservationInfo.optionId);
+        console.log('optionId 타입:', typeof this.reservationInfo.optionId);
+        console.log('백엔드에서 받은 paymentId:', paymentId);
+        
         // Long 타입 필드는 반드시 Number로 변환, 'default'나 빈 값이면 null
         const productId = this.reservationInfo.prodId && this.reservationInfo.prodId !== 'default' ? Number(this.reservationInfo.prodId) : null;
-        const productOptionId = this.reservationInfo.optionId && this.reservationInfo.optionId !== 'default' ? Number(this.reservationInfo.optionId) : null;
-        const paymentId = paymentResult.imp_uid && paymentResult.imp_uid !== 'default' ? Number(paymentResult.imp_uid) : null;
+        const productOptionId = this.reservationInfo.optionId && this.reservationInfo.optionId !== 'default' && this.reservationInfo.optionId !== '' ? Number(this.reservationInfo.optionId) : null;
+        // 백엔드에서 받은 paymentId 사용
+        const finalPaymentId = paymentId ? Number(paymentId) : null;
         const numPerson = this.reservationInfo.totalPeople ? Number(this.reservationInfo.totalPeople) : 0;
+
+        console.log('처리된 productId:', productId);
+        console.log('처리된 productOptionId:', productOptionId);
+        console.log('처리된 paymentId:', finalPaymentId);
+        console.log('처리된 numPerson:', numPerson);
 
         // 옵션이 없으면 예약 진행 불가
         if (!productOptionId) {
-          alert('예약 가능한 옵션이 없습니다. 관리자에게 문의하세요.');
+          alert('예약 가능한 옵션이 없습니다. 옵션을 선택해주세요.');
           return;
         }
 
+        // fishingAt을 LocalDateTime 형식으로 수정 (시간 포함)
+        const fishingAt = this.reservationInfo.fishingAt + 'T00:00:00';
+
         const reservationData = {
-          productId,
-          productOptionId,
-          numPerson,
-          fishingAt: this.toLocalDateTimeString(new Date(this.reservationInfo.fishingAt)),
+          prodId : productId,
+          optionId : productOptionId,
+          numPerson : numPerson,
+          fishingAt: fishingAt, // LocalDateTime 형식
           paidAt: this.toLocalDateTimeString(new Date(paymentResult.paid_at * 1000)),
           reservationStatus: 'PAID',
           paymentsMethod: this.getPaymentsMethod(paymentResult.pay_method),
-          paymentId
+          paymentId: finalPaymentId
         };
 
         // 실제 서버로 보내는 데이터 구조를 명확하게 콘솔에 출력

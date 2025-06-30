@@ -65,11 +65,18 @@
                     v-model="localOptionId"
                     class="form-select"
                     style="min-width:160px; max-width:240px; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:1rem;"
+                    :disabled="loadingOptions"
                   >
-                    <option value="default">옵션을 선택하세요.</option>
-                    <option value="1">낚시 장비 세트 (100원)</option>
-                    <option value="2">보호 장구 세트 (100원)</option>
-                    <option value="3">미끼 (50원)</option>
+                    <option value="default">
+                      {{ loadingOptions ? '옵션 로딩 중...' : '옵션을 선택하세요.' }}
+                    </option>
+                    <option 
+                      v-for="option in availableOptions" 
+                      :key="option.optId" 
+                      :value="option.optId"
+                    >
+                      {{ option.optName }} ({{ option.price }}원)
+                    </option>
                   </select>
                 </div>
                 <div v-if="localOptionId && localOptionId !== 'default'" style="display: flex; justify-content: space-between; align-items: center;">
@@ -92,11 +99,18 @@
                     v-model="localOptionId2"
                     class="form-select"
                     style="min-width:160px; max-width:240px; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:1rem;"
+                    :disabled="loadingOptions"
                   >
-                    <option value="default">옵션을 선택하세요.</option>
-                    <option value="1">낚시 장비 세트 (100원)</option>
-                    <option value="2">보호 장구 세트 (100원)</option>
-                    <option value="3">미끼 (50원)</option>
+                    <option value="default">
+                      {{ loadingOptions ? '옵션 로딩 중...' : '옵션을 선택하세요.' }}
+                    </option>
+                    <option 
+                      v-for="option in availableOptions" 
+                      :key="option.optId" 
+                      :value="option.optId"
+                    >
+                      {{ option.optName }} ({{ option.price }}원)
+                    </option>
                   </select>
                 </div>
                 <div v-if="localOptionId2 && localOptionId2 !== 'default'" style="display: flex; justify-content: space-between; align-items: center;">
@@ -119,11 +133,18 @@
                     v-model="localOptionId3"
                     class="form-select"
                     style="min-width:160px; max-width:240px; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:1rem;"
+                    :disabled="loadingOptions"
                   >
-                    <option value="default">옵션을 선택하세요.</option>
-                    <option value="1">낚시 장비 세트 (100원)</option>
-                    <option value="2">보호 장구 세트 (100원)</option>
-                    <option value="3">미끼 (50원)</option>
+                    <option value="default">
+                      {{ loadingOptions ? '옵션 로딩 중...' : '옵션을 선택하세요.' }}
+                    </option>
+                    <option 
+                      v-for="option in availableOptions" 
+                      :key="option.optId" 
+                      :value="option.optId"
+                    >
+                      {{ option.optName }} ({{ option.price }}원)
+                    </option>
                   </select>
                 </div>
                 <div v-if="localOptionId3 && localOptionId3 !== 'default'" style="display: flex; justify-content: space-between; align-items: center;">
@@ -197,6 +218,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router'
+import axios from '@/lib/axios.js'
 
 const today = new Date();
 const currentYear = today.getFullYear();
@@ -223,24 +245,51 @@ const optionCount2 = ref(0);
 const localOptionId3 = ref('default');
 const optionCount3 = ref(0);
 
+// 상품 옵션들을 저장할 상태
+const productOptions = ref([]);
+const loadingOptions = ref(false);
+
+// 사용 가능한 옵션들 (API에서 가져온 옵션들)
+const availableOptions = computed(() => {
+  return productOptions.value;
+});
+
+// 상품 옵션 API 호출 함수
+const fetchProductOptions = async () => {
+  try {
+    loadingOptions.value = true;
+    const response = await axios.get('/api/product-option/get-all');
+    productOptions.value = response.data || [];
+    console.log('상품 옵션 로드 완료:', productOptions.value);
+  } catch (error) {
+    console.error('상품 옵션 로드 실패:', error);
+    productOptions.value = [];
+  } finally {
+    loadingOptions.value = false;
+  }
+};
+
 const estimatedPrice = computed(() => {
   let base = (adultCount.value * ADULT_PRICE) + (childCount.value * CHILD_PRICE);
   let optionPrice = 0;
   
   // 옵션1 가격 계산
-  if (localOptionId.value === '1') optionPrice += 100 * optionCount.value;
-  else if (localOptionId.value === '2') optionPrice += 100 * optionCount.value;
-  else if (localOptionId.value === '3') optionPrice += 50 * optionCount.value;
+  const option1 = availableOptions.value.find(opt => opt.optId == localOptionId.value);
+  if (option1) {
+    optionPrice += Number(option1.price) * optionCount.value;
+  }
   
   // 옵션2 가격 계산
-  if (localOptionId2.value === '1') optionPrice += 100 * optionCount2.value;
-  else if (localOptionId2.value === '2') optionPrice += 100 * optionCount2.value;
-  else if (localOptionId2.value === '3') optionPrice += 50 * optionCount2.value;
+  const option2 = availableOptions.value.find(opt => opt.optId == localOptionId2.value);
+  if (option2) {
+    optionPrice += Number(option2.price) * optionCount2.value;
+  }
   
   // 옵션3 가격 계산
-  if (localOptionId3.value === '1') optionPrice += 100 * optionCount3.value;
-  else if (localOptionId3.value === '2') optionPrice += 100 * optionCount3.value;
-  else if (localOptionId3.value === '3') optionPrice += 50 * optionCount3.value;
+  const option3 = availableOptions.value.find(opt => opt.optId == localOptionId3.value);
+  if (option3) {
+    optionPrice += Number(option3.price) * optionCount3.value;
+  }
   
   return Number(base) + Number(optionPrice);
 });
@@ -347,21 +396,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:optionId']);
 
-watch(
-  () => props.product && props.product.options,
-  (options) => {
-    if (
-      options &&
-      Array.isArray(options) &&
-      options.length > 0
-    ) {
-      localOptionId.value = String(options[0].id);
-      console.log('[초기 세팅] localOptionId:', localOptionId.value);
-    }
-  },
-  { immediate: true }
-);
-
 watch(localOptionId, () => { optionCount.value = 0; });
 
 watch(localOptionId2, () => { optionCount2.value = 0; });
@@ -377,16 +411,29 @@ watch(estimatedPrice, (val) => {
 });
 
 // 옵션 단가 반환 함수
-function getOptionPrice(id) {
-  if (id === '1') return 100;
-  if (id === '2') return 100;
-  if (id === '3') return 50;
-  return 0;
+function getOptionPrice(optId) {
+  const option = availableOptions.value.find(opt => opt.optId == optId);
+  return option ? Number(option.price) : 0;
 }
 
 const goToPayment = () => {
+  console.log('=== 예약 버튼 클릭 ===');
+  console.log('totalPeople:', totalPeople.value);
+  console.log('localOptionId:', localOptionId.value);
+  console.log('localOptionId2:', localOptionId2.value);
+  console.log('localOptionId3:', localOptionId3.value);
+  console.log('optionCount:', optionCount.value);
+  console.log('optionCount2:', optionCount2.value);
+  console.log('optionCount3:', optionCount3.value);
+  
   if (totalPeople.value === 0) {
     alert("예약 인원을 선택해주세요.");
+    return;
+  }
+
+  // 옵션 선택 여부 확인
+  if (localOptionId.value === 'default' && localOptionId2.value === 'default' && localOptionId3.value === 'default') {
+    alert("최소 하나의 옵션을 선택해주세요.");
     return;
   }
 
@@ -395,6 +442,13 @@ const goToPayment = () => {
   const month = String(selectedDate.value.getMonth() + 1).padStart(2, '0');
   const day = String(selectedDate.value.getDate()).padStart(2, '0');
   const fishingAtStr = `${year}-${month}-${day}`;
+
+  console.log('=== 전송할 쿼리 파라미터 ===');
+  console.log('fishingAt:', fishingAtStr);
+  console.log('optionId:', localOptionId.value);
+  console.log('optionName:', getOptionName(localOptionId.value));
+  console.log('optionCount:', optionCount.value);
+  console.log('optionPrice:', getOptionPrice(localOptionId.value));
 
   // product 정보 쿼리로 전달
   router.push({
@@ -452,11 +506,9 @@ const decreaseOptionCount3 = () => {
 };
 
 // 옵션명 반환 함수
-function getOptionName(id) {
-  if (id === '1') return '낚시 장비 세트';
-  if (id === '2') return '보호 장구 세트';
-  if (id === '3') return '미끼';
-  return '-';
+function getOptionName(optId) {
+  const option = availableOptions.value.find(opt => opt.optId == optId);
+  return option ? option.optName : '-';
 }
 
 // 합계 계산 (props 기반)
@@ -471,8 +523,9 @@ const summaryTotal = computed(() => {
   return total;
 });
 
-onMounted(() => {
+onMounted(async () => {
   generateDates();
+  await fetchProductOptions(); // 상품 옵션 로드
   console.log('ReservationCalendar mounted');
   console.log('Product props:', props.product);
   console.log('Selected date:', selectedDate.value);
