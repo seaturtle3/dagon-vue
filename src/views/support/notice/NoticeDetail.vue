@@ -150,14 +150,14 @@ const formatDate = (dateStr) => {
           :title="`이전글: ${prevNotice.title}`"
           type="button"
         >
-          <i class="fas fa-chevron-left"></i>
+          <font-awesome-icon icon="fa-solid fa-chevron-left" />
           <span class="nav-text">
             <span class="nav-label">이전글</span>
             <span class="nav-title">{{ prevNotice.title }}</span>
           </span>
         </button>
         <div v-else class="nav-button disabled">
-          <i class="fas fa-chevron-left"></i>
+          <font-awesome-icon icon="fa-solid fa-chevron-left" />
           <span class="nav-text">
             <span class="nav-label">이전글</span>
             <span class="nav-title">이전 글이 없습니다</span>
@@ -166,7 +166,7 @@ const formatDate = (dateStr) => {
 
         <!-- 목록으로 버튼 -->
         <button @click="goToList" class="nav-button list-button" type="button">
-          <i class="fas fa-list"></i>
+          <font-awesome-icon icon="fa-solid fa-list" />
           <span class="nav-text">
             <span class="nav-label">목록</span>
           </span>
@@ -184,14 +184,14 @@ const formatDate = (dateStr) => {
             <span class="nav-label">다음글</span>
             <span class="nav-title">{{ nextNotice.title }}</span>
           </span>
-          <i class="fas fa-chevron-right"></i>
+          <font-awesome-icon icon="fa-solid fa-chevron-right" />
         </button>
         <div v-else class="nav-button disabled">
           <span class="nav-text">
             <span class="nav-label">다음글</span>
             <span class="nav-title">다음 글이 없습니다</span>
           </span>
-          <i class="fas fa-chevron-right"></i>
+          <font-awesome-icon icon="fa-solid fa-chevron-right" />
         </div>
       </div>
     </div>
@@ -281,7 +281,6 @@ hr.board-divider {
 
 .next-button {
   text-align: right;
-  flex-direction: row-reverse;
 }
 
 .list-button {
@@ -345,10 +344,6 @@ hr.board-divider {
   .next-button {
     text-align: center;
     flex-direction: row;
-  }
-  
-  .next-button {
-    flex-direction: row-reverse;
   }
   
   .nav-title {

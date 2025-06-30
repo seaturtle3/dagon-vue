@@ -1,10 +1,10 @@
 <script setup>
-import { reactive, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { createEvent, updateEvent, fetchEventById } from '@/api/event.js'
+import {reactive, onMounted} from 'vue'
+import {useRouter, useRoute} from 'vue-router'
+import {createEvent, updateEvent, fetchEventById} from '@/api/event.js'
 import BoardWriteForm from '@/components/common/BoardWriteForm.vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
-import { useAdminAuthStore } from '@/store/auth/auth.js'
+import {useAdminAuthStore} from '@/store/auth/auth.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -118,11 +118,11 @@ async function handleThumbnailUpload(event) {
         Authorization: `Bearer ${token}`
       }
     })
-    
+
     if (!res.ok) {
       throw new Error('이미지 업로드 실패')
     }
-    
+
     const fileName = await res.text()
     const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL
     form.thumbnailUrl = `${baseUrl}/${fileName}`
@@ -138,51 +138,53 @@ function goBack() {
 </script>
 
 <template>
-  <BoardWriteForm @submit="submit" @cancel="goBack">
-    <template #fields>
-      <div class="form-group mb-3">
-        <label>제목 *</label>
-        <input v-model="form.title" class="form-control" required placeholder="이벤트 제목을 입력하세요" />
-      </div>
-
-      <div class="form-group mb-3">
-        <label>썸네일 이미지</label>
-        <input type="file" class="form-control" accept="image/*" @change="handleThumbnailUpload" />
-        <small class="form-text text-muted">5MB 이하의 이미지 파일만 업로드 가능합니다.</small>
-        <div v-if="form.thumbnailUrl" class="mt-2">
-          <img :src="form.thumbnailUrl" alt="썸네일 미리보기" style="max-width: 200px; border-radius: 4px;" />
+  <div class="center">
+    <BoardWriteForm @submit="submit" @cancel="goBack">
+      <template #fields>
+        <div class="form-group mb-3">
+          <label>제목 *</label>
+          <input v-model="form.title" class="form-control" required placeholder="이벤트 제목을 입력하세요"/>
         </div>
-      </div>
 
-      <div class="form-group mb-3">
-        <label>이벤트 기간</label>
-        <div class="d-flex gap-2">
-          <input type="date" v-model="form.startAt" class="form-control" />
-          <span class="mx-2">~</span>
-          <input type="date" v-model="form.endAt" class="form-control" />
+        <div class="form-group mb-3">
+          <label>썸네일 이미지</label>
+          <input type="file" class="form-control" accept="image/*" @change="handleThumbnailUpload"/>
+          <small class="form-text text-muted">5MB 이하의 이미지 파일만 업로드 가능합니다.</small>
+          <div v-if="form.thumbnailUrl" class="mt-2">
+            <img :src="form.thumbnailUrl" alt="썸네일 미리보기" style="max-width: 200px; border-radius: 4px;"/>
+          </div>
         </div>
-        <small class="form-text text-muted">기간을 설정하지 않으면 상시 진행으로 표시됩니다.</small>
-      </div>
 
-      <div class="form-group mb-3">
-        <label>내용 *</label>
-        <RichTextEditor v-model="form.content" />
-      </div>
+        <div class="form-group mb-3">
+          <label>이벤트 기간</label>
+          <div class="d-flex gap-2">
+            <input type="date" v-model="form.startAt" class="form-control"/>
+            <span class="mx-2">~</span>
+            <input type="date" v-model="form.endAt" class="form-control"/>
+          </div>
+          <small class="form-text text-muted">기간을 설정하지 않으면 상시 진행으로 표시됩니다.</small>
+        </div>
 
-      <div class="form-check mb-3">
-        <input type="checkbox" class="form-check-input" id="isTop" v-model="form.isTop" />
-        <label for="isTop" class="form-check-label">상단 고정</label>
-      </div>
-    </template>
-  </BoardWriteForm>
+        <div class="form-group mb-3">
+          <label>내용 *</label>
+          <RichTextEditor v-model="form.content"/>
+        </div>
+
+        <div class="form-check mb-3">
+          <input type="checkbox" class="form-check-input" id="isTop" v-model="form.isTop"/>
+          <label for="isTop" class="form-check-label">상단 고정</label>
+        </div>
+      </template>
+    </BoardWriteForm>
+
+  </div>
 </template>
 
 <style scoped>
-.board-detail {
+.center {
   width: 80%;
   margin: 5% auto;
 }
-
 .form-text {
   font-size: 0.875rem;
   color: #6c757d;
