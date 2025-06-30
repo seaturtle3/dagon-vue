@@ -15,7 +15,7 @@
             placeholder="궁금한 내용을 검색해보세요..."
             class="search-input"
           />
-          <i class="fas fa-search search-icon"></i>
+          <font-awesome-icon icon="fa-solid fa-magnifying-glass" class="search-icon" />
         </div>
       </div>
 
@@ -34,7 +34,7 @@
       <!-- FAQ 목록 -->
       <div class="faq-list">
         <div v-if="loading" class="loading">
-          <i class="fas fa-spinner fa-spin"></i>
+          <font-awesome-icon icon="fa-solid fa-spinner" spin />
           <p>FAQ를 불러오는 중...</p>
         </div>
         
@@ -50,7 +50,7 @@
             @click="toggleFAQ(faq.faqId)"
           >
             <span class="question-text">{{ faq.question }}</span>
-            <i class="fas fa-chevron-down arrow-icon"></i>
+            <font-awesome-icon icon="fa-solid fa-chevron-down" class="arrow-icon" />
           </div>
           <div class="faq-answer">
             <div class="answer-content">{{ faq.answer }}</div>
@@ -64,14 +64,14 @@
 
       <!-- 검색 결과가 없을 때 -->
       <div v-if="!loading && filteredFAQs.length === 0 && searchQuery" class="no-results">
-        <i class="fas fa-search"></i>
+        <font-awesome-icon icon="fa-solid fa-search" />
         <p>"{{ searchQuery }}"에 대한 검색 결과가 없습니다.</p>
         <button @click="clearSearch" class="clear-search-btn">검색 초기화</button>
       </div>
       
       <!-- FAQ가 없을 때 -->
       <div v-if="!loading && faqs.length === 0" class="no-faqs">
-        <i class="fas fa-question-circle"></i>
+        <font-awesome-icon icon="fa-solid fa-question-circle" />
         <p>등록된 FAQ가 없습니다.</p>
       </div>
     </div>
@@ -83,11 +83,11 @@
         <p>원하시는 답변을 찾지 못하셨다면 언제든 문의해주세요.</p>
         <div class="contact-buttons">
           <router-link to="/inquiry" class="contact-btn primary">
-            <i class="fas fa-comments"></i>
+            <font-awesome-icon icon="fa-solid fa-comments" />
             1:1 문의하기
           </router-link>
           <router-link to="/customer-service" class="contact-btn secondary">
-            <i class="fas fa-phone"></i>
+            <font-awesome-icon icon="fa-solid fa-phone" />
             고객센터
           </router-link>
         </div>

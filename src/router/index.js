@@ -362,6 +362,11 @@ const routes = [
         path: '/privacy-policy',
         component: () => import('@/components/common/PrivacyPolicyView.vue')
     },
+    {
+        path: '/admin/swagger',
+        component: () => import('@/views/pages/dashboard/SwaggerPage.vue'),
+        meta: {requiresAuth: true}
+    },
 ]
 
 const router = createRouter({

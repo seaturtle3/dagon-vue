@@ -3,7 +3,7 @@
     <div class="header">
       <h1>공지사항 관리</h1>
       <button @click="showCreateModal = true" class="create-btn">
-        <i class="fas fa-plus"></i> 새 공지사항 작성
+        <font-awesome-icon icon="fa-solid fa-plus" /> 새 공지사항 작성
       </button>
     </div>
     
@@ -17,7 +17,7 @@
           @keyup.enter="loadNotices"
         >
         <button @click="loadNotices" class="search-btn">
-          <i class="fas fa-search"></i>
+          <font-awesome-icon icon="fa-solid fa-magnifying-glass" />
         </button>
       </div>
       <div class="filter-box">
@@ -41,12 +41,12 @@
       </div>
       
       <div v-if="loading" class="loading">
-        <i class="fas fa-spinner fa-spin"></i>
+        <font-awesome-icon icon="fa-solid fa-spinner" spin />
         <p>공지사항을 불러오는 중...</p>
       </div>
       
       <div v-else-if="notices.length === 0" class="empty-state">
-        <i class="fas fa-inbox"></i>
+        <font-awesome-icon icon="fa-solid fa-inbox" />
         <p>등록된 공지사항이 없습니다.</p>
       </div>
       
@@ -69,13 +69,13 @@
           <div class="col-date">{{ formatDate(notice.createdAt) }}</div>
           <div class="col-actions">
             <button @click="editNotice(notice)" class="action-btn edit" title="수정">
-              <i class="fas fa-edit"></i>
+              <font-awesome-icon icon="fa-solid fa-pen-to-square" />
             </button>
             <button @click="toggleTop(notice)" class="action-btn" :class="notice.isTop ? 'top-active' : 'top'" :title="notice.isTop ? '고정해제' : '고정'">
-              <i class="fas fa-star"></i>
+              <font-awesome-icon icon="fa-solid fa-star" />
             </button>
             <button @click="deleteNotice(notice.noticeId)" class="action-btn delete" title="삭제">
-              <i class="fa-solid fa-xmark"></i>
+              <font-awesome-icon icon="fa-solid fa-trash" />
             </button>
           </div>
         </div>
@@ -89,7 +89,7 @@
         @click="changePage(currentPage - 1)"
         class="page-btn"
       >
-        <i class="fas fa-chevron-left"></i> 이전
+        <font-awesome-icon icon="fa-solid fa-chevron-left" /> 이전
       </button>
       <span class="page-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
       <button 
@@ -97,7 +97,7 @@
         @click="changePage(currentPage + 1)"
         class="page-btn"
       >
-        다음 <i class="fas fa-chevron-right"></i>
+        다음 <font-awesome-icon icon="fa-solid fa-chevron-right" />
       </button>
     </div>
 
@@ -107,7 +107,7 @@
         <div class="modal-header">
           <h2>{{ isEditing ? '공지사항 수정' : '공지사항 작성' }}</h2>
           <button @click="closeModal" class="close-btn">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="fa-solid fa-xmark" />
           </button>
         </div>
         
@@ -152,7 +152,7 @@
         <div class="modal-header">
           <h2>공지사항 상세보기</h2>
           <button @click="closeDetailModal" class="close-btn">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="fa-solid fa-xmark" />
           </button>
         </div>
         
