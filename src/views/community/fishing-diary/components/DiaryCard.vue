@@ -65,24 +65,22 @@ const goToDetail = () => {
 }
 
 .thumbnail-list {
-  display: flex;
-  flex-direction: row;
-  gap: 6px;
   width: 100%;
   height: 60%;
   margin-bottom: 8px;
   align-items: center;
-  justify-content: flex-start;
-  overflow-x: auto;
+  justify-content: center;
+  overflow: hidden;
+  display: flex;
 }
 
 .thumbnail {
-  width: 80px;
+  width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-  border-radius: 6px;
-  flex-shrink: 0;
+  border-radius: 0;
+  display: block;
 }
 
 .content {
