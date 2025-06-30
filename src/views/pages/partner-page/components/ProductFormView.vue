@@ -151,7 +151,7 @@ async function submit() {
     prodDescription: localForm.prodDescription,
     prodNotice: localForm.prodNotice,
     prodEvent: localForm.prodEvent,
-    deletedImageNames: [...deletedImageNames.value]
+    deleteImageNames: [...deletedImageNames.value]
   }
 
   try {

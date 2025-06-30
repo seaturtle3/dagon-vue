@@ -173,7 +173,7 @@ const routes = [
                 component: () => import('@/views/pages/partner-page/components/ProductDetail.vue'),
             },
 
-            {path: 'products/form/:id', component: () => import('@/views/pages/partner-page/components/ProductForm.vue')},
+            {path: 'products/form', component: () => import('@/views/pages/partner-page/components/ProductForm.vue')},
             {path: 'products/edit/:id', component: () => import('@/views/pages/partner-page/components/ProductForm.vue')},
             {
                 path: 'market-info',
