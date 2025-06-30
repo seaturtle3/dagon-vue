@@ -145,6 +145,16 @@ function removeAllImages() {
   imagePreviews.value = []
 }
 
+// 대표 이미지 삭제/교체를 위한 함수 추가
+function removeImageByIndex(idx) {
+  const img = allPreviews.value[idx];
+  if (img.isExisting) {
+    removeExistingImage(img.id);
+  } else {
+    removeImage(img.id);
+  }
+}
+
 async function submit() {
   if (!islocalFormValid.value) {
     alert("필수 항목을 모두 입력해주세요.")
@@ -224,6 +234,7 @@ const filteredSubTypes = computed(() => {
         <div class="image-upload-section">
           <div class="upload-container">
 
+            <!-- 대표 이미지 + 서브 이미지 분리 -->
             <div v-if="allPreviews.length > 0" class="image-gallery">
               <div class="gallery-header">
                 <h4 class="gallery-title">
@@ -236,45 +247,32 @@ const filteredSubTypes = computed(() => {
                 </button>
               </div>
 
-              <div class="gallery-grid">
+              <!-- 대표 이미지 -->
+              <div class="main-image-wrapper" v-if="allPreviews[0]">
+                <img :src="allPreviews[0].url" :alt="allPreviews[0].name" class="main-image" />
+                <div class="main-badge">
+                  <i class="fas fa-star"></i>
+                  대표
+                </div>
+                <button type="button" @click="removeImageByIndex(0)" class="remove-btn" title="대표 이미지 삭제">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <!-- 서브 이미지 -->
+              <div class="sub-images" v-if="allPreviews.length > 1">
                 <div
-                    v-for="(image, index) in allPreviews"
-                    :key="image.id"
-                    class="gallery-item"
-                    :class="{ 'main-image': index === 0 }"
+                  v-for="(image, idx) in allPreviews.slice(1)"
+                  :key="image.id"
+                  class="sub-image-wrapper"
                 >
-                  <img :src="image.url" :alt="image.name" class="gallery-image" />
-                  <div class="image-overlay">
-                    <div class="image-actions">
-                      <button
-                          v-if="image.isExisting"
-                          type="button"
-                          @click="removeExistingImage(image.id)"
-                          class="remove-btn"
-                          title="기존 이미지 삭제"
-                      >
-                        <i class="fas fa-times"></i>
-                      </button>
-                      <button
-                          v-else
-                          type="button"
-                          @click="removeImage(image.id)"
-                          class="remove-btn"
-                          title="이미지 삭제"
-                      >
-                        <i class="fas fa-times"></i>
-                      </button>
-                    </div>
-                    <div v-if="index === 0" class="main-badge">
-                      <i class="fas fa-star"></i>
-                      대표
-                    </div>
-                  </div>
-                  <!-- 이미지 이름, 용량 표시 등 기존 코드 유지 -->
+                  <img :src="image.url" :alt="image.name" class="sub-image" />
+                  <button type="button" @click="removeImageByIndex(idx+1)" class="remove-btn" title="이미지 삭제">
+                    <i class="fas fa-times"></i>
+                  </button>
                 </div>
               </div>
             </div>
-
 
             <!-- 업로드 플레이스홀더 -->
             <div v-else class="upload-placeholder">
@@ -964,5 +962,74 @@ const filteredSubTypes = computed(() => {
   .additional-info-section .section-header {
     padding: 20px 24px;
   }
+}
+
+/* 대표 이미지 스타일 */
+.main-image-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+  border: 3px solid #4299e1;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.main-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+.main-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(66, 153, 225, 0.9);
+  color: white;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+.main-image-wrapper .remove-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+}
+
+/* 서브 이미지 스타일 */
+.sub-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.sub-image-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  background: white;
+}
+.sub-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.sub-image-wrapper .remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
 }
 </style>
