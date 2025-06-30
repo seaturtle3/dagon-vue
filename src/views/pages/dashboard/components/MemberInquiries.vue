@@ -29,6 +29,10 @@
     <div class="inquiries-list">
       <div v-for="inquiry in paginatedInquiries" :key="inquiry.id" class="inquiry-item">
         <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
+          <span class="answer-badge" :class="inquiry.answerContent ? 'badge-complete' : 'badge-pending'">
+            <span class="dot"></span>
+            {{ inquiry.answerContent ? '답변완료' : '답변대기' }}
+          </span>
           <span class="inquiry-status" :class="inquiry.status">{{ inquiry.status }}</span>
           <h3>{{ inquiry.title }}</h3>
           <span class="inquiry-author">{{ inquiry.userName || inquiry.author }}</span>
@@ -417,6 +421,46 @@ export default {
   padding: 1rem;
   cursor: pointer;
   background-color: #f8f9fa;
+}
+
+.answer-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-right: 1rem;
+  padding: 0.25rem 0.8rem 0.25rem 0.5rem;
+  border-radius: 16px;
+  background: #f8f9fa;
+  border: 1.5px solid #eee;
+  min-width: 90px;
+  justify-content: left;
+}
+
+.answer-badge .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 7px;
+}
+
+.badge-pending {
+  color: #e74c3c;
+  border-color: #e74c3c;
+}
+
+.badge-pending .dot {
+  background: #e74c3c;
+}
+
+.badge-complete {
+  color: #2ecc71;
+  border-color: #2ecc71;
+}
+
+.badge-complete .dot {
+  background: #2ecc71;
 }
 
 .inquiry-status {
