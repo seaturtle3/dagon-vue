@@ -33,7 +33,7 @@
     </div>
     <div v-else class="product-grid">
       <div v-for="product in filteredProducts" :key="product.prodId" class="product-card" :class="{ 'deleted': product.deleted }">
-        <div class="product-image" @click="$router.push(`/products/${product.prodId}`)">
+        <div class="product-image" @click="$router.push(`/partner/products/${product.prodId}`)">
           <div class="image-thumbnails">
             <!-- 1. prodImageDataList가 있으면 그것만 보여줌 -->
             <template v-if="product.prodImageDataList && product.prodImageDataList.length > 0">
