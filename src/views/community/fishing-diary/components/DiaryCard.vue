@@ -1,5 +1,4 @@
 <script setup>
-import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js"
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -12,18 +11,37 @@ const props = defineProps({
 })
 
 const goToDetail = () => {
-  window.open(`/fishing-diary/${props.diary.fdId}`)
+  router.push(`/fishing-diary/${props.diary.fdId}`)
 }
 </script>
 
 <template>
+
   <div class="diary-card"
        @click="goToDetail">
-    <img
+    <div class="thumbnail-list">
+      <img
         class="thumbnail"
-        :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
-        alt="썸네일"
+        :src="
+          diary.images && diary.images.length
+            ? (
+              diary.images[0].imageData
+                  ? `data:image/jpeg;base64,${diary.images[0].imageData}`
+                  : (diary.images[0].image_data
+                      ? `data:image/jpeg;base64,${diary.images[0].image_data}`
+                      : (diary.images[0].imageUrl
+                          ? diary.images[0].imageUrl
+                          : (diary.images[0].image_url
+                              ? diary.images[0].image_url
+                              : '/images/no-image.png'
+                            )
+                        )
+                    )
+              )
+            : '/images/no-image.png'
+        "
     />
+    </div>
     <div class="content">
       <h3 class="product-name">{{ diary.product?.prodName }}</h3>
       <h5 class="diary-title">{{ diary.title }}</h5>
@@ -46,13 +64,24 @@ const goToDetail = () => {
   cursor: pointer;
 }
 
-.thumbnail {
+.thumbnail-list {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
   width: 100%;
   height: 60%;
+  margin-bottom: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-x: auto;
+}
+
+.thumbnail {
+  width: 80px;
+  height: 100%;
   object-fit: cover;
   object-position: center;
-  margin-bottom: 8px;
-  display: block;
+  border-radius: 6px;
   flex-shrink: 0;
 }
 
