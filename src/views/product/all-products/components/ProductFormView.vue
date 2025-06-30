@@ -1,7 +1,7 @@
 <script setup>
 import {reactive, watch, toRefs, onMounted, ref, computed} from 'vue'
-import { useRouter } from 'vue-router'
-import { useProductFormStore } from '@/store/product/all-products/useProductFormStore'
+import {useRouter} from 'vue-router'
+import {useProductFormStore} from '@/store/product/all-products/useProductFormStore'
 
 const productFormStore = useProductFormStore()
 import {BASE_URL} from "@/constants/baseUrl.js";
@@ -50,7 +50,7 @@ watch(
         Object.assign(localForm, newForm);
       }
     },
-    { immediate: true }
+    {immediate: true}
 )
 
 // 기존 이미지 미리보기용 배열
@@ -69,7 +69,7 @@ watch(
         existingImages.value = []
       }
     },
-    { immediate: true }
+    {immediate: true}
 )
 
 const islocalFormValid = computed(() => {
@@ -118,14 +118,14 @@ function onFileChange(event) {
 }
 
 // 기존 이미지 삭제
-const deletedImageNames = ref([])
+const deleteImageNames = ref([])
 
 function removeExistingImage(imageId) {
   const index = existingImages.value.findIndex(img => img.id === imageId);
   if (index > -1) {
     const removed = localForm.prodImageNames.splice(index, 1)[0];
     if (removed) {
-      deletedImageNames.value.push(removed);
+      deleteImageNames.value.push(removed);
       existingImages.value.splice(index, 1); // UI에서도 제거
     }
   }
@@ -150,7 +150,6 @@ async function submit() {
     alert("필수 항목을 모두 입력해주세요.")
     return
   }
-  console.log("📝 삭제된 이미지 목록:", deletedImageNames.value);
 
   const dtoToSend = {
     prodName: localForm.prodName,
@@ -164,20 +163,17 @@ async function submit() {
     prodDescription: localForm.prodDescription,
     prodNotice: localForm.prodNotice,
     prodEvent: localForm.prodEvent,
-    deletedImageNames: [...deletedImageNames.value]
+    deleteImageNames: [...deleteImageNames.value]
   }
 
   const formData = new FormData();
   formData.append(
       'product',
-      new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' })
+      new Blob([JSON.stringify(dtoToSend)], {type: 'application/json'})
   );
   files.value.forEach(file => {
-    formData.append('thumbnailFiles', file)
+    formData.append('thumbnailFile', file)
   });
-
-  console.log('📦 deletedImageNames:', deletedImageNames.value) // Proxy
-  console.log('✅ 풀린 배열:', [...deletedImageNames.value])     // 일반 Array
 
   try {
     if (props.editMode && props.form?.prodId) {
@@ -201,6 +197,9 @@ async function submit() {
       alert('제품정보 등록/수정에 실패했습니다. 다시 시도해주세요.')
     }
   }
+
+  console.log('********* mainType:', localForm.mainType);
+  console.log('********* dtoToSend:', dtoToSend);
 }
 
 const filteredSubTypes = computed(() => {
@@ -243,7 +242,7 @@ const filteredSubTypes = computed(() => {
                     class="gallery-item"
                     :class="{ 'main-image': index === 0 }"
                 >
-                  <img :src="image.url" :alt="image.name" class="gallery-image" />
+                  <img :src="image.url" :alt="image.name" class="gallery-image"/>
                   <div class="image-overlay">
                     <div class="image-actions">
                       <button
@@ -288,12 +287,12 @@ const filteredSubTypes = computed(() => {
             </div>
 
             <input
-              type="file"
-              accept="image/*"
-              @change="onFileChange"
-              class="file-input"
-              id="imageUpload"
-              multiple
+                type="file"
+                accept="image/*"
+                @change="onFileChange"
+                class="file-input"
+                id="imageUpload"
+                multiple
             />
             <label for="imageUpload" class="upload-label">
               <i class="fas fa-plus"></i>
@@ -315,11 +314,11 @@ const filteredSubTypes = computed(() => {
             <div class="form-group">
               <label class="form-label required">배 이름</label>
               <input
-                v-model="localForm.prodName"
-                type="text"
-                class="form-input"
-                placeholder="배 이름을 입력하세요"
-                required
+                  v-model="localForm.prodName"
+                  type="text"
+                  class="form-input"
+                  placeholder="배 이름을 입력하세요"
+                  required
               />
             </div>
 
@@ -353,21 +352,21 @@ const filteredSubTypes = computed(() => {
             <div class="form-group">
               <label class="form-label required">최대 인원</label>
               <input
-                v-model.number="localForm.maxPerson"
-                type="number"
-                class="form-input"
-                placeholder="최대 수용 인원"
-                required
+                  v-model.number="localForm.maxPerson"
+                  type="number"
+                  class="form-input"
+                  placeholder="최대 수용 인원"
+                  required
               />
             </div>
 
             <div class="form-group">
               <label class="form-label">최소 인원</label>
               <input
-                v-model.number="localForm.minPerson"
-                type="number"
-                class="form-input"
-                placeholder="최소 필요 인원 (선택사항)"
+                  v-model.number="localForm.minPerson"
+                  type="number"
+                  class="form-input"
+                  placeholder="최소 필요 인원 (선택사항)"
               />
             </div>
           </div>
@@ -387,23 +386,23 @@ const filteredSubTypes = computed(() => {
           <div class="form-group">
             <label class="form-label required">선박 무게</label>
             <input
-              v-model.number="localForm.weight"
-              step="0.01"
-              type="number"
-              class="form-input"
-              placeholder="선박 무게 (t)"
-              required
+                v-model.number="localForm.weight"
+                step="0.01"
+                type="number"
+                class="form-input"
+                placeholder="선박 무게 (t)"
+                required
             />
           </div>
 
           <div class="form-group">
             <label class="form-label required">선박 주소</label>
             <input
-              v-model="localForm.prodAddress"
-              type="text"
-              class="form-input"
-              placeholder="선박이 위치한 주소"
-              required
+                v-model="localForm.prodAddress"
+                type="text"
+                class="form-input"
+                placeholder="선박이 위치한 주소"
+                required
             />
           </div>
         </div>
@@ -411,10 +410,10 @@ const filteredSubTypes = computed(() => {
         <div class="form-group full-width">
           <label class="form-label">상세 설명</label>
           <textarea
-            v-model="localForm.prodDescription"
-            class="form-textarea"
-            placeholder="선박에 대한 상세한 설명을 입력하세요"
-            rows="4"
+              v-model="localForm.prodDescription"
+              class="form-textarea"
+              placeholder="선박에 대한 상세한 설명을 입력하세요"
+              rows="4"
           ></textarea>
         </div>
       </div>
@@ -441,10 +440,10 @@ const filteredSubTypes = computed(() => {
         <div class="form-group full-width">
           <label class="form-label">이벤트</label>
           <textarea
-            v-model="localForm.prodEvent"
-            class="form-textarea"
-            placeholder="진행 중인 이벤트나 특별한 혜택이 있다면 입력하세요"
-            rows="3"
+              v-model="localForm.prodEvent"
+              class="form-textarea"
+              placeholder="진행 중인 이벤트나 특별한 혜택이 있다면 입력하세요"
+              rows="3"
           ></textarea>
         </div>
 
@@ -485,7 +484,7 @@ const filteredSubTypes = computed(() => {
   font-weight: 700;
   color: #1a365d;
   margin-bottom: 10px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .page-subtitle {
@@ -508,7 +507,7 @@ const filteredSubTypes = computed(() => {
   gap: 40px;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 
@@ -623,7 +622,7 @@ const filteredSubTypes = computed(() => {
   position: relative;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background: white;
   transition: transform 0.2s;
 }
@@ -648,7 +647,7 @@ const filteredSubTypes = computed(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   opacity: 0;
   transition: opacity 0.2s;
   display: flex;
@@ -699,7 +698,7 @@ const filteredSubTypes = computed(() => {
 }
 
 .image-info {
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   color: white;
   padding: 6px 8px;
   font-size: 0.7rem;
@@ -834,7 +833,7 @@ const filteredSubTypes = computed(() => {
 .boat-detail-section {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 
@@ -866,7 +865,7 @@ const filteredSubTypes = computed(() => {
 .additional-info-section {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 
@@ -939,27 +938,27 @@ const filteredSubTypes = computed(() => {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .gallery-grid {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
-  
+
   .image-upload-section,
   .basic-info-section {
     padding: 24px;
   }
-  
+
   .boat-detail-section .form-grid,
   .boat-detail-section .form-group.full-width,
   .additional-info-section .form-group.full-width {
     padding-left: 24px;
     padding-right: 24px;
   }
-  
+
   .boat-detail-section .section-header,
   .additional-info-section .section-header {
     padding: 20px 24px;
