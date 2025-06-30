@@ -55,11 +55,7 @@
         </router-link>
         <router-link to="/admin/inquiries" class="nav-item" active-class="nav-item-active">
           <i class="fas fa-comments"></i>
-          <span>회원 1:1 문의</span>
-        </router-link>
-        <router-link to="/admin/guest-inquiries" class="nav-item" active-class="nav-item-active">
-          <i class="fa-regular fa-comment"></i>
-          <span>비회원 1:1 문의</span>
+          <span>1:1 문의</span>
         </router-link>
         <router-link to="/admin/register" class="nav-item" active-class="nav-item-active">
           <i class="fa-solid fa-user"></i>

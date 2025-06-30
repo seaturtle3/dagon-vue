@@ -21,17 +21,15 @@
         </div>
         <div class="form-group">
           <label>작성자 유형</label>
+          
           <input type="text" :value="userInfo.role === 'PARTNER' ? '파트너' : '일반회원'" readonly class="readonly-input">
         </div>
         <div class="form-group">
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
             <option value="">문의 유형을 선택하세요.</option>
-            <option value="PRODUCT">상품 문의</option>
             <option value="BUSINESS">제휴 문의</option>
             <option value="SYSTEM">시스템 문의</option>
-            <option value="RESERVATION">예약 문의</option>
-            <option value="CANCEL">예약 취소 문의</option>
           </select>
         </div>
         <div class="form-group">
@@ -114,12 +112,6 @@ const initializeProductInfo = () => {
     };
     
     console.log('상품 정보 받음:', productInfo.value);
-    
-    // 상품 문의인 경우 자동으로 문의 유형만 설정
-    if (productInfo.value.productType === 'product') {
-      form.value.inquiryType = 'PRODUCT';
-      // 제목은 자동 설정하지 않고 회원이 직접 입력하도록 함
-    }
   }
 };
 
@@ -183,6 +175,9 @@ const submitForm = async () => {
     content = `상품 정보:\n- 상품명: ${productInfo.value.productName}\n- 상품ID: ${productInfo.value.productId}\n\n문의 내용:\n${content}`;
   }
 
+  // inquiryType 값 콘솔 출력 (디버깅용)
+  console.log('문의 유형:', form.value.inquiryType);
+
   const inquiryData = {
     ...form.value,
     content: content,
@@ -199,9 +194,7 @@ const submitForm = async () => {
   try {
     // 실제 API 호출
     await inquiryApi.createInquiry(inquiryData);
-    
     resetForm();
-    
     // 성공 모달 표시
     openModal(inquiryData);
   } catch (error) {
@@ -214,7 +207,7 @@ const resetForm = () => {
   form.value = {
     title: '',
     content: '',
-    inquiryType: productInfo.value ? 'PRODUCT' : '',
+    inquiryType: '',
     writerType: userInfo.value.role,
     receiverId: null
   };

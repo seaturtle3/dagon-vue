@@ -21,7 +21,7 @@
         @click="selectType(type.value)"
       >
         {{ type.label }}
-        <span class="tab-count">({{ getTypeCount(type.value) }})</span>
+        <span class="tab-count">({{ typeCounts[type.value] }})</span>
       </button>
     </div>
 
@@ -67,7 +67,7 @@
     <div class="pagination">
       <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">이전</button>
       <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-      <span class="total-info">총 {{ totalItems }}개 문의</span>
+      <span class="total-info">총 {{ totalElements }}개 문의</span>
       <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">다음</button>
     </div>
 
@@ -103,6 +103,13 @@ export default {
       expandedInquiries: [],
       currentPage: 1,
       itemsPerPage: 10,
+      totalElements: 0, // 전체 아이템 수
+      totalPages: 0, // 전체 페이지 수
+      typeCounts: {
+        '': 0, // 전체
+        'BUSINESS': 0, // 제휴 문의
+        'SYSTEM': 0    // 시스템 문의
+      },
       showReplyModal: false,
       editingReply: false,
       replyForm: {
@@ -110,23 +117,18 @@ export default {
         content: ''
       },
       inquiryTypes: [
-        { value: 'PRODUCT', label: '상품 문의' },
-        { value: 'PARTNERSHIP', label: '제휴 문의' },
-        { value: 'SYSTEM', label: '시스템 문의' },
-        { value: 'RESERVATION', label: '예약 문의' },
-        { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
+        { value: '', label: '전체보기' },
+        { value: 'BUSINESS', label: '제휴 문의' },
+        { value: 'SYSTEM', label: '시스템 문의' }
       ],
-      selectedType: 'PRODUCT' // 기본값으로 상품 문의 선택
+      selectedType: '' // 기본값으로 전체보기 선택
     }
   },
   computed: {
     groupedInquiries() {
       const groups = {
-        'PRODUCT': [],
-        'PARTNERSHIP': [],
-        'SYSTEM': [],
-        'RESERVATION': [],
-        'RESERVATION_CANCEL': []
+        'BUSINESS': [],
+        'SYSTEM': []
       };
 
       for (const inquiry of this.inquiries) {
@@ -140,10 +142,11 @@ export default {
       return groups;
     },
     filteredInquiries() {
-      let filtered = this.inquiries;
+      let filtered = Array.isArray(this.inquiries) ? this.inquiries : [];
 
-      // 문의 유형 필터링
+      // 문의 유형 필터링 (전체보기가 아닐 때만 적용)
       if (this.selectedType) {
+        console.log('selectedType:', this.selectedType);
         filtered = filtered.filter(inquiry => {
           const type = inquiry.inquiryType || this.getInquiryTypeFromTitle(inquiry.title);
           return type === this.selectedType;
@@ -167,16 +170,9 @@ export default {
       return filtered;
     },
     paginatedInquiries() {
-      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-      const endIndex = startIndex + this.itemsPerPage;
-      return this.filteredInquiries.slice(startIndex, endIndex);
+      // 서버 사이드 페이징이므로 전체 목록을 그대로 반환
+      return this.filteredInquiries;
     },
-    totalItems() {
-      return this.filteredInquiries.length;
-    },
-    totalPages() {
-      return Math.ceil(this.totalItems / this.itemsPerPage);
-    }
   },
   methods: {
     async searchInquiries() {
@@ -184,12 +180,32 @@ export default {
         const params = {
           keyword: this.searchQuery || '',
           status: this.statusFilter || '',
-          inquiryType: this.selectedType || '',
           page: this.currentPage - 1,
           size: this.itemsPerPage
         };
+        
+        // 전체보기가 아닐 때만 inquiryType 파라미터 추가
+        if (this.selectedType) {
+          params.inquiryType = this.selectedType;
+        }
+        
+        console.log('API 호출 파라미터:', params);
         const response = await inquiryApi.getInquiryList(params);
-        this.inquiries = response.data.content || response.data;
+        console.log('API 응답:', response);
+        
+        // API 응답 데이터를 안전하게 처리
+        if (response && response.data) {
+          this.inquiries = Array.isArray(response.data.data.content) ? response.data.data.content : 
+                          Array.isArray(response.data.data) ? response.data.data : [];
+          this.totalElements = response.data.data.totalElements || 0;
+          this.totalPages = response.data.data.totalPages || 0;
+        } else {
+          this.inquiries = [];
+          this.totalElements = 0;
+          this.totalPages = 0;
+        }
+        
+        console.log('설정된 문의 목록:', this.inquiries);
         
         // 펼침 상태 초기화
         this.expandedInquiries = [];
@@ -198,6 +214,8 @@ export default {
         // API 호출 실패 시 빈 배열로 초기화
         this.inquiries = [];
         this.expandedInquiries = [];
+        this.totalElements = 0;
+        this.totalPages = 0;
       }
     },
     toggleInquiry(id) {
@@ -260,6 +278,7 @@ export default {
     changePage(page) {
       if (page >= 1 && page <= this.totalPages) {
         this.currentPage = page;
+        this.searchInquiries(); // 페이지 변경 시 API 재호출
       }
     },
     formatDate(dateStr) {
@@ -283,33 +302,45 @@ export default {
       this.editingReply = false;
     },
     getTypeCount(type) {
-      // 현재 필터(검색, 상태 등)가 적용된 데이터에서만 개수 세기
-      return this.filteredInquiries.filter(inquiry => {
-        const t = inquiry.inquiryType || this.getInquiryTypeFromTitle(inquiry.title);
-        return t === type;
-      }).length;
+      return this.typeCounts[type] || 0;
     },
     getInquiryTypeFromTitle(title) {
       const words = title.split(' ');
       if (words.length > 0) {
         const firstWord = words[0].toLowerCase();
-        if (firstWord === '상품') return 'PRODUCT';
-        if (firstWord === '제휴') return 'PARTNERSHIP';
+        if (firstWord === '제휴') return 'BUSINESS';
         if (firstWord === '시스템') return 'SYSTEM';
-        if (firstWord === '예약') return 'RESERVATION';
-        if (firstWord === '취소') return 'RESERVATION_CANCEL';
       }
       return 'SYSTEM'; // 기본값
     },
+    async updateTypeCounts() {
+      // 전체
+      const allRes = await inquiryApi.getInquiryList({ size: 1, page: 0 });
+      this.typeCounts[''] = allRes.data.data.totalElements || 0;
+
+      // 제휴
+      const businessRes = await inquiryApi.getInquiryList({ inquiryType: 'BUSINESS', size: 1, page: 0 });
+      this.typeCounts['BUSINESS'] = businessRes.data.data.totalElements || 0;
+
+      // 시스템
+      const systemRes = await inquiryApi.getInquiryList({ inquiryType: 'SYSTEM', size: 1, page: 0 });
+      this.typeCounts['SYSTEM'] = systemRes.data.data.totalElements || 0;
+    },
   },
   created() {
-    this.searchInquiries()
+    this.searchInquiries();
+    this.updateTypeCounts();
   },
   mounted() {
     // 라우터 쿼리 파라미터에서 문의 유형 확인
     const queryType = this.$route.query.type;
     if (queryType && this.inquiryTypes.some(type => type.value === queryType)) {
       this.selectedType = queryType;
+      this.searchInquiries();
+    }
+  },
+  watch: {
+    selectedType() {
       this.searchInquiries();
     }
   }

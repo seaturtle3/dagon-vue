@@ -606,7 +606,7 @@ const menuItems = ref([
     children: [
       {label: '공지사항', link: '/notice'},
       {label: '자주묻는질문', link: '/faq'},
-      {label: '1:1 문의', link: '/inquiry'},
+      {label: '관리자 1:1 문의', link: '/inquiry'},
       {label: '파트너 신청', link: '/partner/apply'}
     ]
   }
