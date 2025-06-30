@@ -21,7 +21,8 @@ onMounted(() => {
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
-      isAdmin.value = payload.role === 'ADMIN'
+      const adminRoles = ['ADMIN', 'SUPER_ADMIN']
+      isAdmin.value = adminRoles.includes(payload.role)
     } catch (e) {
       console.error('JWT 파싱 실패:', e)
       isAdmin.value = false

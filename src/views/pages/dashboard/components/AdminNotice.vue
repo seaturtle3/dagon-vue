@@ -3,7 +3,7 @@
     <div class="header">
       <h1>공지사항 관리</h1>
       <button @click="showCreateModal = true" class="create-btn">
-        <i class="fas fa-plus"></i> 새 공지사항 작성
+        <font-awesome-icon icon="fa-solid fa-plus" /> 새 공지사항 작성
       </button>
     </div>
     
@@ -17,7 +17,7 @@
           @keyup.enter="loadNotices"
         >
         <button @click="loadNotices" class="search-btn">
-          <i class="fas fa-search"></i>
+          <font-awesome-icon icon="fa-solid fa-magnifying-glass" />
         </button>
       </div>
       <div class="filter-box">
@@ -41,12 +41,12 @@
       </div>
       
       <div v-if="loading" class="loading">
-        <i class="fas fa-spinner fa-spin"></i>
+        <font-awesome-icon icon="fa-solid fa-spinner" spin />
         <p>공지사항을 불러오는 중...</p>
       </div>
       
       <div v-else-if="notices.length === 0" class="empty-state">
-        <i class="fas fa-inbox"></i>
+        <font-awesome-icon icon="fa-solid fa-inbox" />
         <p>등록된 공지사항이 없습니다.</p>
       </div>
       
@@ -69,13 +69,13 @@
           <div class="col-date">{{ formatDate(notice.createdAt) }}</div>
           <div class="col-actions">
             <button @click="editNotice(notice)" class="action-btn edit" title="수정">
-              <i class="fas fa-edit"></i>
+              <font-awesome-icon icon="fa-solid fa-pen-to-square" />
             </button>
             <button @click="toggleTop(notice)" class="action-btn" :class="notice.isTop ? 'top-active' : 'top'" :title="notice.isTop ? '고정해제' : '고정'">
-              <i class="fas fa-star"></i>
+              <font-awesome-icon icon="fa-solid fa-star" />
             </button>
             <button @click="deleteNotice(notice.noticeId)" class="action-btn delete" title="삭제">
-              <i class="fa-solid fa-xmark"></i>
+              <font-awesome-icon icon="fa-solid fa-trash" />
             </button>
           </div>
         </div>
@@ -89,7 +89,7 @@
         @click="changePage(currentPage - 1)"
         class="page-btn"
       >
-        <i class="fas fa-chevron-left"></i> 이전
+        <font-awesome-icon icon="fa-solid fa-chevron-left" /> 이전
       </button>
       <span class="page-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
       <button 
@@ -97,7 +97,7 @@
         @click="changePage(currentPage + 1)"
         class="page-btn"
       >
-        다음 <i class="fas fa-chevron-right"></i>
+        다음 <font-awesome-icon icon="fa-solid fa-chevron-right" />
       </button>
     </div>
 
@@ -107,7 +107,7 @@
         <div class="modal-header">
           <h2>{{ isEditing ? '공지사항 수정' : '공지사항 작성' }}</h2>
           <button @click="closeModal" class="close-btn">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="fa-solid fa-xmark" />
           </button>
         </div>
         
@@ -124,21 +124,7 @@
           
           <div class="form-group">
             <label>내용 *</label>
-            <textarea 
-              v-model="noticeForm.content" 
-              required
-              rows="10"
-              placeholder="공지사항 내용을 입력하세요"
-            ></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label>썸네일 URL</label>
-            <input 
-              type="text" 
-              v-model="noticeForm.thumbnailUrl" 
-              placeholder="썸네일 URL을 입력하세요"
-            >
+            <RichTextEditor v-model="noticeForm.content" editor-id="notice-editor" />
           </div>
           
           <div class="form-group checkbox-group">
@@ -166,14 +152,14 @@
         <div class="modal-header">
           <h2>공지사항 상세보기</h2>
           <button @click="closeDetailModal" class="close-btn">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="fa-solid fa-xmark" />
           </button>
         </div>
         
         <div class="notice-detail">
           <h3>{{ selectedNotice.title }}</h3>
           <div class="notice-content">
-            <p>{{ selectedNotice.content }}</p>
+            <div v-html="selectedNotice.content"></div>
           </div>
           <div class="notice-meta">
             <span>작성자: {{ selectedNotice.adminName || '관리자' }}</span>
@@ -190,10 +176,12 @@
 
 <script>
 import { ref, onMounted } from 'vue'
+import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import { getAdminNotices, createNotice, updateNotice, deleteNotice as deleteNoticeApi, fetchNoticeById } from '@/api/notice.js'
 
 export default {
   name: 'Notices',
+  components: { RichTextEditor },
   setup() {
     const notices = ref([])
     const loading = ref(false)
@@ -216,7 +204,6 @@ export default {
     const noticeForm = ref({
       title: '',
       content: '',
-      thumbnailUrl: '',
       isTop: false
     })
     
@@ -257,7 +244,6 @@ export default {
             noticeId: 1,
             title: '시스템 점검 안내',
             content: '정기 시스템 점검이 예정되어 있습니다.',
-            thumbnailUrl: null,
             createdAt: '2024-01-15T10:00:00',
             modifyAt: null,
             views: 0,
@@ -300,7 +286,6 @@ export default {
         noticeId: notice.noticeId,
         title: notice.title,
         content: notice.content,
-        thumbnailUrl: notice.thumbnailUrl || '',
         isTop: notice.isTop || false
       }
       showEditModal.value = true
@@ -311,7 +296,6 @@ export default {
         await updateNotice(notice.noticeId, {
           title: notice.title,
           content: notice.content,
-          thumbnailUrl: notice.thumbnailUrl,
           isTop: !notice.isTop
         })
         await loadNotices()
@@ -339,8 +323,7 @@ export default {
       try {
         const noticeData = {
           title: noticeForm.value.title.trim(),
-          content: noticeForm.value.content.trim(),
-          thumbnailUrl: noticeForm.value.thumbnailUrl || null,
+          content: noticeForm.value.content,
           isTop: noticeForm.value.isTop
         }
         
@@ -378,7 +361,6 @@ export default {
       noticeForm.value = {
         title: '',
         content: '',
-        thumbnailUrl: '',
         isTop: false
       }
     }
@@ -414,7 +396,8 @@ export default {
       deleteNotice,
       submitNotice,
       closeModal,
-      closeDetailModal
+      closeDetailModal,
+      RichTextEditor
     }
   }
 }

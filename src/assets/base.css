@@ -84,3 +84,22 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* 써머노트 팝업/백드롭 z-index 조정 */
+.note-modal-backdrop {
+  z-index: 3000 !important;
+}
+.note-modal {
+  z-index: 3010 !important;
+}
+
+/* 어드민 상세 모달, 써머노트 팝업 모두 headerNav보다 위로 */
+.modal-overlay,
+.modal-content {
+  z-index: 3001 !important;
+}
+
+/* headerNav는 2000 이하로 유지 (예시) */
+.header-nav, .headerNav {
+  z-index: 2000 !important;
+}

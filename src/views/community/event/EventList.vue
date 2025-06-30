@@ -1,10 +1,11 @@
 <script setup>
-import {ref, onMounted, watch} from 'vue'
-import {fetchEvents} from '@/api/event.js'
 import EventCard from "@/views/community/event/components/EventCard.vue";
 import BoardPagination from "@/components/common/BoardPagination.vue";
 import BoardSearchBox from "@/components/common/BoardSearchBox.vue";
 import BoardWriteButton from "@/components/common/BoardWriteButton.vue"
+
+import {ref, onMounted, watch} from 'vue'
+import {fetchEvents} from '@/api/event.js'
 
 const events = ref([])
 const loading = ref(true)

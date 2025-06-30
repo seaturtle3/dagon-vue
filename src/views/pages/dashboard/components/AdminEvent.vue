@@ -3,14 +3,14 @@
     <div class="header">
       <h1>이벤트 관리</h1>
       <button @click="openCreateModal" class="create-btn">
-        <i class="fas fa-plus"></i> 새 이벤트 작성
+        <font-awesome-icon icon="fa-solid fa-plus" /> 새 이벤트 작성
       </button>
     </div>
     <!-- 검색/필터 -->
     <div class="search-section">
       <div class="search-box">
         <input v-model="searchParams.keyword" placeholder="제목으로 검색" @keyup.enter="loadEvents" />
-        <button @click="loadEvents" class="search-btn"><i class="fas fa-search"></i></button>
+        <button @click="loadEvents" class="search-btn"><font-awesome-icon icon="fa-solid fa-magnifying-glass" /></button>
       </div>
       <div class="filter-box">
         <select v-model="searchParams.status" @change="loadEvents">
@@ -32,11 +32,11 @@
         <div class="col-actions">관리</div>
       </div>
       <div v-if="loading" class="loading">
-        <i class="fas fa-spinner fa-spin"></i>
+        <font-awesome-icon icon="fa-solid fa-spinner" spin />
         <p>이벤트를 불러오는 중...</p>
       </div>
       <div v-else-if="events.length === 0" class="empty-state">
-        <i class="fas fa-calendar-alt"></i>
+        <font-awesome-icon icon="fa-solid fa-calendar-days" />
         <p>등록된 이벤트가 없습니다.</p>
       </div>
       <div v-else class="table-body">
@@ -46,18 +46,18 @@
             <span v-if="event.isTop" class="top-badge">고정</span>
             <span>{{ event.title }}</span>
           </div>
-          <div class="col-period">{{ formatDate(event.startAt) }} ~ {{ formatDate(event.endAt) }}</div>
+          <div class="col-period">{{ formatPeriod(event.startAt, event.endAt) }}</div>
           <div class="col-status">
             <span :class="['status-badge', event.eventStatus]">{{ statusText(event.eventStatus) }}</span>
           </div>
           <div class="col-top"></div>
           <div class="col-actions">
-            <button @click="openEditModal(event)" class="action-btn edit" title="수정"><i class="fas fa-edit"></i></button>
+            <button @click="openEditModal(event)" class="action-btn edit" title="수정"><font-awesome-icon icon="fa-solid fa-pen-to-square" /></button>
             <button @click="toggleTop(event)" class="action-btn" :class="event.isTop ? 'top-active' : 'top'" :title="event.isTop ? '고정해제' : '고정'">
-              <i class="fas fa-star"></i>
+              <font-awesome-icon icon="fa-solid fa-star" />
             </button>
             <button @click="deleteEventHandler(event.eventId)" class="action-btn delete" title="삭제">
-              <i class="fas fa-trash"></i>
+              <font-awesome-icon icon="fa-solid fa-trash" />
             </button>
           </div>
         </div>
@@ -66,11 +66,11 @@
     <!-- 페이징 -->
     <div class="pagination">
       <button :disabled="searchParams.page === 0" @click="changePage(searchParams.page - 1)" class="page-btn">
-        <i class="fas fa-chevron-left"></i> 이전
+        <font-awesome-icon icon="fa-solid fa-chevron-left" /> 이전
       </button>
       <span class="page-info">{{ searchParams.page + 1 }} / {{ totalPages }}</span>
       <button :disabled="searchParams.page >= totalPages - 1" @click="changePage(searchParams.page + 1)" class="page-btn">
-        다음 <i class="fas fa-chevron-right"></i>
+        다음 <font-awesome-icon icon="fa-solid fa-chevron-right" />
       </button>
     </div>
     <!-- 등록/수정/상세 모달 -->
@@ -78,10 +78,9 @@
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h2>
-            <span v-if="eventForm.isTop" class="top-badge">고정</span>
             {{ modalMode === 'create' ? '이벤트 작성' : modalMode === 'edit' ? '이벤트 수정' : '이벤트 상세' }}
           </h2>
-          <button @click="closeModal" class="close-btn"><i class="fas fa-xmark"></i></button>
+          <button @click="closeModal" class="close-btn"><font-awesome-icon icon="fa-solid fa-xmark" /></button>
         </div>
         <form v-if="modalMode !== 'detail'" @submit.prevent="submitEvent" class="modal-form">
           <div class="form-group">
@@ -93,16 +92,19 @@
             <div class="date-range">
               <input type="date" v-model="eventForm.startAt" />
               <span>~</span>
-              <input type="date" v-model="eventForm.endDate">
+              <input type="date" v-model="eventForm.endAt">
             </div>
           </div>
           <div class="form-group">
-            <label>썸네일 URL</label>
-            <input v-model="eventForm.thumbnailUrl" placeholder="썸네일 이미지 URL" />
+            <label>썸네일 이미지</label>
+            <input type="file" accept="image/*" @change="handleThumbnailUpload" />
+            <div v-if="eventForm.thumbnailUrl" class="mt-2">
+              <img :src="eventForm.thumbnailUrl" alt="썸네일 미리보기" style="max-width: 200px; max-height: 120px; border-radius: 4px; object-fit: cover;" />
+            </div>
           </div>
           <div class="form-group">
             <label>내용 *</label>
-            <textarea v-model="eventForm.content" required placeholder="이벤트 내용을 입력하세요"></textarea>
+            <RichTextEditor v-model="eventForm.content" />
           </div>
           <div class="form-group checkbox-group">
             <label>
@@ -124,8 +126,7 @@
             {{ eventForm.title }}
           </h3>
           <div class="event-meta">
-            <span>기간: {{ formatDate(eventForm.startAt) }} ~ {{ formatDate(eventForm.endAt) }}</span>
-            <span v-if="eventForm.isTop" class="top-badge">상단고정</span>
+            <span>기간: {{ formatPeriod(eventForm.startAt, eventForm.endAt) }}</span>
           </div>
           <div class="event-content" v-html="eventForm.content"></div>
         </div>
@@ -137,6 +138,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { fetchEvents, fetchEventById, createEvent, updateEvent, deleteEvent as apiDeleteEvent } from '@/api/event.js'
+import RichTextEditor from '@/components/common/RichTextEditor.vue'
 
 const events = ref([])
 const loading = ref(false)
@@ -171,6 +173,17 @@ function formatDate(dateStr) {
     return ''
   }
 }
+
+function formatPeriod(startAt, endAt) {
+  if (!startAt && !endAt) return '상시 진행'
+  const start = formatDate(startAt)
+  const end = formatDate(endAt)
+  if (!start && !end) return '상시 진행'
+  if (start && !end) return `${start} ~ 미정`
+  if (!start && end) return `미정 ~ ${end}`
+  return `${start} ~ ${end}`
+}
+
 function statusText(status) {
   if (status === 'SCHEDULED') return '진행예정'
   if (status === 'ONGOING') return '진행중'
@@ -295,6 +308,33 @@ const toggleTop = async (event) => {
 function changePage(page) {
   searchParams.page = page
   loadEvents()
+}
+
+async function handleThumbnailUpload(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  if (file.size > 5 * 1024 * 1024) {
+    alert('파일 크기는 5MB 이하여야 합니다.')
+    return
+  }
+  if (!file.type.startsWith('image/')) {
+    alert('이미지 파일만 업로드 가능합니다.')
+    return
+  }
+  const formData = new FormData()
+  formData.append('image', file)
+  try {
+    const res = await fetch('/api/images/upload', {
+      method: 'POST',
+      body: formData
+    })
+    if (!res.ok) throw new Error('이미지 업로드 실패')
+    const fileName = await res.text()
+    const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL
+    eventForm.thumbnailUrl = `${baseUrl}/${fileName}`
+  } catch (err) {
+    alert('썸네일 업로드에 실패했습니다.')
+  }
 }
 
 onMounted(() => {
@@ -473,6 +513,15 @@ onMounted(() => {
   color: white;
   font-size: 0.9rem;
 }
+
+.action-btn.top-active {
+  background-color: #fbbf24;
+}
+.action-btn.top:hover, .action-btn.top-active:hover {
+  filter: brightness(0.95);
+}
+
+
 .action-btn.edit { background-color: #f59e0b; }
 .action-btn.delete { background-color: #ef4444; }
 .action-btn.edit:hover, .action-btn.delete:hover {

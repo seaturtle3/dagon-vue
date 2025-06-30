@@ -3,7 +3,7 @@
     <div class="header">
       <h1>FAQ 관리</h1>
       <button @click="showCreateModal = true" class="create-btn">
-        <i class="fas fa-plus"></i> 새 FAQ 작성
+        <font-awesome-icon icon="fa-solid fa-plus" /> 새 FAQ 작성
       </button>
     </div>
     
@@ -17,7 +17,7 @@
           @keyup.enter="handleSearch"
         >
         <button @click="handleSearch" class="search-btn">
-          <i class="fas fa-search"></i>
+          <font-awesome-icon icon="fa-solid fa-magnifying-glass" />
         </button>
       </div>
       <div class="filter-box">
@@ -49,12 +49,12 @@
       </div>
       
       <div v-if="loading" class="loading">
-        <i class="fas fa-spinner fa-spin"></i>
+        <font-awesome-icon icon="fa-solid fa-spinner" spin />
         <p>FAQ를 불러오는 중...</p>
       </div>
       
       <div v-else-if="faqs.length === 0" class="empty-state">
-        <i class="fas fa-question-circle"></i>
+        <font-awesome-icon icon="fa-solid fa-circle-question" />
         <p>등록된 FAQ가 없습니다.</p>
       </div>
       
@@ -79,10 +79,10 @@
           <div class="col-date">{{ formatDate(faq.createdAt) }}</div>
           <div class="col-actions">
             <button @click="editFAQ(faq)" class="action-btn edit" title="수정">
-              <i class="fas fa-edit"></i>
+              <font-awesome-icon icon="fa-solid fa-pen-to-square" />
             </button>
             <button @click="handleDeleteFAQ(faq.faqId)" class="action-btn delete" title="삭제">
-              <i class="fas fa-trash"></i>
+              <font-awesome-icon icon="fa-solid fa-trash" />
             </button>
           </div>
         </div>
@@ -96,7 +96,7 @@
         @click="changePage(currentPage - 1)"
         class="page-btn"
       >
-        <i class="fas fa-chevron-left"></i> 이전
+        <font-awesome-icon icon="fa-solid fa-chevron-left" /> 이전
       </button>
       <span class="page-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
       <button 
@@ -104,7 +104,7 @@
         @click="changePage(currentPage + 1)"
         class="page-btn"
       >
-        다음 <i class="fas fa-chevron-right"></i>
+        다음 <font-awesome-icon icon="fa-solid fa-chevron-right" />
       </button>
     </div>
 
@@ -114,7 +114,7 @@
         <div class="modal-header">
           <h2>{{ isEditing ? 'FAQ 수정' : 'FAQ 작성' }}</h2>
           <button @click="closeModal" class="close-btn" title="닫기">
-            <i class="fas fa-xmark"></i>
+            <font-awesome-icon icon="fa-solid fa-xmark" />
           </button>
         </div>
         
@@ -186,7 +186,7 @@
         <div class="modal-header">
           <h2>FAQ 상세보기</h2>
           <button @click="closeDetailModal" class="close-btn" title="닫기">
-            <i class="fas fa-xmark"></i>
+            <font-awesome-icon icon="fa-solid fa-xmark" />
           </button>
         </div>
         
@@ -265,6 +265,14 @@ export default {
       displayOrder: 1
     })
     
+    const categoryIdToNameMap = {
+      1: '일반회원',
+      2: '파트너',
+      3: '관리자',
+      4: '예약관련',
+      5: '결제관련',
+    }
+    
     const handleSearch = () => {
       currentPage.value = 0
       loadFAQs()
@@ -281,14 +289,6 @@ export default {
           '결제관련': 5,
         }
         
-        const categoryIdToNameMap = {
-          1: '일반회원',
-          2: '파트너',
-          3: '관리자',
-          4: '예약관련',
-          5: '결제관련',
-        }
-
         const apiParams = {
           page: currentPage.value,
           size: 10,
@@ -375,7 +375,12 @@ export default {
         console.log('FAQ 상세 조회 시도:', faqId)
         const response = await getFAQById(faqId)
         console.log('FAQ 상세 조회 응답:', response)
-        selectedFAQ.value = response.data
+        const data = response.data
+        // categoryId → 한글명 변환 (category가 없을 때만)
+        if (!data.category && data.categoryId) {
+          data.category = categoryIdToNameMap[data.categoryId] || '기타'
+        }
+        selectedFAQ.value = data
         showDetailModal.value = true
       } catch (error) {
         console.error('FAQ 상세 조회 실패:', error)

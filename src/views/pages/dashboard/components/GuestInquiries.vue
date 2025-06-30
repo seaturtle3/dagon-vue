@@ -1,7 +1,6 @@
 <template>
-  <div class="inquiries">
-    <h2>비회원 문의 관리</h2>
-    <p>로그아웃 상태의 사용자 문의 목록입니다.</p>
+  <div class="GuestInquiries">
+    <h2>비회원 1:1 문의</h2>
 
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="작성자명, 이메일, 연락처로 검색">
@@ -13,6 +12,8 @@
       <select v-model="typeFilter">
         <option value="">전체 문의 유형</option>
         <option value="general">상품 문의</option>
+        <option value="business">제휴 문의</option>
+        <option value="system">시스템 문의</option>
         <option value="product">예약 문의</option>
         <option value="technical">예약 취소 문의</option>
       </select>
@@ -36,7 +37,10 @@
     <div class="inquiries-list">
       <div v-for="inquiry in paginatedInquiries" :key="inquiry.id" class="inquiry-item">
         <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
-          <span class="inquiry-status" :class="inquiry.status">{{ getStatusLabel(inquiry.status) }}</span>
+          <span class="answer-badge" :class="inquiry.status === 'answered' ? 'badge-complete' : 'badge-pending'">
+            <span class="dot"></span>
+            {{ inquiry.status === 'answered' ? '답변완료' : '답변대기' }}
+          </span>
           <h3>{{ inquiry.title }}</h3>
           <span class="inquiry-author">{{ inquiry.writer }}</span>
           <span class="inquiry-date">{{ formatDate(inquiry.createdAt) }}</span>
@@ -135,6 +139,8 @@ export default {
       selectedType: 'general',
       inquiryTypes: [
         { value: 'general', label: '상품 문의' },
+        { value: 'business', label: '제휴 문의' },
+        { value: 'system', label: '시스템 문의' },
         { value: 'product', label: '예약 문의' },
         { value: 'technical', label: '예약 취소 문의' }
       ]
@@ -146,6 +152,7 @@ export default {
       const endIndex = startIndex + this.itemsPerPage;
       return this.filteredInquiries.slice(startIndex, endIndex);
     },
+    
     totalItems() {
       return this.filteredInquiries.length;
     },
@@ -157,6 +164,13 @@ export default {
     this.loadGuestInquiries()
   },
   methods: {
+    loadGuestInquiries() {
+      const key = 'guestInquiries';
+      const local = JSON.parse(localStorage.getItem(key) || '[]');
+      // 기존 임시 데이터와 합치려면 아래처럼 사용
+      this.inquiries = [...local /*, ...기존 임시 데이터*/];
+      this.filterInquiries();
+    },
     async loadGuestInquiries() {
       try {
         // API 호출 로직 (실제 구현 필요)
@@ -236,6 +250,28 @@ export default {
             answer: '앱 다운로드 문제 해결 방법을 안내드립니다.',
             answeredAt: '2024-01-18T10:15:00Z',
             createdAt: '2024-01-11T13:30:00Z'
+          },
+          {
+            id: 7,
+            writer: '이파트너',
+            email: 'partner@example.com',
+            contact: '010-3333-4444',
+            type: 'business',
+            title: '제휴 문의',
+            content: '파트너십 관련 문의드립니다.',
+            status: 'pending',
+            createdAt: '2024-01-10T10:00:00Z'
+          },
+          {
+            id: 8,
+            writer: '홍시스템',
+            email: 'sys@example.com',
+            contact: '010-5555-6666',
+            type: 'system',
+            title: '시스템 오류 문의',
+            content: '로그인이 안됩니다.',
+            status: 'pending',
+            createdAt: '2024-01-09T09:00:00Z'
           }
         ]
         
@@ -284,9 +320,11 @@ export default {
     
     getTypeLabel(type) {
       const types = {
-        general: '일반 문의',
-        product: '상품 문의',
-        technical: '기술 문의'
+        general: '상품 문의',
+        business: '제휴 문의',
+        system: '시스템 문의',
+        product: '예약 문의',
+        technical: '예약 취소 문의'
       }
       return types[type] || type
     },
@@ -365,6 +403,7 @@ export default {
         
         this.filterInquiries()
         this.closeModal()
+        this.$router.push('/admin/guest-inquiries')
       } catch (error) {
         console.error('답변 등록 실패:', error)
         alert('답변 등록에 실패했습니다.')
@@ -436,6 +475,29 @@ export default {
     
     getTypeCount(type) {
       return this.inquiries.filter(inquiry => inquiry.type === type).length
+    },
+    
+    saveToLocalStorage(inquiry) {
+      const key = 'guestInquiries';
+      const prev = JSON.parse(localStorage.getItem(key) || '[]');
+      prev.unshift(inquiry); // 최신순 정렬
+      localStorage.setItem(key, JSON.stringify(prev));
+    },
+    
+    async submitForm() {
+      try {
+        // ... 기존 코드 ...
+        const inquiryData = {
+          ...this.form,
+          content: content,
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        };
+        this.saveToLocalStorage(inquiryData);
+        // ... 기존 코드 ...
+      } catch (error) {
+        // ... 기존 코드 ...
+      }
     }
   }
 }
@@ -559,19 +621,44 @@ export default {
   background-color: #f8f9fa;
 }
 
-.inquiry-status {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  color: white;
+.answer-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-right: 1rem;
+  padding: 0.25rem 0.8rem 0.25rem 0.5rem;
+  border-radius: 16px;
+  background: #f8f9fa;
+  border: 1.5px solid #eee;
+  min-width: 90px;
+  justify-content: left;
 }
 
-.inquiry-status.pending {
-  background-color: #e74c3c;
+.answer-badge .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 7px;
 }
 
-.inquiry-status.answered {
-  background-color: #2ecc71;
+.badge-pending {
+  color: #e74c3c;
+  border-color: #e74c3c;
+}
+
+.badge-pending .dot {
+  background: #e74c3c;
+}
+
+.badge-complete {
+  color: #2ecc71;
+  border-color: #2ecc71;
+}
+
+.badge-complete .dot {
+  background: #2ecc71;
 }
 
 .inquiry-header h3 {

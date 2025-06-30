@@ -56,6 +56,7 @@
               <template v-else-if="isPartner">
                 <li>
                   <router-link class="dropdown-item" to="/partner">파트너페이지</router-link>
+                  <router-link class="dropdown-item" to="/mypage">마이페이지</router-link>
                 </li>
                 <li>
                   <hr class="dropdown-divider"/>
@@ -150,9 +151,14 @@
               <router-link v-if="isAdmin" to="/admin/dashboard" class="btn mobile-btn mobile-btn-page"
                            @click="closeMobileMenu">관리자페이지
               </router-link>
-              <router-link v-else-if="isPartner" to="/partner" class="btn mobile-btn mobile-btn-page"
+              <template v-else-if="isPartner">
+                <router-link to="/partner" class="btn mobile-btn mobile-btn-page"
                            @click="closeMobileMenu">파트너페이지
-              </router-link>
+                </router-link>
+                <router-link to="/mypage" class="btn mobile-btn mobile-btn-page"
+                           @click="closeMobileMenu">마이페이지
+                </router-link>
+              </template>
               <router-link v-else to="/mypage" class="btn mobile-btn mobile-btn-page" @click="closeMobileMenu">마이페이지
               </router-link>
               <a href="#" class="btn mobile-btn mobile-btn-logout" @click.prevent="logout">로그아웃</a>
@@ -600,7 +606,7 @@ const menuItems = ref([
     children: [
       {label: '공지사항', link: '/notice'},
       {label: '자주묻는질문', link: '/faq'},
-      {label: '1:1 문의', link: '/inquiry'},
+      {label: '관리자 1:1 문의', link: '/inquiry'},
       {label: '파트너 신청', link: '/partner/apply'}
     ]
   }

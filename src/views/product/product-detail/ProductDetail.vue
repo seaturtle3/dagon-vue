@@ -147,7 +147,7 @@ const setTab = (tab) => {
         <div v-if="activeTab === 'reservation'" class="reservation-content">
           <div class="content-section">
             <h3 class="section-title">예약 캘린더</h3>
-            <ReservationCalendar  :product-id="prodId" :option-id="selectedOptionId" />
+            <ReservationCalendar  :product="product" :option-id="selectedOptionId" />
           </div>
         </div>
       </div>

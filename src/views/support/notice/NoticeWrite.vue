@@ -37,9 +37,9 @@ async function submit() {
     }
 
     if (isEdit) {
-      await api.post(`/admin/notices/${noticeId}`, form, config)
+      await api.post(`/api/admin/notices/${noticeId}`, form, config)
     } else {
-      await api.post('/admin/notices', form, config)
+      await api.post('/api/admin/notices', form, config)
     }
 
     router.push('/notice')
@@ -52,7 +52,7 @@ async function submit() {
 onMounted(async () => {
   if (isEdit) {
     try {
-      const res = await api.get(`/notices/${noticeId}`)
+      const res = await api.get(`/api/notices/${noticeId}`)
       Object.assign(form, res.data) // title, content, isTop 모두 채움
     } catch (err) {
       console.error('공지사항 조회 실패:', err)
@@ -66,24 +66,26 @@ function goBack() {
 </script>
 
 <template>
-  <BoardWriteForm @submit="submit" @cancel="goBack">
-    <template #fields>
-      <div class="form-group mb-3">
-        <label>제목</label>
-        <input v-model="form.title" class="form-control" required />
-      </div>
+  <div class="center">
+    <BoardWriteForm @submit="submit" @cancel="goBack">
+      <template #fields>
+        <div class="form-group mb-3">
+          <label>제목</label>
+          <input v-model="form.title" class="form-control" required />
+        </div>
 
-      <div class="form-group mb-3">
-        <label>내용</label>
-        <RichTextEditor v-model="form.content" />
-      </div>
+        <div class="form-group mb-3">
+          <label>내용</label>
+          <RichTextEditor v-model="form.content" />
+        </div>
 
-      <div class="form-check mb-3">
-        <input type="checkbox" class="form-check-input" id="isTop" v-model="form.isTop" />
-        <label for="isTop" class="form-check-label">상단 고정</label>
-      </div>
-    </template>
-  </BoardWriteForm>
+        <div class="form-check mb-3">
+          <input type="checkbox" class="form-check-input" id="isTop" v-model="form.isTop" />
+          <label for="isTop" class="form-check-label">상단 고정</label>
+        </div>
+      </template>
+    </BoardWriteForm>
+  </div>
 </template>
 
 <style scoped>
