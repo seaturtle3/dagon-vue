@@ -12,7 +12,8 @@ onMounted(() => {
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
-      isAdmin.value = payload.role === 'ADMIN'
+      const adminRoles = ['ADMIN', 'SUPER_ADMIN']
+      isAdmin.value = adminRoles.includes(payload.role)
     } catch (e) {
       isAdmin.value = false
     }
@@ -41,5 +42,6 @@ const handleBack = () => router.back()
 <style scoped>
 .detail-action button {
   min-width: 80px;
+ text-align: center;
 }
 </style>

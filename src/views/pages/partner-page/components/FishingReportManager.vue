@@ -24,7 +24,7 @@
       </div>
       <div v-for="report in filteredReports" :key="report.frId" class="report-card" @click="goToPublicDetail(report.frId)">
         <div class="report-image">
-          <img :src="getThumbnailUrl(report.thumbnailUrl)" :alt="report.title" @error="handleImageError">
+          <img :src="getReportThumbnail(report)" :alt="report.title" @error="handleImageError">
           <span class="date-badge">
             {{ formatDate(report.fishingAt) }}
           </span>
@@ -49,6 +49,7 @@
 
 <script>
 import { partnerService } from '@/api/partner';
+import { BASE_URL } from '@/constants/baseUrl.js';
 
 export default {
   name: 'FishingReportManager',
@@ -83,8 +84,44 @@ export default {
   },
   methods: {
     getThumbnailUrl(filename) {
+      // filename이 null이거나 빈 문자열인 경우 처리
+      if (!filename) {
+        return '/images/default-product.jpg';
+      }
+      
+      // partnerService.getThumbnailUrl 사용
       const url = partnerService.getThumbnailUrl(filename);
       return url;
+    },
+    getReportThumbnail(report) {
+      // 1. thumbnailUrl이 있으면 절대경로/상대경로 모두 처리
+      if (report.thumbnailUrl) {
+        if (report.thumbnailUrl.startsWith('http')) {
+          return report.thumbnailUrl;
+        }
+        return `${BASE_URL}${report.thumbnailUrl}`;
+      }
+
+      // 2. images 배열의 첫 번째 이미지 사용
+      if (report.images && report.images.length > 0) {
+        const firstImage = report.images[0];
+        if (firstImage.imageData) {
+          return `data:image/jpeg;base64,${firstImage.imageData}`;
+        } else if (firstImage.imageUrl) {
+          if (firstImage.imageUrl.startsWith('http')) {
+            return firstImage.imageUrl;
+          }
+          return `${BASE_URL}${firstImage.imageUrl}`;
+        }
+      }
+
+      // 3. imageFileName이 있으면 사용
+      if (report.imageFileName) {
+        return this.getThumbnailUrl(report.imageFileName);
+      }
+
+      // 4. 기본 이미지 반환
+      return '/images/default-product.jpg';
     },
     handleImageError(event) {
       event.target.src = '/images/default-product.jpg';

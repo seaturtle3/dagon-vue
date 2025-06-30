@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { useProductFormStore } from '@/store/product/all-products/useProductFormStore'
 
 const productFormStore = useProductFormStore()
-import { createProduct, updateProduct } from "@/api/product.js";
 import {BASE_URL} from "@/constants/baseUrl.js";
 
 const router = useRouter()
@@ -20,23 +19,39 @@ const props = defineProps({
   mainTypes: Array,
   subTypes: Array,
   editMode: Boolean,
-  prodId: [String, Number]
+  // prodId: [String, Number]
 })
 
-const localForm = reactive({ ...props.form })
-
-const islocalFormValid = computed(() => {
-  return (
-      localForm.prodName &&
-      localForm.prodRegion &&
-      localForm.mainType &&
-      localForm.subType &&
-      localForm.maxPerson &&
-      localForm.weight &&
-      localForm.prodAddress &&
-    files.value.length > 0
-  )
+onMounted(() => {
+  console.log('✅ editMode:', props.editMode)
+  console.log('✅ form.prodId:', props.form?.prodId)
 })
+
+const localForm = reactive({
+  prodName: '',
+  prodRegion: '',
+  mainType: '',
+  subType: '',
+  maxPerson: 0,
+  minPerson: 0,
+  weight: 0,
+  prodAddress: '',
+  prodDescription: '',
+  prodNotice: '',
+  prodEvent: '',
+  prodImageNames: [],
+})
+
+// props.form이 바뀔 때마다 localForm에 반영 (초기 진입 포함)
+watch(
+    () => props.form,
+    (newForm) => {
+      if (props.editMode && newForm) {
+        Object.assign(localForm, newForm);
+      }
+    },
+    { immediate: true }
+)
 
 // 기존 이미지 미리보기용 배열
 const existingImages = ref([])
@@ -57,11 +72,26 @@ watch(
     { immediate: true }
 )
 
+const islocalFormValid = computed(() => {
+  const hasImages = files.value.length > 0 || existingImages.value.length > 0;
+  return (
+      localForm.prodName &&
+      localForm.prodRegion &&
+      localForm.mainType &&
+      localForm.subType &&
+      localForm.maxPerson &&
+      localForm.weight &&
+      localForm.prodAddress &&
+      hasImages
+  )
+})
+
+
 const allPreviews = computed(() => [...existingImages.value, ...imagePreviews.value])
 
 function onFileChange(event) {
   const uploadedFiles = Array.from(event.target.files)
-  
+
   uploadedFiles.forEach(file => {
     if (file && file.type.startsWith('image/')) {
       // 파일 크기 체크 (5MB 제한)
@@ -69,7 +99,7 @@ function onFileChange(event) {
         alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
         return
       }
-      
+
       // 이미지 미리보기 생성
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -81,7 +111,7 @@ function onFileChange(event) {
         })
       }
       reader.readAsDataURL(file)
-      
+
       files.value.push(file)
     }
   })
@@ -90,10 +120,14 @@ function onFileChange(event) {
 // 기존 이미지 삭제
 const deletedImageNames = ref([])
 
-function removeExistingImage(index) {
-  const removed = localForm.prodImageNames.splice(index, 1)[0]
-  if (removed) {
-    deletedImageNames.value.push(removed)
+function removeExistingImage(imageId) {
+  const index = existingImages.value.findIndex(img => img.id === imageId);
+  if (index > -1) {
+    const removed = localForm.prodImageNames.splice(index, 1)[0];
+    if (removed) {
+      deletedImageNames.value.push(removed);
+      existingImages.value.splice(index, 1); // UI에서도 제거
+    }
   }
 }
 
@@ -116,8 +150,8 @@ async function submit() {
     alert("필수 항목을 모두 입력해주세요.")
     return
   }
+  console.log("📝 삭제된 이미지 목록:", deletedImageNames.value);
 
-  // dtoToSend 객체 생성 (ReportFormView.vue 방식 참고)
   const dtoToSend = {
     prodName: localForm.prodName,
     prodRegion: localForm.prodRegion,
@@ -129,18 +163,34 @@ async function submit() {
     prodAddress: localForm.prodAddress,
     prodDescription: localForm.prodDescription,
     prodNotice: localForm.prodNotice,
-    prodEvent: localForm.prodEvent
+    prodEvent: localForm.prodEvent,
+    deletedImageNames: [...deletedImageNames.value]
   }
 
-  try {
-    if (props.editMode && props.prodId) {
-      await productFormStore.updateProductAction(props.prodId, dtoToSend, files.value, router)
-      router.push('/partner/products')
+  const formData = new FormData();
+  formData.append(
+      'product',
+      new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' })
+  );
+  files.value.forEach(file => {
+    formData.append('thumbnailFiles', file)
+  });
 
+  console.log('📦 deletedImageNames:', deletedImageNames.value) // Proxy
+  console.log('✅ 풀린 배열:', [...deletedImageNames.value])     // 일반 Array
+
+  try {
+    if (props.editMode && props.form?.prodId) {
+      await productFormStore.updateProductAction(
+          props.form.prodId,
+          dtoToSend,
+          files.value,
+          router
+      )
     } else {
       await productFormStore.createProductAction(dtoToSend, files.value, router)
-      router.push('/partner/products')
     }
+    await router.push('/partner/products')
   } catch (err) {
     console.error('제품정보 등록/수정 실패:', err)
     if (err.response?.data?.message) {
@@ -237,10 +287,10 @@ const filteredSubTypes = computed(() => {
               <p class="upload-hint required-text">* 필수 항목입니다</p>
             </div>
 
-            <input 
-              type="file" 
-              accept="image/*" 
-              @change="onFileChange" 
+            <input
+              type="file"
+              accept="image/*"
+              @change="onFileChange"
               class="file-input"
               id="imageUpload"
               multiple
@@ -264,10 +314,10 @@ const filteredSubTypes = computed(() => {
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label required">배 이름</label>
-              <input 
+              <input
                 v-model="localForm.prodName"
-                type="text" 
-                class="form-input" 
+                type="text"
+                class="form-input"
                 placeholder="배 이름을 입력하세요"
                 required
               />
@@ -302,10 +352,10 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label required">최대 인원</label>
-              <input 
+              <input
                 v-model.number="localForm.maxPerson"
-                type="number" 
-                class="form-input" 
+                type="number"
+                class="form-input"
                 placeholder="최대 수용 인원"
                 required
               />
@@ -313,10 +363,10 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label">최소 인원</label>
-              <input 
+              <input
                 v-model.number="localForm.minPerson"
-                type="number" 
-                class="form-input" 
+                type="number"
+                class="form-input"
                 placeholder="최소 필요 인원 (선택사항)"
               />
             </div>
@@ -336,10 +386,10 @@ const filteredSubTypes = computed(() => {
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label required">선박 무게</label>
-            <input 
+            <input
               v-model.number="localForm.weight"
-              step="0.01" 
-              type="number" 
+              step="0.01"
+              type="number"
               class="form-input"
               placeholder="선박 무게 (t)"
               required
@@ -348,9 +398,9 @@ const filteredSubTypes = computed(() => {
 
           <div class="form-group">
             <label class="form-label required">선박 주소</label>
-            <input 
+            <input
               v-model="localForm.prodAddress"
-              type="text" 
+              type="text"
               class="form-input"
               placeholder="선박이 위치한 주소"
               required
@@ -360,7 +410,7 @@ const filteredSubTypes = computed(() => {
 
         <div class="form-group full-width">
           <label class="form-label">상세 설명</label>
-          <textarea 
+          <textarea
             v-model="localForm.prodDescription"
             class="form-textarea"
             placeholder="선박에 대한 상세한 설명을 입력하세요"

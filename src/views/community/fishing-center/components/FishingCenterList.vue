@@ -53,6 +53,9 @@ const goToPage = (page) => {
   }
 }
 
+
+console.log("pagedList---<>", pagedList.value)
+
 // 상세 페이지로 이동 함수
 const goToDetail = (item) => {
   if (item._type === 'report') {
@@ -75,12 +78,11 @@ const goToDetail = (item) => {
       >
         <!-- 썸네일 -->
         <div class="thumbnail-wrapper">
-          <img
-              v-if="item.thumbnailUrl"
-              class="thumbnail"
-              :src="`${IMAGE_BASE_URL}/${item._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${item.thumbnailUrl}`"
-              alt="썸네일"
-          />
+          <template v-if="item.images && item.images.length > 0">
+            <div v-for="(img, idx) in item.images" :key="idx" class="image-thumb">
+              <img :src="`data:image/png;base64,${img.imageData}`" :alt="`이미지 ${idx + 1}`" />
+            </div>
+          </template>
           <div
               class="badge"
               :class="item._type === 'report' ? 'badge-report' : 'badge-diary'"
@@ -134,20 +136,15 @@ const goToDetail = (item) => {
 }
 
 .thumbnail-wrapper {
-  position: relative;
-  width: 100%;
-  height: 60%;
-  overflow: hidden; /* 이게 있어야 뱃지가 박스 밖으로 안 튀어나감 */
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  display: flex;
+  gap: 8px;
 }
 
-.thumbnail {
-  width: 100%;
-  height: 100%;
+.image-thumb img {
+  width: 80px;
+  height: 80px;
   object-fit: cover;
-  object-position: center;
-  display: block;
+  border-radius: 8px;
 }
 
 .badge {

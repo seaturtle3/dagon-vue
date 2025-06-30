@@ -3,14 +3,14 @@
     <div class="header">
       <h1>이벤트 관리</h1>
       <button @click="openCreateModal" class="create-btn">
-        <i class="fas fa-plus"></i> 새 이벤트 작성
+        <font-awesome-icon icon="fa-solid fa-plus" /> 새 이벤트 작성
       </button>
     </div>
     <!-- 검색/필터 -->
     <div class="search-section">
       <div class="search-box">
         <input v-model="searchParams.keyword" placeholder="제목으로 검색" @keyup.enter="loadEvents" />
-        <button @click="loadEvents" class="search-btn"><i class="fas fa-search"></i></button>
+        <button @click="loadEvents" class="search-btn"><font-awesome-icon icon="fa-solid fa-magnifying-glass" /></button>
       </div>
       <div class="filter-box">
         <select v-model="searchParams.status" @change="loadEvents">
@@ -32,11 +32,11 @@
         <div class="col-actions">관리</div>
       </div>
       <div v-if="loading" class="loading">
-        <i class="fas fa-spinner fa-spin"></i>
+        <font-awesome-icon icon="fa-solid fa-spinner" spin />
         <p>이벤트를 불러오는 중...</p>
       </div>
       <div v-else-if="events.length === 0" class="empty-state">
-        <i class="fas fa-calendar-alt"></i>
+        <font-awesome-icon icon="fa-solid fa-calendar-days" />
         <p>등록된 이벤트가 없습니다.</p>
       </div>
       <div v-else class="table-body">
@@ -52,12 +52,12 @@
           </div>
           <div class="col-top"></div>
           <div class="col-actions">
-            <button @click="openEditModal(event)" class="action-btn edit" title="수정"><i class="fas fa-edit"></i></button>
+            <button @click="openEditModal(event)" class="action-btn edit" title="수정"><font-awesome-icon icon="fa-solid fa-pen-to-square" /></button>
             <button @click="toggleTop(event)" class="action-btn" :class="event.isTop ? 'top-active' : 'top'" :title="event.isTop ? '고정해제' : '고정'">
-              <i class="fas fa-star"></i>
+              <font-awesome-icon icon="fa-solid fa-star" />
             </button>
             <button @click="deleteEventHandler(event.eventId)" class="action-btn delete" title="삭제">
-              <i class="fas fa-trash"></i>
+              <font-awesome-icon icon="fa-solid fa-trash" />
             </button>
           </div>
         </div>
@@ -66,11 +66,11 @@
     <!-- 페이징 -->
     <div class="pagination">
       <button :disabled="searchParams.page === 0" @click="changePage(searchParams.page - 1)" class="page-btn">
-        <i class="fas fa-chevron-left"></i> 이전
+        <font-awesome-icon icon="fa-solid fa-chevron-left" /> 이전
       </button>
       <span class="page-info">{{ searchParams.page + 1 }} / {{ totalPages }}</span>
       <button :disabled="searchParams.page >= totalPages - 1" @click="changePage(searchParams.page + 1)" class="page-btn">
-        다음 <i class="fas fa-chevron-right"></i>
+        다음 <font-awesome-icon icon="fa-solid fa-chevron-right" />
       </button>
     </div>
     <!-- 등록/수정/상세 모달 -->
@@ -80,7 +80,7 @@
           <h2>
             {{ modalMode === 'create' ? '이벤트 작성' : modalMode === 'edit' ? '이벤트 수정' : '이벤트 상세' }}
           </h2>
-          <button @click="closeModal" class="close-btn"><i class="fas fa-xmark"></i></button>
+          <button @click="closeModal" class="close-btn"><font-awesome-icon icon="fa-solid fa-xmark" /></button>
         </div>
         <form v-if="modalMode !== 'detail'" @submit.prevent="submitEvent" class="modal-form">
           <div class="form-group">

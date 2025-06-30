@@ -26,7 +26,7 @@ export const updateProduct = (prodId, product, files) => {
         url: `/api/product/update/${prodId}`,
         dto: product,
         files: files,
-        dtoKey: 'dto', // 서버에서 기대하는 키
+        dtoKey: 'product', // 서버에서 기대하는 키
         fileKey: 'images' // 여러 파일 지원
     });
 }; 
