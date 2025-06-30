@@ -85,8 +85,9 @@ export const useProductFormStore = defineStore('productForm', {
         // 상품 수정 액션
         async updateProductAction(prodId, dtoToSend, files) {
             try {
+                console.log('🟡 dtoToSend:', dtoToSend);
                 const res = await updateProduct(prodId, dtoToSend, files)
-                alert('수정 성공')
+                alert('수정 성공 했습니다.')
                 this.resetForm()
                 return prodId // prodId 반환
             } catch (err) {

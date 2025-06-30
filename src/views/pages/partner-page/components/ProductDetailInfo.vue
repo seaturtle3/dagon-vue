@@ -6,7 +6,7 @@ import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { useRouter } from 'vue-router'
 
-import ProductEditButton from "@/views/product/product-detail/components/ProductEditButton.vue";
+import ProductEditButton from "@/views/pages/partner-page/components/ProductEditButton.vue";
 
 import 'swiper/css';
 import 'swiper/css/navigation';

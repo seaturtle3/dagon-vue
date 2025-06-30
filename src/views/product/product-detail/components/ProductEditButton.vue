@@ -15,10 +15,7 @@ const router = useRouter();
 function editProduct() {
   const store = useProductFormStore();
   store.setForm(props.product); // props에서 직접 꺼내 쓰기
-  router.push({
-    name: 'ProductEdit',
-    params: { id: props.product.prodId } // ← 여기에 ID 포함
-  });
+  router.push(`/partner/products/edit/${props.product.prodId}`);
 }
 
 console.log("넘기는 product 확인:", props.product);

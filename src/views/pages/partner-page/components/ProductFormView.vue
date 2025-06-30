@@ -1,14 +1,20 @@
 <script setup>
 import {reactive, watch, toRefs, onMounted, ref, computed} from 'vue'
 import {createProduct} from "@/api/product.js";
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useProductFormStore } from '@/store/product/all-products/useProductFormStore'
+import { useProductEnumStore } from '@/store/product/all-products/useProductEnumStore'
+import { BASE_URL } from '@/constants/baseUrl.js';
 
 const productFormStore = useProductFormStore()
+const enumStore = useProductEnumStore()
+const route = useRoute()
 
 const router = useRouter()
 const files = ref([])  // 여러 파일 업로드 지원
 const imagePreviews = ref([]) // 여러 이미지 미리보기
+const existingImages = ref([])
+const deletedImageNames = ref([])
 
 const props = defineProps({
   form: Object,
@@ -93,6 +99,39 @@ function removeAllImages() {
   imagePreviews.value = []
 }
 
+// 수정 모드 진입 시 기존 이미지 세팅
+onMounted(() => {
+  if (props.editMode) {
+    if (props.form?.prodImageDataList && props.form.prodImageDataList.length > 0) {
+      existingImages.value = props.form.prodImageDataList.map((img, idx) => ({
+        id: 'existing-' + idx,
+        url: img.startsWith('data:image') ? img : `data:image/jpeg;base64,${img}`,
+        name: props.form?.prodImageNames?.[idx] || `image_data_${idx}`,
+        isExisting: true
+      }))
+    } else if (props.form?.prodImageNames) {
+      existingImages.value = props.form.prodImageNames.map((img, idx) => ({
+        id: 'existing-' + idx,
+        url: BASE_URL + img,
+        name: img,
+        isExisting: true
+      }))
+    }
+  }
+})
+
+// 기존 이미지 삭제
+function removeExistingImage(imageId) {
+  const idx = existingImages.value.findIndex(img => img.id === imageId)
+  if (idx > -1) {
+    deletedImageNames.value.push(existingImages.value[idx].name)
+    existingImages.value.splice(idx, 1)
+  }
+}
+
+// allPreviews: 기존+새 이미지 합친 배열
+const allPreviews = computed(() => [...existingImages.value, ...imagePreviews.value])
+
 async function submit() {
   if (!isFormValid.value) {
     alert('필수 항목을 모두 입력해주세요. (배 이름, 지역, 유형, 상세장소, 최대인원, 선박무게, 선박주소, 대표이미지)')
@@ -111,7 +150,8 @@ async function submit() {
     prodAddress: localForm.prodAddress,
     prodDescription: localForm.prodDescription,
     prodNotice: localForm.prodNotice,
-    prodEvent: localForm.prodEvent
+    prodEvent: localForm.prodEvent,
+    deletedImageNames: [...deletedImageNames.value]
   }
 
   try {
@@ -138,6 +178,13 @@ const filteredSubTypes = computed(() => {
   return (props.subTypes || []).filter(sub => sub.mainType === localForm.mainType)
 })
 
+onMounted(async () => {
+  await enumStore.loadEnums()
+  // 필요하다면 productFormStore에서 해당 id로 데이터 fetch
+})
+
+const prodId = route.params.id
+const editMode = !!prodId
 </script>
 
 <template>
@@ -155,21 +202,20 @@ const filteredSubTypes = computed(() => {
         <div class="image-upload-section">
           <div class="upload-container">
             <!-- 이미지 갤러리 -->
-            <div v-if="imagePreviews.length > 0" class="image-gallery">
+            <div v-if="allPreviews.length > 0" class="image-gallery">
               <div class="gallery-header">
                 <h4 class="gallery-title">
                   <i class="fas fa-images"></i>
-                  업로드된 이미지 ({{ imagePreviews.length }}장)
+                  업로드된 이미지 ({{ allPreviews.length }}장)
                 </h4>
                 <button type="button" @click="removeAllImages" class="clear-all-btn">
                   <i class="fas fa-trash"></i>
                   모두 삭제
                 </button>
               </div>
-              
               <div class="gallery-grid">
                 <div 
-                  v-for="(image, index) in imagePreviews" 
+                  v-for="(image, index) in allPreviews" 
                   :key="image.id"
                   class="gallery-item"
                   :class="{ 'main-image': index === 0 }"
@@ -178,6 +224,16 @@ const filteredSubTypes = computed(() => {
                   <div class="image-overlay">
                     <div class="image-actions">
                       <button 
+                        v-if="image.isExisting"
+                        type="button" 
+                        @click="removeExistingImage(image.id)" 
+                        class="remove-btn"
+                        :title="'기존 이미지 삭제'"
+                      >
+                        <i class="fas fa-times"></i>
+                      </button>
+                      <button 
+                        v-else
                         type="button" 
                         @click="removeImage(image.id)" 
                         class="remove-btn"
@@ -193,7 +249,7 @@ const filteredSubTypes = computed(() => {
                   </div>
                   <div class="image-info">
                     <span class="image-name">{{ image.name }}</span>
-                    <span class="image-size">{{ (image.file.size / 1024 / 1024).toFixed(1) }}MB</span>
+                    <span v-if="!image.isExisting" class="image-size">{{ (image.file.size / 1024 / 1024).toFixed(1) }}MB</span>
                   </div>
                 </div>
               </div>
