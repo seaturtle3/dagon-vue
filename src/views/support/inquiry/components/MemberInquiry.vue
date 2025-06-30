@@ -199,29 +199,11 @@ const submitForm = async () => {
   try {
     // 실제 API 호출
     await inquiryApi.createInquiry(inquiryData);
-    alert('문의가 정상 등록되었습니다.');
-    
-    // Inquiries.vue로 데이터 전달을 위해 store에 저장
-    store.addNewInquiry({
-      id: Date.now(), // 임시 ID 생성
-      title: inquiryData.title,
-      content: inquiryData.content,
-      status: '대기중',
-      createdAt: inquiryData.createdAt,
-      userName: inquiryData.userName,
-      author: inquiryData.userName,
-      inquiryType: inquiryData.inquiryType,
-      answerContent: null,
-      answeredAt: null
-    });
     
     resetForm();
     
-    // 관리자 문의 페이지로 이동 (해당 문의 유형 탭 선택)
-    router.push({
-      path: '/admin/inquiries',
-      query: { type: inquiryData.inquiryType }
-    });
+    // 성공 모달 표시
+    openModal(inquiryData);
   } catch (error) {
     console.error('문의 저장 실패:', error);
     alert('저장에 실패했습니다.');

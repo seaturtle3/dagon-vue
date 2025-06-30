@@ -1,6 +1,3 @@
-
-
-
 <template>
   <div class="inquiry-list">
     <h1 class="page-title">문의 목록</h1>
@@ -112,14 +109,16 @@ export default {
   },
   computed: {
     filteredInquiries() {
-      return this.inquiries.filter(inquiry => {
-        const matchesSearch = inquiry.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                            inquiry.content.toLowerCase().includes(this.searchQuery.toLowerCase());
-        const matchesStatus = this.statusFilter === 'all' || 
-                            (this.statusFilter === 'completed' && inquiry.answerContent) ||
-                            (this.statusFilter === 'pending' && !inquiry.answerContent);
-        return matchesSearch && matchesStatus;
-      });
+      return this.inquiries
+        .filter(inquiry => {
+          const matchesSearch = inquiry.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                                inquiry.content.toLowerCase().includes(this.searchQuery.toLowerCase());
+          const matchesStatus = this.statusFilter === 'all' || 
+                                (this.statusFilter === 'completed' && inquiry.answerContent) ||
+                                (this.statusFilter === 'pending' && !inquiry.answerContent);
+          return matchesSearch && matchesStatus;
+        })
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
   },
   methods: {

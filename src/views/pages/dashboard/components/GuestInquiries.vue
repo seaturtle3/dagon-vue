@@ -1,5 +1,5 @@
 <template>
-  <div class="inquiries">
+  <div class="GuestInquiries">
     <h2>비회원 1:1 문의</h2>
 
     <div class="search-bar">
@@ -37,7 +37,10 @@
     <div class="inquiries-list">
       <div v-for="inquiry in paginatedInquiries" :key="inquiry.id" class="inquiry-item">
         <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
-          <span class="inquiry-status" :class="inquiry.status">{{ getStatusLabel(inquiry.status) }}</span>
+          <span class="answer-badge" :class="inquiry.status === 'answered' ? 'badge-complete' : 'badge-pending'">
+            <span class="dot"></span>
+            {{ inquiry.status === 'answered' ? '답변완료' : '답변대기' }}
+          </span>
           <h3>{{ inquiry.title }}</h3>
           <span class="inquiry-author">{{ inquiry.writer }}</span>
           <span class="inquiry-date">{{ formatDate(inquiry.createdAt) }}</span>
@@ -618,19 +621,44 @@ export default {
   background-color: #f8f9fa;
 }
 
-.inquiry-status {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  color: white;
+.answer-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-right: 1rem;
+  padding: 0.25rem 0.8rem 0.25rem 0.5rem;
+  border-radius: 16px;
+  background: #f8f9fa;
+  border: 1.5px solid #eee;
+  min-width: 90px;
+  justify-content: left;
 }
 
-.inquiry-status.pending {
-  background-color: #e74c3c;
+.answer-badge .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 7px;
 }
 
-.inquiry-status.answered {
-  background-color: #2ecc71;
+.badge-pending {
+  color: #e74c3c;
+  border-color: #e74c3c;
+}
+
+.badge-pending .dot {
+  background: #e74c3c;
+}
+
+.badge-complete {
+  color: #2ecc71;
+  border-color: #2ecc71;
+}
+
+.badge-complete .dot {
+  background: #2ecc71;
 }
 
 .inquiry-header h3 {
