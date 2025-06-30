@@ -11,7 +11,10 @@ const enumStore = useProductEnumStore()
 
 onMounted(async () => {
   await enumStore.loadEnums()
-  formStore.resetForm() // ← 이거 중요!
+  // 🟢 수정 데이터가 있는 경우 formStore에 세팅
+  if (route?.state?.form) {
+    formStore.setForm(route.state.form)
+  }
 })
 </script>
 
@@ -22,6 +25,7 @@ onMounted(async () => {
         :regions="enumStore.regions"
         :mainTypes="enumStore.mainTypes"
         :subTypes="enumStore.subTypes"
+        :editMode="true"
     />
   </div>
 </template>

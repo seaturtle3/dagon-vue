@@ -213,7 +213,8 @@ export default {
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
-  width: 50%;
+  width: 70%;
+  max-width: 600px;
   margin: 0 auto;
 }
 
@@ -241,7 +242,7 @@ export default {
 }
 
 .view-all-link {
-  color: white;
+  color: #667eea;
   text-decoration: none;
   font-weight: 500;
   display: flex;
@@ -251,7 +252,6 @@ export default {
 }
 
 .view-all-link:hover {
-  color: white;
   opacity: 0.8;
 }
 

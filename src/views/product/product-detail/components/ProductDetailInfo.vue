@@ -275,7 +275,7 @@ console.log('swiperInstance.value.swiper:', swiperInstance.value?.swiper);
         <div class="header-actions">
             <ProductEditButton :product="product" v-if="isOwnProduct" />
 
-          <button @click="deleteProduct" class="btn btn-danger">
+          <button v-if="isOwnProduct" @click="deleteProduct" class="btn btn-danger">
             <i class="fa-solid fa-x"></i>
             삭제
           </button>
