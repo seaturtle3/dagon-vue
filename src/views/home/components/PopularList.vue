@@ -13,7 +13,7 @@ onMounted(() => {
   }
 })
 
-// 인기 조황정보 10개 (필요하다면 정렬 조건 추가)
+// 인기 조황정보 12개 (필요하다면 정렬 조건 추가)
 const topReports = computed(() =>
     store.reports
         .slice(0, 12) // 또는 정렬 후 slice

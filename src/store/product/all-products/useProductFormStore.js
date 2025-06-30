@@ -26,13 +26,17 @@ export const useProductFormStore = defineStore('productForm', {
     actions: {
         async submitForm() {
             try {
-                const formData = new FormData()
+                const pureDeletedNames = [...deletedImageNames];
 
-                // 👇 JSON payload를 Blob으로 감싸기 (백엔드에서 @RequestPart("product")로 받기 위함)
+                const dtoToSend = {
+                    ...localForm,
+                    deleteImageNames: pureDeletedNames,
+                };
+                const formData = new FormData()
                 formData.append(
                     'product',
-                    new Blob([JSON.stringify(this.form)], { type: 'application/json' })
-                )
+                    new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' })
+                );
 
                 // 👇 썸네일 이미지들 추가
                 this.thumbnailFiles.forEach((file) => {
@@ -43,6 +47,20 @@ export const useProductFormStore = defineStore('productForm', {
                 const res = await createProduct(formData)
                 alert('등록 성공: ID ' + res.data)
                 this.resetForm()
+
+                for (const [key, val] of formData.entries()) {
+                    if (val instanceof Blob) {
+                        // Blob이면 내용 읽어오기
+                        val.text().then(text => {
+                            console.log('🟡 key:', key);
+                            console.log('🟢 Blob 내용:', text);
+                        });
+                    } else {
+                        console.log('🔵 key:', key);
+                        console.log('🔴 value:', val);
+                    }
+                }
+
             } catch (err) {
                 console.error('등록 실패', err)
                 alert('등록 실패')

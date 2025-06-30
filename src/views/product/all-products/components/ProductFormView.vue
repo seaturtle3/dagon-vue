@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { useProductFormStore } from '@/store/product/all-products/useProductFormStore'
 
 const productFormStore = useProductFormStore()
-import { createProduct, updateProduct } from "@/api/product.js";
 import {BASE_URL} from "@/constants/baseUrl.js";
 
 const router = useRouter()
@@ -74,6 +73,7 @@ watch(
 )
 
 const islocalFormValid = computed(() => {
+  const hasImages = files.value.length > 0 || existingImages.value.length > 0;
   return (
       localForm.prodName &&
       localForm.prodRegion &&
@@ -82,7 +82,7 @@ const islocalFormValid = computed(() => {
       localForm.maxPerson &&
       localForm.weight &&
       localForm.prodAddress &&
-    files.value.length > 0
+      hasImages
   )
 })
 
@@ -120,10 +120,14 @@ function onFileChange(event) {
 // 기존 이미지 삭제
 const deletedImageNames = ref([])
 
-function removeExistingImage(index) {
-  const removed = localForm.prodImageNames.splice(index, 1)[0]
-  if (removed) {
-    deletedImageNames.value.push(removed)
+function removeExistingImage(imageId) {
+  const index = existingImages.value.findIndex(img => img.id === imageId);
+  if (index > -1) {
+    const removed = localForm.prodImageNames.splice(index, 1)[0];
+    if (removed) {
+      deletedImageNames.value.push(removed);
+      existingImages.value.splice(index, 1); // UI에서도 제거
+    }
   }
 }
 
@@ -146,6 +150,7 @@ async function submit() {
     alert("필수 항목을 모두 입력해주세요.")
     return
   }
+  console.log("📝 삭제된 이미지 목록:", deletedImageNames.value);
 
   const dtoToSend = {
     prodName: localForm.prodName,
@@ -159,8 +164,20 @@ async function submit() {
     prodDescription: localForm.prodDescription,
     prodNotice: localForm.prodNotice,
     prodEvent: localForm.prodEvent,
-    deletedImageNames: deletedImageNames.value // 서버에 삭제할 이미지 이름 전달
+    deletedImageNames: [...deletedImageNames.value]
   }
+
+  const formData = new FormData();
+  formData.append(
+      'product',
+      new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' })
+  );
+  files.value.forEach(file => {
+    formData.append('thumbnailFiles', file)
+  });
+
+  console.log('📦 deletedImageNames:', deletedImageNames.value) // Proxy
+  console.log('✅ 풀린 배열:', [...deletedImageNames.value])     // 일반 Array
 
   try {
     if (props.editMode && props.form?.prodId) {
