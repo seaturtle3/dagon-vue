@@ -60,7 +60,7 @@ watch(
     () => props.form.prodImageNames,
     (newVal) => {
       if (newVal && newVal.length > 0) {
-        existingImages.value = newVal.map((imgPath, idx) => ({
+        existingImages.value = newVal.slice(0, 1).map((imgPath, idx) => ({
           id: 'existing-' + idx,
           url: BASE_URL + imgPath,
           isExisting: true,
@@ -90,31 +90,31 @@ const islocalFormValid = computed(() => {
 const allPreviews = computed(() => [...existingImages.value, ...imagePreviews.value])
 
 function onFileChange(event) {
-  const uploadedFiles = Array.from(event.target.files)
+  const file = event.target.files[0]  // 한 장만 받음
 
-  uploadedFiles.forEach(file => {
-    if (file && file.type.startsWith('image/')) {
-      // 파일 크기 체크 (5MB 제한)
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
-        return
-      }
-
-      // 이미지 미리보기 생성
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        imagePreviews.value.push({
-          id: Date.now() + Math.random(),
-          url: e.target.result,
-          file: file,
-          name: file.name
-        })
-      }
-      reader.readAsDataURL(file)
-
-      files.value.push(file)
+  if (file && file.type.startsWith('image/')) {
+    if (file.size > 5 * 1024 * 1024) {
+      alert(`${file.name} 파일이 너무 큽니다. 5MB 이하만 가능합니다.`)
+      return
     }
-  })
+
+    // 기존 이미지들 초기화
+    imagePreviews.value = []
+    files.value = []
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      imagePreviews.value.push({
+        id: Date.now() + Math.random(),
+        url: e.target.result,
+        file: file,
+        name: file.name
+      })
+    }
+    reader.readAsDataURL(file)
+
+    files.value.push(file)
+  }
 }
 
 // 기존 이미지 삭제
@@ -292,7 +292,6 @@ const filteredSubTypes = computed(() => {
                 @change="onFileChange"
                 class="file-input"
                 id="imageUpload"
-                multiple
             />
             <label for="imageUpload" class="upload-label">
               <i class="fas fa-plus"></i>
