@@ -46,7 +46,7 @@ function onPageChange(newPage) {
     >
 
       <div class="card-top">
-        {{ product.weight }}t & {{ product.maxPerson }}명
+        {{ product.weight }}t · {{ product.maxPerson }}명
       </div>
 
       <!-- 썸네일 -->
