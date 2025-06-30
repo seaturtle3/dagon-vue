@@ -241,12 +241,15 @@ async function onSubmit() {
       // 수정 모드: 수정 API 호출
       await fishingReportStore.updateFishingReport(props.reportId, dtoToSend, thumbnailFile.value)
       alert('조황정보가 성공적으로 수정되었습니다!')
-      router.push('/fishing-report')
+      router.push(`/fishing-report/${props.reportId}`)
     } else {
       // 등록 모드: 등록 API 호출
       await fishingReportStore.createFishingReport(dtoToSend, thumbnailFile.value)
-      alert('조황정보가 성공적으로 등록되었습니다!')
-      router.push('/fishing-report')
+      // 임시: 최신 조황정보 frId로 이동
+      const listRes = await fishingReportStore.fetchReports({ page: 0, size: 1, sort: 'frId,DESC' })
+      const frId = listRes?.data?.content?.[0]?.frId || null
+      if (frId) router.push(`/fishing-report/${frId}`)
+      else router.push('/fishing-report')
     }
 
   } catch (err) {

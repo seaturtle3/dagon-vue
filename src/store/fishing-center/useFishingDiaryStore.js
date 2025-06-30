@@ -4,12 +4,22 @@ import api from '@/lib/axios.js'
 export const useFishingDiaryStore = defineStore('fishingDiary', {
     state: () => ({
         diaries: [],
+        totalPages: 1,
+        totalElements: 0,
+        page: 0,
+        size: 10,
     }),
     actions: {
-        async fetchDiaries() {
+        async fetchDiaries(page = 0, size = 10) {
             try {
-                const res = await api.get('/api/fishing-diary/get-all')
+                const res = await api.get('/api/fishing-diary/get-all', {
+                  params: { page, size }
+                })
                 this.diaries = res.data.content
+                this.totalPages = res.data.totalPages
+                this.totalElements = res.data.totalElements
+                this.page = page
+                this.size = size
                 console.log('useFishingDiaryStore 조행기 :', this.diaries)
             } catch (err) {
                 console.error('조행기 불러오기 실패', err)

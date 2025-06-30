@@ -1,5 +1,5 @@
-import {defineStore} from 'pinia'
-import {createProduct, updateProduct} from '@/api/product.js'
+import { defineStore } from 'pinia'
+import { createProduct, updateProduct } from '@/api/product.js'
 import api from '@/lib/axios.js'
 
 
@@ -18,8 +18,9 @@ export const useProductFormStore = defineStore('productForm', {
             prodDescription: '',
             prodEvent: '',
             prodNotice: '',
+            prodImageNames: []  // 추가
         },
-        thumbnailFile: null, // ✅ 단일 파일
+        thumbnailFiles: [], // ✅ 이미지 첨부용
         showForm: false
     }),
     actions: {
@@ -34,7 +35,7 @@ export const useProductFormStore = defineStore('productForm', {
                 const formData = new FormData()
                 formData.append(
                     'product',
-                    new Blob([JSON.stringify(dtoToSend)], {type: 'application/json'})
+                    new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' })
                 );
 
                 // 👇 썸네일 이미지들 추가
@@ -65,28 +66,33 @@ export const useProductFormStore = defineStore('productForm', {
                 alert('등록 실패')
             }
         },
-        // 상품 등록 액션
-        async createProductAction(dtoToSend, file, router) {
+        // ProductFormView.vue submit 로직을 store 액션으로 구현
+        async createProductAction(dtoToSend, files) {
             try {
-                await createProduct(dtoToSend, file)
+                const res = await createProduct(dtoToSend, files)
                 alert('등록 성공')
-                if (router) router.push('/products')
                 this.resetForm()
+                // 임시: 상품 전체 리스트를 불러와 가장 최신(prodId가 가장 큰) 상품의 prodId 반환
+                const listRes = await api.get('/api/product/get-all', { params: { page: 0, size: 1, sort: 'prodId,DESC' } })
+                const prodId = listRes.data?.content?.[0]?.prodId || null
+                return { data: { prodId } }
             } catch (err) {
                 console.error('등록 실패', err)
                 alert('등록 실패')
+                throw err
             }
         },
         // 상품 수정 액션
-        async updateProductAction(prodId, dtoToSend, file, router) {
+        async updateProductAction(prodId, dtoToSend, files) {
             try {
-                await updateProduct(prodId, dtoToSend, file)
+                const res = await updateProduct(prodId, dtoToSend, files)
                 alert('수정 성공')
-                if (router) router.push('/products')
                 this.resetForm()
+                return prodId // prodId 반환
             } catch (err) {
                 console.error('수정 실패', err)
                 alert('수정 실패')
+                throw err
             }
         },
         resetForm() {
@@ -103,8 +109,9 @@ export const useProductFormStore = defineStore('productForm', {
                 prodDescription: '',
                 prodEvent: '',
                 prodNotice: '',
+                prodImageNames: [],
             }
-            this.thumbnailFile = null
+            this.thumbnailFiles = []
         },
         toggleForm() {
             this.showForm = !this.showForm
@@ -124,8 +131,9 @@ export const useProductFormStore = defineStore('productForm', {
                 prodDescription: product.prodDescription || '',
                 prodEvent: product.prodEvent || '',
                 prodNotice: product.prodNotice || '',
+                prodImageNames: product.prodImageNames || []  // 추가
             }
-            this.thumbnailFile = null
+            this.thumbnailFiles = [] // 초기화 or 필요한 경우 기존 파일 유지 로직 추가 가능
         }
     }
 })

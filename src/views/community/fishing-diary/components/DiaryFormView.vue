@@ -77,11 +77,20 @@ async function onSubmit() {
     console.log(pair[0], pair[1]);
   }
   try {
-    await fishingDiaryStore.createFishingDiary(submitFormData) 
-    alert('조행기가 성공적으로 등록되었습니다!')
-    router.push('/fishing-diary')
+    if (props.editMode && props.diaryId) {
+      await fishingDiaryStore.updateFishingDiary(props.diaryId, submitFormData)
+      alert('조행기가 성공적으로 수정되었습니다!')
+      router.push(`/fishing-diary/${props.diaryId}`)
+    } else {
+      await fishingDiaryStore.createFishingDiary(submitFormData)
+      // 임시: 최신 조행기 fdId로 이동
+      const listRes = await fishingDiaryStore.fetchDiaries({ page: 0, size: 1, sort: 'fdId,DESC' })
+      const fdId = listRes?.data?.content?.[0]?.fdId || null
+      if (fdId) router.push(`/fishing-diary/${fdId}`)
+      else router.push('/fishing-diary')
+    }
   } catch (err) {
-    error.value = '조행기 등록에 실패했습니다. 다시 시도해주세요.'
+    error.value = '조행기 등록/수정에 실패했습니다. 다시 시도해주세요.'
     console.error(err)
   }
 }

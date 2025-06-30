@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed} from 'vue'
+import {ref, computed, nextTick} from 'vue'
 import {IMAGE_BASE_URL, BASE_URL} from "@/constants/imageBaseUrl.js";
 import {useRouter} from 'vue-router'
 import Pagination from "@/components/common-function/Pagination.vue";
@@ -40,26 +40,54 @@ function onPageChange(newPage) {
   currentPage.value = newPage
 }
 
+// Swiper 인스턴스 관리 (카드별)
+const swiperRefs = ref([])
+function setSwiperRef(swiper, idx) {
+  swiperRefs.value[idx] = swiper
+}
+function handleMouseEnter(idx) {
+  const swiper = swiperRefs.value[idx]
+  if (swiper && swiper.autoplay) {
+    swiper.autoplay.start()
+  }
+}
+function handleMouseLeave(idx) {
+  const swiper = swiperRefs.value[idx]
+  if (swiper && swiper.autoplay) {
+    swiper.autoplay.stop()
+  }
+}
 </script>
 
 <template>
   <div class="product-grid">
     <div
         class="product-card"
-        v-for="product in paginatedProducts"
+        v-for="(product, idx) in paginatedProducts"
         :key="product.prodId"
         @click="openDetail(product)"
         style="cursor: pointer"
     >
       <div class="card-top">
-        {{ product.weight }}t · {{ product.maxPerson }}명
+        <span class="prod-name mb-2 fs-5">{{ product.prodName }}</span>
       </div>
       <!-- 썸네일 -->
-      <div class="thumbnail-wrapper">
+      <div class="thumbnail-wrapper"
+           @mouseenter.stop="handleMouseEnter(idx)"
+           @mouseleave.stop="handleMouseLeave(idx)"
+      >
         <!-- 1. prodImageDataList가 여러 개면 Swiper로 -->
         <template v-if="product.prodImageDataList && product.prodImageDataList.length > 1">
-          <Swiper :modules="[Autoplay]" :slides-per-view="1" :pagination="true" :navigation="true" :autoplay="{ delay: 2500, disableOnInteraction: false }" style="width:100%;height:180px;">
-            <SwiperSlide v-for="(imgData, idx) in product.prodImageDataList" :key="idx">
+          <Swiper
+            :modules="[Autoplay]"
+            :slides-per-view="1"
+            :pagination="true"
+            :navigation="true"
+            :autoplay="{ delay: 300, disableOnInteraction: false }"
+            style="width:100%;height:180px;"
+            @swiper="swiper => setSwiperRef(swiper, idx)"
+          >
+            <SwiperSlide v-for="(imgData, sidx) in product.prodImageDataList" :key="sidx">
               <img
                 :src="imgData.startsWith('data:image') ? imgData : `data:image/jpeg;base64,${imgData}`"
                 class="thumbnail-img"
@@ -70,8 +98,16 @@ function onPageChange(newPage) {
         </template>
         <!-- 2. prodImageNames가 여러 개면 Swiper로 -->
         <template v-else-if="product.prodImageNames && product.prodImageNames.length > 1">
-          <Swiper :modules="[Autoplay]" :slides-per-view="1" :pagination="true" :navigation="true" :autoplay="{ delay: 2500, disableOnInteraction: false }" style="width:100%;height:180px;">
-            <SwiperSlide v-for="img in product.prodImageNames" :key="img">
+          <Swiper
+            :modules="[Autoplay]"
+            :slides-per-view="1"
+            :pagination="true"
+            :navigation="true"
+            :autoplay="{ delay: 300, disableOnInteraction: false }"
+            style="width:100%;height:180px;"
+            @swiper="swiper => setSwiperRef(swiper, idx)"
+          >
+            <SwiperSlide v-for="(img, sidx) in product.prodImageNames" :key="img">
               <img
                 :src="img.startsWith('/') ? img : `${BASE_URL}/uploads/products/${img}`"
                 class="thumbnail-img"
@@ -106,7 +142,7 @@ function onPageChange(newPage) {
       </div>
       <!-- 본문 -->
       <div class="content">
-        <p class="prod-name mb-2 fs-5">{{ product.prodName }}</p>
+        <p class="weight-max">{{ product.weight }}t & {{ product.maxPerson }}명</p>
         <p class="address">위치 : {{ product.prodAddress }}</p>
       </div>
     </div>
@@ -218,5 +254,12 @@ button {
 
 button:hover {
   background: #e6f0ff;
+}
+
+.weight-max {
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 4px;
 }
 </style>
