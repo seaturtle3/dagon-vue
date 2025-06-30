@@ -1,8 +1,14 @@
 <script setup>
-import {ref, computed} from 'vue'
-import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+import {ref, computed, nextTick} from 'vue'
+import {IMAGE_BASE_URL, BASE_URL} from "@/constants/imageBaseUrl.js";
 import { useRouter } from 'vue-router'
 import Pagination from "@/components/common-function/Pagination.vue";
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import { Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/autoplay';
 
 const props = defineProps({
   filteredProducts: {
@@ -33,40 +39,122 @@ function openDetail(product) {
 function onPageChange(newPage) {
   currentPage.value = newPage
 }
+
+// Swiper 인스턴스 관리 (카드별)
+const swiperRefs = ref([])
+
+function setSwiperRef(swiper, idx) {
+  swiperRefs.value[idx] = swiper
+}
+
+function handleMouseEnter(idx) {
+  const swiper = swiperRefs.value[idx]
+  if (swiper && swiper.params && swiper.autoplay) {
+    swiper.params.autoplay.delay = 500
+    swiper.autoplay.start()
+  }
+}
+
+function handleMouseLeave(idx) {
+  const swiper = swiperRefs.value[idx]
+  if (swiper && swiper.autoplay) {
+    swiper.autoplay.stop()
+    // Swiper 내부 상태도 수동으로 조정 (중복 방지)
+    if (swiper.autoplay.running) {
+      swiper.autoplay.running = false
+    }
+  }
+}
 </script>
 
 <template>
   <div class="product-grid">
     <div
         class="product-card"
-        v-for="product in paginatedProducts"
+        v-for="(product, idx) in paginatedProducts"
         :key="product.prodId"
         @click="openDetail(product)"
         style="cursor: pointer"
     >
-
       <div class="card-top">
-        {{ product.weight }}t · {{ product.maxPerson }}명
+        <span class="prod-name mb-2 fs-5">{{ product.prodName }}</span>
       </div>
-
       <!-- 썸네일 -->
-      <div class="thumbnail-wrapper">
-        <img
-            :src="`${IMAGE_BASE_URL}/${product.prodThumbnail}`"
-            alt="thumbnail"
-            class="thumbnail"
-        />
+      <div class="thumbnail-wrapper"
+           @mouseenter.stop="handleMouseEnter(idx)"
+           @mouseleave.stop="handleMouseLeave(idx)"
+      >
+        <!-- 1. prodImageDataList가 여러 개면 Swiper로 -->
+        <template v-if="product.prodImageDataList && product.prodImageDataList.length > 1">
+          <Swiper
+            :modules="[Autoplay]"
+            :slides-per-view="1"
+            :pagination="true"
+            :navigation="true"
+            :autoplay="false"
+            style="width:100%;height:180px;"
+            @swiper="swiper => setSwiperRef(swiper, idx)"
+          >
+            <SwiperSlide v-for="(imgData, sidx) in product.prodImageDataList" :key="sidx">
+              <img
+                :src="imgData.startsWith('data:image') ? imgData : `data:image/jpeg;base64,${imgData}`"
+                class="thumbnail-img"
+                @error="e => { e.target.src = defaultImage }"
+              >
+            </SwiperSlide>
+          </Swiper>
+        </template>
+        <!-- 2. prodImageNames가 여러 개면 Swiper로 -->
+        <template v-else-if="product.prodImageNames && product.prodImageNames.length > 1">
+          <Swiper
+            :modules="[Autoplay]"
+            :slides-per-view="1"
+            :pagination="true"
+            :navigation="true"
+            :autoplay="false"
+            style="width:100%;height:180px;"
+            @swiper="swiper => setSwiperRef(swiper, idx)"
+          >
+            <SwiperSlide v-for="(img, sidx) in product.prodImageNames" :key="img">
+              <img
+                :src="img.startsWith('/') ? img : `${BASE_URL}/uploads/products/${img}`"
+                class="thumbnail-img"
+                @error="e => { e.target.src = defaultImage }"
+              >
+            </SwiperSlide>
+          </Swiper>
+        </template>
+        <!-- 3. prodImageDataList가 1개면 단일 이미지 -->
+        <template v-else-if="product.prodImageDataList && product.prodImageDataList.length === 1">
+          <img
+            :src="product.prodImageDataList[0].startsWith('data:image') ? product.prodImageDataList[0] : `data:image/jpeg;base64,${product.prodImageDataList[0]}`"
+            class="thumbnail-img"
+            @error="e => { e.target.src = defaultImage }"
+          >
+        </template>
+        <!-- 4. prodImageNames가 1개면 단일 이미지 -->
+        <template v-else-if="product.prodImageNames && product.prodImageNames.length === 1">
+          <img
+            :src="product.prodImageNames[0].startsWith('/') ? product.prodImageNames[0] : `${BASE_URL}/uploads/products/${product.prodImageNames[0]}`"
+            class="thumbnail-img"
+            @error="e => { e.target.src = defaultImage }"
+          >
+        </template>
+        <!-- 5. 둘 다 없으면 placeholder -->
+        <template v-else>
+          <div class="image-placeholder">
+            <i class="fas fa-ship"></i>
+            <span>이미지 없음</span>
+          </div>
+        </template>
       </div>
-
       <!-- 본문 -->
       <div class="content">
-        <p class="prod-name mb-2 fs-5">{{ product.prodName }}</p>
+        <p class="weight-max">{{ product.weight }}t & {{ product.maxPerson }}명</p>
         <p class="address">위치 : {{ product.prodAddress }}</p>
       </div>
-
     </div>
   </div>
-
   <!-- 공통 Pagination 컴포넌트 사용 -->
   <Pagination
       :page="currentPage"
@@ -139,7 +227,7 @@ function onPageChange(newPage) {
   position: relative;
 }
 
-.thumbnail {
+.thumbnail-img {
   width: 100%;
   height: 180px;
   object-fit: cover;
@@ -175,5 +263,12 @@ button {
 
 button:hover {
   background: #e6f0ff;
+}
+
+.weight-max {
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 4px;
 }
 </style>
