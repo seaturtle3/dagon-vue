@@ -82,17 +82,29 @@ export const useProductFormStore = defineStore('productForm', {
                 throw err
             }
         },
+
+
+
         // 상품 수정 액션
         async updateProductAction(prodId, dtoToSend, files) {
             try {
-                const res = await updateProduct(prodId, dtoToSend, files)
-                alert('수정 성공')
-                this.resetForm()
-                return prodId // prodId 반환
+                console.log('🟡 dtoToSend:', dtoToSend);
+                console.log('🟡 files:', files);
+
+                const res = await api.multipartPut({
+                    url: `/api/product/update/${prodId}`,
+                    dto: dtoToSend,
+                    files: files,
+                    dtoKey: 'product',
+                    fileKey: 'images'
+                });
+                alert('제품 수정 성공');
+                this.resetForm();
+                return prodId;
             } catch (err) {
-                console.error('수정 실패', err)
-                alert('수정 실패')
-                throw err
+                console.error('제품 수정 실패', err);
+                alert('제품 수정 실패');
+                throw err;
             }
         },
         resetForm() {

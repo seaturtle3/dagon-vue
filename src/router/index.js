@@ -167,7 +167,14 @@ const routes = [
                 component: () => import('@/views/pages/partner-page/components/ReservationDetail.vue')
             },
             {path: 'products', component: () => import('@/views/pages/partner-page/components/ProductList.vue')},
-            {path: 'products/form', component: () => import('@/views/pages/partner-page/ProductForm.vue')},
+            {
+                path: 'products/:prodId',
+                name: 'PartnetProductDetail',
+                component: () => import('@/views/pages/partner-page/components/ProductDetail.vue'),
+            },
+
+            {path: 'products/form', component: () => import('@/views/pages/partner-page/components/ProductForm.vue')},
+            {path: 'products/edit/:id', component: () => import('@/views/pages/partner-page/components/ProductForm.vue')},
             {
                 path: 'market-info',
                 component: () => import('@/views/pages/partner-page/components/FishingReportManager.vue')
