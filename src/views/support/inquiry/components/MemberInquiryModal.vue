@@ -2,26 +2,26 @@
   <div class="modal-overlay">
     <div class="modal-window">
       <div class="modal-header">
-        <h3>문의 내용 확인</h3>
+        <h3>문의 등록 완료</h3>
         <button class="close-button" @click="$emit('close')">×</button>
       </div>
       <div class="modal-body">
-        <p><strong>아이디:</strong> {{ inquiry.userName }}</p>
-        <p><strong>작성자 유형:</strong> {{ inquiry.writerType }}</p>
-        <p><strong>문의 유형:</strong> {{ inquiry.inquiryType }}</p>
-        <p><strong>제목:</strong> {{ inquiry.title }}</p>
-        <p><strong>내용:</strong></p>
-        <div class="content-box">{{ inquiry.content }}</div>
+        <div class="success-message">
+          <p class="success-text">문의가 정상 등록되었습니다.</p>
+        </div>
       </div>
       <div class="modal-footer">
-        <button @click="submit('close')">등록</button>
+        <button class="btn btn-secondary" @click="goToMyInquiries">나의 문의내역</button>
+        <button class="btn btn-primary" @click="goToHome">홈으로</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { inquiryApi } from '@/api/inquiry';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const props = defineProps({
   inquiry: {
@@ -32,42 +32,14 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'reset-form']);
 
-const submit = async () => {
-  try {
-    // 전송할 데이터 준비
-    const inquiryData = {
-      title: props.inquiry.title,
-      content: props.inquiry.content,
-      inquiryType: props.inquiry.inquiryType,
-      writerType: props.inquiry.writerType,
-      writerId: props.inquiry.writerId,
-      status: '대기중'
-    };
+const goToMyInquiries = () => {
+  emit('close');
+  router.push('/mypage/inquiries');
+};
 
-    console.log('전송할 문의 데이터:', inquiryData);
-    
-    await inquiryApi.createInquiry(inquiryData);
-
-    alert('문의가 정상 등록되었습니다.');
-
-    emit('reset-form'); // ✅ 부모에게 입력폼 초기화 요청
-    emit('close');      // ✅ 부모에게 모달 닫기 요청
-
-  } catch (error) {
-    console.error('문의 저장 실패:', error);
-    console.error('에러 응답:', error.response?.data);
-    console.error('에러 상태:', error.response?.status);
-    console.error('에러 헤더:', error.response?.headers);
-    
-    // 사용자에게 더 구체적인 에러 메시지 표시
-    if (error.response?.data?.message) {
-      alert(`저장에 실패했습니다: ${error.response.data.message}`);
-    } else if (error.response?.status === 400) {
-      alert('입력 데이터에 문제가 있습니다. 모든 필수 항목을 확인해주세요.');
-    } else {
-      alert('저장에 실패했습니다.');
-    }
-  }
+const goToHome = () => {
+  emit('close');
+  router.push('/');
 };
 </script>
 
@@ -89,7 +61,7 @@ const submit = async () => {
   background: white;
   padding: 24px;
   border-radius: 8px;
-  width: 500px;
+  width: 400px;
   max-width: 90%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -101,18 +73,26 @@ const submit = async () => {
   margin-bottom: 16px;
 }
 
-.modal-body {
-  font-size: 14px;
+.modal-header h3 {
+  margin: 0;
   color: #333;
+  font-size: 18px;
 }
 
-.content-box {
-  background: #f9f9f9;
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  white-space: pre-wrap;
+.modal-body {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.success-message {
+  padding: 20px 0;
+}
+
+.success-text {
+  font-size: 16px;
+  color: #28a745;
+  font-weight: 600;
+  margin: 0;
 }
 
 .close-button {
@@ -120,19 +100,44 @@ const submit = async () => {
   background: transparent;
   font-size: 20px;
   cursor: pointer;
+  color: #666;
+}
+
+.close-button:hover {
+  color: #333;
 }
 
 .modal-footer {
-  margin-top: 20px;
-  text-align: right;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 
-.modal-footer button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 6px 12px;
+.btn {
+  padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #545b62;
 }
 </style>

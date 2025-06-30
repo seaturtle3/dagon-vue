@@ -119,6 +119,21 @@
       </div>
       <button type="submit" class="submit-btn" :disabled="!isFormValid">문의 등록</button>
     </form>
+    <!-- 문의 등록 성공 모달 -->
+    <div v-if="showSuccessModal" class="modal-overlay">
+      <div class="modal-window">
+        <div class="modal-header">
+          <h3>문의 등록 완료</h3>
+        </div>
+        <div class="modal-body">
+          <p class="success-text">문의가 정상 등록되었습니다.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="goToMyInquiries">나의 문의내역</button>
+          <button class="btn btn-primary" @click="goToHome">홈으로</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -192,6 +207,8 @@ const isFormValid = computed(() => {
     isValidPhone(form.value.phone)
   );
 });
+
+const showSuccessModal = ref(false);
 
 onMounted(() => {
   if (route.query.productName) form.value.productName = route.query.productName;
@@ -267,11 +284,20 @@ async function submitInquiry() {
       phone2.value = '';
       phone3.value = '';
     }
-    
-    router.push('/partner/inquiries');
+    showSuccessModal.value = true;
   } catch (e) {
     alert('문의 등록에 실패했습니다.');
   }
+}
+
+function goToMyInquiries() {
+  showSuccessModal.value = false;
+  router.push('/mypage/inquiries');
+}
+
+function goToHome() {
+  showSuccessModal.value = false;
+  router.push('/');
 }
 </script>
 
@@ -341,5 +367,67 @@ input, textarea, select {
     margin: 20px auto;
     padding: 1.5rem;
   }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-window {
+  background: #fff;
+  border-radius: 10px;
+  padding: 2rem 2.5rem;
+  min-width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  text-align: center;
+}
+.modal-header h3 {
+  margin: 0 0 1rem 0;
+  color: #1976d2;
+  font-size: 1.3rem;
+}
+.success-text {
+  font-size: 1.1rem;
+  color: #28a745;
+  font-weight: 600;
+  margin: 1.5rem 0;
+}
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.btn-primary {
+  background-color: #1976d2;
+  color: #fff;
+}
+.btn-primary:hover {
+  background-color: #1251a3;
+}
+.btn-secondary {
+  background-color: #6c757d;
+  color: #fff;
+}
+.btn-secondary:hover {
+  background-color: #495057;
 }
 </style> 

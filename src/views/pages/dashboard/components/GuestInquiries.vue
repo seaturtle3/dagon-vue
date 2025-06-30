@@ -1,5 +1,5 @@
 <template>
-  <div class="inquiries">
+  <div class="GuestInquiries">
     <h2>비회원 1:1 문의</h2>
 
     <div class="search-bar">
