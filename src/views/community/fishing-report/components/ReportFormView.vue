@@ -287,7 +287,32 @@ watch(productSearch, async (newVal) => {
     productSearchLoading.value = true
     try {
       const res = await getProductsByKeyword(newVal)
-      productOptions.value = res.data.content || []
+      const products = res.data.content || []
+      
+      // 검색어와의 관련성에 따라 정렬
+      productOptions.value = products.sort((a, b) => {
+        const aName = a.prodName.toLowerCase()
+        const bName = b.prodName.toLowerCase()
+        const searchTerm = newVal.toLowerCase()
+        
+        // 정확히 일치하는 것을 우선
+        if (aName === searchTerm && bName !== searchTerm) return -1
+        if (bName === searchTerm && aName !== searchTerm) return 1
+        
+        // 검색어로 시작하는 것을 우선
+        const aStartsWith = aName.startsWith(searchTerm)
+        const bStartsWith = bName.startsWith(searchTerm)
+        if (aStartsWith && !bStartsWith) return -1
+        if (bStartsWith && !aStartsWith) return 1
+        
+        // 검색어가 포함된 위치에 따라 정렬
+        const aIndex = aName.indexOf(searchTerm)
+        const bIndex = bName.indexOf(searchTerm)
+        if (aIndex !== bIndex) return aIndex - bIndex
+        
+        // 알파벳 순으로 정렬
+        return aName.localeCompare(bName)
+      })
     } catch (e) {
       productOptions.value = []
     } finally {

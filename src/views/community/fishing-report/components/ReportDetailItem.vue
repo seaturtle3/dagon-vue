@@ -188,6 +188,20 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
 });
 
+// 날짜 형식 변환 함수
+const formatDate = (dateString) => {
+  if (!dateString) return '날짜 없음';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '날짜 없음';
+  
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  
+  return `${year}. ${month}. ${day}`;
+};
+
 const router = useRouter();
 const fishingReportStore = useFishingReportStore();
 
@@ -300,6 +314,15 @@ function openImageModal(img) {
   showImageModal.value = true;
 }
 
+function openThumbnailModal() {
+  // 썸네일 이미지로 모달 열기
+  if (props.report.images && props.report.images.length > 0) {
+    modalImages.value = [props.report.images[0]];
+    modalImageIndex.value = 0;
+    showImageModal.value = true;
+  }
+}
+
 function closeImageModal() {
   showImageModal.value = false;
   modalImageIndex.value = 0;
@@ -356,82 +379,96 @@ onUnmounted(() => {
         <i class="fas fa-flag"></i> 신고
       </button>
     </div>
-    <div class="meta-row">
-      <span class="meta-item">
-        <i class="fa fa-user"></i> {{ report.user?.uname || '익명' }}
-      </span>
-      <span class="meta-item">
-        <i class="fa fa-calendar"></i> {{ report.fishingAt || '날짜 없음' }}
-      </span>
-      <span class="meta-item">
-        <i class="fa fa-tag"></i>
-        <router-link
-            v-if="report.product && report.product.prodId"
-            :to="`/products/${report.product.prodId}`"
-            class="product-link"
-        >
-          {{ report.product.prodName }}
-        </router-link>
-        <span v-else>없음</span>
-      </span>
+        <div class="info-thumbnail-layout">
+      <div class="info-card">
+        <!-- 상단: 제목과 라인 -->
+        <div class="info-header">
+          <h3 class="info-title">조황 정보</h3>
+          <div class="views-count">
+            <i class="fa fa-eye"></i>
+            <span>{{ report.views || 0 }}</span>
+          </div>
+        </div>
+        
+        <!-- 하단: 썸네일과 정보 -->
+        <div class="content-layout">
+          <!-- 좌측: 썸네일 -->
+          <div class="thumbnail-section">
+            <img
+                class="thumbnail-img"
+                :src="
+                  report.images && report.images.length
+                    ? (
+                        report.images[0].imageData
+                          ? `data:image/jpeg;base64,${report.images[0].imageData}`
+                          : (report.images[0].image_data
+                              ? `data:image/jpeg;base64,${report.images[0].image_data}`
+                              : (report.images[0].imageUrl
+                                  ? report.images[0].imageUrl
+                                  : (report.images[0].image_url
+                                      ? report.images[0].image_url
+                                      : '/images/no-image.png'
+                                    )
+                                  )
+                              )
+                        )
+                      : '/images/no-image.png'
+                "
+                alt="썸네일"
+                @click="openThumbnailModal()"
+                style="cursor: pointer;"
+            />
+          </div>
+
+          <!-- 우측: 관련 정보 -->
+          <div class="info-section">
+            <div class="info-content">
+              <div class="info-item">
+                <div class="ship-name">{{ report.product?.prodName }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fa fa-user"></i>
+                  작성자
+                </div>
+                <div class="info-value">{{ report.user?.uname || '익명' }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fa fa-calendar"></i>
+                  출조 날짜
+                </div>
+                <div class="info-value">{{ report.fishingAt ? formatDate(report.fishingAt) : '날짜 없음' }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fa fa-clock"></i>
+                  등록 날짜
+                </div>
+                <div class="info-value">{{ report.createdAt ? formatDate(report.createdAt) : '날짜 없음' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="thumbnail-section">
-      <img
-          class="thumbnail-img"
-          :src="
-            report.images && report.images.length
-              ? (
-                  report.images[0].imageData
-                    ? `data:image/jpeg;base64,${report.images[0].imageData}`
-                    : (report.images[0].image_data
-                        ? `data:image/jpeg;base64,${report.images[0].image_data}`
-                        : (report.images[0].imageUrl
-                            ? report.images[0].imageUrl
-                            : (report.images[0].image_url
-                                ? report.images[0].image_url
-                                : '/images/no-image.png'
-                              )
-                          )
-                      )
-                )
-              : '/images/no-image.png'
-          "
-          alt="썸네일"
-      />
+    <!-- 관련 상품 예약 버튼 -->
+    <div v-if="report.product && report.product.prodId" class="reservation-section">
+      <router-link
+          :to="`/products/${report.product.prodId}?tab=reservation`"
+          class="reservation-btn"
+      >
+        <i class="fa fa-calendar-check"></i>
+        {{ report.product.prodName }} 예약하기
+      </router-link>
     </div>
 
     <div class="content-section">
       <div class="content-text" v-html="report.content"></div>
     </div>
 
-    <div v-if="report.images && report.images.length" class="report-images">
-      <h5 class="section-label">추가 사진</h5>
-      <div class="image-list">
-        <img
-            v-for="(img, index) in report.images"
-            :key="index"
-            :src="
-              img.imageData
-                ? `data:image/jpeg;base64,${img.imageData}`
-                : (img.image_data
-                    ? `data:image/jpeg;base64,${img.image_data}`
-                    : (img.imageUrl
-                        ? img.imageUrl
-                        : (img.image_url
-                            ? img.image_url
-                            : '/images/no-image.png'
-                          )
-                      )
-                  )
-            "
-            class="extra-image"
-            alt="조황 사진"
-            @click="openImageModal(img)"
-            style="cursor:pointer;"
-        />
-      </div>
-    </div>
+
 
     <div class="comment-box">
       <h5 class="section-label">댓글</h5>
@@ -575,38 +612,128 @@ onUnmounted(() => {
   flex: 1;
   text-align: center;
   margin: 0;
-  color: #1976d2;
+  color: black;
+  font-size: 2.5rem;
 }
-.meta-row {
+.info-thumbnail-layout {
+  margin-bottom: 28px;
+}
+
+.info-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #e3f2fd;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
   display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-bottom: 18px;
-  color: #666;
-  font-size: 1rem;
+  flex-direction: column;
 }
-.meta-item {
+
+.content-layout {
+  display: flex;
+  gap: 50px;
+  align-items: stretch;
+}
+
+.thumbnail-section {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-section {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-header {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e3f2fd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-title {
+  margin: 0;
+  color: black;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.views-count {
   display: flex;
   align-items: center;
   gap: 6px;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.views-count i {
+  color: #1976d2;
+  font-size: 1rem;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  justify-content: center;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 100px;
+  color: #666;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.info-label i {
+  color: #1976d2;
+  width: 16px;
+}
+
+.ship-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  padding: 8px 0;
+  margin-bottom: 8px;
+}
+
+.info-value {
+  color: #333;
+  font-size: 1rem;
+  flex: 1;
 }
 .product-link {
   color: #1976d2;
   text-decoration: underline;
   font-weight: 500;
 }
-.thumbnail-section {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 28px;
-}
 .thumbnail-img {
-  width: 340px;
+  width: 100%;
   height: 220px;
   object-fit: cover;
-  border-radius: 10px;
-  border: 1.5px solid #e0e0e0;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.12);
+  cursor: pointer;
 }
 .content-section {
   margin-bottom: 32px;
@@ -637,21 +764,38 @@ onUnmounted(() => {
   color: #1976d2;
   margin-bottom: 10px;
 }
-.report-images {
-  margin-bottom: 32px;
+
+.reservation-section {
+  margin-bottom: 28px;
 }
-.image-list {
+
+.reservation-btn {
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
 }
-.extra-image {
-  width: 140px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.07);
+
+.reservation-btn:hover {
+  background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.reservation-btn i {
+  font-size: 1.3rem;
 }
 .comment-box {
   background: #f4f7fb;
@@ -699,25 +843,26 @@ onUnmounted(() => {
   .detail-title {
     font-size: 1.3rem;
   }
-  .meta-row {
+  .info-card {
+    padding: 16px;
+  }
+  .content-layout {
     flex-direction: column;
-    gap: 6px;
-    font-size: 0.98rem;
-    align-items: flex-start;
+    gap: 20px;
+  }
+  .thumbnail-section {
+    flex: none;
   }
   .thumbnail-img {
     height: 120px;
   }
+  .reservation-btn {
+    padding: 14px 20px;
+    font-size: 1.1rem;
+  }
   .content-section {
     padding: 12px 4px;
     font-size: 0.98rem;
-  }
-  .image-list {
-    gap: 6px;
-  }
-  .extra-image {
-    width: 80px;
-    height: 60px;
   }
   .comment-box {
     padding: 10px 4px;
