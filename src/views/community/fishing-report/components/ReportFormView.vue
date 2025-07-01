@@ -165,7 +165,7 @@ onMounted(async () => {
           formData.value.thumbnailUrl = report.thumbnailUrl
           formData.value.user = report.user
           formData.value.comments = report.comments
-          formData.value.images = report.images // 또는 report.images를 별도 변수로 사용
+          formData.value.images = report.images // 기존 이미지 정보 저장
 
       console.log('report.images:', report.images)
       // 상품 선택 세팅
@@ -173,9 +173,13 @@ onMounted(async () => {
         selectedProduct.value = report.product
         productSearch.value = report.product.prodName
       }
-      // 썸네일 프리뷰
-      if (report.thumbnailUrl) {
+      // 썸네일 프리뷰 - 기존 이미지가 있으면 표시
+      if (report.images && report.images.length > 0 && report.images[0].imageData) {
+        thumbnailPreviewUrl.value = `data:image/jpeg;base64,${report.images[0].imageData}`
+        console.log('기존 이미지 데이터로 썸네일 프리뷰 설정')
+      } else if (report.thumbnailUrl) {
         thumbnailPreviewUrl.value = report.thumbnailUrl.startsWith('http') ? report.thumbnailUrl : `/api/fishing-report/images/${report.thumbnailUrl}`
+        console.log('기존 thumbnailUrl로 썸네일 프리뷰 설정')
       }
     }
     // DOM 업데이트 후 blur 처리
@@ -220,7 +224,7 @@ async function onSubmit() {
     content: formData.value.content,
     prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
     fishingAt: formData.value.fishingAt,
-    imageFileName: thumbnailFile.value ? thumbnailFile.value.name : null,
+    imageFileName: thumbnailFile.value ? thumbnailFile.value.name : (props.editMode ? formData.value.imageFileName : null),
     product: selectedProduct.value ? {
       prodId: selectedProduct.value.prodId,
       prodName: selectedProduct.value.prodName
@@ -229,15 +233,58 @@ async function onSubmit() {
       ? report.value.user
       : (authStore.user ? { userId: authStore.user.userId } : null),
     comments: [],
-    thumbnailUrl: null
+    thumbnailUrl: props.editMode && !thumbnailFile.value ? formData.value.thumbnailUrl : null,
+    // 수정 모드에서 기존 이미지 정보 유지
+    images: props.editMode && !thumbnailFile.value && formData.value.images ? formData.value.images : null,
+    // 수정 모드에서 기존 이미지 유지 플래그
+    keepExistingImage: props.editMode && !thumbnailFile.value && (formData.value.thumbnailUrl || (formData.value.images && formData.value.images.length > 0)) ? true : false,
+    // 수정 모드에서 기존 이미지 데이터 직접 포함
+    existingImageData: props.editMode && !thumbnailFile.value && formData.value.images && formData.value.images.length > 0 ? formData.value.images[0].imageData : null
   }
+
+  console.log('수정 모드 전송 데이터:', {
+    editMode: props.editMode,
+    hasThumbnailFile: !!thumbnailFile.value,
+    hasExistingImages: !!(formData.value.images && formData.value.images.length > 0),
+    dtoToSend: dtoToSend
+  })
 
   try {
     if (props.editMode && props.reportId) {
       // 수정 모드: 수정 API 호출
-      await fishingReportStore.updateFishingReport(props.reportId, dtoToSend, thumbnailFile.value)
+      // 기존 이미지가 있고 새 파일이 없으면 기존 이미지 데이터를 파일로 변환
+      let fileToSend = thumbnailFile.value;
+      if (!thumbnailFile.value && formData.value.images && formData.value.images.length > 0 && formData.value.images[0].imageData) {
+        console.log('기존 이미지 데이터를 파일로 변환');
+        // base64를 Blob으로 변환
+        const base64Data = formData.value.images[0].imageData;
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/jpeg' });
+        fileToSend = new File([blob], 'existing-image.jpg', { type: 'image/jpeg' });
+      }
+      
+      // FormData로 전송하기 위해 dto에서 불필요한 필드 제거
+      const cleanDto = { ...dtoToSend };
+      delete cleanDto.existingImageData; // 백엔드에서 처리하지 않는 필드 제거
+      delete cleanDto.images; // 백엔드에서 처리하지 않는 필드 제거
+      delete cleanDto.keepExistingImage; // 백엔드에서 처리하지 않는 필드 제거
+      
+      const updateResult = await fishingReportStore.updateFishingReport(props.reportId, cleanDto, fileToSend)
+      console.log('수정 API 결과:', updateResult)
       alert('조황정보가 성공적으로 수정되었습니다!')
-      router.push(`/fishing-report/${props.reportId}`)
+      
+      // 수정 완료 후 잠시 대기 후 상세페이지 새로고침
+      setTimeout(async () => {
+        console.log('상세페이지 새로고침 시작')
+        await fishingReportStore.fetchReportById(props.reportId)
+        console.log('상세페이지 새로고침 완료')
+        router.push(`/fishing-report/${props.reportId}`)
+      }, 1000) // 대기 시간을 1초로 증가
     } else {
       // 등록 모드: 등록 API 호출
       await fishingReportStore.createFishingReport(dtoToSend, thumbnailFile.value)

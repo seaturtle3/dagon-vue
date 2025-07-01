@@ -45,6 +45,9 @@ export const useFishingReportStore = defineStore('fishingReport', {
                 const res = await api.get(`/api/fishing-report/get/${id}`)
                 this.currentReport = res.data
                 console.log('단일 조황:', this.currentReport)
+                console.log('단일 조황 images:', this.currentReport.images)
+                console.log('단일 조황 thumbnailUrl:', this.currentReport.thumbnailUrl)
+                console.log('단일 조황 imageFileName:', this.currentReport.imageFileName)
             } catch (e) {
                 console.error(`조황정보(id: ${id}) 로드 실패`, e)
             }
@@ -84,6 +87,7 @@ export const useFishingReportStore = defineStore('fishingReport', {
                     dto: reportDto,
                     files: file
                 });
+                console.log('수정 API 응답:', res.data);
                 return res.data;
             } catch (err) {
                 console.error('조황정보 수정 실패', err);

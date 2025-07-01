@@ -1,5 +1,4 @@
 <script setup>
-import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
 import { partnerService } from '@/api/partner';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -169,6 +168,10 @@ onMounted(() => {
   console.log('✅ currentUser:', currentUser.value)
   console.log('✅ report.user:', props.report.user)
   console.log('✅ UID 비교 결과:', currentUser.value?.uno === props.report.user?.uno)
+  console.log('✅ report.images:', props.report.images)
+  console.log('✅ report.images[0]:', props.report.images && props.report.images[0])
+  console.log('✅ report.thumbnailUrl:', props.report.thumbnailUrl)
+  console.log('✅ report.imageFileName:', props.report.imageFileName)
 
   // 키보드 좌우 방향키 지원
   const handleKeydown = (e) => {
@@ -360,6 +363,51 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
 });
+
+// 썸네일 src 추출 함수
+function getThumbnailSrc() {
+  console.log('getThumbnailSrc 호출 - report.images:', props.report.images);
+  console.log('getThumbnailSrc 호출 - report.thumbnailUrl:', props.report.thumbnailUrl);
+  console.log('getThumbnailSrc 호출 - report.imageFileName:', props.report.imageFileName);
+  
+  if (props.report.images && props.report.images.length) {
+    const img = props.report.images[0];
+    console.log('이미지 객체:', img);
+    
+    if (img.imageData) {
+      console.log('imageData 사용');
+      return `data:image/jpeg;base64,${img.imageData}`;
+    }
+    if (img.image_data) {
+      console.log('image_data 사용');
+      return `data:image/jpeg;base64,${img.image_data}`;
+    }
+    if (img.imageUrl) {
+      console.log('imageUrl 사용:', img.imageUrl);
+      return img.imageUrl;
+    }
+    if (img.image_url) {
+      console.log('image_url 사용:', img.image_url);
+      return img.image_url;
+    }
+  }
+  
+  if (props.report.thumbnailUrl) {
+    console.log('thumbnailUrl 사용:', props.report.thumbnailUrl);
+    // API 경로가 필요한 경우 처리
+    if (props.report.thumbnailUrl.startsWith('http')) return props.report.thumbnailUrl;
+    return `/api/fishing-report/images/${props.report.thumbnailUrl}`;
+  }
+  
+  // imageFileName이 있으면 URL 생성
+  if (props.report.imageFileName) {
+    console.log('imageFileName 사용:', props.report.imageFileName);
+    return `/api/fishing-report/images/${props.report.imageFileName}`;
+  }
+  
+  console.log('기본 이미지 사용');
+  return '/images/no-image.png';
+}
 </script>
 
 <template>
@@ -396,24 +444,7 @@ onUnmounted(() => {
           <div class="thumbnail-section">
             <img
                 class="thumbnail-img"
-                :src="
-                  report.images && report.images.length
-                    ? (
-                        report.images[0].imageData
-                          ? `data:image/jpeg;base64,${report.images[0].imageData}`
-                          : (report.images[0].image_data
-                              ? `data:image/jpeg;base64,${report.images[0].image_data}`
-                              : (report.images[0].imageUrl
-                                  ? report.images[0].imageUrl
-                                  : (report.images[0].image_url
-                                      ? report.images[0].image_url
-                                      : '/images/no-image.png'
-                                    )
-                                  )
-                              )
-                        )
-                      : '/images/no-image.png'
-                "
+                :src="getThumbnailSrc()"
                 alt="썸네일"
                 @click="openThumbnailModal()"
                 style="cursor: pointer;"
