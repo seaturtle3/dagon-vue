@@ -150,7 +150,7 @@ function handleMouseLeave(idx) {
       </div>
       <!-- 본문 -->
       <div class="content">
-        <p class="weight-max">{{ product.weight }}t & {{ product.maxPerson }}명</p>
+        <p class="weight-max">{{ product.weight }}t · {{ product.maxPerson }}명</p>
         <p class="address">위치 : {{ product.prodAddress }}</p>
       </div>
     </div>
