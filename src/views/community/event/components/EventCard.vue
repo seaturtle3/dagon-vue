@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-
+import { BASE_URL } from '@/constants/baseUrl'
 const props = defineProps({
   event: {
     type: Object,
@@ -49,7 +49,7 @@ const formattedPeriod = computed(() => {
 <template>
   <div class="event-card" @click="goToDetail">
     <div class="thumbnail-wrapper">
-      <img :src="event.thumbnailUrl || fallbackImage" alt="이벤트 썸네일" />
+      <img :src="`${BASE_URL}${event.thumbnailUrl}` || fallbackImage" alt="이벤트 썸네일" />
       <div v-if="event.isTop" class="badge badge-top">TOP</div>
       <div class="badge badge-status" :class="statusClass">{{ event.eventStatus }}</div>
     </div>

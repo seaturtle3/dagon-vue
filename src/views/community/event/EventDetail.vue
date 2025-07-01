@@ -6,6 +6,7 @@ import { useAdminAuthStore } from "@/store/auth/auth.js";
 
 import BoardDetailBox from "@/components/common/BoardDetailBox.vue";
 import BoardDetailAction from "@/components/common/BoardDetailAction.vue";
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const route = useRoute()
 const router = useRouter()
@@ -140,7 +141,7 @@ const goToEventList = () => {
       <template #default>
         <hr class="board-divider" />
         <div v-if="event.thumbnailUrl" class="event-thumbnail mb-3">
-          <img :src="event.thumbnailUrl" alt="이벤트 썸네일" class="img-fluid rounded" />
+          <img :src="`${BASE_URL}${event.thumbnailUrl}`" alt="이벤트 썸네일" class="img-fluid rounded" />
         </div>
         <div v-html="event.content" class="mt-4" />
       </template>
