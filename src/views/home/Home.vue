@@ -50,26 +50,17 @@ const recommendedProducts = computed(() => {
 
 <template>
   <Banner />
-  <div class="home">
+  <div class="container mx-auto">
     <SideButtons />
-    
     <PopularList :reports="reportStore.reports" />
     <RecommendationList :products="recommendedProducts" />
     <!-- 공지사항 섹션 -->
-    <div class="notice-section">
+    <div class="my-2xl">
       <NoticeBox />
     </div>
-
   </div>
 </template>
 
 <style>
-.home {
-  width: 80%;
-  margin: 0 auto;
-}
-
-.notice-section {
-  margin: 2rem 0;
-}
+/* 기존 스타일 삭제 */
 </style>
