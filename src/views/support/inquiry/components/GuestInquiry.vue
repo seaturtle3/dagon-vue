@@ -16,18 +16,77 @@
     <div class="additional-info-section">
       <h3>문의자 정보</h3>
       <div class="additional-form">
-        <div class="form-row">
+        <div class="form-row" style="display: flex; flex-direction: column; gap: 20px;">
           <div class="form-group">
             <label>작성자</label>
-            <input type="text" v-model="form.name" required placeholder="이름을 입력하세요">
+            <input type="text" v-model="form.name" required placeholder="이름을 입력하세요" style="max-width: 420px; width: 100%;">
           </div>
           <div class="form-group">
             <label>이메일</label>
-            <input type="email" v-model="form.email" required placeholder="이메일을 입력하세요">
+            <div style="display: flex; gap: 8px; align-items: center; max-width: 420px; width: 100%;">
+              <input
+                v-model="emailId"
+                type="text"
+                required
+                placeholder="이메일 아이디"
+                style="flex: 1; min-width: 0;"
+              />
+              <span>@</span>
+              <select v-model="emailDomain" required style="flex: 1; min-width: 0;">
+                <option value="">도메인 선택</option>
+                <option value="gmail.com">gmail.com</option>
+                <option value="naver.com">naver.com</option>
+                <option value="daum.net">daum.net</option>
+                <option value="hanmail.net">hanmail.net</option>
+                <option value="nate.com">nate.com</option>
+                <option value="직접입력">직접입력</option>
+              </select>
+              <input
+                v-if="emailDomain === '직접입력'"
+                v-model="customDomain"
+                type="text"
+                placeholder="직접입력"
+                style="flex: 1; min-width: 0;"
+              />
+            </div>
+            <div v-if="fullEmail && !isValidEmail(fullEmail)" style="color:red; font-size:0.9em;">
+              올바른 이메일 형식이 아닙니다.
+            </div>
           </div>
           <div class="form-group">
             <label>연락처</label>
-            <input type="tel" v-model="form.phone" required placeholder="연락처를 입력하세요">
+            <div style="display: flex; gap: 8px; align-items: center; max-width: 420px; width: 100%;">
+              <select v-model="phone1" required style="width: 80px; min-width: 0;">
+                <option value="010">010</option>
+                <option value="011">011</option>
+                <option value="016">016</option>
+                <option value="017">017</option>
+                <option value="018">018</option>
+                <option value="019">019</option>
+                <option value="02">02</option>
+                <option value="031">031</option>
+                <option value="032">032</option>
+                <option value="033">033</option>
+                <option value="041">041</option>
+                <option value="042">042</option>
+                <option value="043">043</option>
+                <option value="044">044</option>
+                <option value="051">051</option>
+                <option value="052">052</option>
+                <option value="053">053</option>
+                <option value="054">054</option>
+                <option value="055">055</option>
+                <option value="061">061</option>
+                <option value="062">062</option>
+                <option value="063">063</option>
+                <option value="064">064</option>
+              </select>
+              <span>-</span>
+              <input v-model="phone2" type="text" maxlength="4" required placeholder="직접 입력" style="flex: 1; min-width: 0;" />
+              <span>-</span>
+              <input v-model="phone3" type="text" maxlength="4" required placeholder="직접 입력" style="flex: 1; min-width: 0;" />
+            </div>
+            <div v-if="form.phone && !isValidPhone(form.phone)" style="color:red; font-size:0.9em;">올바른 연락처 형식이 아닙니다.</div>
           </div>
         </div>
       </div>
@@ -36,13 +95,13 @@
     <!-- 항상 보이는 문의하기 작성 폼 -->
     <div class="inquiry-form">
       <h3>문의하기 작성</h3>
-      <form @submit.prevent="onSubmit">
+      <form @submit.prevent="submitForm">
         <slot name="user-info"></slot>
         <slot name="product-info"></slot>
         <div class="form-group">
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
-            <option value="">유형 선택</option>
+            <option value="">문의 유형을 선택하세요</option>
             <option v-for="type in inquiryTypes" :key="type.value" :value="type.value">
               {{ type.label }}
             </option>
@@ -50,11 +109,11 @@
         </div>
         <div class="form-group">
           <label>제목</label>
-          <input type="text" v-model="form.title" required>
+          <input type="text" v-model="form.title" required placeholder="제목을 입력하세요">
         </div>
         <div class="form-group">
           <label>내용</label>
-          <textarea v-model="form.content" required></textarea>
+          <textarea v-model="form.content" required placeholder="내용을 입력하세요"></textarea>
         </div>
         <div class="form-actions">
           <button type="submit">등록</button>
@@ -90,7 +149,14 @@ export default {
         { value: 'RESERVATION', label: '예약 문의' },
         { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
       ],
-      productInfo: null
+      productInfo: null,
+      emailId: '',
+      emailDomain: '',
+      customDomain: '',
+      fullEmail: '',
+      phone1: '010',
+      phone2: '',
+      phone3: ''
     }
   },
   mounted() {
@@ -165,12 +231,29 @@ export default {
         writerType: 'NON_MEMBER',
         inquiryType: this.productInfo ? 'PRODUCT' : ''
       };
+      this.emailId = '';
+      this.emailDomain = '';
+      this.customDomain = '';
+      this.fullEmail = '';
+      this.phone1 = '010';
+      this.phone2 = '';
+      this.phone3 = '';
     },
     
     cancelForm() {
       if (confirm('작성을 취소하시겠습니까?')) {
         this.resetForm();
       }
+    },
+
+    isValidEmail(email) {
+      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return emailPattern.test(email);
+    },
+
+    isValidPhone(phone) {
+      const phonePattern = /^\d{3}-\d{4}-\d{4}$/;
+      return phonePattern.test(phone);
     }
   }
 };

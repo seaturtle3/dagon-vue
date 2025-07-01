@@ -21,26 +21,24 @@
         </div>
         <div class="form-group">
           <label>작성자 유형</label>
+          
           <input type="text" :value="userInfo.role === 'PARTNER' ? '파트너' : '일반회원'" readonly class="readonly-input">
         </div>
         <div class="form-group">
           <label>문의 유형</label>
           <select v-model="form.inquiryType" required>
             <option value="">문의 유형을 선택하세요.</option>
-            <option value="PRODUCT">상품 문의</option>
             <option value="BUSINESS">제휴 문의</option>
             <option value="SYSTEM">시스템 문의</option>
-            <option value="RESERVATION">예약 문의</option>
-            <option value="CANCEL">예약 취소 문의</option>
           </select>
         </div>
         <div class="form-group">
           <label>제목</label>
-          <input type="text" v-model="form.title" required>
+          <input type="text" v-model="form.title" required placeholder="제목을 입력하세요">
         </div>
         <div class="form-group">
           <label>내용</label>
-          <textarea v-model="form.content" required placeholder="문의 내용을 입력해주세요."></textarea>
+          <textarea v-model="form.content" required placeholder="내용을 입력하세요"></textarea>
         </div>
         <div class="form-actions">
           <button type="submit">등록</button>
@@ -114,12 +112,6 @@ const initializeProductInfo = () => {
     };
     
     console.log('상품 정보 받음:', productInfo.value);
-    
-    // 상품 문의인 경우 자동으로 문의 유형만 설정
-    if (productInfo.value.productType === 'product') {
-      form.value.inquiryType = 'PRODUCT';
-      // 제목은 자동 설정하지 않고 회원이 직접 입력하도록 함
-    }
   }
 };
 
@@ -183,6 +175,9 @@ const submitForm = async () => {
     content = `상품 정보:\n- 상품명: ${productInfo.value.productName}\n- 상품ID: ${productInfo.value.productId}\n\n문의 내용:\n${content}`;
   }
 
+  // inquiryType 값 콘솔 출력 (디버깅용)
+  console.log('문의 유형:', form.value.inquiryType);
+
   const inquiryData = {
     ...form.value,
     content: content,
@@ -199,29 +194,9 @@ const submitForm = async () => {
   try {
     // 실제 API 호출
     await inquiryApi.createInquiry(inquiryData);
-    alert('문의가 정상 등록되었습니다.');
-    
-    // Inquiries.vue로 데이터 전달을 위해 store에 저장
-    store.addNewInquiry({
-      id: Date.now(), // 임시 ID 생성
-      title: inquiryData.title,
-      content: inquiryData.content,
-      status: '대기중',
-      createdAt: inquiryData.createdAt,
-      userName: inquiryData.userName,
-      author: inquiryData.userName,
-      inquiryType: inquiryData.inquiryType,
-      answerContent: null,
-      answeredAt: null
-    });
-    
     resetForm();
-    
-    // 관리자 문의 페이지로 이동 (해당 문의 유형 탭 선택)
-    router.push({
-      path: '/admin/inquiries',
-      query: { type: inquiryData.inquiryType }
-    });
+    // 성공 모달 표시
+    openModal(inquiryData);
   } catch (error) {
     console.error('문의 저장 실패:', error);
     alert('저장에 실패했습니다.');
@@ -232,7 +207,7 @@ const resetForm = () => {
   form.value = {
     title: '',
     content: '',
-    inquiryType: productInfo.value ? 'PRODUCT' : '',
+    inquiryType: '',
     writerType: userInfo.value.role,
     receiverId: null
   };

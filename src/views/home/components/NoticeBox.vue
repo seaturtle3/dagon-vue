@@ -157,7 +157,7 @@ export default {
 
       <!-- 공지사항 목록 -->
       <div v-else>
-        <!-- 긴급/고정 공지 -->
+        <!-- 고정 공지 -->
         <div v-if="urgentNotices.length > 0" class="urgent-section">
           <div 
             v-for="notice in urgentNotices" 
@@ -166,21 +166,18 @@ export default {
             @click="goToNoticeDetail(notice.noticeId)"
           >
             <div class="notice-info">
+              <div class="notice-meta">
+                <span v-if="notice.isTop" class="top-badge">
+                  <i class="fas fa-star"></i> 고정공지
+                </span>
+              </div>
               <h4 class="notice-item-title urgent-title">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span class="title-text">{{ truncateTitle(notice.title) }}</span>
                 <span class="notice-date-inline">{{ formatDate(notice.createdAt) }}</span>
               </h4>
-              <div class="notice-meta">
-                <span v-if="notice.isTop" class="top-badge">
-                  <i class="fas fa-star"></i> 고정공지
-                </span>
-                <span v-if="notice.isUrgent" class="urgent-badge">
-                  <i class="fas fa-exclamation-circle"></i> 긴급공지
-                </span>
-              </div>
+
             </div>
-            <i class="fas fa-chevron-right arrow-icon"></i>
           </div>
         </div>
 
@@ -199,7 +196,6 @@ export default {
                 <span class="notice-date-inline">{{ formatDate(notice.createdAt) }}</span>
               </h4>
             </div>
-            <i class="fas fa-chevron-right arrow-icon"></i>
           </div>
         </div>
       </div>
@@ -386,12 +382,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.175rem;
-}
-
-.arrow-icon {
-  color: #a0aec0;
-  font-size: 0.875rem;
-  transition: transform 0.3s ease;
 }
 
 .notice-item:hover .arrow-icon {

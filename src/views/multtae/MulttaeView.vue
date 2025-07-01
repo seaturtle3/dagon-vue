@@ -46,9 +46,9 @@
       <!-- 시간대별 기상 정보 -->
       <HourlyTable :hourly-data="multtaeData.hourlyData || []" />
       
-      <!-- 조위 그래프 -->
-      <TideChart :hourly-data="multtaeData.hourlyData || []" />
-      
+<!--      &lt;!&ndash; 조위 그래프 &ndash;&gt;-->
+<!--      <TideChart :hourly-data="multtaeData.hourlyData || []" />-->
+<!--      -->
       <!-- 주간 정보 -->
       <WeeklyTable :weekly-data="weeklyData || []" />
     </div>
@@ -68,7 +68,7 @@
     </div>
 
     <div class="multtae-footer">
-      <p>※ 물때 정보는 참고용이며, 실제 상황과 다를 수 있습니다.</p>
+      <p>※ 바다누리해양정보서비스, 한국천문연구원</p>
       <p>마지막 업데이트: {{ lastUpdated }}</p>
     </div>
   </div>
@@ -88,14 +88,14 @@ import {
 } from '@/api/multtae'
 
 // 컴포넌트 import
-import LocationSection from '@/components/multtae/LocationSection.vue'
-import RegionSelector from '@/components/multtae/RegionSelector.vue'
-import StationSelector from '@/components/multtae/StationSelector.vue'
-import MulttaeInfo from '@/components/multtae/MulttaeInfo.vue'
-import TideInfo from '@/components/multtae/TideInfo.vue'
-import HourlyTable from '@/components/multtae/HourlyTable.vue'
-import TideChart from '@/components/multtae/TideChart.vue'
-import WeeklyTable from '@/components/multtae/WeeklyTable.vue'
+import LocationSection from '@/views/multtae/components/LocationSection.vue'
+import RegionSelector from '@/views/multtae/components/RegionSelector.vue'
+import StationSelector from '@/views/multtae/components/StationSelector.vue'
+import MulttaeInfo from '@/views/multtae/components/MulttaeInfo.vue'
+import TideInfo from '@/views/multtae/components/TideInfo.vue'
+import HourlyTable from '@/views/multtae/components/HourlyTable.vue'
+import TideChart from '@/views/multtae/components/TideChart.vue'
+import WeeklyTable from '@/views/multtae/components/WeeklyTable.vue'
 
 export default {
   name: 'MulttaeView',

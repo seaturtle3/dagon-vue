@@ -37,18 +37,39 @@ export const useFishingDiaryStore = defineStore('fishingDiary', {
             }
         },
 
-        // 조행기 생성 액션
-        async createFishingDiary(formData) {
+        // 조행기 생성 액션 (api.multipartPost 사용, 상품과 통일)
+        async createFishingDiary(dto, files) {
             try {
-                const res = await api.post('/api/fishing-diary/create', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    }
-                })
-                return res.data
+                const res = await api.multipartPost({
+                    url: '/api/fishing-diary/create',
+                    dto: dto,
+                    files: files,
+                    dtoKey: 'dto',
+                    fileKey: 'images'
+                });
+                return res.data;
             } catch (err) {
-                console.error('조행기 생성 실패', err)
-                throw err
+                console.error('조행기 생성 실패', err);
+                throw err;
+            }
+        },
+
+        // 조행기 수정 액션 (api.multipartPut 사용, 상품과 통일)
+        async updateFishingDiary(fdId, dto, files) {
+            try {
+                console.log('🟡 dto2----->:', dto);
+                console.log('🟡 files2----->:', files);
+                const res = await api.multipartPut({
+                    url: `/api/fishing-diary/update/${fdId}`,
+                    dto: dto,
+                    files: files,
+                    dtoKey: 'dto',
+                    fileKey: 'images'
+                });
+                return res.data;
+            } catch (err) {
+                console.error('조행기 수정 실패', err);
+                throw err;
             }
         }
     }

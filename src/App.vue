@@ -1,21 +1,19 @@
 <template>
   <div class="layout-wrapper">
-    <HeaderNav :key="navKey" />
-    
-    <div class="spacer" /> <!-- 헤더 고정용 여백 -->
-
+    <HeaderNav v-if="!isSwaggerPage" :key="navKey" />
+    <div class="spacer" v-if="!isSwaggerPage" /> <!-- 헤더 고정용 여백 -->
     <main class="main-content">
       <router-view @loginSuccess="refreshNav" @logout="refreshNav" />
     </main>
-
-    <Footer />
+    <Footer v-if="!isSwaggerPage" />
   </div>
 </template>
 
 <script>
 import HeaderNav from './components/common/HeaderNav.vue';
 import Footer from './components/common/Footer.vue';
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 const navKey = ref(0)
 function refreshNav() {
   navKey.value += 1
@@ -26,6 +24,11 @@ export default {
   components: {
     HeaderNav,
     Footer,
+  },
+  setup() {
+    const route = useRoute()
+    const isSwaggerPage = computed(() => route.path.startsWith('/admin/swagger'))
+    return { navKey, refreshNav, isSwaggerPage }
   }
 };
 </script>
@@ -66,4 +69,5 @@ loadFontAwesome();
   color: #2c3e50;
   min-height: 100vh;
 }
+
 </style>

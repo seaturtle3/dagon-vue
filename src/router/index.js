@@ -167,7 +167,14 @@ const routes = [
                 component: () => import('@/views/pages/partner-page/components/ReservationDetail.vue')
             },
             {path: 'products', component: () => import('@/views/pages/partner-page/components/ProductList.vue')},
-            {path: 'products/form', component: () => import('@/views/pages/partner-page/ProductForm.vue')},
+            {
+                path: 'products/:prodId',
+                name: 'PartnetProductDetail',
+                component: () => import('@/views/pages/partner-page/components/ProductDetail.vue'),
+            },
+
+            {path: 'products/form', component: () => import('@/views/pages/partner-page/components/ProductForm.vue')},
+            {path: 'products/edit/:id', component: () => import('@/views/pages/partner-page/components/ProductForm.vue')},
             {
                 path: 'market-info',
                 component: () => import('@/views/pages/partner-page/components/FishingReportManager.vue')
@@ -257,6 +264,12 @@ const routes = [
             {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
             {path: 'create', component: () => import('@/views/community/fishing-diary/DiaryForm.vue')},
             {
+                path: 'edit/:fdId',
+                name: 'DiaryEdit',
+                component: () => import('@/views/community/fishing-diary/DiaryForm.vue'),
+                props: route => ({ editMode: true, diaryId: route.params.fdId })
+            },
+            {
                 path: ':fdId',
                 name: 'DiaryDetail',
                 component: () => import('@/views/community/fishing-diary/DiaryDetail.vue'),
@@ -317,6 +330,17 @@ const routes = [
     {path: '/faq', component: () => import('@/views/support/faq/FAQ.vue')},
     {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
     {
+        path: '/notice/write',
+        component: () => import('@/views/support/notice/NoticeWrite.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/notice/edit/:id',
+        component: () => import('@/views/support/notice/NoticeWrite.vue'),
+        props: true,
+        meta: { requiresAuth: true }
+    },
+    {
         path: '/notice/:id',
         name: 'NoticeDetail',
         component: () => import('@/views/support/notice/NoticeDetail.vue'),
@@ -350,6 +374,11 @@ const routes = [
     {
         path: '/privacy-policy',
         component: () => import('@/components/common/PrivacyPolicyView.vue')
+    },
+    {
+        path: '/admin/swagger',
+        component: () => import('@/views/pages/dashboard/SwaggerPage.vue'),
+        meta: {requiresAuth: true}
     },
 ]
 
