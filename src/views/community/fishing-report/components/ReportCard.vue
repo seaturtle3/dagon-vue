@@ -1,5 +1,4 @@
 <script setup>
-import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js";
 import { useRouter } from 'vue-router'
 
 const router = useRouter()

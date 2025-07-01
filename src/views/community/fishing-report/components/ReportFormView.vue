@@ -49,11 +49,16 @@ const showAutocomplete = ref(false)
 const report = computed(() => fishingReportStore.currentReport)
 
 const isFormValid = computed(() => {
+  const hasThumbnail = thumbnailFile.value || 
+    (props.editMode && report.value && report.value.images && report.value.images.length > 0) ||
+    (props.editMode && report.value && report.value.thumbnailUrl);
+  
   return (
       formData.value.title &&
       formData.value.content &&
       formData.value.fishingAt &&
-      selectedProduct.value
+      selectedProduct.value &&
+      hasThumbnail // 수정 모드에서는 기존 썸네일도 허용
   )
 })
 
@@ -197,7 +202,8 @@ onMounted(async () => {
 
 async function onSubmit() {
   if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 상품)')
+    const requiredFields = props.editMode ? '제목, 내용, 날짜, 상품' : '제목, 내용, 날짜, 상품, 대표 이미지';
+    alert(`필수 항목을 모두 입력해주세요. (${requiredFields})`)
     return
   }
   if (!formData.value.fishingAt) {
@@ -205,18 +211,22 @@ async function onSubmit() {
     return;
   }
 
+  // 썸네일 필수 검증 (등록 모드에서만)
+  if (!props.editMode && !thumbnailFile.value) {
+    alert('대표 이미지를 선택해주세요.');
+    return;
+  }
+
   // 이미지 파일 검증
-  if (thumbnailFile.value) {
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (thumbnailFile.value.size > maxSize) {
-      alert('이미지 파일 크기는 5MB 이하여야 합니다.');
-      return;
-    }
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-    if (!allowedTypes.includes(thumbnailFile.value.type)) {
-      alert('지원되는 이미지 형식: JPG, PNG, GIF');
-      return;
-    }
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (thumbnailFile.value.size > maxSize) {
+    alert('이미지 파일 크기는 5MB 이하여야 합니다.');
+    return;
+  }
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+  if (!allowedTypes.includes(thumbnailFile.value.type)) {
+    alert('지원되는 이미지 형식: JPG, PNG, GIF');
+    return;
   }
 
   const dtoToSend = {
@@ -287,12 +297,12 @@ async function onSubmit() {
       }, 1000) // 대기 시간을 1초로 증가
     } else {
       // 등록 모드: 등록 API 호출
-      await fishingReportStore.createFishingReport(dtoToSend, thumbnailFile.value)
-      // 임시: 최신 조황정보 frId로 이동
-      const listRes = await fishingReportStore.fetchReports({ page: 0, size: 1, sort: 'frId,DESC' })
-      const frId = listRes?.data?.content?.[0]?.frId || null
-      if (frId) router.push(`/fishing-report/${frId}`)
-      else router.push('/fishing-report')
+      const createdReport = await fishingReportStore.createFishingReport(dtoToSend, thumbnailFile.value)
+      alert('조황정보가 성공적으로 등록되었습니다!')
+      
+      // 등록 성공 후 리스트 새로고침하고 리스트 페이지로 이동
+      await fishingReportStore.fetchReports(0, fishingReportStore.pageSize)
+      router.push('/fishing-report')
     }
 
   } catch (err) {
@@ -331,6 +341,7 @@ function resetForm() {
 
 watch(productSearch, async (newVal) => {
   if (newVal && newVal.length >= 2) {
+    // 검색어가 2글자 이상일 때 검색 결과 표시
     productSearchLoading.value = true
     try {
       const res = await getProductsByKeyword(newVal)
@@ -365,8 +376,17 @@ watch(productSearch, async (newVal) => {
     } finally {
       productSearchLoading.value = false
     }
+  } else if (newVal === '') {
+    // 검색어가 비어있을 때 전체 목록 표시
+    loadAllProducts()
   } else {
-    productOptions.value = []
+    // 1글자일 때는 전체 목록에서 필터링
+    if (productOptions.value.length > 0) {
+      const filtered = productOptions.value.filter(product => 
+        product.prodName.toLowerCase().includes(newVal.toLowerCase())
+      )
+      productOptions.value = filtered
+    }
   }
 })
 
@@ -434,8 +454,29 @@ function selectProduct(option) {
 }
 
 function onProductInputFocus() {
-  if (productOptions.value.length > 0) {
-    showAutocomplete.value = true
+  // 포커스 시 전체 상품 목록을 가져와서 표시
+  loadAllProducts()
+  showAutocomplete.value = true
+}
+
+// 전체 상품 목록 로드
+async function loadAllProducts() {
+  if (productOptions.value.length > 0) return // 이미 로드된 경우
+  
+  productSearchLoading.value = true
+  try {
+    const res = await getProductsByKeyword('') // 빈 문자열로 전체 상품 조회
+    const products = res.data.content || []
+    
+    // 상품명 알파벳 순으로 정렬
+    productOptions.value = products.sort((a, b) => {
+      return a.prodName.localeCompare(b.prodName)
+    })
+  } catch (e) {
+    console.error('상품 목록 로드 실패:', e)
+    productOptions.value = []
+  } finally {
+    productSearchLoading.value = false
   }
 }
 </script>
@@ -481,7 +522,7 @@ function onProductInputFocus() {
                 v-model="productSearch"
                 type="text"
                 class="form-control"
-                placeholder="상품명을 입력하세요 (2글자 이상)"
+                placeholder="클릭하여 상품을 선택하거나 검색하세요"
                 autocomplete="off"
                 ref="productInputRef"
                 @keydown="onProductInputKeydown"
@@ -510,8 +551,8 @@ function onProductInputFocus() {
       </div>
 
       <!-- 썸네일 업로드 섹션 -->
-      <div class="form-section">
-        <h3 class="section-title">📸 대표 이미지 업로드</h3>
+              <div class="form-section">
+          <h3 class="section-title">📸 대표 이미지 업로드 <span v-if="!editMode" class="required-mark">*</span></h3>
         <div class="image-upload-container">
           <!-- 썸네일 미리보기 -->
           <div v-if="thumbnailFile || (editMode && report && report.images && report.images.length)" class="thumbnail-preview">
@@ -651,6 +692,11 @@ function onProductInputFocus() {
   font-weight: 600;
   color: #1976d2;
   margin-bottom: 20px;
+}
+
+.required-mark {
+  color: #f44336;
+  font-weight: 700;
 }
 
 .form-row {
@@ -977,29 +1023,58 @@ function onProductInputFocus() {
 .autocomplete-list {
   background: #fff;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
+  border-radius: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
-  max-height: 180px;
+  max-height: 300px;
   overflow-y: auto;
   position: absolute;
-  z-index: 10;
+  z-index: 1000;
   width: 100%;
   min-width: 120px;
   left: 0;
   top: 100%;
   box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #ddd;
+}
+
+.autocomplete-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.autocomplete-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.autocomplete-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.autocomplete-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .autocomplete-item {
-  padding: 8px 12px;
+  padding: 12px 16px;
   cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
 }
 
 .autocomplete-item.highlighted,
 .autocomplete-item:hover {
   background: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
 }
 
 .selected-product-info {

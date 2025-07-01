@@ -1,38 +1,23 @@
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted } from 'vue'
 import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
-import ReportListView from "@/views/community/fishing-report/components/ReportListView.vue";
 import { useRouter } from 'vue-router'
+import Pagination from '@/components/common-function/Pagination.vue'
+import ReportCard from './components/ReportCard.vue'
 
 const router = useRouter()
 const store = useFishingReportStore()
 
-const handleScroll = () => {
-  const scrollY = window.scrollY || window.pageYOffset
-  const viewportHeight = window.innerHeight
-  const fullHeight = document.documentElement.scrollHeight
-
-  if (
-    scrollY + viewportHeight + 100 >= fullHeight &&
-    !store.loading &&
-    store.currentPage + 1 < store.totalPages
-  ) {
-    store.fetchReports(store.currentPage + 1, store.pageSize)
-  }
-}
-
 onMounted(async () => {
-  if (store.reports.length === 0) {
-    await store.fetchReports(0, store.pageSize)
-  }
-  window.addEventListener('scroll', handleScroll)
-})
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+  await store.fetchReports(0, store.pageSize)
 })
 
 const goToCreateReport = () => {
   router.push('/fishing-report/create')
+}
+
+const onPageChange = async (page) => {
+  await store.fetchReports(page, store.pageSize)
 }
 </script>
 
@@ -45,10 +30,23 @@ const goToCreateReport = () => {
       </button>
     </div>
 
-    <ReportListView v-if="store.reports.length" :reports="store.reports" />
+    <div v-if="store.reports.length" class="grid-container">
+      <ReportCard
+        v-for="report in store.reports"
+        :key="report.frId"
+        :report="report"
+      />
+    </div>
     <div v-else class="loading-message">
       <p>조황 정보를 불러오는 중입니다...</p>
     </div>
+
+    <Pagination
+      :page="store.currentPage"
+      :totalPages="store.totalPages"
+      :zeroBased="true"
+      @page-change="onPageChange"
+    />
   </div>
 </template>
 
@@ -97,6 +95,13 @@ const goToCreateReport = () => {
   padding: 50px;
   color: #666;
   font-size: 1.1rem;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-top: 20px;
 }
 
 @media (max-width: 768px) {

@@ -229,6 +229,9 @@ const confirmDelete = async () => {
       console.log('삭제 시도 - frId:', props.report.frId);
       await fishingReportStore.deleteFishingReport(props.report.frId);
       showAlertModal('삭제되었습니다.');
+      
+      // 삭제 성공 후 리스트 페이지로 이동하면서 리스트 새로고침
+      await fishingReportStore.fetchReports(0, fishingReportStore.pageSize);
       router.push('/fishing-report');
     } catch (e) {
       console.error('삭제 실패 상세:', e);
