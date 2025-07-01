@@ -23,8 +23,8 @@ const reportReason = ref('');
 const reportTarget = ref(null);
 const reportType = ref(''); // 'report' 또는 'comment'
 
-// 현재 사용자 정보
-const currentUser = ref(null);
+// 현재 사용자 정보 - props에서 받거나 localStorage에서 초기화
+const currentUser = ref(props.currentUser || null);
 
 // 현재 사용자가 조황정보 작성자인지 확인
 const isOwnReport = computed(() => {

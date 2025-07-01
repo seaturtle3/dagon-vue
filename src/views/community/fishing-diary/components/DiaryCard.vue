@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
 
 const router = useRouter()
 
@@ -13,6 +14,14 @@ const props = defineProps({
 const goToDetail = () => {
   router.push(`/fishing-diary/${props.diary.fdId}`)
 }
+
+onMounted(() => {
+  console.log('DiaryCard - diary:', props.diary)
+  console.log('DiaryCard - diary.images:', props.diary.images)
+  if (props.diary.images && props.diary.images.length > 0) {
+    console.log('DiaryCard - first image:', props.diary.images[0])
+  }
+})
 </script>
 
 <template>

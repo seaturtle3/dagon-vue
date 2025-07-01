@@ -44,7 +44,19 @@ const isFormValid = computed(() => {
 function onThumbnailChange(event) {
   const uploadedFiles = Array.from(event.target.files)
   
-  uploadedFiles.forEach(file => {
+  // 새로운 이미지만 제거 (기존 이미지는 유지)
+  const newImageIndex = imagePreviews.value.findIndex(img => !img.isExisting)
+  if (newImageIndex > -1) {
+    imagePreviews.value.splice(newImageIndex, 1)
+    const fileIndex = files.value.findIndex(file => file === imagePreviews.value[newImageIndex]?.file)
+    if (fileIndex > -1) {
+      files.value.splice(fileIndex, 1)
+    }
+  }
+  
+  if (uploadedFiles.length > 0) {
+    const file = uploadedFiles[0] // 첫 번째 파일만 사용
+    
     if (file && file.type.startsWith('image/')) {
       if (file.size > 5 * 1024 * 1024) {
         alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
@@ -57,34 +69,52 @@ function onThumbnailChange(event) {
           id: Date.now() + Math.random(),
           url: e.target.result,
           file: file,
-          name: file.name
+          name: file.name,
+          isExisting: false
         })
       }
       reader.readAsDataURL(file)
       
       files.value.push(file)
     }
-  })
+  }
 }
 
 function removeImage(imageId) {
   const index = imagePreviews.value.findIndex(img => img.id === imageId)
   if (index > -1) {
+    const image = imagePreviews.value[index]
+    
+    // files 배열에서도 제거
+    const fileIndex = files.value.findIndex(file => file === image.file)
+    if (fileIndex > -1) {
+      files.value.splice(fileIndex, 1)
+    }
+    
+    // imagePreviews에서 제거
     imagePreviews.value.splice(index, 1)
-    files.value.splice(index, 1)
   }
 }
 
 function removeAllImages() {
   files.value = []
   imagePreviews.value = []
+  existingImages.value = []
+  deletedImageNames.value = []
 }
 
 function removeExistingImage(imageId) {
   const idx = existingImages.value.findIndex(img => img.id === imageId)
   if (idx > -1) {
-    deletedImageNames.value.push(existingImages.value[idx].name)
+    const existingImg = existingImages.value[idx]
+    deletedImageNames.value.push(existingImg.name)
     existingImages.value.splice(idx, 1)
+    
+    // files 배열에서도 제거
+    const fileIndex = files.value.findIndex(file => file.name === existingImg.name)
+    if (fileIndex > -1) {
+      files.value.splice(fileIndex, 1)
+    }
   }
 }
 
@@ -115,8 +145,27 @@ onMounted(async () => {
                  img.image_data ? `data:image/jpeg;base64,${img.image_data}` :
                  img.imageUrl || img.image_url || '/images/no-image.png',
             name: img.imageName || img.image_name || `image_${idx}`,
-            isExisting: true
+            isExisting: true,
+            originalImage: img // 원본 이미지 데이터 보존
           }))
+          
+          // 기존 이미지를 files 배열에만 추가 (수정 시 유지하기 위해, 중복 표시 방지)
+          existingImages.value.forEach((existingImg, idx) => {
+            if (existingImg.originalImage && existingImg.originalImage.imageData) {
+              // base64를 File 객체로 변환
+              const byteCharacters = atob(existingImg.originalImage.imageData)
+              const byteNumbers = new Array(byteCharacters.length)
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i)
+              }
+              const byteArray = new Uint8Array(byteNumbers)
+              const blob = new Blob([byteArray], { type: 'image/jpeg' })
+              const file = new File([blob], existingImg.name, { type: 'image/jpeg' })
+              
+              // files 배열에만 추가 (imagePreviews에는 추가하지 않음)
+              files.value.push(file)
+            }
+          })
         }
       }
     } catch (e) {
@@ -141,6 +190,10 @@ async function onSubmit() {
     },
     deleteImageNames: [...deletedImageNames.value]
   }
+  
+  console.log('🟡 조행기 등록 - dtoToSend:', dtoToSend)
+  console.log('🟡 조행기 등록 - files.value:', files.value)
+  console.log('🟡 조행기 등록 - imagePreviews.value:', imagePreviews.value)
   
   try {
     if (props.editMode && props.diaryId) {
@@ -294,38 +347,27 @@ function onDateInputClick() {
           </div>
         </div>
       </div>
-      <!-- 이미지 업로드 섹션 -->
+      <!-- 썸네일 업로드 섹션 -->
       <div class="form-section">
-        <h3 class="section-title">📸 이미지 업로드</h3>
+        <h3 class="section-title">📸 썸네일 업로드</h3>
         <div class="image-upload-container">
-          <!-- 이미지 갤러리 -->
-          <div v-if="allPreviews.length > 0" class="image-gallery">
-            <div class="gallery-header">
-              <h4 class="gallery-title">
-                <i class="fas fa-images"></i>
-                업로드된 이미지 ({{ allPreviews.length }}장)
-              </h4>
-              <button type="button" @click="removeAllImages" class="clear-all-btn">
-                <i class="fas fa-trash"></i>
-                모두 삭제
-              </button>
-            </div>
-            <div class="gallery-grid">
+          <!-- 썸네일 미리보기 -->
+          <div v-if="allPreviews.length > 0" class="thumbnail-preview">
+            <div class="thumbnail-display">
               <div 
                 v-for="(image, index) in allPreviews" 
                 :key="image.id"
-                class="gallery-item"
-                :class="{ 'main-image': index === 0 }"
+                class="thumbnail-item"
               >
-                <img :src="image.url" :alt="image.name" class="gallery-image" />
-                <div class="image-overlay">
-                  <div class="image-actions">
+                <img :src="image.url" :alt="image.name" class="thumbnail-image" />
+                <div class="thumbnail-overlay">
+                  <div class="thumbnail-actions">
                     <button 
                       v-if="image.isExisting"
                       type="button" 
                       @click="removeExistingImage(image.id)" 
                       class="remove-btn"
-                      :title="'기존 이미지 삭제'"
+                      title="기존 썸네일 삭제"
                     >
                       <i class="fas fa-times"></i>
                     </button>
@@ -334,19 +376,15 @@ function onDateInputClick() {
                       type="button" 
                       @click="removeImage(image.id)" 
                       class="remove-btn"
-                      :title="'이미지 삭제'"
+                      title="썸네일 삭제"
                     >
                       <i class="fas fa-times"></i>
                     </button>
                   </div>
-                  <div v-if="index === 0" class="main-badge">
-                    <i class="fas fa-star"></i>
-                    대표
-                  </div>
                 </div>
-                <div class="image-info">
-                  <span class="image-name">{{ image.name }}</span>
-                  <span v-if="!image.isExisting" class="image-size">{{ (image.file.size / 1024 / 1024).toFixed(1) }}MB</span>
+                <div class="thumbnail-info">
+                  <span class="thumbnail-name">{{ image.name }}</span>
+                  <span v-if="!image.isExisting" class="thumbnail-size">{{ (image.file.size / 1024 / 1024).toFixed(1) }}MB</span>
                 </div>
               </div>
             </div>
@@ -357,23 +395,24 @@ function onDateInputClick() {
             <div class="upload-icon">
               <i class="fas fa-cloud-upload-alt"></i>
             </div>
-            <p class="upload-text">조행기 이미지를 업로드하세요</p>
+            <p class="upload-text">조행기 썸네일을 업로드하세요</p>
             <p class="upload-hint">JPG, PNG 파일만 가능합니다 (최대 5MB)</p>
-            <p class="upload-hint">여러 장 업로드 가능 (첫 번째가 대표 이미지)</p>
+            <p class="upload-hint">썸네일은 하나만 업로드 가능합니다</p>
           </div>
 
-          <input 
-            type="file" 
-            accept="image/*" 
-            @change="onThumbnailChange" 
-            class="file-input"
-            id="imageUpload"
-            multiple
-          />
-          <label for="imageUpload" class="upload-label">
-            <i class="fas fa-plus"></i>
-            {{ imagePreviews.length > 0 ? '이미지 추가' : '이미지 선택' }}
-          </label>
+          <div class="upload-button-container">
+            <input 
+              type="file" 
+              accept="image/*" 
+              @change="onThumbnailChange" 
+              class="file-input"
+              id="imageUpload"
+            />
+            <label for="imageUpload" class="upload-label">
+              <i class="fas fa-plus"></i>
+              {{ imagePreviews.length > 0 ? '썸네일 변경' : '썸네일 선택' }}
+            </label>
+          </div>
         </div>
       </div>
       <!-- 내용 작성 섹션 -->
@@ -679,134 +718,119 @@ function onDateInputClick() {
   position: relative;
 }
 
-.image-gallery {
+.thumbnail-preview {
   margin-bottom: 20px;
 }
 
-.gallery-header {
+.thumbnail-display {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+  justify-content: center;
 }
 
-.gallery-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #1976d2;
-}
-
-.clear-all-btn {
-  background: #f44336;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.clear-all-btn:hover {
-  background: #d32f2f;
-}
-
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
-}
-
-.gallery-item {
+.thumbnail-item {
   position: relative;
-}
-
-.gallery-image {
+  max-width: 300px;
   width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 4px;
 }
 
-.image-overlay {
+.thumbnail-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.thumbnail-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.image-actions {
+.thumbnail-item:hover .thumbnail-overlay {
+  opacity: 1;
+}
+
+.thumbnail-actions {
   display: flex;
   gap: 5px;
 }
 
-.image-actions button {
-  background: none;
+.thumbnail-actions button {
+  background: rgba(244, 67, 54, 0.9);
   border: none;
   color: white;
   cursor: pointer;
-  font-size: 16px;
-}
-
-.main-image {
-  grid-column: span 2;
-}
-
-.main-badge {
-  background: #1976d2;
-  color: white;
-  padding: 2px 4px;
+  font-size: 14px;
+  padding: 6px 8px;
   border-radius: 4px;
-  font-size: 0.8em;
+  transition: background 0.2s ease;
 }
 
-.image-info {
+.thumbnail-actions button:hover {
+  background: rgba(244, 67, 54, 1);
+}
+
+.thumbnail-info {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 0 0 4px 4px;
-  padding: 5px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 0 0 8px 8px;
+  padding: 8px;
   color: white;
   font-size: 0.9em;
 }
 
-.image-name {
+.thumbnail-name {
   font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
 }
 
-.image-size {
+.thumbnail-size {
   font-size: 0.8em;
+  opacity: 0.8;
 }
 
 .upload-placeholder {
   text-align: center;
   padding: 40px;
   border: 2px dashed #e0e0e0;
-  border-radius: 4px;
+  border-radius: 8px;
   color: #666;
+  margin-bottom: 20px;
+  background: #fafafa;
 }
 
 .upload-icon {
   font-size: 40px;
   margin-bottom: 10px;
+  color: #1976d2;
 }
 
 .upload-text {
   font-size: 1.2rem;
   font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .upload-hint {
   font-size: 0.9em;
   color: #666;
+  margin-bottom: 4px;
 }
 
 .file-input {
@@ -822,9 +846,20 @@ function onDateInputClick() {
   cursor: pointer;
   font-size: 16px;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
 }
 
 .upload-label:hover {
   background: #1565c0;
+  transform: translateY(-1px);
+}
+
+.upload-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
 }
 </style> 
