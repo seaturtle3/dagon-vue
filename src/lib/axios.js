@@ -142,8 +142,8 @@ api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 
 // PUT용 멀티파트 업로드 메서드 추가
 api.multipartPut = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
 
-  console.log('🟡 dto----->:', dto);
-  console.log('🟡 files----->:', files);
+  console.log('🟡 dto3----->:', dto);
+  console.log('🟡 files3----->:', files);
   const formData = new FormData();
   const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
   formData.append(dtoKey, blob);

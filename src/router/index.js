@@ -264,6 +264,12 @@ const routes = [
             {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
             {path: 'create', component: () => import('@/views/community/fishing-diary/DiaryForm.vue')},
             {
+                path: 'edit/:fdId',
+                name: 'DiaryEdit',
+                component: () => import('@/views/community/fishing-diary/DiaryForm.vue'),
+                props: route => ({ editMode: true, diaryId: route.params.fdId })
+            },
+            {
                 path: ':fdId',
                 name: 'DiaryDetail',
                 component: () => import('@/views/community/fishing-diary/DiaryDetail.vue'),

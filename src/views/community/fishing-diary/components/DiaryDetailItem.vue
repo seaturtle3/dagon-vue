@@ -1,14 +1,16 @@
 <script setup>
 import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js";
 import { partnerService } from '@/api/partner';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
+  editMode: Boolean,
   diary: {
     type: Object,
     required: true
   }
-})
+});
 
 // 신고 관련 상태
 const showReportModal = ref(false);
@@ -183,10 +185,104 @@ const deleteComment = async (commentId) => {
     alert('삭제에 실패했습니다.');
   }
 };
+
+// 이미지 확대 모달 상태 및 핸들러 추가 (ReportDetailItem.vue 참고)
+const showImageModal = ref(false);
+const modalImages = ref([]); // 전체 이미지 배열
+const modalImageIndex = ref(0); // 현재 인덱스
+
+function getImageSrc(img) {
+  // img가 null/undefined인 경우 기본 이미지 반환
+  if (!img) {
+    return '/images/no-image.png';
+  }
+  
+  if (img.imageData) {
+    return `data:image/jpeg;base64,${img.imageData}`;
+  } else if (img.image_data) {
+    return `data:image/jpeg;base64,${img.image_data}`;
+  } else if (img.imageUrl) {
+    return img.imageUrl;
+  } else if (img.image_url) {
+    return img.image_url;
+  } else {
+    return '/images/no-image.png';
+  }
+}
+
+function openImageModal(img) {
+  // diary.imageUrls 또는 diary.images 등에서 전체 배열과 인덱스 세팅
+  let imagesArr = [];
+  if (props.diary.images && props.diary.images.length) {
+    imagesArr = props.diary.images;
+  }
+  modalImages.value = imagesArr;
+  modalImageIndex.value = imagesArr.findIndex(i => getImageSrc(i) === getImageSrc(img));
+  if (modalImageIndex.value === -1) modalImageIndex.value = 0;
+  showImageModal.value = true;
+}
+
+function closeImageModal() {
+  showImageModal.value = false;
+  modalImageIndex.value = 0;
+  modalImages.value = [];
+}
+
+function prevImage() {
+  if (modalImages.value.length > 0) {
+    modalImageIndex.value = (modalImageIndex.value - 1 + modalImages.value.length) % modalImages.value.length;
+  }
+}
+
+function nextImage() {
+  if (modalImages.value.length > 0) {
+    modalImageIndex.value = (modalImageIndex.value + 1) % modalImages.value.length;
+  }
+}
+
+function handleKeydown(e) {
+  if (!showImageModal.value) return;
+  if (e.key === 'ArrowLeft') {
+    prevImage();
+  } else if (e.key === 'ArrowRight') {
+    nextImage();
+  } else if (e.key === 'Escape') {
+    closeImageModal();
+  }
+}
+
+onMounted(() => {
+  initializeUserInfo();
+  window.addEventListener('keydown', handleKeydown);
+});
+
+const router = useRouter();
+
+function goToEdit() {
+  router.push(`/fishing-diary/edit/${props.diary.fdId}`);
+}
+
+async function confirmDelete() {
+  if (confirm('정말 삭제하시겠습니까?')) {
+    try {
+      // 삭제 API 호출 필요: partnerService.deleteFishingDiary 등
+      // await partnerService.deleteFishingDiary(props.diary.fdId);
+      alert('삭제되었습니다.');
+      router.push('/fishing-diary');
+    } catch (e) {
+      alert('삭제에 실패했습니다.');
+    }
+  }
+}
 </script>
 
 <template>
   <div class="detail-container">
+    <!-- 작성자만 수정/삭제 버튼 노출 -->
+    <div v-if="isOwnDiary" class="detail-actions">
+      <button class="btn btn-edit" @click="goToEdit">수정</button>
+      <button class="btn btn-delete" @click="confirmDelete">삭제</button>
+    </div>
     <!-- 제목 -->
     <div class="detail-title-row">
       <h2 class="detail-title text-center mb-4 fw-bold">{{ diary.title }}</h2>
@@ -207,9 +303,11 @@ const deleteComment = async (commentId) => {
     <div class="d-flex flex-column flex-md-row align-items-start mb-4 position-relative">
       <!-- 썸네일 -->
       <img
-          class="thumbnail rounded"
-          :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
-          alt="썸네일"
+        class="thumbnail rounded"
+        :src="getImageSrc(diary.images?.[0])"
+        alt="썸네일"
+        @click="openImageModal(diary.images?.[0])"
+        style="cursor:pointer;"
       />
 
       <!-- 우측 정보 -->
@@ -235,16 +333,18 @@ const deleteComment = async (commentId) => {
       <div class="content-text" v-html="diary.content"></div>
     </div>
 
-    <!-- 추가 이미지 예시 (필요시 확장 가능) -->
-    <div v-if="diary.imageUrls && diary.imageUrls.length" class="diary-images mt-3">
+    <!-- 추가 이미지 -->
+    <div v-if="diary.images && diary.images.length" class="diary-images mt-3">
       <h5 class="fw-semibold mb-2">사진</h5>
       <div class="d-flex flex-wrap gap-3">
         <img
-            v-for="(img, index) in diary.imageUrls"
-            :key="index"
-            :src="`${IMAGE_BASE_URL}/fishing-diary/${img}`"
-            class="extra-image rounded"
-            alt="조행기 사진"
+          v-for="(img, index) in diary.images"
+          :key="index"
+          :src="getImageSrc(img)"
+          class="extra-image rounded"
+          alt="조행기 사진"
+          @click="openImageModal(img)"
+          style="cursor:pointer;"
         />
       </div>
     </div>
@@ -331,6 +431,23 @@ const deleteComment = async (commentId) => {
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" @click="closeReportModal">취소</button>
         <button type="button" class="btn btn-danger" @click="submitReport">신고하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 이미지 확대 모달 -->
+  <div v-if="showImageModal" class="modal-overlay" @click="closeImageModal">
+    <div class="modal-content image-slide-modal" @click.stop>
+      <button v-if="modalImages.length > 1" @click.stop="prevImage" class="slide-arrow left-arrow">
+        <span>&#60;</span>
+      </button>
+      <img :src="getImageSrc(modalImages[modalImageIndex])" alt="확대 이미지" class="slide-image" />
+      <button v-if="modalImages.length > 1" @click.stop="nextImage" class="slide-arrow right-arrow">
+        <span>&#62;</span>
+      </button>
+      <button class="btn-close" @click="closeImageModal">&times;</button>
+      <div v-if="modalImages.length > 1" class="slide-index">
+        {{ modalImageIndex + 1 }} / {{ modalImages.length }}
       </div>
     </div>
   </div>
@@ -588,5 +705,117 @@ const deleteComment = async (commentId) => {
 .btn-report-post:hover {
   background: #e74c3c;
   color: #fff;
+}
+
+/* ReportDetailItem.vue의 이미지 모달 스타일 참고하여 필요시 추가/수정 */
+.image-slide-modal {
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: transparent;
+  box-shadow: none;
+}
+.slide-image {
+  max-width: 100vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+.slide-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  border: none;
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.2s, transform 0.2s;
+}
+.slide-arrow:hover {
+  background: rgba(0,0,0,0.8);
+  transform: translateY(-50%) scale(1.08);
+}
+.left-arrow {
+  left: 10px;
+}
+.right-arrow {
+  right: 10px;
+}
+.btn-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 2rem;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  z-index: 3;
+  transition: color 0.2s;
+}
+.btn-close:hover {
+  color: #f44336;
+}
+.slide-index {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  background: rgba(0,0,0,0.4);
+  padding: 4px 16px;
+  border-radius: 12px;
+  font-size: 1rem;
+  z-index: 2;
+}
+@media (max-width: 600px) {
+  .slide-arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
+  .btn-close {
+    font-size: 1.5rem;
+    top: 10px;
+    right: 10px;
+  }
+  .slide-index {
+    font-size: 0.95rem;
+    bottom: 10px;
+  }
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.btn-edit, .btn-delete {
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.btn-edit {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+}
+.btn-delete {
+  background: #f44336;
+  color: #fff;
+  border: none;
 }
 </style>

@@ -7,7 +7,11 @@ import { getProductsByKeyword } from '@/api/product.js'
 import { useFishingDiaryStore } from '@/store/fishing-center/useFishingDiaryStore.js'
 
 const router = useRouter()
-const thumbnailFile = ref(null)
+const files = ref([])
+const imagePreviews = ref([])
+const existingImages = ref([])
+const deletedImageNames = ref([])
+
 const formData = ref({
   title: '',
   content: '',
@@ -22,6 +26,11 @@ const productSearchLoading = ref(false)
 const fishingDiaryStore = useFishingDiaryStore()
 const error = ref('')
 
+const props = defineProps({
+  editMode: Boolean,
+  diaryId: [String, Number]
+});
+
 const isFormValid = computed(() => {
   return (
       formData.value.title &&
@@ -32,20 +41,86 @@ const isFormValid = computed(() => {
 })
 
 function onThumbnailChange(event) {
-  const file = event.target.files[0]
-  if (file) {
-    thumbnailFile.value = file
+  const uploadedFiles = Array.from(event.target.files)
+  
+  uploadedFiles.forEach(file => {
+    if (file && file.type.startsWith('image/')) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
+        return
+      }
+      
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        imagePreviews.value.push({
+          id: Date.now() + Math.random(),
+          url: e.target.result,
+          file: file,
+          name: file.name
+        })
+      }
+      reader.readAsDataURL(file)
+      
+      files.value.push(file)
+    }
+  })
+}
+
+function removeImage(imageId) {
+  const index = imagePreviews.value.findIndex(img => img.id === imageId)
+  if (index > -1) {
+    imagePreviews.value.splice(index, 1)
+    files.value.splice(index, 1)
   }
 }
 
-function removeThumbnail() {
-  thumbnailFile.value = null
+function removeAllImages() {
+  files.value = []
+  imagePreviews.value = []
 }
+
+function removeExistingImage(imageId) {
+  const idx = existingImages.value.findIndex(img => img.id === imageId)
+  if (idx > -1) {
+    deletedImageNames.value.push(existingImages.value[idx].name)
+    existingImages.value.splice(idx, 1)
+  }
+}
+
+const allPreviews = computed(() => [...existingImages.value, ...imagePreviews.value])
 
 onMounted(async () => {
   if (!authStore.isAuthenticated) {
     alert('로그인이 필요합니다.')
     router.push('/login')
+  }
+  if (props.editMode && props.diaryId) {
+    try {
+      const diary = await fishingDiaryStore.fetchDiaryById(props.diaryId)
+      const d = fishingDiaryStore.currentDiary || diary
+      if (d) {
+        formData.value.title = d.title || ''
+        formData.value.content = d.content || ''
+        formData.value.fishingAt = d.fishingAt ? d.fishingAt.slice(0, 10) : ''
+        if (d.product) {
+          selectedProduct.value = d.product
+          productSearch.value = d.product.prodName || ''
+        }
+        
+        if (d.images && d.images.length > 0) {
+          existingImages.value = d.images.map((img, idx) => ({
+            id: 'existing-' + idx,
+            url: img.imageData ? `data:image/jpeg;base64,${img.imageData}` : 
+                 img.image_data ? `data:image/jpeg;base64,${img.image_data}` :
+                 img.imageUrl || img.image_url || '/images/no-image.png',
+            name: img.imageName || img.image_name || `image_${idx}`,
+            isExisting: true
+          }))
+        }
+      }
+    } catch (e) {
+      error.value = '기존 조행기 정보를 불러오지 못했습니다.'
+    }
   }
 })
 
@@ -55,35 +130,24 @@ async function onSubmit() {
     return
   }
   error.value = ''
-  const submitFormData = new FormData()
-  submitFormData.append(
-    'dto',
-    new Blob([
-      JSON.stringify({
-        title: formData.value.title,
-        content: formData.value.content,
-        fishingAt: formData.value.fishingAt, // yyyy-MM-dd
-        product: {
-          prodId: selectedProduct.value?.prodId
-        }
-      })
-    ], { type: 'application/json' })
-  )
-  if (thumbnailFile.value) {
-    submitFormData.append('images', thumbnailFile.value)
+  
+  const dtoToSend = {
+    title: formData.value.title,
+    content: formData.value.content,
+    fishingAt: formData.value.fishingAt,
+    product: {
+      prodId: selectedProduct.value?.prodId
+    },
+    deleteImageNames: [...deletedImageNames.value]
   }
-  // 디버깅: FormData 내용 확인
-  for (let pair of submitFormData.entries()) {
-    console.log(pair[0], pair[1]);
-  }
+  
   try {
     if (props.editMode && props.diaryId) {
-      await fishingDiaryStore.updateFishingDiary(props.diaryId, submitFormData)
+      await fishingDiaryStore.updateFishingDiary(props.diaryId, dtoToSend, files.value)
       alert('조행기가 성공적으로 수정되었습니다!')
       router.push(`/fishing-diary/${props.diaryId}`)
     } else {
-      await fishingDiaryStore.createFishingDiary(submitFormData)
-      // 임시: 최신 조행기 fdId로 이동
+      await fishingDiaryStore.createFishingDiary(dtoToSend, files.value)
       const listRes = await fishingDiaryStore.fetchDiaries({ page: 0, size: 1, sort: 'fdId,DESC' })
       const fdId = listRes?.data?.content?.[0]?.fdId || null
       if (fdId) router.push(`/fishing-diary/${fdId}`)
@@ -103,7 +167,10 @@ function resetForm() {
   }
   selectedProduct.value = null
   productSearch.value = ''
-  thumbnailFile.value = null
+  files.value = []
+  imagePreviews.value = []
+  existingImages.value = []
+  deletedImageNames.value = []
   error.value = ''
 }
 
@@ -182,13 +249,83 @@ function selectProduct(product) {
       <!-- 이미지 업로드 섹션 -->
       <div class="form-section">
         <h3 class="section-title">📸 이미지 업로드</h3>
-        <div class="form-group">
-          <label class="form-label">대표 썸네일</label>
-          <input id="thumbnail-upload" type="file" @change="onThumbnailChange" accept="image/*" class="form-control" />
-          <div v-if="thumbnailFile" class="file-preview">
-            <span>{{ thumbnailFile.name }}</span>
-            <button @click="removeThumbnail" type="button" class="remove-btn">삭제</button>
+        <div class="image-upload-container">
+          <!-- 이미지 갤러리 -->
+          <div v-if="allPreviews.length > 0" class="image-gallery">
+            <div class="gallery-header">
+              <h4 class="gallery-title">
+                <i class="fas fa-images"></i>
+                업로드된 이미지 ({{ allPreviews.length }}장)
+              </h4>
+              <button type="button" @click="removeAllImages" class="clear-all-btn">
+                <i class="fas fa-trash"></i>
+                모두 삭제
+              </button>
+            </div>
+            <div class="gallery-grid">
+              <div 
+                v-for="(image, index) in allPreviews" 
+                :key="image.id"
+                class="gallery-item"
+                :class="{ 'main-image': index === 0 }"
+              >
+                <img :src="image.url" :alt="image.name" class="gallery-image" />
+                <div class="image-overlay">
+                  <div class="image-actions">
+                    <button 
+                      v-if="image.isExisting"
+                      type="button" 
+                      @click="removeExistingImage(image.id)" 
+                      class="remove-btn"
+                      :title="'기존 이미지 삭제'"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                    <button 
+                      v-else
+                      type="button" 
+                      @click="removeImage(image.id)" 
+                      class="remove-btn"
+                      :title="'이미지 삭제'"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div v-if="index === 0" class="main-badge">
+                    <i class="fas fa-star"></i>
+                    대표
+                  </div>
+                </div>
+                <div class="image-info">
+                  <span class="image-name">{{ image.name }}</span>
+                  <span v-if="!image.isExisting" class="image-size">{{ (image.file.size / 1024 / 1024).toFixed(1) }}MB</span>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <!-- 업로드 플레이스홀더 -->
+          <div v-else class="upload-placeholder">
+            <div class="upload-icon">
+              <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <p class="upload-text">조행기 이미지를 업로드하세요</p>
+            <p class="upload-hint">JPG, PNG 파일만 가능합니다 (최대 5MB)</p>
+            <p class="upload-hint">여러 장 업로드 가능 (첫 번째가 대표 이미지)</p>
+          </div>
+
+          <input 
+            type="file" 
+            accept="image/*" 
+            @change="onThumbnailChange" 
+            class="file-input"
+            id="imageUpload"
+            multiple
+          />
+          <label for="imageUpload" class="upload-label">
+            <i class="fas fa-plus"></i>
+            {{ imagePreviews.length > 0 ? '이미지 추가' : '이미지 선택' }}
+          </label>
         </div>
       </div>
       <!-- 내용 작성 섹션 -->
@@ -445,5 +582,190 @@ function selectProduct(product) {
   background: #f44336;
   color: #fff;
   border: none;
+}
+
+.files-preview {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.file-name {
+  font-size: 0.9em;
+}
+
+.remove-all-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.remove-all-btn:hover {
+  background: #d32f2f;
+}
+
+.image-upload-container {
+  position: relative;
+}
+
+.image-gallery {
+  margin-bottom: 20px;
+}
+
+.gallery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.gallery-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.clear-all-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.clear-all-btn:hover {
+  background: #d32f2f;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.gallery-item {
+  position: relative;
+}
+
+.gallery-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+}
+
+.image-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.image-actions button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.main-image {
+  grid-column: span 2;
+}
+
+.main-badge {
+  background: #1976d2;
+  color: white;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.8em;
+}
+
+.image-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 0 0 4px 4px;
+  padding: 5px;
+  color: white;
+  font-size: 0.9em;
+}
+
+.image-name {
+  font-weight: 600;
+}
+
+.image-size {
+  font-size: 0.8em;
+}
+
+.upload-placeholder {
+  text-align: center;
+  padding: 40px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 4px;
+  color: #666;
+}
+
+.upload-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.upload-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.upload-hint {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-label {
+  background: #1976d2;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.upload-label:hover {
+  background: #1565c0;
 }
 </style> 
