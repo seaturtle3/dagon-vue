@@ -2,7 +2,8 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFishingDiaryStore } from '@/store/fishing-center/useFishingDiaryStore.js'
-import DiaryListView from './components/DiaryListView.vue'
+import Pagination from "@/components/common-function/Pagination.vue";
+import DiaryCard from "@/views/community/fishing-diary/components/DiaryCard.vue";
 
 const router = useRouter()
 const store = useFishingDiaryStore()
@@ -29,16 +30,24 @@ const onPageChange = async (page) => {
       </button>
     </div>
 
-    <DiaryListView
-      v-if="store.diaries.length"
-      :diaries="store.diaries"
-      :page="store.page"
-      :totalPages="store.totalPages"
-      :onPageChange="onPageChange"
-    />
+    <div v-if="store.diaries.length" class="grid-container">
+      <DiaryCard
+          v-for="diary in store.diaries"
+          :key="diary.id || diary.fdId"
+          :diary="diary"
+      />
+    </div>
+
     <div v-else class="loading-message">
       <p>조행기를 불러오는 중입니다...</p>
     </div>
+
+    <Pagination
+        :page="store.page"
+        :totalPages="store.totalPages"
+        :zeroBased="true"
+        @page-change="onPageChange"
+    />
   </div>
 </template>
 
@@ -46,6 +55,13 @@ const onPageChange = async (page) => {
 .center {
   width: 80%;
   margin: 5% auto;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-top: 20px;
 }
 
 .page-header {
