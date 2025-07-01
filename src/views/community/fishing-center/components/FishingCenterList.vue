@@ -79,8 +79,11 @@ const goToDetail = (item) => {
         <!-- 썸네일 -->
         <div class="thumbnail-wrapper">
           <template v-if="item.images && item.images.length > 0">
-            <div v-for="(img, idx) in item.images" :key="idx" class="image-thumb">
-              <img :src="`data:image/png;base64,${img.imageData}`" :alt="`이미지 ${idx + 1}`" />
+            <div class="image-thumb">
+              <img
+                  :src="`data:image/png;base64,${item.images[0].imageData}`"
+                  alt="썸네일 이미지"
+              />
             </div>
           </template>
           <div
@@ -136,13 +139,20 @@ const goToDetail = (item) => {
 }
 
 .thumbnail-wrapper {
-  display: flex;
-  gap: 8px;
+  height: 60%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.image-thumb {
+  width: 100%;
+  height: 100%;
 }
 
 .image-thumb img {
-  width: 80px;
-  height: 80px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   border-radius: 8px;
 }

@@ -157,10 +157,10 @@ async function submit() {
   try {
     if (props.editMode && props.prodId) {
       await productFormStore.updateProductAction(props.prodId, dtoToSend, files.value, router)
-      router.push('/partner/products')
+      await router.push('/partner/products')
     } else {
       await productFormStore.createProductAction(dtoToSend, files.value, router)
-      router.push('/partner/products')
+      await router.push('/partner/products')
     }
   } catch (err) {
     console.error('제품정보 등록/수정 실패:', err)
