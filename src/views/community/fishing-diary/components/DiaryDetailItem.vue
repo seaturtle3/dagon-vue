@@ -40,7 +40,6 @@ const initializeUserInfo = () => {
     const userInfo = localStorage.getItem('userInfo');
     if (userInfo) {
       currentUser.value = JSON.parse(userInfo);
-      console.log('localStorage에서 사용자 정보 복원:', currentUser.value);
     }
     
     // userInfo에 uno가 없으면 토큰에서 추출
@@ -302,11 +301,13 @@ const formatDate = (dateString) => {
     <!-- 제목 -->
     <div class="detail-title-row">
       <h2 class="detail-title">{{ diary.title }}</h2>
+    </div>
+    <div class="detail-title-row" style="display: flex; justify-content: flex-end;">
       <button
-        v-if="!isOwnDiary"
-        class="btn-report-post"
-        @click="openReportModal(diary, 'diary')"
-        title="게시글 신고"
+          v-if="!isOwnDiary"
+          class="btn-report-post"
+          @click="openReportModal(diary, 'diary')"
+          title="게시글 신고"
       >
         <i class="fas fa-flag"></i> 신고
       </button>

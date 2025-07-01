@@ -509,75 +509,84 @@ function onProductInputFocus() {
         </div>
       </div>
 
-      <!-- 이미지 & 내용 작성 섹션 -->
-      <div class="form-section content-section">
-        <h3 class="section-title">📝 {{ editMode ? '조황정보 수정' : '조황정보 작성' }}</h3>
-
-        <div class="content-layout">
-          <!-- 이미지 업로드 영역 -->
-          <div class="image-upload-section">
-            <label class="form-label">대표 이미지</label>
-            <div class="image-upload-container">
-              <div class="image-preview-area">
-                <div v-if="!thumbnailFile" class="upload-placeholder">
-                  <div class="upload-icon">📸</div>
-                  <div class="upload-text">
-                    <span class="upload-title">이미지를 선택해주세요</span>
-                    <span class="upload-subtitle">클릭하여 파일 선택</span>
-                  </div>
-                </div>
-                <div v-else class="image-preview">
-                  <img
-                      v-if="thumbnailPreviewUrl"
-                      :src="thumbnailPreviewUrl"
-                      alt="미리보기"
-                      class="preview-image"
-                  />
-                  <!-- thumbnailPreviewUrl이 없고, image_data가 있다면 -->
-                  <img
-                      v-else-if="formData.thumbnail_image_data"
-                      :src="`data:image/jpeg;base64,${formData.thumbnail_image_data}`"
-                      alt="미리보기"
-                      class="preview-image"
-                  />
-                  <div class="image-overlay">
-                    <button type="button" @click="removeThumbnail" class="remove-image-btn">
-                      <span>✕</span>
+      <!-- 썸네일 업로드 섹션 -->
+      <div class="form-section">
+        <h3 class="section-title">📸 대표 이미지 업로드</h3>
+        <div class="image-upload-container">
+          <!-- 썸네일 미리보기 -->
+          <div v-if="thumbnailFile || (editMode && report && report.images && report.images.length)" class="thumbnail-preview">
+            <div class="thumbnail-display">
+              <div class="thumbnail-item">
+                <img 
+                  v-if="thumbnailPreviewUrl" 
+                  :src="thumbnailPreviewUrl" 
+                  alt="썸네일 미리보기" 
+                  class="thumbnail-image" 
+                />
+                <img 
+                  v-else-if="editMode && report && report.images && report.images.length && report.images[0].imageData" 
+                  :src="`data:image/jpeg;base64,${report.images[0].imageData}`" 
+                  alt="기존 썸네일" 
+                  class="thumbnail-image" 
+                />
+                <img 
+                  v-else-if="editMode && report && report.thumbnailUrl" 
+                  :src="report.thumbnailUrl.startsWith('http') ? report.thumbnailUrl : `/api/fishing-report/images/${report.thumbnailUrl}`" 
+                  alt="기존 썸네일" 
+                  class="thumbnail-image" 
+                />
+                <div class="thumbnail-overlay">
+                  <div class="thumbnail-actions">
+                    <button 
+                      type="button" 
+                      @click="removeThumbnail" 
+                      class="remove-btn"
+                      title="썸네일 삭제"
+                    >
+                      <i class="fas fa-times"></i>
                     </button>
                   </div>
                 </div>
+                <div class="thumbnail-info">
+                  <span class="thumbnail-name">{{ thumbnailFile ? thumbnailFile.name : '기존 이미지' }}</span>
+                  <span v-if="thumbnailFile" class="thumbnail-size">{{ (thumbnailFile.size / 1024 / 1024).toFixed(1) }}MB</span>
+                </div>
               </div>
-              <input type="file" accept="image/*" class="upload-input" @change="onThumbnailChange"/>
-            </div>
-            <div v-if="thumbnailFile" class="file-info">
-              <span class="file-name">{{ thumbnailFile.name }}</span>
-            </div>
-          </div>
-          <div v-if="editMode && report && report.images && report.images.length" class="image-list">
-            <div v-for="(img, idx) in report.images" :key="idx" class="image-preview">
-              <img
-                  v-if="img.imageData"
-                  :src="`data:image/jpeg;base64,${img.imageData}`"
-                  alt="등록된 이미지"
-                  style="max-width: 120px; max-height: 120px; margin: 8px;"
-              />
-              <img
-                  v-else-if="img.imageUrl"
-                  :src="img.imageUrl"
-                  alt="등록된 이미지"
-                  style="max-width: 120px; max-height: 120px; margin: 8px;"
-              />
-              <span v-else>이미지 없음</span>
             </div>
           </div>
 
-          <!-- 내용 작성 영역 -->
-          <div class="content-editor-section">
-            <div class="form-group">
-              <label class="form-label required">조황정보 내용</label>
-              <RichTextEditor v-model="formData.content" editor-id="fishing-report-editor"/>
+          <!-- 업로드 플레이스홀더 -->
+          <div v-else class="upload-placeholder">
+            <div class="upload-icon">
+              <i class="fas fa-cloud-upload-alt"></i>
             </div>
+            <p class="upload-text">조황정보 대표 이미지를 업로드하세요</p>
+            <p class="upload-hint">JPG, PNG 파일만 가능합니다 (최대 5MB)</p>
+            <p class="upload-hint">대표 이미지는 하나만 업로드 가능합니다</p>
           </div>
+
+          <div class="upload-button-container">
+            <input 
+              type="file" 
+              accept="image/*" 
+              @change="onThumbnailChange" 
+              class="file-input"
+              id="imageUpload"
+            />
+            <label for="imageUpload" class="upload-label">
+              <i class="fas fa-plus"></i>
+              {{ thumbnailFile ? '대표 이미지 변경' : '대표 이미지 선택' }}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 내용 작성 섹션 -->
+      <div class="form-section">
+        <h3 class="section-title">📝 {{ editMode ? '조황정보 수정' : '조황정보 작성' }}</h3>
+        <div class="form-group">
+          <label class="form-label required">조황정보 내용</label>
+          <RichTextEditor v-model="formData.content" editor-id="fishing-report-editor"/>
         </div>
       </div>
 
@@ -705,187 +714,168 @@ function onProductInputFocus() {
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
-/* 새로운 콘텐츠 섹션 스타일 */
-.content-section {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
-  border-left: 4px solid #1976d2;
-}
-
-.content-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.image-upload-section {
-  background: white;
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 2px solid #e0e0e0;
-  transition: all 0.3s ease;
-}
-
-.image-upload-section:hover {
-  border-color: #1976d2;
-  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.15);
-}
-
+/* 썸네일 업로드 스타일 */
 .image-upload-container {
   position: relative;
-  cursor: pointer;
 }
 
-.image-preview-area {
-  border: 2px dashed #e0e0e0;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  min-height: 200px;
+.thumbnail-preview {
+  margin-bottom: 20px;
+}
+
+.thumbnail-display {
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
-.image-upload-container:hover .image-preview-area {
-  border-color: #1976d2;
-  background: #f8f9fa;
-}
-
-.upload-placeholder {
-  text-align: center;
-  padding: 40px 20px;
-  transition: all 0.3s ease;
-}
-
-.upload-placeholder:hover {
-  transform: translateY(-2px);
-}
-
-.upload-icon {
-  font-size: 3.5rem;
-  margin-bottom: 15px;
-  display: block;
-  opacity: 0.7;
-}
-
-.upload-text {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.upload-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #1976d2;
-}
-
-.upload-subtitle {
-  font-size: 0.95rem;
-  color: #666;
-}
-
-.upload-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.image-preview {
+.thumbnail-item {
   position: relative;
+  max-width: 300px;
   width: 100%;
-  height: 100%;
-  min-height: 200px;
 }
 
-.preview-image {
+.thumbnail-image {
   width: 100%;
-  height: 100%;
+  height: 200px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.image-overlay {
+.thumbnail-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 10px;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-.image-preview:hover .image-overlay {
+.thumbnail-item:hover .thumbnail-overlay {
   opacity: 1;
 }
 
-.remove-image-btn {
+.thumbnail-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.thumbnail-actions button {
+  background: rgba(244, 67, 54, 0.9);
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.thumbnail-actions button:hover {
+  background: rgba(244, 67, 54, 1);
+}
+
+.thumbnail-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 0 0 8px 8px;
+  padding: 8px;
+  color: white;
+  font-size: 0.9em;
+}
+
+.thumbnail-name {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.thumbnail-size {
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+
+.upload-placeholder {
+  text-align: center;
+  padding: 40px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  color: #666;
+  margin-bottom: 20px;
+  background: #fafafa;
+}
+
+.upload-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+  color: #1976d2;
+}
+
+.upload-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.upload-hint {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-label {
+  background: #1976d2;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.upload-label:hover {
+  background: #1565c0;
+  transform: translateY(-1px);
+}
+
+.upload-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.remove-btn {
   background: #f44336;
   color: white;
   border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  padding: 4px 8px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 12px;
 }
 
-.remove-image-btn:hover {
+.remove-btn:hover {
   background: #d32f2f;
-  transform: scale(1.1);
-}
-
-.file-info {
-  margin-top: 15px;
-  text-align: center;
-  padding: 10px;
-  background: #f5f5f5;
-  border-radius: 8px;
-}
-
-.file-name {
-  font-size: 0.9rem;
-  color: #333;
-  font-weight: 500;
-}
-
-.content-editor-section {
-  background: white;
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 2px solid #e0e0e0;
-}
-
-.content-editor-section .form-group {
-  margin-bottom: 0;
-}
-
-.content-editor-section :deep(.note-editor) {
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-  min-height: 350px;
-}
-
-.content-editor-section :deep(.note-editor:focus-within) {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
 .error-message {
@@ -954,16 +944,12 @@ function onProductInputFocus() {
     width: 100%;
   }
 
-  .content-layout {
-    gap: 20px;
+  .thumbnail-item {
+    max-width: 100%;
   }
 
-  .image-upload-section {
-    padding: 20px;
-  }
-
-  .image-preview-area {
-    min-height: 150px;
+  .thumbnail-image {
+    height: 150px;
   }
 
   .upload-placeholder {
@@ -971,24 +957,19 @@ function onProductInputFocus() {
   }
 
   .upload-icon {
-    font-size: 3rem;
+    font-size: 30px;
   }
 
-  .upload-title {
-    font-size: 1.1rem;
+  .upload-text {
+    font-size: 1rem;
   }
 
-  .content-editor-section {
-    padding: 20px;
+  .upload-hint {
+    font-size: 0.8em;
   }
 
-  .content-editor-section :deep(.note-editor) {
-    min-height: 300px;
-  }
-
-  .remove-image-btn {
-    width: 35px;
-    height: 35px;
+  .upload-label {
+    padding: 10px 20px;
     font-size: 14px;
   }
 }
@@ -1061,3 +1042,4 @@ function onProductInputFocus() {
   font-size: 0.9rem;
 }
 </style>
+

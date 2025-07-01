@@ -7,12 +7,12 @@ export const useFishingReportStore = defineStore('fishingReport', {
         reports: [],
         currentReport: null, // 상세보기용
         currentPage: 0,
-        pageSize: 10,
+        pageSize: 12,
         totalPages: 1,
         loading: false,
     }),
     actions: {
-        async fetchReports(page = 0, size = 10) {
+        async fetchReports(page = 0, size = 12) {
             if (this.loading) return
             this.loading = true
             try {
@@ -57,9 +57,15 @@ export const useFishingReportStore = defineStore('fishingReport', {
         // 조황정보 삭제 액션
         async deleteFishingReport(id) {
             try {
-                await api.delete(`/api/fishing-report/delete/${id}`)
+                console.log('조황정보 삭제 시도 - ID:', id);
+                const response = await api.delete(`/api/fishing-report/delete/${id}`);
+                console.log('조황정보 삭제 성공:', response);
+                return response;
             } catch (err) {
-                console.error('조황정보 삭제 실패', err)
+                console.error('조황정보 삭제 실패 - ID:', id);
+                console.error('에러 상세:', err);
+                console.error('에러 응답:', err.response);
+                console.error('에러 메시지:', err.message);
                 throw err
             }
         },

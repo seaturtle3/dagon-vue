@@ -1,8 +1,8 @@
 <script setup>
-import { partnerService } from '@/api/partner';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js';
+import {partnerService} from '@/api/partner';
+import {ref, computed, onMounted, onUnmounted} from 'vue';
+import {useRouter} from 'vue-router';
+import {useFishingReportStore} from '@/store/fishing-center/useFishingReportStore.js';
 
 const props = defineProps({
   report: {
@@ -39,6 +39,13 @@ const isOwnComment = (comment) => {
 
 // 사용자 정보 초기화
 const initializeUserInfo = () => {
+  // props로 받은 사용자 정보가 있으면 우선 사용
+  if (props.currentUser) {
+    currentUser.value = props.currentUser;
+    console.log('props에서 사용자 정보 사용:', currentUser.value);
+    return;
+  }
+
   try {
     const userInfo = localStorage.getItem('userInfo');
     if (userInfo) {
@@ -53,7 +60,7 @@ const initializeUserInfo = () => {
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
           if (payload.uno) {
-            currentUser.value = { ...currentUser.value, uno: payload.uno };
+            currentUser.value = {...currentUser.value, uno: payload.uno};
             console.log('토큰에서 uno 추출:', payload.uno);
           }
         } catch (tokenError) {
@@ -67,23 +74,27 @@ const initializeUserInfo = () => {
 };
 
 // 커스텀 알림 모달 상태 및 함수
-const alertModal = ref({ show: false, message: '' });
+const alertModal = ref({show: false, message: ''});
+
 function showAlertModal(msg) {
   alertModal.value.message = msg;
   alertModal.value.show = true;
 }
+
 function closeAlertModal() {
   alertModal.value.show = false;
   alertModal.value.message = '';
 }
 
 // 커스텀 confirm 모달 상태 및 함수
-const confirmModal = ref({ show: false, message: '', onConfirm: null });
+const confirmModal = ref({show: false, message: '', onConfirm: null});
+
 function showConfirmModal(msg, onConfirm) {
   confirmModal.value.message = msg;
   confirmModal.value.onConfirm = onConfirm;
   confirmModal.value.show = true;
 }
+
 function closeConfirmModal() {
   confirmModal.value.show = false;
   confirmModal.value.message = '';
@@ -130,13 +141,13 @@ const submitReport = async () => {
       await partnerService.reportFishingReport(props.report.frId, reportReason.value);
       // 신고 성공 시 localStorage에 저장
       const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
-      reportedItems.push({ id: props.report.frId, type: 'report' });
+      reportedItems.push({id: props.report.frId, type: 'report'});
       localStorage.setItem('reportedItems', JSON.stringify(reportedItems));
     } else if (reportType.value === 'comment') {
       await partnerService.reportFishingReportComment(reportTarget.value.frCommentId, reportReason.value);
       // 신고 성공 시 localStorage에 저장
       const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
-      reportedItems.push({ id: reportTarget.value.frCommentId, type: 'comment' });
+      reportedItems.push({id: reportTarget.value.frCommentId, type: 'comment'});
       localStorage.setItem('reportedItems', JSON.stringify(reportedItems));
     }
 
@@ -194,14 +205,14 @@ onUnmounted(() => {
 // 날짜 형식 변환 함수
 const formatDate = (dateString) => {
   if (!dateString) return '날짜 없음';
-  
+
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return '날짜 없음';
-  
+
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const day = date.getDate();
-  
+
   return `${year}. ${month}. ${day}`;
 };
 
@@ -215,11 +226,22 @@ const goToEdit = () => {
 const confirmDelete = async () => {
   if (confirm('정말 삭제하시겠습니까?')) {
     try {
+      console.log('삭제 시도 - frId:', props.report.frId);
       await fishingReportStore.deleteFishingReport(props.report.frId);
       showAlertModal('삭제되었습니다.');
       router.push('/fishing-report');
     } catch (e) {
-      showAlertModal('삭제에 실패했습니다.');
+      console.error('삭제 실패 상세:', e);
+      let errorMessage = '삭제에 실패했습니다.';
+
+      // 서버에서 받은 에러 메시지가 있으면 사용
+      if (e.response?.data?.message) {
+        errorMessage = e.response.data.message;
+      } else if (e.message) {
+        errorMessage = `삭제 실패: ${e.message}`;
+      }
+
+      showAlertModal(errorMessage);
     }
   }
 };
@@ -369,11 +391,11 @@ function getThumbnailSrc() {
   console.log('getThumbnailSrc 호출 - report.images:', props.report.images);
   console.log('getThumbnailSrc 호출 - report.thumbnailUrl:', props.report.thumbnailUrl);
   console.log('getThumbnailSrc 호출 - report.imageFileName:', props.report.imageFileName);
-  
+
   if (props.report.images && props.report.images.length) {
     const img = props.report.images[0];
     console.log('이미지 객체:', img);
-    
+
     if (img.imageData) {
       console.log('imageData 사용');
       return `data:image/jpeg;base64,${img.imageData}`;
@@ -391,20 +413,20 @@ function getThumbnailSrc() {
       return img.image_url;
     }
   }
-  
+
   if (props.report.thumbnailUrl) {
     console.log('thumbnailUrl 사용:', props.report.thumbnailUrl);
     // API 경로가 필요한 경우 처리
     if (props.report.thumbnailUrl.startsWith('http')) return props.report.thumbnailUrl;
     return `/api/fishing-report/images/${props.report.thumbnailUrl}`;
   }
-  
+
   // imageFileName이 있으면 URL 생성
   if (props.report.imageFileName) {
     console.log('imageFileName 사용:', props.report.imageFileName);
     return `/api/fishing-report/images/${props.report.imageFileName}`;
   }
-  
+
   console.log('기본 이미지 사용');
   return '/images/no-image.png';
 }
@@ -419,6 +441,8 @@ function getThumbnailSrc() {
     <!-- 제목 -->
     <div class="detail-title-row">
       <h2 class="detail-title">{{ report.title }}</h2>
+    </div>
+    <div class="detail-title-row" style="display: flex; justify-content: flex-end;">
       <button
           class="btn-report-post"
           @click="openReportModal(report, 'report')"
@@ -427,7 +451,7 @@ function getThumbnailSrc() {
         <i class="fas fa-flag"></i> 신고
       </button>
     </div>
-        <div class="info-thumbnail-layout">
+    <div class="info-thumbnail-layout">
       <div class="info-card">
         <!-- 상단: 제목과 라인 -->
         <div class="info-header">
@@ -437,7 +461,7 @@ function getThumbnailSrc() {
             <span>{{ report.views || 0 }}</span>
           </div>
         </div>
-        
+
         <!-- 하단: 썸네일과 정보 -->
         <div class="content-layout">
           <!-- 좌측: 썸네일 -->
@@ -498,7 +522,6 @@ function getThumbnailSrc() {
     <div class="content-section">
       <div class="content-text" v-html="report.content"></div>
     </div>
-
 
 
     <div class="comment-box">
@@ -589,7 +612,7 @@ function getThumbnailSrc() {
       <button v-if="modalImages.length > 1" @click.stop="prevImage" class="slide-arrow left-arrow">
         <span>&#60;</span>
       </button>
-      <img :src="getImageSrc(modalImages[modalImageIndex])" alt="확대 이미지" class="slide-image" />
+      <img :src="getImageSrc(modalImages[modalImageIndex])" alt="확대 이미지" class="slide-image"/>
       <button v-if="modalImages.length > 1" @click.stop="nextImage" class="slide-arrow right-arrow">
         <span>&#62;</span>
       </button>
@@ -616,7 +639,9 @@ function getThumbnailSrc() {
       <div style="padding:32px 18px 18px 18px;font-size:1.1rem;">{{ confirmModal.message }}</div>
       <div style="padding-bottom:24px;display:flex;justify-content:center;gap:16px;">
         <button class="btn btn-secondary" @click="closeConfirmModal" style="min-width:80px;">취소</button>
-        <button class="btn btn-danger" @click="confirmModal.onConfirm && confirmModal.onConfirm()" style="min-width:80px;">확인</button>
+        <button class="btn btn-danger" @click="confirmModal.onConfirm && confirmModal.onConfirm()"
+                style="min-width:80px;">확인
+        </button>
       </div>
     </div>
   </div>
@@ -628,10 +653,11 @@ function getThumbnailSrc() {
   margin: 40px auto;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   padding: 36px 48px 32px 48px;
   position: relative;
 }
+
 .detail-title-row {
   display: flex;
   align-items: center;
@@ -639,6 +665,7 @@ function getThumbnailSrc() {
   gap: 16px;
   margin-bottom: 10px;
 }
+
 .detail-title {
   flex: 1;
   text-align: center;
@@ -646,6 +673,7 @@ function getThumbnailSrc() {
   color: black;
   font-size: 2.5rem;
 }
+
 .info-thumbnail-layout {
   margin-bottom: 28px;
 }
@@ -752,11 +780,13 @@ function getThumbnailSrc() {
   font-size: 1rem;
   flex: 1;
 }
+
 .product-link {
   color: #1976d2;
   text-decoration: underline;
   font-weight: 500;
 }
+
 .thumbnail-img {
   width: 100%;
   height: 220px;
@@ -766,6 +796,7 @@ function getThumbnailSrc() {
   box-shadow: 0 4px 12px rgba(25, 118, 210, 0.12);
   cursor: pointer;
 }
+
 .content-section {
   margin-bottom: 32px;
   padding: 24px 18px;
@@ -778,9 +809,11 @@ function getThumbnailSrc() {
   word-break: break-all;
   overflow-x: auto;
 }
+
 .content-text {
   min-height: 80px;
 }
+
 .content-text img {
   max-width: 100%;
   height: auto;
@@ -789,6 +822,7 @@ function getThumbnailSrc() {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
 }
+
 .section-label {
   font-size: 1.1rem;
   font-weight: 600;
@@ -828,6 +862,7 @@ function getThumbnailSrc() {
 .reservation-btn i {
   font-size: 1.3rem;
 }
+
 .comment-box {
   background: #f4f7fb;
   border-radius: 10px;
@@ -835,11 +870,13 @@ function getThumbnailSrc() {
   margin-top: 18px;
   border: 1.5px solid #e3f2fd;
 }
+
 .comment-item {
   margin-bottom: 18px;
   padding-bottom: 10px;
   border-bottom: 1px solid #e0e0e0;
 }
+
 .comment-meta {
   display: flex;
   gap: 12px;
@@ -847,54 +884,67 @@ function getThumbnailSrc() {
   color: #1976d2;
   margin-bottom: 4px;
 }
+
 .comment-user {
   font-weight: 600;
 }
+
 .comment-date {
   color: #888;
   font-size: 0.93rem;
 }
+
 .comment-content {
   color: #222;
   font-size: 1.05rem;
   margin-left: 2px;
 }
+
 .no-comment {
   color: #888;
   text-align: center;
   padding: 18px 0 6px 0;
 }
+
 @media (max-width: 1100px) {
   .detail-container.card-style {
     max-width: 98vw;
     padding: 18px 4vw 18px 4vw;
   }
 }
+
 @media (max-width: 600px) {
   .detail-title {
     font-size: 1.3rem;
   }
+
   .info-card {
     padding: 16px;
   }
+
   .content-layout {
     flex-direction: column;
     gap: 20px;
   }
+
   .thumbnail-section {
     flex: none;
   }
+
   .thumbnail-img {
     height: 120px;
   }
+
   .reservation-btn {
     padding: 14px 20px;
     font-size: 1.1rem;
   }
+
   .content-section {
     padding: 12px 4px;
     font-size: 0.98rem;
   }
+
   .comment-box {
     padding: 10px 4px;
   }
@@ -973,16 +1023,19 @@ function getThumbnailSrc() {
   gap: 10px;
   margin-bottom: 10px;
 }
+
 .btn-edit, .btn-delete {
   padding: 6px 16px;
   border-radius: 4px;
   font-weight: 600;
 }
+
 .btn-edit {
   background: #1976d2;
   color: #fff;
   border: none;
 }
+
 .btn-delete {
   background: #f44336;
   color: #fff;
@@ -996,6 +1049,7 @@ function getThumbnailSrc() {
   margin-bottom: 18px;
   align-items: flex-start;
 }
+
 .comment-input {
   flex: 1;
   border-radius: 6px;
@@ -1008,10 +1062,12 @@ function getThumbnailSrc() {
   background: #fff;
   transition: border 0.2s;
 }
+
 .comment-input:focus {
   border: 1.5px solid #1976d2;
   outline: none;
 }
+
 .comment-submit-btn {
   min-width: 80px;
   height: 38px;
@@ -1023,10 +1079,12 @@ function getThumbnailSrc() {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .comment-submit-btn:disabled {
   background: #b0bec5;
   cursor: not-allowed;
 }
+
 .comment-submit-btn:hover:not(:disabled) {
   background: #1251a3;
 }
@@ -1046,21 +1104,25 @@ function getThumbnailSrc() {
   vertical-align: middle;
   transition: background 0.2s, color 0.2s;
 }
+
 .btn-report-post i {
   font-size: 1.1em;
   margin-right: 4px;
   vertical-align: middle;
 }
+
 .btn-report-post:hover {
   background: #e74c3c;
   color: #fff;
 }
+
 .comment-actions-row {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
   margin-top: 4px;
 }
+
 .btn-action-comment {
   background: #fff0f0;
   color: #e74c3c;
@@ -1075,12 +1137,14 @@ function getThumbnailSrc() {
   font-size: 0.98rem;
   transition: background 0.2s, color 0.2s;
 }
+
 .btn-action-comment:disabled {
   background: #f8d7da;
   color: #b0bec5;
   border-color: #f8d7da;
   cursor: not-allowed;
 }
+
 .btn-action-comment:hover:not(:disabled) {
   background: #e74c3c;
   color: #fff;
@@ -1097,13 +1161,15 @@ function getThumbnailSrc() {
   background: transparent;
   box-shadow: none;
 }
+
 .slide-image {
   max-width: 100vw;
   max-height: 80vh;
   object-fit: contain;
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
 }
+
 .slide-arrow {
   position: absolute;
   top: 50%;
@@ -1111,7 +1177,7 @@ function getThumbnailSrc() {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   color: #fff;
   border: none;
   font-size: 2.2rem;
@@ -1122,16 +1188,20 @@ function getThumbnailSrc() {
   z-index: 2;
   transition: background 0.2s, transform 0.2s;
 }
+
 .slide-arrow:hover {
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.8);
   transform: translateY(-50%) scale(1.08);
 }
+
 .left-arrow {
   left: 10px;
 }
+
 .right-arrow {
   right: 10px;
 }
+
 .btn-close {
   position: absolute;
   top: 20px;
@@ -1144,32 +1214,37 @@ function getThumbnailSrc() {
   z-index: 3;
   transition: color 0.2s;
 }
+
 .btn-close:hover {
   color: #f44336;
 }
+
 .slide-index {
   position: absolute;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   color: #fff;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   padding: 4px 16px;
   border-radius: 12px;
   font-size: 1rem;
   z-index: 2;
 }
+
 @media (max-width: 600px) {
   .slide-arrow {
     width: 36px;
     height: 36px;
     font-size: 1.5rem;
   }
+
   .btn-close {
     font-size: 1.5rem;
     top: 10px;
     right: 10px;
   }
+
   .slide-index {
     font-size: 0.95rem;
     bottom: 10px;
