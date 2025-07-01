@@ -3,6 +3,7 @@ import {ref, onMounted, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {fetchNoticeById, deleteNotice, fetchNotices} from "@/api/notice.js";
 import {useAdminAuthStore} from "@/store/auth/auth.js";
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 import BoardDetailBox from "@/components/common/BoardDetailBox.vue";
 import BoardDetailAction from "@/components/common/BoardDetailAction.vue";
@@ -115,11 +116,13 @@ const formatDate = (dateStr) => {
 </script>
 
 <template>
-  <div v-if="notice" class="board-detail" :key="route.params.id">
+  <div v-if="notice" class="board-detail">
     <BoardDetailBox>
       <template #title>
-        <div class="d-flex justify-between align-items-center">
+        <div class="d-flex justify-between align-items-center" style="position:relative;">
           <span>{{ notice.title }}</span>
+          <!-- 제목 오른쪽에 점세개(더보기) 버튼 -->
+          <BoardDetailAction showTopMenu @edit="handleEdit" @delete="handleDelete" />
         </div>
       </template>
 
@@ -128,7 +131,6 @@ const formatDate = (dateStr) => {
         {{ formatDate(notice.createdAt) }}
           <span class="ms-3 text-secondary">작성자: {{ notice.adminName }}</span>
         </div>
-
       </template>
 
       <template #default>
@@ -137,6 +139,7 @@ const formatDate = (dateStr) => {
       </template>
     </BoardDetailBox>
 
+    <!-- 하단 액션 버튼 -->
     <BoardDetailAction @edit="handleEdit" @delete="handleDelete" />
 
     <!-- 이전글/다음글 네비게이션 -->

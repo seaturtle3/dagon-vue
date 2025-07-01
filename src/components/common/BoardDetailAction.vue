@@ -1,10 +1,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 const emit = defineEmits(['edit', 'delete'])
+const props = defineProps({
+  showTopMenu: { type: Boolean, default: false }
+})
 
 const isAdmin = ref(false)
+const showMenu = ref(false)
 const router = useRouter()
 
 onMounted(() => {
@@ -20,28 +25,96 @@ onMounted(() => {
   }
 })
 
-const handleEdit = () => emit('edit')
-const handleDelete = () => emit('delete')
+const handleEdit = () => { showMenu.value = false; emit('edit') }
+const handleDelete = () => { showMenu.value = false; emit('delete') }
 const handleBack = () => router.back()
-
+const toggleMenu = () => showMenu.value = !showMenu.value
+const closeMenu = () => showMenu.value = false
 </script>
 
 <template>
-  <div class="detail-action text-end mt-3">
-    <!-- 관리자일 경우에만 수정/삭제 -->
-    <template v-if="isAdmin">
-      <button class="btn btn-outline-primary me-2" @click="handleEdit">수정</button>
-      <button class="btn btn-outline-danger me-2" @click="handleDelete">삭제</button>
+  <div>
+    <!-- 상단 점세개 메뉴 (showTopMenu) -->
+    <template v-if="showTopMenu && isAdmin">
+      <div class="top-menu">
+        <button class="icon-btn" @click="toggleMenu">
+          <font-awesome-icon :icon="['fas', 'ellipsis-v']" />
+        </button>
+        <div v-if="showMenu" class="popover-menu" @click.outside="closeMenu">
+          <button class="popover-item edit" @click="handleEdit">
+            <font-awesome-icon :icon="['fas', 'pen']" />
+          </button>
+          <button class="popover-item delete" @click="handleDelete">
+            <font-awesome-icon :icon="['fas', 'trash']" />
+          </button>
+        </div>
+      </div>
     </template>
 
-    <!-- 항상 보이는 뒤로가기 -->
-    <button class="btn btn-outline-secondary" @click="handleBack">목록</button>
+    <!-- 하단 액션 버튼 (showTopMenu가 아닐 때만) -->
+    <template v-else>
+      <div class="detail-action text-end mt-3">
+        <template v-if="isAdmin">
+          <button class="btn btn-outline-primary me-2" @click="handleEdit">수정</button>
+          <button class="btn btn-outline-danger me-2" @click="handleDelete">삭제</button>
+        </template>
+        <button class="btn btn-outline-secondary" @click="handleBack">목록</button>
+      </div>
+    </template>
   </div>
 </template>
 
 <style scoped>
+.top-menu {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  z-index: 10;
+}
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.7rem;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0 8px;
+}
+.popover-menu {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+.popover-item {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 1rem;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.popover-item.edit i {
+  color: #1976d2;
+}
+.popover-item.delete i {
+  color: #e53e3e;
+}
+.popover-item:hover {
+  background: #f1f5f9;
+}
 .detail-action button {
   min-width: 80px;
- text-align: center;
+  text-align: center;
 }
 </style>

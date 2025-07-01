@@ -25,6 +25,7 @@
     <div class="events-table">
       <div class="table-header">
         <div class="col-id">번호</div>
+        <div class="col-thumbnail">썸네일</div>
         <div class="col-title">제목</div>
         <div class="col-period">기간</div>
         <div class="col-status">상태</div>
@@ -42,6 +43,14 @@
       <div v-else class="table-body">
         <div v-for="(event, idx) in events" :key="event.eventId" class="table-row">
           <div class="col-id">{{ idx + 1 + searchParams.page * searchParams.size }}</div>
+          <div class="col-thumbnail">
+            <div v-if="event.thumbnailUrl" class="thumbnail-preview" @click="openDetailModal(event.eventId)" style="cursor:pointer;">
+              <img :src="`${BASE_URL}${event.thumbnailUrl}`" :alt="event.title" />
+            </div>
+            <div v-else class="thumbnail-placeholder">
+              <font-awesome-icon icon="fa-solid fa-image" />
+            </div>
+          </div>
           <div class="col-title" @click="openDetailModal(event.eventId)" style="cursor:pointer;">
             <span v-if="event.isTop" class="top-badge">고정</span>
             <span>{{ event.title }}</span>
@@ -99,7 +108,7 @@
             <label>썸네일 이미지</label>
             <input type="file" accept="image/*" @change="handleThumbnailUpload" />
             <div v-if="eventForm.thumbnailUrl" class="mt-2">
-              <img :src="eventForm.thumbnailUrl" alt="썸네일 미리보기" style="max-width: 200px; max-height: 120px; border-radius: 4px; object-fit: cover;" />
+              <img :src="`${BASE_URL}${eventForm.thumbnailUrl}`" alt="썸네일 미리보기" style="max-width: 200px; max-height: 120px; border-radius: 4px; object-fit: cover;" />
             </div>
           </div>
           <div class="form-group">
@@ -139,6 +148,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { fetchEvents, fetchEventById, createEvent, updateEvent, deleteEvent as apiDeleteEvent } from '@/api/event.js'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
+import { BASE_URL } from '@/constants/baseUrl.js'
 
 const events = ref([])
 const loading = ref(false)
@@ -330,8 +340,7 @@ async function handleThumbnailUpload(e) {
     })
     if (!res.ok) throw new Error('이미지 업로드 실패')
     const fileName = await res.text()
-    const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL
-    eventForm.thumbnailUrl = `${baseUrl}/${fileName}`
+    eventForm.thumbnailUrl = `/uploads/${fileName}`
   } catch (err) {
     alert('썸네일 업로드에 실패했습니다.')
   }
@@ -447,7 +456,7 @@ onMounted(() => {
 }
 .table-header {
   display: grid;
-  grid-template-columns: 60px 1fr 180px 100px 80px 120px;
+  grid-template-columns: 60px 80px 1fr 180px 100px 80px 120px;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -461,7 +470,7 @@ onMounted(() => {
 }
 .table-row {
   display: grid;
-  grid-template-columns: 60px 1fr 180px 100px 80px 120px;
+  grid-template-columns: 60px 80px 1fr 180px 100px 80px 120px;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #f1f5f9;
@@ -475,6 +484,46 @@ onMounted(() => {
 }
 .col-id, .col-status, .col-top {
   text-align: center;
+}
+
+/* 썸네일 컬럼 스타일 */
+.col-thumbnail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail-preview {
+  width: 60px;
+  height: 40px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease;
+}
+
+.thumbnail-preview:hover {
+  transform: scale(1.05);
+}
+
+.thumbnail-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbnail-placeholder {
+  width: 60px;
+  height: 40px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e0;
+  font-size: 0.8rem;
 }
 .status-badge {
   display: inline-block;
@@ -734,9 +783,14 @@ onMounted(() => {
 @media (max-width: 768px) {
   .table-header,
   .table-row {
-    grid-template-columns: 60px 1fr 100px 80px 60px 80px;
+    grid-template-columns: 60px 60px 1fr 100px 80px 60px 80px;
     font-size: 0.8rem;
     padding: 0.75rem 1rem;
+  }
+  .thumbnail-preview,
+  .thumbnail-placeholder {
+    width: 50px;
+    height: 35px;
   }
   .action-btn {
     width: 32px;
