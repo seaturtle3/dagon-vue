@@ -26,7 +26,6 @@ const formData = ref({
   title: '',
   content: '',
   fishingAt: new Date().toISOString().split('T')[0],
-  location: '',
   imageFileName: '',
   thumbnailUrl: '',
   user: null,
@@ -54,7 +53,6 @@ const isFormValid = computed(() => {
       formData.value.title &&
       formData.value.content &&
       formData.value.fishingAt &&
-      formData.value.location &&
       selectedProduct.value
   )
 })
@@ -153,22 +151,21 @@ onMounted(async () => {
 
   // RichTextEditor는 컴포넌트에서 자동으로 초기화됩니다
   await productListStore.fetchProducts()
-  // 수정 모드일 때 기존 데이터 불러오기
-  if (props.editMode && props.reportId) {
-    await fishingReportStore.fetchReportById(props.reportId)
-    const report = fishingReportStore.currentReport
-    if (report) {
-      formData.value.title = report.title
-      formData.value.content = report.content
-      formData.value.fishingAt = report.fishingAt
-      formData.value.location = report.location
-      formData.value.productId = report.product?.prodId
-      formData.value.productName = report.product?.prodName
-      formData.value.imageFileName = report.imageFileName
-      formData.value.thumbnailUrl = report.thumbnailUrl
-      formData.value.user = report.user
-      formData.value.comments = report.comments
-      formData.value.images = report.images // 또는 report.images를 별도 변수로 사용
+        // 수정 모드일 때 기존 데이터 불러오기
+      if (props.editMode && props.reportId) {
+        await fishingReportStore.fetchReportById(props.reportId)
+        const report = fishingReportStore.currentReport
+        if (report) {
+          formData.value.title = report.title
+          formData.value.content = report.content
+          formData.value.fishingAt = report.fishingAt
+          formData.value.productId = report.product?.prodId
+          formData.value.productName = report.product?.prodName
+          formData.value.imageFileName = report.imageFileName
+          formData.value.thumbnailUrl = report.thumbnailUrl
+          formData.value.user = report.user
+          formData.value.comments = report.comments
+          formData.value.images = report.images // 또는 report.images를 별도 변수로 사용
 
       console.log('report.images:', report.images)
       // 상품 선택 세팅
@@ -196,7 +193,7 @@ onMounted(async () => {
 
 async function onSubmit() {
   if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 장소, 상품)')
+    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 상품)')
     return
   }
   if (!formData.value.fishingAt) {
@@ -223,7 +220,6 @@ async function onSubmit() {
     content: formData.value.content,
     prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
     fishingAt: formData.value.fishingAt,
-    location: formData.value.location,
     imageFileName: thumbnailFile.value ? thumbnailFile.value.name : null,
     product: selectedProduct.value ? {
       prodId: selectedProduct.value.prodId,
@@ -269,7 +265,6 @@ function resetForm() {
     title: '',
     content: '',
     fishingAt: new Date().toISOString().split('T')[0],
-    location: '',
     productId: null,
     productName: '',
     imageFileName: '',
@@ -397,18 +392,13 @@ function onProductInputFocus() {
           </div>
         </div>
 
-        <div class="form-row">
+                <div class="form-row">
           <div class="form-group">
             <label class="form-label required">낚시 날짜</label>
             <div class="date-input-container">
               <input v-model="formData.fishingAt" type="date" class="form-control date-input" placeholder="날짜를 선택하세요"
                      required ref="dateInputRef" @click="onDateInputClick"/>
             </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label required">낚시 장소</label>
-            <input v-model="formData.location" type="text" class="form-control" placeholder="낚시한 장소를 입력하세요" required/>
           </div>
         </div>
 

@@ -8,7 +8,6 @@ const route = useRoute()
 const router = useRouter()
 const store = useProductFishingReportStore()
 const productId = route.params.prodId
-console.log("-------------1111111111111>",productId)
 
 onMounted(() => {
   store.fetchFishingReport(productId)
@@ -16,11 +15,12 @@ onMounted(() => {
 
 const reportList = computed(() => store.getReportByProductId(productId))
 
-console.log("-------------11111111111112>",reportList)
-
 const goToDetail = (report) => {
   router.push(`/fishing-report/${report.frId}`)
 }
+
+console.log("-------------ProductId >",productId)
+console.log("-------------reportList >",reportList)
 </script>
 
 <template>
@@ -83,12 +83,6 @@ const goToDetail = (report) => {
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   padding: 10px 0;
-}
-
-.count {
-  color: #4a90e2;
-  font-weight: 600;
-  margin-left: 6px;
 }
 
 .item-box {

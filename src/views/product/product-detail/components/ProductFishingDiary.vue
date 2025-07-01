@@ -61,16 +61,16 @@ watch(filteredDiaries, (val) => {
             <img
           class="thumbnail-img"
           :src="
-            report.images && report.images.length
+            diary.images && diary.images.length
               ? (
-                  report.images[0].imageData
-                    ? `data:image/jpeg;base64,${report.images[0].imageData}`
-                    : (report.images[0].image_data
-                        ? `data:image/jpeg;base64,${report.images[0].image_data}`
-                        : (report.images[0].imageUrl
-                            ? report.images[0].imageUrl
-                            : (report.images[0].image_url
-                                ? report.images[0].image_url
+                  diary.images[0].imageData
+                    ? `data:image/jpeg;base64,${diary.images[0].imageData}`
+                    : (diary.images[0].image_data
+                        ? `data:image/jpeg;base64,${diary.images[0].image_data}`
+                        : (diary.images[0].imageUrl
+                            ? diary.images[0].imageUrl
+                            : (diary.images[0].image_url
+                                ? diary.images[0].image_url
                                 : '/images/no-image.png'
                               )
                           )

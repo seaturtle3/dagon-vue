@@ -52,7 +52,7 @@ const centerCount = computed(() => {
   return reportCount + diaryCount
 })
 
-const reportCount = computed(() => fishingReportStore.report?.length || 0)
+const reportCount = computed(() => fishingReportStore.getReportByProductId(prodId)?.length || 0)
 const diaryCount = computed(() => fishingDiaryStore.diary?.length || 0)
 
 onUnmounted(() => {

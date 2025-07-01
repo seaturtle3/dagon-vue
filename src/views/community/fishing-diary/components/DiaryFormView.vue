@@ -25,6 +25,7 @@ const productOptions = ref([])
 const productSearchLoading = ref(false)
 const fishingDiaryStore = useFishingDiaryStore()
 const error = ref('')
+const dateInputRef = ref(null)
 
 const props = defineProps({
   editMode: Boolean,
@@ -195,6 +196,18 @@ function selectProduct(product) {
   productSearch.value = product.prodName
   productOptions.value = []
 }
+
+// 날짜 선택기 열기
+function openDatePicker() {
+  if (dateInputRef.value) {
+    dateInputRef.value.showPicker()
+  }
+}
+
+// 날짜 입력 필드 클릭 시 달력 열기
+function onDateInputClick() {
+  openDatePicker()
+}
 </script>
 
 <template>
@@ -217,7 +230,17 @@ function selectProduct(product) {
         <div class="form-row">
           <div class="form-group">
             <label class="form-label required">방문 날짜</label>
-            <input id="fishing-at" v-model="formData.fishingAt" type="date" class="form-control" required />
+            <div class="date-input-container">
+              <input 
+                id="fishing-at" 
+                v-model="formData.fishingAt" 
+                type="date" 
+                class="form-control date-input" 
+                required 
+                ref="dateInputRef"
+                @click="onDateInputClick"
+              />
+            </div>
           </div>
         </div>
         <div class="form-row">
@@ -433,6 +456,17 @@ function selectProduct(product) {
   outline: none;
   border-color: #1976d2;
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+/* 날짜 입력 필드 스타일 */
+.date-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-input {
+  cursor: pointer;
 }
 
 .form-group :deep(.note-editor) {
