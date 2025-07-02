@@ -254,11 +254,17 @@ export default {
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 8px;
+  color: #333 !important;
+  background-color: #fff !important;
 }
 
 .form-control:focus, .form-select:focus {
   border-color: #80bdff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control::placeholder {
+  color: #999 !important;
 }
 
 .btn-primary {

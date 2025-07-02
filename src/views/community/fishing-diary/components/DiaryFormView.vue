@@ -514,12 +514,18 @@ function onDateInputClick() {
   border-radius: 6px;
   font-size: 14px;
   transition: border-color 0.3s ease;
+  color: #333 !important;
+  background-color: #fff !important;
 }
 
 .form-control:focus {
   outline: none;
   border-color: #1976d2;
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.form-control::placeholder {
+  color: #999 !important;
 }
 
 /* 날짜 입력 필드 스타일 */

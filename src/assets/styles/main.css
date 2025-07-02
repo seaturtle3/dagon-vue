@@ -43,6 +43,26 @@ textarea::placeholder {
   color: #999 !important;
 }
 
+/* Summernote 에디터 전역 스타일 */
+.note-editor .note-editable {
+  color: #333 !important;
+  background-color: #fff !important;
+}
+
+.note-editor .note-editable * {
+  color: #333 !important;
+}
+
+.note-editor .note-editable p,
+.note-editor .note-editable div,
+.note-editor .note-editable span {
+  color: #333 !important;
+}
+
+.note-editor .note-placeholder {
+  color: #999 !important;
+}
+
 /* 앱 컨테이너 */
 #app {
   min-height: 100vh;
