@@ -37,6 +37,7 @@ const props = defineProps({
 const localForm = reactive({...props.form})
 
 const isFormValid = computed(() => {
+  const hasAnyImage = files.value.length > 0 || existingImages.value.length > 0;
   return (
     localForm.prodName &&
     localForm.prodRegion &&
@@ -45,7 +46,7 @@ const isFormValid = computed(() => {
     localForm.maxPerson &&
     localForm.weight &&
     localForm.prodAddress &&
-    files.value.length > 0
+    hasAnyImage
   )
 })
 
@@ -97,6 +98,9 @@ function removeImage(imageId) {
 function removeAllImages() {
   files.value = []
   imagePreviews.value = []
+  // 기존 이미지도 모두 삭제 (삭제된 이미지 이름 기록)
+  deletedImageNames.value.push(...existingImages.value.map(img => img.name))
+  existingImages.value = []
 }
 
 // 수정 모드 진입 시 기존 이미지 세팅
