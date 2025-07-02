@@ -44,7 +44,9 @@ export const useSeaProdStore = defineStore('seaProd', {
                 const params = new URLSearchParams()
                 if (region) params.append('region', region)
                 if (subType) params.append('subType', subType)
-                species.forEach(s => params.append('species', s))  // ✅ 배열일 경우 반복 추가
+                if (species && Array.isArray(species)) {
+                    species.forEach(s => params.append('species', s))
+                }
                 params.append('sortBy', sortBy)
                 params.append('direction', direction)
 
