@@ -53,17 +53,36 @@ const recommendedProducts = computed(() => {
 
 <template>
   <Banner />
-  <div class="container mx-auto">
+  <div class="container home-container mx-auto">
     <SideButtons />
-    <PopularList :reports="reportStore.reports" />
-    <RecommendationList :products="recommendedProducts" />
+    <section class="section-block">
+      <PopularList :reports="reportStore.reports" />
+    </section>
+    <section class="section-block">
+      <RecommendationList :products="recommendedProducts" />
+    </section>
     <!-- 공지사항 섹션 -->
-    <div class="my-2xl">
+    <section class="section-block">
       <NoticeBox />
-    </div>
+    </section>
   </div>
 </template>
 
 <style>
-/* 기존 스타일 삭제 */
+.home-container {
+  padding: 32px 0 48px 0;
+  max-width: 1200px;
+}
+.section-block {
+  margin-top: 20px;
+  margin-bottom: 60px;
+}
+@media (max-width: 900px) {
+  .home-container {
+    padding: 16px 0 24px 0;
+  }
+  .section-block {
+    margin-bottom: 24px;
+  }
+}
 </style>
