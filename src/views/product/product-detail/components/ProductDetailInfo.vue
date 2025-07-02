@@ -229,7 +229,7 @@ async function deleteProduct() {
   try {
     await partnerService.deleteProduct(props.product.prodId)
     alert('상품이 성공적으로 삭제되었습니다.')
-    router.push('/products')
+    router.push('/')
   } catch (error) {
     console.error('상품 삭제 실패:', error)
     const errorMessage = error.response?.data?.message || '상품 삭제에 실패했습니다. 다시 시도해주세요.'
@@ -260,6 +260,17 @@ console.log('swiperInstance.value.swiper:', swiperInstance.value?.swiper);
   <div class="product-detail-container">
     <!-- 페이지 헤더 -->
     <div class="page-header">
+
+      <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
+      <div class="header-actions" style="display: flex; justify-content: flex-end">
+        <ProductEditButton :product="product" v-if="isOwnProduct" />
+
+        <button v-if="isOwnProduct" @click="deleteProduct" class="btn btn-danger">
+          <i class="fa-solid fa-x"></i>
+          삭제
+        </button>
+      </div>
+
       <div class="header-content">
         <div class="header-left">
           <h1 class="page-title">{{ props.product.prodName }}</h1>
@@ -271,17 +282,6 @@ console.log('swiperInstance.value.swiper:', swiperInstance.value?.swiper);
             <span>{{ props.product.prodName }}</span>
           </div>
         </div>
-
-        <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
-        <div class="header-actions">
-            <ProductEditButton :product="product" v-if="isOwnProduct" />
-
-          <button v-if="isOwnProduct" @click="deleteProduct" class="btn btn-danger">
-            <i class="fa-solid fa-x"></i>
-            삭제
-          </button>
-        </div>
-
       </div>
     </div>
 

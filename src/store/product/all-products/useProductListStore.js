@@ -12,7 +12,12 @@ export const useProductListStore = defineStore('productList', {
         async fetchProducts() {
             try {
                 const res = await api.get('/api/product/get-all', {
-                    params: { page: this.page, size: this.size }
+                    params: {
+                        page: this.page,
+                        size: this.size,
+                        sortBy: 'createdAt',
+                        direction: 'desc'
+                    }
                 })
                 this.products = res.data.content
                 this.totalPages = res.data.totalPages

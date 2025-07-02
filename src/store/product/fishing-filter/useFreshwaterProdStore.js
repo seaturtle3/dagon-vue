@@ -35,18 +35,25 @@ export const useFreshwaterProdStore = defineStore('freshwaterProd', {
         async fetchFilteredProducts({
                                         region = '',
                                         subType = '',
-                                        species = '',
+                                        species = [],
                                         sortBy = 'createdAt',
                                         direction = 'desc'
                                     } = {}) {
             this.loading = true
             try {
-                const res = await api.get('/api/product/get-all/freshwater/filter', {
-                    params: {region, subType, species, sortBy, direction }
-                })
-                this.products = res.data // 이건 List<ProductDTO> 반환이라고 가정
+                const params = new URLSearchParams()
+                if (region) params.append('region', region)
+                if (subType) params.append('subType', subType)
+                if (species && Array.isArray(species)) {
+                    species.forEach(s => params.append('species', s))
+                }
+                params.append('sortBy', sortBy)
+                params.append('direction', direction)
+
+                const res = await api.get('/api/product/get-all/freshwater/filter?' + params.toString())
+                this.products = res.data
             } catch (error) {
-                console.error('Filtered sea products fetch error:', error)
+                console.error('Filtered freshwater products fetch error:', error)
             } finally {
                 this.loading = false
             }

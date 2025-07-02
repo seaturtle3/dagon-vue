@@ -20,7 +20,7 @@ export const useProductFormStore = defineStore('productForm', {
             prodNotice: '',
             prodImageNames: []  // 추가
         },
-        thumbnailFiles: [], // ✅ 이미지 첨부용
+        images: [], // ✅ 이미지 첨부용
         showForm: false
     }),
     actions: {
@@ -39,8 +39,8 @@ export const useProductFormStore = defineStore('productForm', {
                 );
 
                 // 👇 썸네일 이미지들 추가
-                this.thumbnailFiles.forEach((file) => {
-                    formData.append('thumbnailFiles', file)
+                this.images.forEach((file) => {
+                    formData.append('images', file)
                 })
 
                 // 👇 앞에서 만든 createProduct 함수 호출
@@ -123,7 +123,7 @@ export const useProductFormStore = defineStore('productForm', {
                 prodNotice: '',
                 prodImageNames: [],
             }
-            this.thumbnailFiles = []
+            this.images = []
         },
         toggleForm() {
             this.showForm = !this.showForm
@@ -145,7 +145,7 @@ export const useProductFormStore = defineStore('productForm', {
                 prodNotice: product.prodNotice || '',
                 prodImageNames: product.prodImageNames || []  // 추가
             }
-            this.thumbnailFiles = [] // 초기화 or 필요한 경우 기존 파일 유지 로직 추가 가능
+            this.images = [] // 초기화 or 필요한 경우 기존 파일 유지 로직 추가 가능
         }
     }
 })

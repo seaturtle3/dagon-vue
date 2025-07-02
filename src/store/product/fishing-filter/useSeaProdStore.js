@@ -35,15 +35,22 @@ export const useSeaProdStore = defineStore('seaProd', {
         async fetchFilteredProducts({
                                         region = '',
                                         subType = '',
-                                        species = '',
+                                        species = [],
                                         sortBy = 'createdAt',
                                         direction = 'desc'
                                     } = {}) {
             this.loading = true
             try {
-                const res = await api.get('/api/product/get-all/sea/filter', {
-                    params: { region, subType, species, sortBy, direction }
-                })
+                const params = new URLSearchParams()
+                if (region) params.append('region', region)
+                if (subType) params.append('subType', subType)
+                if (species && Array.isArray(species)) {
+                    species.forEach(s => params.append('species', s))
+                }
+                params.append('sortBy', sortBy)
+                params.append('direction', direction)
+
+                const res = await api.get('/api/product/get-all/sea/filter?' + params.toString())
                 this.products = res.data
             } catch (error) {
                 console.error('Filtered sea products fetch error:', error)

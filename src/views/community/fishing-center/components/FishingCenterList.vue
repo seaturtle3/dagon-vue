@@ -53,9 +53,6 @@ const goToPage = (page) => {
   }
 }
 
-
-console.log("pagedList---<>", pagedList.value)
-
 // 상세 페이지로 이동 함수
 const goToDetail = (item) => {
   if (item._type === 'report') {
@@ -68,6 +65,7 @@ const goToDetail = (item) => {
 
 <template>
   <div>
+
     <div class="combined-grid" v-if="pagedList.length > 0">
       <div
           v-for="item in pagedList"
@@ -78,14 +76,12 @@ const goToDetail = (item) => {
       >
         <!-- 썸네일 -->
         <div class="thumbnail-wrapper">
-          <template v-if="item.images && item.images.length > 0">
-            <div class="image-thumb">
-              <img
-                  :src="`data:image/png;base64,${item.images[0].imageData}`"
-                  alt="썸네일 이미지"
-              />
-            </div>
-          </template>
+          <img
+              v-if="item.thumbnailUrl"
+              class="thumbnail"
+              :src="`${IMAGE_BASE_URL}/${item._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${item.thumbnailUrl}`"
+              alt="썸네일"
+          />
           <div
               class="badge"
               :class="item._type === 'report' ? 'badge-report' : 'badge-diary'"
@@ -139,22 +135,20 @@ const goToDetail = (item) => {
 }
 
 .thumbnail-wrapper {
-  height: 60%;
-  width: 100%;
-  overflow: hidden;
   position: relative;
-}
-
-.image-thumb {
   width: 100%;
-  height: 100%;
+  height: 60%;
+  overflow: hidden; /* 이게 있어야 뱃지가 박스 밖으로 안 튀어나감 */
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
 }
 
-.image-thumb img {
+.thumbnail {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
+  object-position: center;
+  display: block;
 }
 
 .badge {
