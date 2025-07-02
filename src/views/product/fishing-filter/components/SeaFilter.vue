@@ -88,9 +88,9 @@ function resetSpeciesSelection() {
 // 필터된 상품 조회 함수
 const fetchProducts = async (filterValues) => {
   const normalizedVal = {
-    region: filterValues.region || null,
-    subType: filterValues.subType || null,
-    species: filterValues.species || null,
+    region: filterValues.region || '',
+    subType: filterValues.subType || '',
+    species: filterValues.species || [],
   }
   await seaStore.fetchFilteredProducts(normalizedVal)
 }
@@ -134,7 +134,7 @@ watch(selected, (val) => {
         <label>어종 : </label>
         <button type="button" class="species-select-btn" @click="openSpeciesModal">
           <template v-if="selected.species.length === 0">
-            어종 선택
+            전체
           </template>
           <template v-else-if="selected.species.length <= 3">
             {{ selected.species.join(', ') }}
@@ -151,6 +151,13 @@ watch(selected, (val) => {
       <div class="modal-content">
         <h3>어종 선택</h3>
         <div class="species-grid">
+          <button
+            :class="['species-box', { selected: tempSelectedSpecies.length === 0 }]"
+            @click="resetSpeciesSelection"
+            type="button"
+          >
+            전체
+          </button>
           <button
             v-for="f in filters.fishSpecies"
             :key="f"
@@ -266,6 +273,7 @@ watch(selected, (val) => {
   border-radius: 8px;
   padding: 8px 16px;
   background: #fff;
+  color: #2c3e50; /* 어종 모달 글자 색 */
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
