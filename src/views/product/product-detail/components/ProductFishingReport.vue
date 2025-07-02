@@ -9,8 +9,15 @@ const router = useRouter()
 const store = useProductFishingReportStore()
 const productId = route.params.prodId
 
-onMounted(() => {
-  store.fetchFishingReport(productId)
+onMounted(async () => {
+  try {
+    await store.fetchFishingReport(productId)
+  } catch (error) {
+    // 404 에러는 조황정보가 없다는 의미이므로 무시
+    if (error.response?.status !== 404) {
+      console.error('조황정보 조회 중 오류:', error)
+    }
+  }
 })
 
 const reportList = computed(() => store.getReportByProductId(productId))
@@ -133,6 +140,13 @@ console.log("-------------reportList >",reportList)
 .thumbnail-wrapper {
   height: 60%;
   overflow: hidden;
+}
+
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .thumbnail {

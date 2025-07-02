@@ -32,9 +32,32 @@ onMounted(async () => {
   await store.fetchProductDetail(prodId)
   const prodIdNum = Number(prodId)
   if (!isNaN(prodIdNum)) {
-    fishingCenterStore.fetchFishingCenter(prodIdNum)
-    fishingReportStore.fetchFishingReport(prodIdNum)
-    fishingDiaryStore.fetchFishingDiary(prodIdNum)
+    try {
+      await fishingCenterStore.fetchFishingCenter(prodIdNum)
+    } catch (error) {
+      // 404 에러는 데이터가 없다는 의미이므로 무시
+      if (error.response?.status !== 404) {
+        console.error('조황센터 조회 중 오류:', error)
+      }
+    }
+    
+    try {
+      await fishingReportStore.fetchFishingReport(prodIdNum)
+    } catch (error) {
+      // 404 에러는 조황정보가 없다는 의미이므로 무시
+      if (error.response?.status !== 404) {
+        console.error('조황정보 조회 중 오류:', error)
+      }
+    }
+    
+    try {
+      await fishingDiaryStore.fetchFishingDiary(prodIdNum)
+    } catch (error) {
+      // 404 에러는 조행기가 없다는 의미이므로 무시
+      if (error.response?.status !== 404) {
+        console.error('조행기 조회 중 오류:', error)
+      }
+    }
   }
 })
 

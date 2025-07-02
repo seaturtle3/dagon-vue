@@ -25,7 +25,12 @@ export const useProductFishingDiaryStore = defineStore('productFishingDiary', {
                 const response = await api.get(`api/product/fishing-diary/${productId}`)
                 this.diary = response.data
             } catch (err) {
-                this.error = err.response?.data?.message || '조행기 조회 실패'
+                // 404 에러는 데이터가 없다는 의미이므로 정상 처리
+                if (err.response?.status === 404) {
+                    this.diary = []
+                } else {
+                    this.error = err.response?.data?.message || '조행기 조회 실패'
+                }
             } finally {
                 this.loading = false
             }
