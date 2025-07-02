@@ -183,7 +183,7 @@ async function submit() {
       new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' })
   );
   files.value.forEach(file => {
-    formData.append('thumbnailFiles', file)
+    formData.append('images', file)
   });
 
   console.log('📦 deletedImageNames:', deletedImageNames.value) // Proxy
