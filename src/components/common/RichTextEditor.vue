@@ -21,6 +21,18 @@ onMounted(() => {
       onChange: (contents) => {
         emit('update:modelValue', contents)
       },
+      onInit: () => {
+        // 에디터 초기화 후 텍스트 색상 강제 설정
+        const $editor = $(`#${props.editorId}`)
+        const $editable = $editor.find('.note-editable')
+        $editable.css({
+          'color': '#333 !important',
+          'background-color': '#fff !important'
+        })
+        
+        // 에디터 내부 모든 텍스트 요소에 색상 적용
+        $editable.find('*').css('color', '#333')
+      },
       onImageUpload: async (files) => {
         for (const file of files) {
           const formData = new FormData()
@@ -69,5 +81,51 @@ watch(() => props.modelValue, (newVal) => {
 </template>
 
 <style scoped>
+/* RichTextEditor 텍스트 색상 강제 설정 */
+:deep(.note-editor) {
+  color: #333 !important;
+}
 
+:deep(.note-editor .note-editing-area) {
+  color: #333 !important;
+}
+
+:deep(.note-editor .note-editable) {
+  color: #333 !important;
+  background-color: #fff !important;
+}
+
+:deep(.note-editor .note-editable:focus) {
+  color: #333 !important;
+}
+
+:deep(.note-editor .note-placeholder) {
+  color: #999 !important;
+}
+
+/* Summernote 에디터 내부 모든 텍스트 요소 강제 설정 */
+:deep(.note-editor *) {
+  color: inherit !important;
+}
+
+:deep(.note-editor .note-editable *) {
+  color: #333 !important;
+}
+
+:deep(.note-editor .note-editable p) {
+  color: #333 !important;
+}
+
+:deep(.note-editor .note-editable div) {
+  color: #333 !important;
+}
+
+:deep(.note-editor .note-editable span) {
+  color: #333 !important;
+}
+
+/* Summernote 에디터 초기화 시 텍스트 색상 설정 */
+:deep(.note-editor .note-editable:empty:before) {
+  color: #999 !important;
+}
 </style>
