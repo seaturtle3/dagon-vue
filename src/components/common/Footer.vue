@@ -80,7 +80,6 @@ import { faEnvelope, faPhone, faMapMarkerAlt } from '@fortawesome/free-solid-svg
 }
 
 .fishing-footer .col-md-4 {
-  flex: 1 1 260px;
   min-width: 220px;
   max-width: 100%;
   box-sizing: border-box;
@@ -183,7 +182,7 @@ import { faEnvelope, faPhone, faMapMarkerAlt } from '@fortawesome/free-solid-svg
 }
 
 .footer-icon {
-  color: #b0bed9;
+  color: #cbcccf;
   margin-right: 0.4em;
 }
 </style>
