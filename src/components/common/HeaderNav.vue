@@ -1,12 +1,14 @@
 <template>
-  <nav class="navbar navbar-light bg-light fixed-top border-bottom px-3">
+  <nav class="navbar fixed-top px-3">
     <div class="container-fluid ps-0">
 
       <!-- 로고 -->
-      <router-link to="/" class="navbar-brand fs-3">DΛGON</router-link>
+      <router-link to="/" class="navbar-brand">
+        <span class="logo-text">DΛGON</span>
+      </router-link>
 
       <!-- 카테고리 메뉴: 데스크탑에서만 보이게 -->
-      <ul class="navbar-nav d-flex flex-row gap-4 position-absolute start-50 translate-middle-x d-none d-xl-flex">
+      <ul class="navbar-nav d-flex flex-row gap-2 position-absolute custom-nav-center d-none d-lg-flex">
         <li v-for="item in menuItems" :key="item.label" class="nav-item position-relative"
             @mouseenter="item.open = true" @mouseleave="item.open = false">
 
@@ -29,19 +31,19 @@
       </ul>
 
       <!-- 우측 버튼: 데스크탑 -->
-      <div class="d-flex align-items-center gap-2 d-none d-xl-flex">
-        <router-link to="/multtae" class="btn btn-outline-primary btn-sm">🌊 물때·날씨</router-link>
+      <div class="d-flex align-items-center d-none d-lg-flex">
+        <router-link to="/multtae" class="btn btn-tide btn-sm me-1">🌊물때·날씨</router-link>
 
         <template v-if="!authStore.isAuthenticated">
-          <router-link to="/login" class="btn btn-outline-secondary btn-sm">로그인</router-link>
-          <router-link to="/admin/login" class="btn btn-outline-primary btn-sm">관리자 로그인</router-link>
+          <router-link to="/login" class="btn btn-login btn-sm me-1">로그인</router-link>
+          <router-link to="/admin/login" class="btn btn-admin btn-sm">관리자 로그인</router-link>
         </template>
 
         <template v-else-if="authStore.isAuthenticated">
           <div class="dropdown">
-            <a class="dropdown-toggle d-flex align-items-center text-dark text-decoration-none"
+            <a class="dropdown-toggle d-flex align-items-center text-decoration-none"
                href="#" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ displayName }}
+              <span class="user-name">{{ displayName }}</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <template v-if="isAdmin">
@@ -81,98 +83,62 @@
         </template>
       </div>
 
-      <!-- 햄버거 버튼: 1200px 미만에서만 보이게 (우측 버튼 div 바깥에 위치) -->
-      <button class="navbar-toggler d-xl-none ms-auto" type="button" @click="toggleMobileMenu">
+      <!-- 햄버거 버튼: 1024px 미만에서만 보이게 (우측 버튼 div 바깥에 위치) -->
+      <button class="navbar-toggler d-lg-none ms-auto" type="button" @click="toggleMobileMenu">
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <!-- 모바일/태블릿 메뉴 (햄버거 클릭 시 드롭다운): 1200px 미만에서만 보이게 -->
+      <!-- 모바일/태블릿 메뉴 (햄버거 클릭 시 드롭다운): 1024px 미만에서만 보이게 -->
       <div class="mobile-menu-box" :class="{ show: isMobileMenuOpen }">
         <div class="mobile-menu-overlay">
           <div class="mobile-menu-header">
             <!-- 로고 -->
-            <router-link to="/" class="navbar-brand fs-3">DΛGON</router-link>
+            <router-link to="/" class="navbar-brand">
+              <span class="logo-text">DΛGON</span>
+            </router-link>
             <!-- 닫기(X) 버튼 -->
             <button class="mobile-menu-close" @click="closeMobileMenu">&times;</button>
-
           </div>
 
-          <!-- 로그인/관리자 로그인 버튼 (비로그인 시) -->
-          <div v-if="!authStore.isAuthenticated" class="mobile-menu-login-btns">
-            <router-link to="/login" class="btn mobile-btn" @click="closeMobileMenu">로그인</router-link>
-            <router-link to="/admin/login" class="btn mobile-btn" @click="closeMobileMenu">관리자 로그인</router-link>
-          </div>
-          <!-- 로그인 상태별 메뉴 -->
-          <div v-else class="mobile-menu-login-btns mobile-menu-user-block">
-            <div class="mobile-menu-user-info">
-              <span class="user-name"><b>{{ displayName }}</b></span>
-              <!-- 알람 드롭다운 메뉴 -->
-              <div v-if="showNotificationDropdown" class="dropdown-menu notification-dropdown-menu show" @click.stop>
-                <div class="dropdown-header d-flex justify-content-between align-items-center">
-                  <span>알림</span>
-                  <button v-if="unreadCount > 0" @click.stop="markAllAsRead" class="btn btn-sm btn-link p-0">
-                    전체 읽음
-                  </button>
-                </div>
-
-                <div class="notification-list">
-                  <div v-if="loading" class="text-center py-3">
-                    <small class="text-muted">불러오는 중...</small>
-                  </div>
-
-                  <div v-else-if="visibleNotifications.length === 0" class="text-center py-3">
-                    <small class="text-muted">알림이 없습니다</small>
-                  </div>
-
-                  <div v-else>
-                    <div v-for="notification in visibleNotifications.slice(0, 5)" :key="notification && notification.id"
-                         class="notification-item"
-                         :class="{ unread: notification && !notification.read }"
-                         @click.stop="openNotificationModal(notification)">
-                      <div class="notification-content" v-if="notification">
-                        <div class="notification-title">{{ notification.title }}</div>
-                        <div class="notification-time">{{ formatTime(notification.time) }}</div>
-                      </div>
-                      <button class="notification-close-btn" v-if="notification"
-                              @click.stop="hideNotification(notification.id)">×
-                      </button>
-                    </div>
-
-                    <div v-if="visibleNotifications.length > 5" class="text-center py-2">
-                      <router-link to="/mypage/notifications" class="btn btn-sm btn-link" @click.stop>
-                        더보기
-                      </router-link>
-                    </div>
-                  </div>
-                </div>
+          <!-- 프로필/알림/버튼 영역 (가운데 정렬, 로그인 상태별) -->
+          <div class="mobile-profile-section">
+            <template v-if="!authStore.isAuthenticated">
+              <router-link to="/login" class="mobile-btn mobile-btn-login" @click="closeMobileMenu">로그인</router-link>
+              <router-link to="/admin/login" class="mobile-btn mobile-btn-admin" @click="closeMobileMenu">관리자 로그인</router-link>
+            </template>
+            <template v-else>
+              <div class="mobile-profile-info">
+                <span class="user-name"><b>{{ displayName }}</b></span>
+                <NotificationDropdown :user="authStore.user" :token="authStore.token" mobile/>
               </div>
-            </div>
-            <div class="mobile-menu-user-actions">
-              <router-link v-if="isAdmin" to="/admin/dashboard" class="btn mobile-btn mobile-btn-page"
-                           @click="closeMobileMenu">관리자페이지
-              </router-link>
-              <template v-else-if="isPartner">
-                <router-link to="/partner" class="btn mobile-btn mobile-btn-page"
-                           @click="closeMobileMenu">파트너페이지
-                </router-link>
-                <router-link to="/mypage" class="btn mobile-btn mobile-btn-page"
-                           @click="closeMobileMenu">마이페이지
-                </router-link>
-              </template>
-              <router-link v-else to="/mypage" class="btn mobile-btn mobile-btn-page" @click="closeMobileMenu">마이페이지
-              </router-link>
-              <a href="#" class="btn mobile-btn mobile-btn-logout" @click.prevent="logout">로그아웃</a>
-            </div>
-            <router-link v-if="!isAdmin && !isPartner" to="/mypage/reservations"
-                         class="btn mobile-btn mobile-btn-reservation" @click="closeMobileMenu">예약조회
-            </router-link>
-          </div>
-          <!-- 물때·날씨 버튼 -->
-          <div class="mobile-menu-tide">
-            <router-link to="/multtae" class="btn mobile-btn" @click="closeMobileMenu">🌊 물때·날씨</router-link>
+              <div class="mobile-profile-buttons">
+                <template v-if="isAdmin">
+                  <router-link to="/admin/dashboard" class="mobile-btn mobile-btn-page" @click="closeMobileMenu">관리자페이지</router-link>
+                </template>
+                <template v-else-if="isPartner">
+                  <router-link to="/partner" class="mobile-btn mobile-btn-page" @click="closeMobileMenu">파트너페이지</router-link>
+                  <router-link to="/mypage" class="mobile-btn mobile-btn-page" @click="closeMobileMenu">마이페이지</router-link>
+                </template>
+                <template v-else>
+                  <router-link to="/mypage" class="mobile-btn mobile-btn-page" @click="closeMobileMenu">마이페이지</router-link>
+                  <router-link to="/mypage/reservations" class="mobile-btn mobile-btn-reservation" @click="closeMobileMenu">예약조회</router-link>
+                </template>
+              </div>
+            </template>
           </div>
 
-          <!-- 카테고리 -->
+          <!-- 구분선 -->
+          <div class="mobile-menu-divider"></div>
+
+          <!-- 물때·날씨 버튼 (가운데 정렬) -->
+          <div class="mobile-tide-section">
+            <router-link to="/multtae" class="mobile-btn mobile-btn-tide" @click="closeMobileMenu">🌊 물때·날씨</router-link>
+          </div>
+
+          <!-- 구분선 -->
+          <div class="mobile-menu-divider"></div>
+
+          <!-- 카테고리 (왼쪽 정렬) -->
           <div class="mobile-menu-category">
             <div class="category-title">CATEGORY</div>
             <div class="category-table">
@@ -189,6 +155,14 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- 구분선 -->
+          <div class="mobile-menu-divider"></div>
+
+          <!-- 로그아웃 버튼 (가운데 정렬, 로그인 상태에서만) -->
+          <div v-if="authStore.isAuthenticated" class="mobile-logout-section">
+            <a href="#" class="mobile-btn mobile-btn-logout" @click.prevent="logout">로그아웃</a>
           </div>
         </div>
       </div>
@@ -260,14 +234,14 @@ const visibleNotifications = computed(() =>
 
 // 화면 크기 감지
 const windowWidth = ref(window.innerWidth)
-const isLargeScreen = computed(() => windowWidth.value >= 1200)
-const isMediumScreen = computed(() => windowWidth.value >= 768 && windowWidth.value < 1200)
+const isLargeScreen = computed(() => windowWidth.value >= 1024)
+const isMediumScreen = computed(() => windowWidth.value >= 768 && windowWidth.value < 1024)
 
 // 화면 크기 변경 감지
 const handleResize = () => {
   windowWidth.value = window.innerWidth
 
-  // 1200px 이상으로 화면이 커지면 모바일 메뉴 닫기
+  // 1024px 이상으로 화면이 커지면 모바일 메뉴 닫기
   if (isLargeScreen.value && isMobileMenuOpen.value) {
     closeMobileMenu()
   }
@@ -275,7 +249,7 @@ const handleResize = () => {
 
 // 화면 크기 변경 감지
 watch(windowWidth, (newWidth) => {
-  if (newWidth >= 1200 && isMobileMenuOpen.value) {
+  if (newWidth >= 1024 && isMobileMenuOpen.value) {
     closeMobileMenu()
   }
 })
@@ -733,8 +707,70 @@ watch(
 </script>
 
 <style>
+/* ===== 모던 네비게이션 스타일 ===== */
+.navbar {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  height: 70px;
+}
+
+.navbar:hover {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* 로고 스타일 */
+.navbar-brand {
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+  transform: scale(1.05);
+}
+
+.logo-text {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #3b82f6;
+  letter-spacing: -0.02em;
+}
+
+/* 네비게이션 링크 */
+.nav-link {
+  color: var(--gray-700) !important;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
 .nav-link:hover {
-  font-weight: bold;
+  color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.08);
+  transform: translateY(-1px);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #3b82f6;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+  width: 80%;
 }
 
 .dropdown-menu-custom {
@@ -742,21 +778,124 @@ watch(
   top: 100%;
   left: 0;
   z-index: 999;
-  background: white;
-  border: 1px solid #ccc;
-  padding: 8px 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 0;
   margin: 0;
   list-style: none;
-  min-width: 160px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  animation: dropdownFadeIn 0.3s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .dropdown-menu-custom li {
-  padding: 4px 20px;
+  padding: 0;
 }
 
 .dropdown-menu-custom li:hover {
-  background-color: #f1f1f1;
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+.dropdown-item {
+  color: var(--gray-700) !important;
+  font-weight: 500;
+  padding: 0.75rem 1.25rem !important;
+  transition: all 0.3s ease;
+  border-radius: 0;
+}
+
+.dropdown-item:hover {
+  color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+  transform: translateX(4px);
+}
+
+/* ===== 모던 버튼 스타일 ===== */
+.btn-tide {
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn-tide:hover {
+  background: rgba(59, 130, 246, 0.08);
+  transform: translateY(-1px);
+}
+
+.btn-login {
+  background: white;
+  border: 1px solid var(--gray-300);
+  color: var(--gray-700);
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+  background: var(--gray-50);
+  transform: translateY(-1px);
+  color: var(--gray-800);
+}
+
+.btn-admin {
+  background: #3b82f6;
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn-admin:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+  color: white;
+}
+
+/* 사용자 프로필 */
+.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  color: var(--gray-700);
+}
+
+.dropdown-toggle:hover {
+  background: rgba(59, 130, 246, 0.08);
+  color: #3b82f6;
+}
+
+
+.user-name {
+  font-weight: bold;
+  font-size: 1em;
+}
+
+@media (max-width: 768px) {
+  .user-name {
+    font-size: 1.15em;
+  }
 }
 
 /* 알람 드롭다운 스타일 */
@@ -765,7 +904,7 @@ watch(
 }
 
 .notification-dropdown button {
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .notification-dropdown button:hover {
@@ -863,10 +1002,14 @@ watch(
 /* 햄버거 버튼 스타일 */
 .navbar-toggler {
   border: none;
-  background: transparent;
-  font-size: 2rem;
+  padding: 0.5rem;
   margin-left: 1rem;
   z-index: 1051;
+  transition: all 0.3s ease;
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(30, 58, 138, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
 /* 모바일 메뉴 스타일 */
@@ -885,8 +1028,8 @@ watch(
   display: none; /* 기본적으로 숨김 */
 }
 
-/* 1200px 미만에서만 모바일 메뉴 표시 */
-@media (max-width: 1199.98px) {
+/* 1024px 미만에서만 모바일 메뉴 표시 */
+@media (max-width: 1024px) {
   .mobile-menu-box {
     display: block;
   }
@@ -903,7 +1046,8 @@ watch(
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: #fff;
+  background :white;
+  /* background: linear-gradient(135deg, #f8fafc, #e2e8f0); */
   overflow-y: auto;
   padding: 0;
   transform: translateX(-100%);
@@ -914,8 +1058,8 @@ watch(
   transform: translateX(0);
 }
 
-/* 768px 이상 1200px 미만일 때 사이드바 스타일 */
-@media (min-width: 768px) and (max-width: 1199.98px) {
+/* 768px 이상 1024px 미만일 때 사이드바 스타일 */
+@media (min-width: 768px) and (max-width: 1024px) {
   .mobile-menu-overlay {
     width: 768px;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
@@ -923,7 +1067,7 @@ watch(
 }
 
 /* 768px 미만일 때 전체 화면 스타일 */
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
   .mobile-menu-overlay {
     width: 100%;
   }
@@ -931,16 +1075,23 @@ watch(
 
 .mobile-menu-close {
   position: absolute;
-  top: 0;
+  top: 1rem;
   right: 1.5rem;
-  background: none;
-  border: none;
-  font-size: 3rem; /* 더 크게 */
-  font-weight: 100; /* 얇게 */
+  width: 40px;
+  height: 40px;
+  font-size: 2rem;
+  font-weight: 300;
   line-height: 1;
-  color: #222;
+  color: var(--gray-700);
   cursor: pointer;
   z-index: 20100;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-close:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+  color: #3b82f6;
 }
 
 .mobile-menu-header {
@@ -962,60 +1113,100 @@ watch(
 }
 
 .mobile-menu-category {
-  padding: 1.2rem 1.5rem;
+  text-align: left;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  margin-top: 1.2rem;
 }
-
 .category-title {
   font-size: 1.3rem;
   font-weight: bold;
   margin-bottom: 1.2rem;
+  letter-spacing: -0.01em;
 }
-
 .category-table {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
 }
-
 .category-row {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   gap: 1.5rem;
+  padding: 0.3rem 0 0.3rem 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  transition: none;
 }
-
+.category-row:hover {
+  background: none;
+  box-shadow: none;
+}
 .category-main {
   min-width: 90px;
-  font-weight: 600;
+  font-weight: 700;
+  color: #222;
+  font-size: 1.08rem;
+  display: flex;
+  align-items: center;
 }
-
 .category-sub {
   flex: 1;
-  color: #1976ed;
-  font-size: 1rem;
-  word-break: keep-all;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
 }
-
 .category-sub a {
-  color: #1976ed;
-  text-decoration: underline;
-  margin-right: 0.5rem;
+  display: inline-block;
+  padding: 0.18em 0.5em;
+  border-radius: 6px;
+  background: none;
+  color: #222;
+  font-weight: 500;
+  font-size: 1.01rem;
+  text-decoration: none;
+  box-shadow: none;
+  transition: background 0.18s, color 0.18s;
+  margin-bottom: 0.2em;
+}
+.category-sub a:hover, .category-sub a:active {
+  background: #f0f6ff;
+  color: #1565c0;
+  box-shadow: none;
+}
+@media (max-width: 480px) {
+  .category-row {
+    padding: 0.2rem 0 0.2rem 0;
+    border-radius: 0;
+  }
+  .category-main {
+    font-size: 1rem;
+    min-width: 70px;
+  }
+  .category-sub a {
+    font-size: 0.97rem;
+    padding: 0.12em 0.4em;
+    border-radius: 5px;
+  }
 }
 
-/* display 관련 미디어쿼리: d-xl-flex, d-xl-none만 사용 */
-@media (min-width: 1200px) {
+/* display 관련 미디어쿼리: d-lg-flex, d-lg-none만 사용 */
+@media (min-width: 1024px) {
   .navbar-toggler,
   .mobile-menu {
     display: none !important;
   }
 
-  .navbar-nav.d-xl-flex,
-  .d-xl-flex {
+  .navbar-nav.d-lg-flex,
+  .d-lg-flex {
     display: flex !important;
   }
 }
 
-@media (max-width: 1199.98px) {
+@media (max-width: 1024px) {
   .navbar-toggler {
     display: block !important;
   }
@@ -1024,29 +1215,30 @@ watch(
     display: block !important;
   }
 
-  .navbar-nav.d-xl-flex,
-  .d-xl-flex {
+  .navbar-nav.d-lg-flex,
+  .d-lg-flex {
     display: none !important;
   }
 
   .notification-dropdown-menu {
-    right: 1rem !important;
-    left: 1rem !important;
-    width: auto !important;
-    min-width: 0 !important;
+    right: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(50vw) !important;
+    min-width: 280px !important;
     max-width: 95vw !important;
   }
 }
 
-/* container-fluid: 1200px 기준만 남김 */
+/* container-fluid: 1024px 기준만 남김 */
 .container-fluid {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0;
 }
 
-@media (max-width: 1199.98px) {
+@media (max-width: 1024px) {
   .container-fluid {
     max-width: 100%;
     padding: 0 1rem;
@@ -1135,9 +1327,29 @@ watch(
   vertical-align: middle;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 480px) {
   .notification-delete-btn .delete-text {
     display: none;
+  }
+  
+  .notification-dropdown-menu {
+    right: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 1rem) !important;
+    min-width: 260px !important;
+  }
+  
+  .notification-item {
+    padding: 0.6rem 0.8rem;
+  }
+  
+  .notification-title {
+    font-size: 0.85rem;
+  }
+  
+  .notification-time {
+    font-size: 0.75rem;
   }
 }
 
@@ -1240,7 +1452,7 @@ watch(
   border-color: #b71c1c;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 480px) {
   .modern-modal {
     padding: 18px 6px 16px 6px;
     max-width: 98vw;
@@ -1273,7 +1485,7 @@ watch(
 
 .user-name {
   font-weight: bold;
-  font-size: 1.15em;
+  font-size: 1em;
 }
 
 .mobile-menu-user-actions {
@@ -1283,38 +1495,27 @@ watch(
   margin-bottom: 0.5rem;
 }
 
-.mobile-btn-page, .mobile-btn-logout {
-  flex: 1 1 0;
+.mobile-btn {
   display: inline-block;
-  text-align: center;
+  width: auto;
+  min-width: 120px;
   border-radius: 8px;
-  font-size: 1.08em;
-  padding: 0.7em 0.5em;
-  font-weight: 700;
-  transition: background 0.18s, color 0.18s, border 0.18s;
-  box-shadow: 0 1px 4px rgba(25, 118, 237, 0.06);
-}
-
-.mobile-btn-page {
-  border: 2px solid #1976ed;
-  background: #f1f5fa;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.6em 1.2em;
+  margin-bottom: 0.5rem;
+  margin-right: 0.5rem;
+  border: 1.5px solid transparent;
+  background: #fff;
   color: #1976ed;
-}
-
-.mobile-btn-page:hover {
-  background: #1976ed;
-  color: #fff;
+  transition: all 0.2s;
+  box-shadow: 0 1.5px 8px rgba(33, 150, 243, 0.04);
+  text-align: center;
 }
 
 .mobile-btn-logout {
-  border: 2px solid #e74c3c;
-  color: #e74c3c;
-  background: #fff;
-}
-
-.mobile-btn-logout:hover {
-  background: #e74c3c;
-  color: #fff;
+  max-width: 200px;
+  width: 100%;
 }
 
 .mobile-btn-reservation {
@@ -1339,5 +1540,160 @@ watch(
 .mobile-menu-login-btns {
   gap: 0.5rem;
   margin-bottom: 1rem;
+}
+
+.custom-nav-center {
+  left: 40%;
+  transform: translateX(-40%);
+}
+
+/* 모바일 메뉴 버튼 스타일 개선 */
+.mobile-btn {
+  display: inline-block;
+  width: auto;
+  min-width: 120px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.6em 1.2em;
+  margin-bottom: 0.5rem;
+  margin-right: 0.5rem;
+  border: 1.5px solid transparent;
+  background: #fff;
+  color: #1976ed;
+  transition: all 0.2s;
+  box-shadow: 0 1.5px 8px rgba(33, 150, 243, 0.04);
+  text-align: center;
+}
+
+.mobile-btn-login {
+  border: 1.5px solid var(--gray-300);
+  color: var(--gray-700);
+  background: #fff;
+}
+.mobile-btn-login:hover {
+  background: var(--gray-50);
+  color: #1976ed;
+}
+.mobile-btn-admin {
+  border: 1.5px solid #3b82f6;
+  background: #3b82f6;
+  color: #fff;
+}
+.mobile-btn-admin:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.mobile-btn-page {
+  border: 1.5px solid #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+  color: #3b82f6;
+}
+.mobile-btn-page:hover {
+  background: #3b82f6;
+  color: #fff;
+}
+.mobile-btn-tide {
+  border: 1.5px solid #1976ed;
+  background: #f8fafc;
+  color: #1976ed;
+}
+.mobile-btn-tide:hover {
+  background: #1976ed;
+  color: #fff;
+}
+.mobile-btn-logout {
+  border: 1.5px solid #ef4444;
+  color: #ef4444;
+  background: #fff0f0;
+}
+.mobile-btn-logout:hover {
+  background: #ef4444;
+  color: #fff;
+}
+.mobile-btn-reservation {
+  border: 1.5px solid #1976ed;
+  background: #f8fafc;
+  color: #1976ed;
+  margin-top: 0;
+  width: auto;
+  min-width: 140px;
+}
+.mobile-btn-reservation:hover {
+  background: #1976ed;
+  color: #fff;
+}
+
+/* 모바일 메뉴 구분선 */
+.mobile-menu-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(180,200,230,0.13) 0%, rgba(120,140,180,0.18) 100%);
+  margin: 1.2rem 0 1.2rem 0;
+  border: none;
+  opacity: 0.7;
+}
+
+/* 모바일 메뉴 섹션 여백 통일 */
+.mobile-menu-section {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+@media (max-width: 480px) {
+  .mobile-menu-section {
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+  }
+  .mobile-btn {
+    font-size: 0.9rem;
+    padding: 0.5em 1em;
+    min-width: 100px;
+  }
+  .mobile-btn-reservation {
+    min-width: 120px;
+  }
+}
+
+/* 모바일 메뉴 프로필/버튼/알림 영역 스타일 */
+.mobile-profile-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  margin: 1.2rem 0 1.2rem 0;
+}
+.mobile-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  justify-content: center;
+}
+.mobile-profile-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: center;
+}
+.mobile-tide-section {
+  display: flex;
+  justify-content: center;
+  margin: 1.2rem 0 1.2rem 0;
+}
+.mobile-logout-section {
+  display: flex;
+  justify-content: center;
+  margin: 1.2rem 0 1.2rem 0;
+}
+.mobile-menu-category {
+  text-align: left;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+@media (max-width: 480px) {
+  .mobile-menu-category {
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+  }
 }
 </style>

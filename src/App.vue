@@ -5,6 +5,7 @@
     <main class="main-content">
       <router-view @loginSuccess="refreshNav" @logout="refreshNav" />
     </main>
+    <SideButtons v-if="!isSwaggerPage" :show-only-top="showOnlyTopButton" />
     <Footer v-if="!isSwaggerPage" />
   </div>
 </template>
@@ -12,6 +13,7 @@
 <script>
 import HeaderNav from './components/common/HeaderNav.vue';
 import Footer from './components/common/Footer.vue';
+import SideButtons from './components/common/SideButtons.vue';
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 const navKey = ref(0)
@@ -24,11 +26,21 @@ export default {
   components: {
     HeaderNav,
     Footer,
+    SideButtons,
   },
   setup() {
     const route = useRoute()
     const isSwaggerPage = computed(() => route.path.startsWith('/admin/swagger'))
-    return { navKey, refreshNav, isSwaggerPage }
+    
+    // 관리자 대시보드, 파트너 페이지, 마이페이지에서는 top 버튼만 보이도록
+    const showOnlyTopButton = computed(() => {
+      const path = route.path
+      return path.startsWith('/admin/dashboard') || 
+             path.startsWith('/partner') || 
+             path.startsWith('/mypage')
+    })
+    
+    return { navKey, refreshNav, isSwaggerPage, showOnlyTopButton }
   }
 };
 </script>
@@ -48,22 +60,10 @@ loadFontAwesome();
 <style>
 .layout-wrapper {
   position: relative;
-  margin-bottom: 3%;
-  border-radius: 0 0 12px 12px;
   overflow: hidden;
 }
 
 .spacer {
   height: 70px;
 }
-
-.main-content {
-  flex: 1;
-  margin-bottom: 10vh;
-}
-
-#app {
-  min-height: 100vh;
-}
-
 </style>
