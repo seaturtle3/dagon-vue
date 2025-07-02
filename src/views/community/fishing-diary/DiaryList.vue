@@ -51,7 +51,7 @@ const onPageChange = async (page) => {
         <h2 class="page-title">조행기</h2>
         <div class="header-actions">
           <button @click="router.push('/fishing-report')" class="go-btn">조황정보 바로가기</button>
-          <button v-if="userStore.role === 'PARTNER'" @click="goToCreateDiary" class="create-btn">✏️ 조행기 등록</button>
+          <button @click="goToCreateDiary" class="create-btn">✏️ 조행기 등록</button>
         </div>
       </div>
 
