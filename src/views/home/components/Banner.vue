@@ -27,14 +27,14 @@
 </template>
 
 <script>
-const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
+import banner1img from '@/assets/images/banner1_1.jpg'
 export default {
   name: 'Banner',
   data() {
     return {
       currentIndex: 0,
       banners: [
-        { title: '환영합니다!', subtitle: 'DAGON 체험판을 경험해보세요~', img: `${baseUrl}/2025/07/02/banner1_1.jpg` },
+        { title: '환영합니다!', subtitle: 'DAGON 체험판을 경험해보세요~', img: banner1img },
         { title: '즐거운 낚시 되세요!', subtitle: '지금 예약하고 떠나보세요~', color: '#ffa07a', img: null },
         { title: '커뮤니티에 참여해보세요!', subtitle: '후기를 남기고 포인트도 받아요!', color: '#90ee90', img: null }
       ]

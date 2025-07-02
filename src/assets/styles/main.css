@@ -22,6 +22,7 @@ body, html {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Pretendard', sans-serif;
 }
 
 /* 링크 스타일 */
@@ -90,7 +91,7 @@ textarea::placeholder {
   display: flex;
   flex-direction: column;
   /* background-color: var(--gray-50); */
-  font-family: 'Noto Sans KR', sans-serif;
+  font-family: 'Pretendard', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--gray-900);

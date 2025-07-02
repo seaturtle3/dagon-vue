@@ -73,7 +73,7 @@ const recommendedProducts = computed(() => {
 <style>
 .home-container {
   padding: 32px 0 48px 0;
-  max-width: 1200px;
+  max-width: 1400px;
 }
 .section-block {
   margin-top: 60px;

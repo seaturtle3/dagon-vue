@@ -720,7 +720,7 @@ watch(
 
 .navbar:hover {
   background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
 /* 로고 스타일 */
@@ -744,7 +744,7 @@ watch(
 .nav-link {
   color: var(--gray-700) !important;
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   padding: 0.5rem 0.75rem !important;
   border-radius: 8px;
   transition: all 0.3s ease;
@@ -1543,8 +1543,8 @@ watch(
 }
 
 .custom-nav-center {
-  left: 40%;
-  transform: translateX(-40%);
+  left: 50%;
+  transform: translateX(-65%);
 }
 
 /* 모바일 메뉴 버튼 스타일 개선 */
