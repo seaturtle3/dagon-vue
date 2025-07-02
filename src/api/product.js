@@ -8,7 +8,7 @@ export const createProduct = (product, files) => {
         dto: product,
         files: files,
         dtoKey: 'dto', // 서버에서 기대하는 키
-        fileKey: 'thumbnailFile' // 여러 파일 지원
+        fileKey: 'thumbnailFile'
     });
 };
 
@@ -27,6 +27,6 @@ export const updateProduct = (prodId, product, files) => {
         dto: product,
         files: files,
         dtoKey: 'product', // 서버에서 기대하는 키
-        fileKey: 'thumbnailFile' // 여러 파일 지원
+        fileKey: 'thumbnailFile'
     });
 }; 

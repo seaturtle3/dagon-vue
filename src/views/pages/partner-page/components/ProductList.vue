@@ -84,6 +84,9 @@
             <button class="report-button" @click="goToCreateReport(product.prodId)">
               조황 등록
             </button>
+            <button class="delete-button" @click="deleteProduct(product.prodId)">
+              삭제
+            </button>
           </div>
         </div>
       </div>
@@ -355,6 +358,22 @@ function goToCreateReport(prodId) {
   router.push({ path: '/fishing-report/create', query: { prodId } })
 }
 
+async function deleteProduct(prodId) {
+  if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) {
+    return
+  }
+
+  try {
+    await partnerService.deleteProduct(prodId)
+    alert('상품이 성공적으로 삭제되었습니다.')
+    await loadProducts() // 상품 목록을 다시 로드
+  } catch (error) {
+    console.error('상품 삭제 실패:', error)
+    const errorMessage = error.response?.data?.message || '상품 삭제에 실패했습니다. 다시 시도해주세요.'
+    alert(errorMessage)
+  }
+}
+
 onMounted(() => {
   loadProducts()
 })
@@ -596,11 +615,29 @@ onMounted(() => {
   color: white;
   font-weight: 600;
   transition: all 0.3s ease;
-  margin-left: 10px; /* 삭제 버튼과의 간격 */
+  margin-right: 10px; /* 삭제 버튼과의 간격 */
 }
 
 .report-button:hover {
   background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+/* 삭제 버튼 스타일 */
+.delete-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  background-color: #e74c3c;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.delete-button:hover {
+  background-color: #c0392b;
   transform: translateY(-2px);
 }
 
