@@ -16,7 +16,7 @@ onMounted(() => {
 // 인기 조황정보 12개 (필요하다면 정렬 조건 추가)
 const topReports = computed(() =>
     store.reports
-        .slice(0, 12) // 또는 정렬 후 slice
+        .slice(0, 12) // 12개만
 )
 
 const goToDetail = (report) => {
@@ -122,7 +122,7 @@ const goToDetail = (report) => {
 
 .report-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(6, 1fr);
   gap: 18px;
   width: 100%;
 }
@@ -217,12 +217,19 @@ small {
   white-space: nowrap;
 }
 
+@media (max-width: 1200px) {
+  .report-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 @media (max-width: 900px) {
   .report-grid {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
   }
-  .report-card {
-    height: 200px;
+}
+@media (max-width: 600px) {
+  .report-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

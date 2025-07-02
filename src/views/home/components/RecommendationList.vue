@@ -19,10 +19,13 @@ function openDetail(productId) {
 
 <template>
   <div style="margin-top: 5%">
-    <h2 class="fw-bold section-title">추천 선사</h2>
-    <div class="d-grid" style="grid-template-columns: repeat(6, 1fr); gap: 1rem;">
+    <div class="header">
+      <h2 class="fw-bold section-title">추천 선사</h2>
+      <button class="view-all" @click="router.push('/products')">전체보기</button>
+    </div>
+    <div class="d-grid">
       <div
-          v-for="product in products"
+          v-for="product in products.slice(0, 4)"
           :key="product.prodId"
           class="product-card"
           @click="openDetail(product.prodId)"
@@ -61,6 +64,27 @@ function openDetail(productId) {
 </template>
 
 <style scoped>
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  position: relative;
+}
+.view-all {
+  font-size: 0.95rem;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.view-all:hover {
+  background: #e5e7eb;
+}
 .product-card {
   cursor: pointer;
   transition: border-color 0.18s, transform 0.12s;
@@ -68,6 +92,7 @@ function openDetail(productId) {
   flex-direction: column;
   height: 260px;
   /* border: 1.2px solid #e5e7eb; */
+  border: none !important;
   border-radius: 8px;
   overflow: hidden;
   background-color: #fff;
@@ -154,12 +179,19 @@ h2.fw-bold {
   margin-bottom: 1rem;
 }
 
-@media (max-width: 900px) {
+.d-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 1rem;
+}
+@media (max-width: 1200px) {
   .d-grid {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    grid-template-columns: repeat(2, 1fr) !important;
   }
-  .product-card {
-    height: 200px;
+}
+@media (max-width: 600px) {
+  .d-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 </style>

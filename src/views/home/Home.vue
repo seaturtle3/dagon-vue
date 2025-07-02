@@ -4,6 +4,7 @@ import NoticeBox from '@/views/home/components/NoticeBox.vue'
 import SideButtons from '@/components/common/SideButtons.vue'
 import RecommendationList from '@/views/home/components/RecommendationList.vue'
 import PopularList from '@/views/home/components/PopularList.vue'
+import EventBox from '@/views/home/components/EventBox.vue'
 
 import { ref, onMounted, computed } from 'vue'
 import { useFishingCenterStore } from '@/store/fishing-center/useFishingCenterStore.js'
@@ -61,9 +62,10 @@ const recommendedProducts = computed(() => {
     <section class="section-block">
       <RecommendationList :products="recommendedProducts" />
     </section>
-    <!-- 공지사항 섹션 -->
-    <section class="section-block">
-      <NoticeBox />
+    <!-- 공지사항 + 이벤트 박스 -->
+    <section class="section-block notice-event-row">
+      <div class="notice-event-col notice-col"><NoticeBox /></div>
+      <div class="notice-event-col event-col"><EventBox /></div>
     </section>
   </div>
 </template>
@@ -74,8 +76,26 @@ const recommendedProducts = computed(() => {
   max-width: 1200px;
 }
 .section-block {
-  margin-top: 20px;
-  margin-bottom: 60px;
+  margin-top: 60px;
+  margin-bottom: 120px;
+}
+.notice-event-row {
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+  justify-content: center;
+  align-items: stretch;
+}
+.notice-event-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.notice-col {
+  flex: 1.5 1 0;
+}
+.event-col {
+  flex: 2 1 0;
 }
 @media (max-width: 900px) {
   .home-container {
@@ -83,6 +103,14 @@ const recommendedProducts = computed(() => {
   }
   .section-block {
     margin-bottom: 24px;
+  }
+  .notice-event-row {
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+  }
+  .notice-event-col {
+    max-width: 100%;
   }
 }
 </style>
