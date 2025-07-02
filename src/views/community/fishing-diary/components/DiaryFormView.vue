@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { useAuthStore } from '@/store/login/loginStore.js'
 import { useRouter } from 'vue-router'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
@@ -26,6 +26,8 @@ const productSearchLoading = ref(false)
 const fishingDiaryStore = useFishingDiaryStore()
 const error = ref('')
 const dateInputRef = ref(null)
+const autocompleteRef = ref(null)
+const productInputRef = ref(null)
 
 const props = defineProps({
   editMode: Boolean,
@@ -172,6 +174,11 @@ onMounted(async () => {
       error.value = '기존 조행기 정보를 불러오지 못했습니다.'
     }
   }
+  window.addEventListener('mousedown', handleClickOutside);
+})
+
+onUnmounted(() => {
+  window.removeEventListener('mousedown', handleClickOutside);
 })
 
 async function onSubmit() {
@@ -233,8 +240,9 @@ watch(productSearch, async (newQuery) => {
     productSearchLoading.value = true
     try {
       const response = await getProductsByKeyword(newQuery)
-      const products = response.data.content || []
-      
+      let products = response.data.content || []
+      const searchTerm = newQuery.toLowerCase()
+      products = products.filter(p => p.prodName.toLowerCase().includes(searchTerm))
       // 검색어와의 관련성에 따라 정렬
       productOptions.value = products.sort((a, b) => {
         const aName = a.prodName.toLowerCase()
@@ -286,6 +294,33 @@ function openDatePicker() {
 function onDateInputClick() {
   openDatePicker()
 }
+
+async function loadAllProducts() {
+  try {
+    const response = await getProductsByKeyword(''); // 빈 문자열로 전체 상품 조회
+    const products = response.data.content || [];
+    // 최신 등록순 정렬 (prodId DESC)
+    productOptions.value = products.sort((a, b) => b.prodId - a.prodId);
+  } catch (e) {
+    productOptions.value = [];
+  }
+}
+
+function onProductInputFocus() {
+  loadAllProducts();
+  showAutocomplete.value = true;
+}
+
+function handleClickOutside(event) {
+  if (
+    autocompleteRef.value &&
+    !autocompleteRef.value.contains(event.target) &&
+    productInputRef.value &&
+    !productInputRef.value.contains(event.target)
+  ) {
+    productOptions.value = [];
+  }
+}
 </script>
 
 <template>
@@ -331,11 +366,13 @@ function onDateInputClick() {
               placeholder="상품명을 입력하세요"
               autocomplete="off"
               @input="error = ''"
+              @focus="onProductInputFocus"
+              ref="productInputRef"
             />
             <div v-if="productSearchLoading" style="color: #1976d2; font-size: 0.9em;">검색 중...</div>
-            <ul v-if="productOptions.length > 0" class="autocomplete-list">
+            <ul v-if="productOptions.length > 0" class="autocomplete-list" ref="autocompleteRef">
               <li v-for="product in productOptions" :key="product.prodId"
-                  @mousedown.prevent="selectProduct(product)"
+                  @mousedown="selectProduct(product)"
                   class="autocomplete-item">
                 {{ product.prodName }}
               </li>
@@ -649,8 +686,12 @@ function onDateInputClick() {
 
 .selected-product-info {
   margin-top: 8px;
-  color: #1976d2;
+  color: #222;
   font-size: 0.95em;
+}
+
+.selected-product-info strong {
+  color: #222;
 }
 
 .detail-actions {
@@ -854,5 +895,10 @@ function onDateInputClick() {
   display: flex;
   justify-content: center;
   margin-top: 15px;
+}
+
+.autocomplete-list {
+  max-height: 400px;
+  overflow-y: auto;
 }
 </style> 
