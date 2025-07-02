@@ -28,15 +28,15 @@ export default {
   components: { FontAwesomeIcon },
   setup() {
     const router = useRouter()
-    
+
     const navigateToSea = () => {
       router.push('/products/sea')
     }
-    
+
     const navigateToFreshwater = () => {
       router.push('/products/freshwater')
     }
-    
+
     return {
       navigateToSea,
       navigateToFreshwater

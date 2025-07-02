@@ -1331,7 +1331,7 @@ watch(
   .notification-delete-btn .delete-text {
     display: none;
   }
-  
+
   .notification-dropdown-menu {
     right: auto !important;
     left: 50% !important;
@@ -1339,15 +1339,15 @@ watch(
     width: calc(100vw - 1rem) !important;
     min-width: 260px !important;
   }
-  
+
   .notification-item {
     padding: 0.6rem 0.8rem;
   }
-  
+
   .notification-title {
     font-size: 0.85rem;
   }
-  
+
   .notification-time {
     font-size: 0.75rem;
   }

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { useAuthStore } from '@/store/login/loginStore.js'
 import { useRouter } from 'vue-router'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
@@ -15,7 +15,7 @@ const deletedImageNames = ref([])
 const formData = ref({
   title: '',
   content: '',
-  fishingAt: '',
+  fishingAt: new Date().toISOString().split('T')[0],
 })
 
 const authStore = useAuthStore()
@@ -26,6 +26,8 @@ const productSearchLoading = ref(false)
 const fishingDiaryStore = useFishingDiaryStore()
 const error = ref('')
 const dateInputRef = ref(null)
+const autocompleteRef = ref(null)
+const productInputRef = ref(null)
 
 const props = defineProps({
   editMode: Boolean,
@@ -33,36 +35,29 @@ const props = defineProps({
 });
 
 const isFormValid = computed(() => {
+  // 썸네일(기존+새로 업로드) 1장 이상 필수
+  const hasAnyImage = files.value.length > 0 || existingImages.value.length > 0;
   return (
       formData.value.title &&
       formData.value.content &&
       formData.value.fishingAt &&
-      selectedProduct.value
+      selectedProduct.value &&
+      hasAnyImage
   )
 })
 
 function onThumbnailChange(event) {
   const uploadedFiles = Array.from(event.target.files)
-  
-  // 새로운 이미지만 제거 (기존 이미지는 유지)
-  const newImageIndex = imagePreviews.value.findIndex(img => !img.isExisting)
-  if (newImageIndex > -1) {
-    imagePreviews.value.splice(newImageIndex, 1)
-    const fileIndex = files.value.findIndex(file => file === imagePreviews.value[newImageIndex]?.file)
-    if (fileIndex > -1) {
-      files.value.splice(fileIndex, 1)
-    }
-  }
-  
+  // 썸네일이 이미 있으면 기존 썸네일을 교체(덮어쓰기)
+  files.value = []
+  imagePreviews.value = []
   if (uploadedFiles.length > 0) {
     const file = uploadedFiles[0] // 첫 번째 파일만 사용
-    
     if (file && file.type.startsWith('image/')) {
       if (file.size > 5 * 1024 * 1024) {
         alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
         return
       }
-      
       const reader = new FileReader()
       reader.onload = (e) => {
         imagePreviews.value.push({
@@ -74,7 +69,6 @@ function onThumbnailChange(event) {
         })
       }
       reader.readAsDataURL(file)
-      
       files.value.push(file)
     }
   }
@@ -172,6 +166,11 @@ onMounted(async () => {
       error.value = '기존 조행기 정보를 불러오지 못했습니다.'
     }
   }
+  window.addEventListener('mousedown', handleClickOutside);
+})
+
+onUnmounted(() => {
+  window.removeEventListener('mousedown', handleClickOutside);
 })
 
 async function onSubmit() {
@@ -217,7 +216,7 @@ function resetForm() {
   formData.value = {
     title: '',
     content: '',
-    fishingAt: '',
+    fishingAt: new Date().toISOString().split('T')[0],
   }
   selectedProduct.value = null
   productSearch.value = ''
@@ -233,8 +232,9 @@ watch(productSearch, async (newQuery) => {
     productSearchLoading.value = true
     try {
       const response = await getProductsByKeyword(newQuery)
-      const products = response.data.content || []
-      
+      let products = response.data.content || []
+      const searchTerm = newQuery.toLowerCase()
+      products = products.filter(p => p.prodName.toLowerCase().includes(searchTerm))
       // 검색어와의 관련성에 따라 정렬
       productOptions.value = products.sort((a, b) => {
         const aName = a.prodName.toLowerCase()
@@ -286,6 +286,33 @@ function openDatePicker() {
 function onDateInputClick() {
   openDatePicker()
 }
+
+async function loadAllProducts() {
+  try {
+    const response = await getProductsByKeyword(''); // 빈 문자열로 전체 상품 조회
+    const products = response.data.content || [];
+    // 최신 등록순 정렬 (prodId DESC)
+    productOptions.value = products.sort((a, b) => b.prodId - a.prodId);
+  } catch (e) {
+    productOptions.value = [];
+  }
+}
+
+function onProductInputFocus() {
+  loadAllProducts();
+  showAutocomplete.value = true;
+}
+
+function handleClickOutside(event) {
+  if (
+    autocompleteRef.value &&
+    !autocompleteRef.value.contains(event.target) &&
+    productInputRef.value &&
+    !productInputRef.value.contains(event.target)
+  ) {
+    productOptions.value = [];
+  }
+}
 </script>
 
 <template>
@@ -331,11 +358,13 @@ function onDateInputClick() {
               placeholder="상품명을 입력하세요"
               autocomplete="off"
               @input="error = ''"
+              @focus="onProductInputFocus"
+              ref="productInputRef"
             />
             <div v-if="productSearchLoading" style="color: #1976d2; font-size: 0.9em;">검색 중...</div>
-            <ul v-if="productOptions.length > 0" class="autocomplete-list">
+            <ul v-if="productOptions.length > 0" class="autocomplete-list" ref="autocompleteRef">
               <li v-for="product in productOptions" :key="product.prodId"
-                  @mousedown.prevent="selectProduct(product)"
+                  @mousedown="selectProduct(product)"
                   class="autocomplete-item">
                 {{ product.prodName }}
               </li>
@@ -636,34 +665,25 @@ function onDateInputClick() {
   }
 }
 
-.autocomplete-list {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  max-height: 180px;
-  overflow-y: auto;
-  position: absolute;
-  z-index: 10;
-  width: 100%;
-  min-width: 120px;
-  left: 0;
-  top: 100%;
-  box-sizing: border-box;
-}
+.autocomplete-list,
 .autocomplete-item {
-  padding: 8px 12px;
-  cursor: pointer;
+  color: #222 !important;
+  background: #fff !important;
 }
-.autocomplete-item.highlighted, .autocomplete-item:hover {
-  background: #e3f2fd;
+
+.autocomplete-item:hover {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
 }
+
 .selected-product-info {
   margin-top: 8px;
-  color: #1976d2;
+  color: #222;
   font-size: 0.95em;
+}
+
+.selected-product-info strong {
+  color: #222;
 }
 
 .detail-actions {
@@ -867,5 +887,10 @@ function onDateInputClick() {
   display: flex;
   justify-content: center;
   margin-top: 15px;
+}
+
+.autocomplete-list {
+  max-height: 400px;
+  overflow-y: auto;
 }
 </style> 

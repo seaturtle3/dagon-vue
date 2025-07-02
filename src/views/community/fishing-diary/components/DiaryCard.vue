@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
 
 const router = useRouter()
 
@@ -30,9 +31,9 @@ const goToDetail = () => {
                   : (diary.images[0].image_data
                       ? `data:image/jpeg;base64,${diary.images[0].image_data}`
                       : (diary.images[0].imageUrl
-                          ? diary.images[0].imageUrl
+                          ? `${IMAGE_BASE_URL}${diary.images[0].imageUrl}`
                           : (diary.images[0].image_url
-                              ? diary.images[0].image_url
+                              ? `${IMAGE_BASE_URL}${diary.images[0].image_url}`
                               : '/images/no-image.png'
                             )
                         )

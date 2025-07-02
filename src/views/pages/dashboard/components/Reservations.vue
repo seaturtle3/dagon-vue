@@ -2,28 +2,30 @@
   <div class="reservations">
     <h1>예약 목록</h1>
     <div class="reservation-tabs">
-      <button :class="{active: activeTab==='member'}" @click="activeTab='member'">회원 예약 목록</button>
-      <button :class="{active: activeTab==='guest'}" @click="activeTab='guest'">비회원 예약 목록</button>
+      <button :class="{active: activeTab==='member'}" @click="changeTab('member')">회원 예약 목록</button>
     </div>
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="예약번호, 회원명, 파트너명으로 검색">
       <input type="date" v-model="dateFilter">
       <select v-model="statusFilter">
         <option value="">전체 상태</option>
-        <option value="예약대기">예약대기</option>
-        <option value="예약확정">예약확정</option>
-        <option value="예약취소">예약취소</option>
-        <option value="이용완료">이용완료</option>
+        <option value="PENDING">예약대기</option>
+        <option value="PAID">예약확정</option>
+        <option value="CANCELED">예약취소</option>
       </select>
       <button @click="searchReservations">검색</button>
     </div>
     
-    <table v-if="activeTab==='member'" class="reservations-table">
+    <div v-if="loading" class="loading">
+      <i class="fas fa-spinner fa-spin"></i> 예약 목록을 불러오는 중...
+    </div>
+    
+    <table v-if="!loading && activeTab==='member'" class="reservations-table">
       <thead>
         <tr>
           <th>예약번호</th>
           <th>회원명</th>
-          <th>파트너명</th>
+          <th>상품명</th>
           <th>예약일</th>
           <th>인원</th>
           <th>금액</th>
@@ -32,31 +34,35 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="reservation in memberReservations" :key="reservation.id">
-          <td>{{ reservation.id }}</td>
-          <td>{{ reservation.memberName }}</td>
-          <td>{{ reservation.partnerName }}</td>
-          <td>{{ reservation.date }}</td>
-          <td>{{ reservation.people }}</td>
-          <td>{{ reservation.amount.toLocaleString() }}원</td>
-          <td>{{ reservation.status }}</td>
+        <tr v-for="reservation in memberReservations" :key="reservation.reservationId">
+          <td>{{ reservation.reservationId }}</td>
+          <td>{{ reservation.userName }}</td>
+          <td>{{ reservation.productName }}</td>
+          <td>{{ formatDate(reservation.fishingAt) }}</td>
+          <td>{{ reservation.numPerson }}명</td>
+          <td>{{ formatPrice(reservation.amount || reservation.totalPrice) }}원</td>
           <td>
-            <button @click="viewReservationDetails(reservation.id)">상세</button>
-            <button v-if="reservation.status === '예약대기'" @click="approveReservation(reservation.id)">승인</button>
-            <button v-if="reservation.status === '예약대기'" @click="rejectReservation(reservation.id)">거절</button>
+            <span :class="['status-badge', getStatusClass(reservation.reservationStatus)]">
+              {{ getStatusText(reservation.reservationStatus) }}
+            </span>
+          </td>
+          <td>
+            <button @click="viewReservationDetails(reservation.reservationId)">상세</button>
+            <button v-if="reservation.reservationStatus === 'PENDING'" @click="approveReservation(reservation.reservationId)">승인</button>
+            <button v-if="reservation.reservationStatus === 'PENDING'" @click="rejectReservation(reservation.reservationId)">거절</button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <table v-if="activeTab==='guest'" class="reservations-table">
+    <table v-if="!loading && activeTab==='guest'" class="reservations-table">
       <thead>
         <tr>
           <th>예약번호</th>
           <th>예약자명</th>
           <th>이메일</th>
           <th>연락처</th>
-          <th>파트너명</th>
+          <th>상품명</th>
           <th>예약일</th>
           <th>인원</th>
           <th>금액</th>
@@ -65,31 +71,50 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="reservation in guestReservations" :key="reservation.id">
-          <td>{{ reservation.id }}</td>
-          <td>{{ reservation.memberName }}</td>
-          <td>{{ reservation.email }}</td>
-          <td>{{ reservation.contact }}</td>
-          <td>{{ reservation.partnerName }}</td>
-          <td>{{ reservation.date }}</td>
-          <td>{{ reservation.people }}</td>
-          <td>{{ reservation.amount.toLocaleString() }}원</td>
-          <td>{{ reservation.status }}</td>
+        <tr v-for="reservation in guestReservations" :key="reservation.reservationId">
+          <td>{{ reservation.reservationId }}</td>
+          <td>{{ reservation.userName }}</td>
+          <td>{{ reservation.userEmail || 'N/A' }}</td>
+          <td>{{ reservation.userPhone || 'N/A' }}</td>
+          <td>{{ reservation.productName }}</td>
+          <td>{{ formatDate(reservation.fishingAt) }}</td>
+          <td>{{ reservation.numPerson }}명</td>
+          <td>{{ formatPrice(reservation.amount || reservation.totalPrice) }}원</td>
           <td>
-            <button @click="viewReservationDetails(reservation.id)">상세</button>
-            <button v-if="reservation.status === '예약대기'" @click="approveReservation(reservation.id)">승인</button>
-            <button v-if="reservation.status === '예약대기'" @click="rejectReservation(reservation.id)">거절</button>
+            <span :class="['status-badge', getStatusClass(reservation.reservationStatus)]">
+              {{ getStatusText(reservation.reservationStatus) }}
+            </span>
+          </td>
+          <td>
+            <button @click="viewReservationDetails(reservation.reservationId)">상세</button>
+            <button v-if="reservation.reservationStatus === 'PENDING'" @click="approveReservation(reservation.reservationId)">승인</button>
+            <button v-if="reservation.reservationStatus === 'PENDING'" @click="rejectReservation(reservation.reservationId)">거절</button>
           </td>
         </tr>
       </tbody>
     </table>
     
-    <div class="pagination">
+    <div v-if="!loading && (!allReservations || allReservations.length === 0)" class="no-data">
+      <i class="fas fa-inbox"></i>
+      <p>예약 내역이 없습니다.</p>
+    </div>
+    
+    <div v-if="!loading && allReservations && allReservations.length > 0 && 
+         ((activeTab === 'member' && memberReservations.length === 0) || 
+          (activeTab === 'guest' && guestReservations.length === 0))" class="no-data">
+      <i class="fas fa-inbox"></i>
+      <p>{{ activeTab === 'member' ? '회원' : '비회원' }} 예약 내역이 없습니다.</p>
+    </div>
+    
+    <div v-if="!loading && allReservations && allReservations.length > 0" class="pagination">
       <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
         <i class="fas fa-chevron-left"></i> 이전
       </button>
       <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-      <span class="total-info">총 {{ allReservations.length }}개 예약</span>
+      <span class="total-info">
+        총 {{ totalItems }}개 예약 
+        ({{ activeTab === 'member' ? memberReservations.length : guestReservations.length }}개 표시)
+      </span>
       <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">
         다음 <i class="fas fa-chevron-right"></i>
       </button>
@@ -108,61 +133,69 @@
             <div class="detail-grid">
               <div class="detail-item">
                 <label>예약번호:</label>
-                <span>{{ selectedReservation.id }}</span>
+                <span>{{ selectedReservation.reservationId }}</span>
               </div>
               <div class="detail-item">
                 <label>예약일:</label>
-                <span>{{ selectedReservation.date }}</span>
+                <span>{{ formatDate(selectedReservation.fishingAt) }}</span>
               </div>
               <div class="detail-item">
                 <label>상태:</label>
-                <span class="status-badge" :class="getStatusClass(selectedReservation.status)">
-                  {{ selectedReservation.status }}
+                <span class="status-badge" :class="getStatusClass(selectedReservation.reservationStatus)">
+                  {{ getStatusText(selectedReservation.reservationStatus) }}
                 </span>
               </div>
               <div class="detail-item">
                 <label>인원:</label>
-                <span>{{ selectedReservation.people }}명</span>
+                <span>{{ selectedReservation.numPerson }}명</span>
               </div>
               <div class="detail-item">
                 <label>금액:</label>
-                <span>{{ selectedReservation.amount.toLocaleString() }}원</span>
+                <span>{{ formatPrice(selectedReservation.amount || selectedReservation.totalPrice) }}원</span>
+              </div>
+              <div class="detail-item">
+                <label>결제방법:</label>
+                <span>{{ selectedReservation.paymentsMethod || 'N/A' }}</span>
               </div>
             </div>
           </div>
 
           <div class="detail-section">
-            <h3>회원 정보</h3>
+            <h3>예약자 정보</h3>
             <div class="detail-grid">
               <div class="detail-item">
-                <label>회원명:</label>
-                <span>{{ selectedReservation.memberName }}</span>
+                <label>예약자명:</label>
+                <span>{{ selectedReservation.userName }}</span>
               </div>
               <div class="detail-item">
                 <label>연락처:</label>
-                <span>{{ getMemberPhone(selectedReservation.memberName) }}</span>
+                <span>{{ selectedReservation.phone || selectedReservation.userPhone || 'N/A' }}</span>
               </div>
               <div class="detail-item">
                 <label>이메일:</label>
-                <span>{{ getMemberEmail(selectedReservation.memberName) }}</span>
+                <span>{{ selectedReservation.email || selectedReservation.userEmail || 'N/A' }}</span>
               </div>
             </div>
           </div>
 
           <div class="detail-section">
-            <h3>파트너 정보</h3>
+            <h3>상품 정보</h3>
             <div class="detail-grid">
               <div class="detail-item">
-                <label>파트너명:</label>
-                <span>{{ selectedReservation.partnerName }}</span>
+                <label>상품명:</label>
+                <span>{{ selectedReservation.productName }}</span>
               </div>
               <div class="detail-item">
-                <label>연락처:</label>
-                <span>{{ getPartnerPhone(selectedReservation.partnerName) }}</span>
+                <label>옵션명:</label>
+                <span>{{ selectedReservation.optionName || 'N/A' }}</span>
               </div>
               <div class="detail-item">
-                <label>주소:</label>
-                <span>{{ getPartnerAddress(selectedReservation.partnerName) }}</span>
+                <label>옵션 수량:</label>
+                <span>{{ selectedReservation.optionQuantity || 0 }}개</span>
+              </div>
+              <div class="detail-item">
+                <label>예약일시:</label>
+                <span>{{ formatDateTime(selectedReservation.createdAt) }}</span>
               </div>
             </div>
           </div>
@@ -171,23 +204,23 @@
             <h3>예약 관리</h3>
             <div class="action-buttons">
               <button
-                v-if="selectedReservation.status === '예약대기'"
+                v-if="selectedReservation.reservationStatus === 'PENDING'"
                 class="btn-approve"
-                @click="approveReservation(selectedReservation.id)"
+                @click="approveReservation(selectedReservation.reservationId)"
               >
                 예약 승인
               </button>
               <button
-                v-if="selectedReservation.status === '예약대기'"
+                v-if="selectedReservation.reservationStatus === 'PENDING'"
                 class="btn-reject"
-                @click="rejectReservation(selectedReservation.id)"
+                @click="rejectReservation(selectedReservation.reservationId)"
               >
                 예약 거절
               </button>
               <button
-                v-if="selectedReservation.status === '예약확정'"
+                v-if="selectedReservation.reservationStatus === 'PAID'"
                 class="btn-complete"
-                @click="completeReservation(selectedReservation.id)"
+                @click="completeReservation(selectedReservation.reservationId)"
               >
                 이용완료 처리
               </button>
@@ -203,6 +236,8 @@
 </template>
 
 <script>
+import { reservationApi } from '@/api/admin.js';
+
 export default {
   name: 'Reservations',
   data() {
@@ -213,284 +248,263 @@ export default {
       allReservations: [],
       currentPage: 1,
       totalPages: 1,
+      totalItems: 0,
       itemsPerPage: 10,
       showDetailModal: false,
       selectedReservation: null,
       activeTab: 'member',
+      loading: false,
     }
   },
   computed: {
-    reservations() {
-      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-      const endIndex = startIndex + this.itemsPerPage;
-      return this.allReservations.slice(startIndex, endIndex);
-    },
     memberReservations() {
-      return this.reservations.filter(r => r.isMember !== false);
+      if (!this.allReservations || !Array.isArray(this.allReservations)) {
+        return [];
+      }
+      // userId가 있으면 회원 예약
+      return this.allReservations.filter(reservation => 
+        reservation && reservation.userId && reservation.userId !== null
+      );
     },
     guestReservations() {
-      return this.reservations.filter(r => r.isMember === false);
+      if (!this.allReservations || !Array.isArray(this.allReservations)) {
+        return [];
+      }
+      // userId가 없으면 비회원 예약
+      return this.allReservations.filter(reservation => 
+        reservation && (!reservation.userId || reservation.userId === null)
+      );
     }
   },
   methods: {
     async searchReservations() {
-      // TODO: API 호출하여 예약 목록 검색
-      this.allReservations = [
-        {
-          id: 'R001',
-          memberName: '홍길동',
-          email: 'hong@example.com',
-          contact: '010-1234-5678',
-          partnerName: '바다낚시터',
-          date: '2024-03-20',
-          people: 4,
-          amount: 200000,
-          status: '예약대기',
-          isMember: true
-        },
-        {
-          id: 'R002',
-          memberName: '김철수',
-          email: 'kim@example.com',
-          contact: '010-2345-6789',
-          partnerName: '강물낚시터',
-          date: '2024-03-21',
-          people: 2,
-          amount: 120000,
-          status: '예약확정',
-          isMember: true
-        },
-        {
-          id: 'R003',
-          memberName: '이영희',
-          email: 'lee@example.com',
-          contact: '010-3456-7890',
-          partnerName: '호수낚시터',
-          date: '2024-03-22',
-          people: 3,
-          amount: 150000,
-          status: '이용완료',
-          isMember: true
-        },
-        {
-          id: 'R004',
-          memberName: '비회원A',
-          email: 'guestA@example.com',
-          contact: '010-4567-8901',
-          partnerName: '비회원낚시터A',
-          date: '2024-03-23',
-          people: 2,
-          amount: 90000,
-          status: '예약대기',
-          isMember: false
-        },
-        {
-          id: 'R005',
-          memberName: '비회원B',
-          email: 'guestB@example.com',
-          contact: '010-5678-9012',
-          partnerName: '비회원낚시터B',
-          date: '2024-03-24',
-          people: 1,
-          amount: 70000,
-          status: '예약확정',
-          isMember: false
-        },
-        {
-          id: 'R006',
-          memberName: '정수진',
-          email: 'jung@example.com',
-          contact: '010-6789-0123',
-          partnerName: '강물낚시터',
-          date: '2024-03-25',
-          people: 5,
-          amount: 250000,
-          status: '예약대기',
-          isMember: true
-        },
-        {
-          id: 'R007',
-          memberName: '비회원C',
-          email: 'guestC@example.com',
-          contact: '010-7890-1234',
-          partnerName: '비회원낚시터C',
-          date: '2024-03-26',
-          people: 3,
-          amount: 120000,
-          status: '예약취소',
-          isMember: false
-        },
-        {
-          id: 'R008',
-          memberName: '최동욱',
-          email: 'choi@example.com',
-          contact: '010-8901-2345',
-          partnerName: '호수낚시터',
-          date: '2024-03-27',
-          people: 2,
-          amount: 100000,
-          status: '예약확정',
-          isMember: true
-        },
-        {
-          id: 'R009',
-          memberName: '비회원D',
-          email: 'guestD@example.com',
-          contact: '010-9012-3456',
-          partnerName: '비회원낚시터D',
-          date: '2024-03-28',
-          people: 4,
-          amount: 160000,
-          status: '이용완료',
-          isMember: false
-        },
-        {
-          id: 'R010',
-          memberName: '한미영',
-          email: 'han@example.com',
-          contact: '010-0123-4567',
-          partnerName: '강물낚시터',
-          date: '2024-03-29',
-          people: 2,
-          amount: 110000,
-          status: '예약취소',
-          isMember: true
-        }
-      ]
+      this.loading = true;
+      try {
+        const params = {
+          page: this.currentPage - 1, // 백엔드는 0부터 시작
+          size: this.itemsPerPage,
+          search: this.searchQuery || '',
+          date: this.dateFilter || '',
+          status: this.statusFilter || ''
+        };
 
-      // 총 페이지 수 계산
-      this.totalPages = Math.ceil(this.allReservations.length / this.itemsPerPage);
-      // 현재 페이지가 총 페이지 수를 초과하면 마지막 페이지로 설정
-      if (this.currentPage > this.totalPages) {
-        this.currentPage = this.totalPages || 1;
+        let response;
+        
+        // 탭에 따라 다른 API 호출 (현재는 모두 같은 API 사용)
+        if (this.activeTab === 'member') {
+          console.log('회원 예약 목록 조회');
+          response = await reservationApi.getMemberReservations(params);
+        } else {
+          console.log('비회원 예약 목록 조회');
+          response = await reservationApi.getGuestReservations(params);
+        }
+        
+        console.log('예약 목록 API 응답:', response);
+        
+        if (response && response.data) {
+          if (response.data.content && Array.isArray(response.data.content)) {
+            this.allReservations = response.data.content;
+            this.totalItems = response.data.totalElements || 0;
+            this.totalPages = response.data.totalPages || 1;
+          } else if (Array.isArray(response.data)) {
+            this.allReservations = response.data;
+            this.totalItems = response.data.length;
+            this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+          } else {
+            this.allReservations = [];
+            this.totalItems = 0;
+            this.totalPages = 1;
+          }
+        } else {
+          this.allReservations = [];
+          this.totalItems = 0;
+          this.totalPages = 1;
+        }
+
+        // 현재 페이지가 총 페이지 수를 초과하면 마지막 페이지로 설정
+        if (this.currentPage > this.totalPages) {
+          this.currentPage = this.totalPages || 1;
+        }
+      } catch (error) {
+        console.error('예약 목록 조회 실패:', error);
+        alert('예약 목록을 불러오는데 실패했습니다.');
+        this.allReservations = [];
+        this.totalItems = 0;
+        this.totalPages = 1;
+      } finally {
+        this.loading = false;
       }
     },
-    viewReservationDetails(reservationId) {
-      // TODO: 예약 상세 정보 보기
-      this.selectedReservation = this.allReservations.find(reservation => reservation.id === reservationId);
-      this.showDetailModal = true;
+
+    async viewReservationDetails(reservationId) {
+      try {
+        const response = await reservationApi.getReservationDetail(reservationId);
+        console.log('예약 상세 조회 응답:', response);
+        
+        if (response.data && response.data.reservation) {
+          this.selectedReservation = response.data.reservation;
+        } else if (response.data) {
+          this.selectedReservation = response.data;
+        } else {
+          this.selectedReservation = null;
+        }
+        
+        this.showDetailModal = true;
+      } catch (error) {
+        console.error('예약 상세 조회 실패:', error);
+        alert('예약 상세 정보를 불러오는데 실패했습니다.');
+      }
     },
+
     async approveReservation(reservationId) {
       try {
-      // TODO: 예약 승인 API 호출
-        console.log('예약 승인:', reservationId);
-
-        // 실제 API 호출 시 아래 주석 해제
-        // const response = await this.$http.put(`/api/reservations/${reservationId}/approve`);
-
-        // 성공 메시지 표시
+        await reservationApi.approveReservation(reservationId);
         alert('예약이 승인되었습니다.');
-
+        
         // 해당 예약의 상태를 업데이트
-        const reservation = this.allReservations.find(r => r.id === reservationId);
+        const reservation = this.allReservations.find(r => r.reservationId === reservationId);
         if (reservation) {
-          reservation.status = '예약확정';
+          reservation.reservationStatus = 'PAID';
         }
 
-        // 모달 닫기
         this.closeDetailModal();
-
-        // 목록 새로고침 (실제 API 사용 시)
-        // this.searchReservations();
-
+        this.searchReservations(); // 목록 새로고침
       } catch (error) {
         console.error('예약 승인 실패:', error);
         alert('예약 승인에 실패했습니다.');
       }
     },
+
     async rejectReservation(reservationId) {
       try {
-      // TODO: 예약 거절 API 호출
-        console.log('예약 거절:', reservationId);
-
-        // 실제 API 호출 시 아래 주석 해제
-        // const response = await this.$http.put(`/api/reservations/${reservationId}/reject`);
-
-        // 성공 메시지 표시
+        await reservationApi.rejectReservation(reservationId);
         alert('예약이 거절되었습니다.');
-
+        
         // 해당 예약의 상태를 업데이트
-        const reservation = this.allReservations.find(r => r.id === reservationId);
+        const reservation = this.allReservations.find(r => r.reservationId === reservationId);
         if (reservation) {
-          reservation.status = '예약취소';
+          reservation.reservationStatus = 'CANCELED';
         }
 
-        // 모달 닫기
         this.closeDetailModal();
-
-        // 목록 새로고침 (실제 API 사용 시)
-        // this.searchReservations();
-
+        this.searchReservations(); // 목록 새로고침
       } catch (error) {
         console.error('예약 거절 실패:', error);
         alert('예약 거절에 실패했습니다.');
       }
     },
-    changePage(page) {
-      if (page >= 1 && page <= this.totalPages) {
-        this.currentPage = page;
-      }
-    },
-    closeDetailModal() {
-      this.showDetailModal = false;
-      this.selectedReservation = null;
-    },
-    getStatusClass(status) {
-      // 상태에 따른 클래스 반환
-      return {
-        'status-pending': status === '예약대기',
-        'status-confirmed': status === '예약확정',
-        'status-cancelled': status === '예약취소',
-        'status-completed': status === '이용완료'
-      };
-    },
-    getMemberPhone(memberName) {
-      // 회원의 연락처 반환
-      return '010-1234-5678'; // 실제 구현 시 이 부분을 실제 API 호출로 대체
-    },
-    getMemberEmail(memberName) {
-      // 회원의 이메일 반환
-      return 'hong@example.com'; // 실제 구현 시 이 부분을 실제 API 호출로 대체
-    },
-    getPartnerPhone(partnerName) {
-      // 파트너의 연락처 반환
-      return '02-1234-5678'; // 실제 구현 시 이 부분을 실제 API 호출로 대체
-    },
-    getPartnerAddress(partnerName) {
-      // 파트너의 주소 반환
-      return '서울시 강남구 역삼동'; // 실제 구현 시 이 부분을 실제 API 호출로 대체
-    },
-    completeReservation(reservationId) {
-      // TODO: 이용완료 처리 API 호출
+
+    async completeReservation(reservationId) {
       try {
-        console.log('이용완료 처리:', reservationId);
-
-        // 실제 API 호출 시 아래 주석 해제
-        // const response = await this.$http.put(`/api/reservations/${reservationId}/complete`);
-
-        // 성공 메시지 표시
+        await reservationApi.completeReservation(reservationId);
         alert('이용완료 처리가 완료되었습니다.');
-
+        
         // 해당 예약의 상태를 업데이트
-        const reservation = this.allReservations.find(r => r.id === reservationId);
+        const reservation = this.allReservations.find(r => r.reservationId === reservationId);
         if (reservation) {
-          reservation.status = '이용완료';
+          reservation.reservationStatus = 'COMPLETED';
         }
 
-        // 모달 닫기
         this.closeDetailModal();
-
-        // 목록 새로고침 (실제 API 사용 시)
-        // this.searchReservations();
-
+        this.searchReservations(); // 목록 새로고침
       } catch (error) {
         console.error('이용완료 처리 실패:', error);
         alert('이용완료 처리에 실패했습니다.');
       }
+    },
+
+    changePage(page) {
+      if (page >= 1 && page <= (this.totalPages || 1)) {
+        this.currentPage = page;
+        this.searchReservations();
+      }
+    },
+
+    changeTab(tab) {
+      this.activeTab = tab;
+      this.currentPage = 1;
+      this.searchQuery = '';
+      this.dateFilter = '';
+      this.statusFilter = '';
+      // 탭 변경 시 데이터 다시 로드
+      this.searchReservations();
+    },
+
+    closeDetailModal() {
+      this.showDetailModal = false;
+      this.selectedReservation = null;
+    },
+
+    getStatusClass(status) {
+      if (!status) return 'status-pending';
+      const statusMap = {
+        'PENDING': 'status-pending',
+        'PAID': 'status-confirmed',
+        'CANCELED': 'status-cancelled',
+        'COMPLETED': 'status-completed'
+      };
+      return statusMap[status] || 'status-pending';
+    },
+
+    getStatusText(status) {
+      if (!status) return '상태없음';
+      const statusMap = {
+        'PENDING': '예약대기',
+        'PAID': '예약확정',
+        'CANCELED': '예약취소',
+        'COMPLETED': '이용완료'
+      };
+      return statusMap[status] || status;
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'N/A';
+        return date.toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      } catch (error) {
+        console.error('날짜 포맷 오류:', error);
+        return 'N/A';
+      }
+    },
+
+    formatDateTime(dateString) {
+      if (!dateString) return 'N/A';
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'N/A';
+        return date.toLocaleString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (error) {
+        console.error('날짜시간 포맷 오류:', error);
+        return 'N/A';
+      }
+    },
+
+    formatPrice(price) {
+      if (!price && price !== 0) return '0';
+      try {
+        const numPrice = Number(price);
+        if (isNaN(numPrice)) return '0';
+        return numPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      } catch (error) {
+        console.error('가격 포맷 오류:', error);
+        return '0';
+      }
     }
   },
   created() {
-    this.searchReservations()
+    this.searchReservations();
   }
 }
 </script>
@@ -498,6 +512,56 @@ export default {
 <style scoped>
 .reservations {
   padding: 1rem;
+}
+
+.reservation-tabs {
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.reservation-tabs button {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #ddd;
+  background-color: #f8f9fa;
+  color: #666;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reservation-tabs button.active {
+  background-color: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.reservation-tabs button:hover:not(.active) {
+  background-color: #e9ecef;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.loading i {
+  margin-right: 0.5rem;
+  color: #3498db;
+}
+
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+.no-data i {
+  font-size: 3rem;
+  color: #ddd;
+  margin-bottom: 1rem;
 }
 
 .search-bar {
@@ -567,6 +631,71 @@ export default {
   color: white;
 }
 
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-confirmed {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-completed {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.pagination button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background-color: white;
+  color: #333;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #f8f9fa;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-weight: 600;
+  color: #333;
+}
+
+.total-info {
+  color: #666;
+  font-size: 0.9rem;
+}
+
 .pagination {
   display: flex;
   justify-content: center;
@@ -622,6 +751,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .modal-content {
@@ -630,6 +760,8 @@ export default {
   border-radius: 8px;
   width: 80%;
   max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .modal-header {
@@ -652,7 +784,7 @@ export default {
 }
 
 .modal-body {
-  padding: 1rem;
+  padding: 1rem 0;
 }
 
 .detail-section {
@@ -663,51 +795,35 @@ export default {
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  color: #333;
 }
 
 .detail-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
 .detail-item {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .detail-item label {
   font-weight: 600;
+  color: #666;
+  margin-bottom: 0.25rem;
 }
 
 .detail-item span {
-  margin-left: 0.5rem;
-}
-
-.status-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.status-pending {
-  background-color: #f0f0f0;
-}
-
-.status-confirmed {
-  background-color: #dff0d8;
-}
-
-.status-cancelled {
-  background-color: #f2dede;
-}
-
-.status-completed {
-  background-color: #dff0d8;
+  color: #333;
 }
 
 .action-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .btn-approve,
@@ -718,6 +834,7 @@ export default {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-weight: 500;
 }
 
 .btn-approve {
@@ -736,44 +853,32 @@ export default {
 }
 
 .btn-cancel {
-  background-color: #f8f9fa;
-  color: #333;
+  background-color: #95a5a6;
+  color: white;
 }
 
-.reservation-tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  /* border-bottom: 2px solid #e0e0e0; */
-  /* padding-bottom: 0.5rem; */
-}
-.reservation-tabs button {
-  padding: 0.75rem 1.5rem;
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px 8px 0 0;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  position: relative;
-  color: #666;
-}
-.reservation-tabs button.active {
-  background-color: #007bff;
-  color: white;
-  border-color: #007bff;
-}
-.reservation-tabs button.active::after {
-  content: '';
-  position: absolute;
-  bottom: -0.5rem;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #007bff;
-}
-.reservation-tabs button:not(.active):hover {
-  background: #e9ecef;
-  color: #333;
+
+
+@media (max-width: 768px) {
+  .search-bar {
+    flex-direction: column;
+  }
+  
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+  }
+  
+  .reservations-table {
+    font-size: 0.9rem;
+  }
+  
+  .reservations-table th,
+  .reservations-table td {
+    padding: 0.5rem;
+  }
 }
 </style>

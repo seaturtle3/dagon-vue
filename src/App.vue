@@ -34,7 +34,7 @@ export default {
   setup() {
     const route = useRoute()
     const isSwaggerPage = computed(() => route.path.startsWith('/admin/swagger'))
-    
+
     return { navKey, refreshNav, isSwaggerPage }
   }
 };

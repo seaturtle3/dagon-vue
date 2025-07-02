@@ -23,10 +23,10 @@
     <!-- 문의 유형별 탭 -->
     <div class="inquiry-tabs">
       <button
-        v-for="type in inquiryTypes"
-        :key="type.value"
-        :class="['tab-button', { active: selectedType === type.value }]"
-        @click="selectType(type.value)"
+          v-for="type in inquiryTypes"
+          :key="type.value"
+          :class="['tab-button', { active: selectedType === type.value }]"
+          @click="selectType(type.value)"
       >
         {{ type.label }}
         <span class="tab-count">({{ getTypeCount(type.value) }})</span>
@@ -152,7 +152,7 @@ export default {
       const endIndex = startIndex + this.itemsPerPage;
       return this.filteredInquiries.slice(startIndex, endIndex);
     },
-    
+
     totalItems() {
       return this.filteredInquiries.length;
     },
@@ -176,7 +176,7 @@ export default {
         // API 호출 로직 (실제 구현 필요)
         // const response = await this.$api.getGuestInquiries()
         // this.inquiries = response.data
-        
+
         // 임시 데이터
         this.inquiries = [
           {
@@ -274,50 +274,50 @@ export default {
             createdAt: '2024-01-09T09:00:00Z'
           }
         ]
-        
+
         this.filteredInquiries = [...this.inquiries]
       } catch (error) {
         console.error('비회원 문의 로드 실패:', error)
       }
     },
-    
+
     handleSearch() {
       this.filterInquiries()
     },
-    
+
     filterInquiries() {
       let filtered = [...this.inquiries]
-      
+
       // 문의 유형 필터링 (탭 선택)
       if (this.selectedType) {
         filtered = filtered.filter(inquiry => inquiry.type === this.selectedType)
       }
-      
+
       // 검색 필터
       if (this.searchQuery) {
         const query = this.searchQuery.toLowerCase()
-        filtered = filtered.filter(inquiry => 
-          inquiry.writer.toLowerCase().includes(query) ||
-          inquiry.email.toLowerCase().includes(query) ||
-          inquiry.contact.includes(query) ||
-          inquiry.title.toLowerCase().includes(query)
+        filtered = filtered.filter(inquiry =>
+            inquiry.writer.toLowerCase().includes(query) ||
+            inquiry.email.toLowerCase().includes(query) ||
+            inquiry.contact.includes(query) ||
+            inquiry.title.toLowerCase().includes(query)
         )
       }
-      
+
       // 상태 필터
       if (this.statusFilter) {
         filtered = filtered.filter(inquiry => inquiry.status === this.statusFilter)
       }
-      
+
       // 유형 필터 (드롭다운)
       if (this.typeFilter) {
         filtered = filtered.filter(inquiry => inquiry.type === this.typeFilter)
       }
-      
+
       this.filteredInquiries = filtered
       this.currentPage = 1
     },
-    
+
     getTypeLabel(type) {
       const types = {
         general: '상품 문의',
@@ -328,7 +328,7 @@ export default {
       }
       return types[type] || type
     },
-    
+
     getStatusLabel(status) {
       const statuses = {
         pending: '답변 대기',
@@ -336,7 +336,7 @@ export default {
       }
       return statuses[status] || status
     },
-    
+
     formatDate(dateString) {
       if (!dateString) return '';
       const date = new Date(dateString);
@@ -347,7 +347,7 @@ export default {
       const minutes = String(date.getMinutes()).padStart(2, '0');
       return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`;
     },
-    
+
     toggleInquiry(id) {
       const index = this.expandedInquiries.indexOf(id)
       if (index === -1) {
@@ -356,14 +356,14 @@ export default {
         this.expandedInquiries.splice(index, 1)
       }
     },
-    
+
     openReplyModal(inquiryId) {
       this.editingReply = false
       this.selectedInquiry = this.inquiries.find(i => i.id === inquiryId)
       this.answerContent = ''
       this.showReplyModal = true
     },
-    
+
     editReply(inquiryId) {
       const inquiry = this.inquiries.find(i => i.id === inquiryId)
       if (inquiry && inquiry.answer) {
@@ -373,17 +373,17 @@ export default {
         this.showReplyModal = true
       }
     },
-    
+
     async submitAnswer() {
       if (!this.answerContent.trim()) {
         alert('답변 내용을 입력해주세요.')
         return
       }
-      
+
       try {
         // API 호출 로직 (실제 구현 필요)
         // await this.$api.answerGuestInquiry(this.selectedInquiry.id, this.answerContent)
-        
+
         // 임시 처리
         if (this.editingReply) {
           this.selectedInquiry.answer = this.answerContent
@@ -394,13 +394,13 @@ export default {
           this.selectedInquiry.answeredAt = new Date().toISOString()
           alert('답변이 등록되었습니다.')
         }
-        
+
         // 목록 업데이트
         const index = this.inquiries.findIndex(i => i.id === this.selectedInquiry.id)
         if (index !== -1) {
           this.inquiries[index] = { ...this.selectedInquiry }
         }
-        
+
         this.filterInquiries()
         this.closeModal()
         this.$router.push('/admin/guest-inquiries')
@@ -409,14 +409,14 @@ export default {
         alert('답변 등록에 실패했습니다.')
       }
     },
-    
+
     async deleteReply(inquiryId) {
       if (!confirm('정말 삭제하시겠습니까?')) return
-      
+
       try {
         // API 호출 로직 (실제 구현 필요)
         // await this.$api.deleteGuestInquiryReply(inquiryId)
-        
+
         // 임시 처리
         const inquiry = this.inquiries.find(i => i.id === inquiryId)
         if (inquiry) {
@@ -430,14 +430,14 @@ export default {
         alert('답변 삭제에 실패했습니다.')
       }
     },
-    
+
     async deleteInquiry(id) {
       if (!confirm('정말 삭제하시겠습니까?')) return
-      
+
       try {
         // API 호출 로직 (실제 구현 필요)
         // await this.$api.deleteGuestInquiry(id)
-        
+
         // 임시 처리
         this.inquiries = this.inquiries.filter(inquiry => inquiry.id !== id)
         this.filterInquiries()
@@ -447,43 +447,43 @@ export default {
         alert('문의 삭제에 실패했습니다.')
       }
     },
-    
+
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--
       }
     },
-    
+
     nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++
       }
     },
-    
+
     closeModal() {
       this.showReplyModal = false
       this.selectedInquiry = {}
       this.answerContent = ''
       this.editingReply = false
     },
-    
+
     selectType(type) {
       this.selectedType = type
       this.currentPage = 1
       this.filterInquiries()
     },
-    
+
     getTypeCount(type) {
       return this.inquiries.filter(inquiry => inquiry.type === type).length
     },
-    
+
     saveToLocalStorage(inquiry) {
       const key = 'guestInquiries';
       const prev = JSON.parse(localStorage.getItem(key) || '[]');
       prev.unshift(inquiry); // 최신순 정렬
       localStorage.setItem(key, JSON.stringify(prev));
     },
-    
+
     async submitForm() {
       try {
         // ... 기존 코드 ...
@@ -883,20 +883,20 @@ export default {
   .search-bar {
     flex-direction: column;
   }
-  
+
   .info-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .inquiry-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .inquiry-actions,
   .reply-actions {
     flex-direction: column;
   }
 }
-</style> 
+</style>
