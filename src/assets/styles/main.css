@@ -43,24 +43,25 @@ textarea::placeholder {
   color: #999 !important;
 }
 
-/* Summernote 에디터 전역 스타일 */
-.note-editor .note-editable {
-  color: #333 !important;
-  background-color: #fff !important;
+body, html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.note-editor .note-editable * {
-  color: #333 !important;
+/* 링크 스타일 */
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--transition-normal);
 }
 
-.note-editor .note-editable p,
-.note-editor .note-editable div,
-.note-editor .note-editable span {
-  color: #333 !important;
+a:hover {
+  text-decoration: none;
 }
 
-.note-editor .note-placeholder {
-  color: #999 !important;
+a:focus {
+  outline: none;
 }
 
 /* Summernote 에디터 전역 스타일 */
@@ -398,4 +399,10 @@ textarea::placeholder {
 /* 헤더 네비게이션 */
 .header-nav, .headerNav {
   z-index: 2000 !important;
-} 
+}
+
+/* 햄버거 메뉴 등 토글 버튼의 포커스(클릭/탭) 시 자연스러운 파란색 outline */
+.navbar-toggler:focus {
+  outline: 1px solid #6b7280 !important;
+  box-shadow: none !important;
+}
