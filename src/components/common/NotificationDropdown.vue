@@ -2,11 +2,10 @@
   <div class="dropdown notification-dropdown">
     <button class="btn btn-link text-danger fs-4 p-0 position-relative"
             @click="toggleNotificationDropdown"
-            style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: none; background: none;">
+            style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border: none; background: none; overflow: visible; border-radius: 50%;">
       <SirenIcon style="font-size: 1.5rem;"/>
-      <span v-if="unreadCount > 0" class="badge bg-danger position-absolute top-0 start-100 translate-middle" 
-            style="font-size: 0.6rem; min-width: 16px; height: 16px;">
-        {{ unreadCount > 9 ? '9+' : unreadCount }}
+      <span v-if="unreadCount > 0" class="badge bg-danger position-absolute notification-dot" 
+            style="top: 10px; right: 10px; width: 6px; height: 6px; min-width: 0; padding: 0; border-radius: 50%; z-index: 2;">
       </span>
     </button>
     <div v-if="showNotificationDropdown" class="dropdown-menu notification-dropdown-menu show" @click.stop>
@@ -79,6 +78,9 @@ const selectedNotification = ref(null)
 const hiddenNotifications = ref([])
 const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 const visibleNotifications = computed(() => notifications.value.filter(n => n && n.id && !hiddenNotifications.value.includes(n.id)))
+
+// 자동 알림 업데이트를 위한 인터벌
+let notificationInterval = null
 
 const fetchNotifications = async () => {
   if (!props.user?.uno) return
@@ -187,11 +189,67 @@ onMounted(() => {
     try { hiddenNotifications.value = JSON.parse(stored) } catch { hiddenNotifications.value = [] }
   }
   document.addEventListener('click', handleClickOutside);
+  
+  // 컴포넌트 마운트 시 알림 가져오기
+  if (props.user?.uno) {
+    fetchNotifications()
+  }
+  
+  // 30초마다 알림 자동 업데이트
+  notificationInterval = setInterval(() => {
+    if (props.user?.uno) {
+      fetchNotifications()
+    }
+  }, 30000) // 30초
 })
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
+  
+  // 인터벌 정리
+  if (notificationInterval) {
+    clearInterval(notificationInterval)
+    notificationInterval = null
+  }
 })
 </script>
 <style scoped>
-/* 필요한 알림 스타일만 직접 작성하세요. */
+.notification-dropdown button {
+  border-radius: 50% !important;
+  transition: background 0.2s;
+}
+.notification-dot {
+  display: inline-block;
+  background: #dc3545;
+  border-radius: 50% !important;
+  width: 9px;
+  height: 9px;
+  min-width: 0;
+  padding: 0;
+  z-index: 2;
+}
+
+/* 전체 읽음 버튼 스타일 */
+.notification-dropdown .btn-link {
+  border-radius: 0 !important;
+  text-decoration: none;
+  color: #6c757d;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background: none;
+  transition: color 0.2s;
+}
+
+.notification-dropdown .btn-link:hover {
+  background: none !important;
+  color: #495057;
+  text-decoration: none;
+  font-size: 0.85rem !important;
+  transform: none !important;
+}
+
+.notification-dropdown .btn-link:focus {
+  box-shadow: none;
+  background: none;
+}
 </style> 

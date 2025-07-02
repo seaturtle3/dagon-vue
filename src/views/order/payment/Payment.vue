@@ -48,6 +48,14 @@
             <span class="value">{{ reservationInfo.totalPeople }}명</span>
           </div>
           <div class="user-reservation-info-item">
+            <span class="label">상품 단가:</span>
+            <span class="value">1,000원</span>
+          </div>
+          <div class="user-reservation-info-item">
+            <span class="label">상품 총액:</span>
+            <span class="value">{{ (reservationInfo.totalPeople * 1000).toLocaleString() }}원</span>
+          </div>
+          <div class="user-reservation-info-item">
             <span class="label">옵션1:</span>
             <span class="value">{{ reservationInfo.optionName || '-' }} ({{ reservationInfo.optionCount || 0 }}개)</span>
           </div>
@@ -71,7 +79,7 @@
     <div class="reservation-summary" v-if="reservationInfo && !isLoggedIn">
       <!-- 상품 정보 섹션 -->
       <div class="product-info-section">
-        <h4>상품 정보</h4>
+        <h4>선택 상품 정보</h4>
         <div class="product-info">
           <p><strong>상품명:</strong> {{ reservationInfo.prodName || '상품명 없음' }}</p>
           <p><strong>상품ID:</strong> {{ reservationInfo.prodId || '-' }}</p>
@@ -111,6 +119,14 @@
           <div class="reservation-info-item">
             <span class="label">인원수:</span>
             <span class="value">{{ reservationInfo.totalPeople }}명</span>
+          </div>
+          <div class="reservation-info-item">
+            <span class="label">상품 단가:</span>
+            <span class="value">1,000원</span>
+          </div>
+          <div class="reservation-info-item">
+            <span class="label">상품 총액:</span>
+            <span class="value">{{ (reservationInfo.totalPeople * 1000).toLocaleString() }}원</span>
           </div>
           <div class="reservation-info-item">
             <span class="label">옵션1:</span>
@@ -263,12 +279,14 @@ export default {
       console.log('prodId가 없어 상품 정보를 가져올 수 없습니다.');
     }
 
-    // 옵션 가격 합산하여 estimatedPrice 재계산
+    // 상품 가격과 옵션 가격 합산하여 estimatedPrice 재계산
     const adultCount = parseInt(this.$route.query.adultCount) || 0;
     const childCount = parseInt(this.$route.query.childCount) || 0;
-    const ADULT_PRICE = 100; // 실제 단가로 교체
-    const CHILD_PRICE = 50;  // 실제 단가로 교체
-
+    const totalPeople = adultCount + childCount;
+    
+    // 상품 가격 고정 (1000원)
+    const PRODUCT_PRICE = 1000;
+    
     const optionCount = parseInt(this.$route.query.optionCount) || 0;
     const optionPrice = parseInt(this.$route.query.optionPrice) || 0;
     const optionCount2 = parseInt(this.$route.query.optionCount2) || 0;
@@ -276,10 +294,24 @@ export default {
     const optionCount3 = parseInt(this.$route.query.optionCount3) || 0;
     const optionPrice3 = parseInt(this.$route.query.optionPrice3) || 0;
 
-    const peoplePrice = (adultCount * ADULT_PRICE) + (childCount * CHILD_PRICE);
+    // 상품 가격 = 상품 가격 × 총 인원수
+    const productPrice = totalPeople * PRODUCT_PRICE;
+    
+    // 옵션 가격 = 옵션 가격 × 옵션 개수
     const optionsPrice = (optionCount * optionPrice) + (optionCount2 * optionPrice2) + (optionCount3 * optionPrice3);
 
-    this.reservationInfo.estimatedPrice = peoplePrice + optionsPrice;
+    // 총 가격 = 상품 가격 + 옵션 가격
+    this.reservationInfo.estimatedPrice = productPrice + optionsPrice;
+    
+    console.log('가격 계산 결과:', {
+      adultCount,
+      childCount,
+      totalPeople,
+      productPrice: PRODUCT_PRICE,
+      productTotalPrice: productPrice,
+      optionsPrice,
+      totalPrice: this.reservationInfo.estimatedPrice
+    });
 
     // 예약 정보가 없으면 이전 페이지로 이동
     if (!this.reservationInfo.fishingAt) {
