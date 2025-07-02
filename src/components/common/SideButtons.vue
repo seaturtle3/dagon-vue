@@ -1,9 +1,9 @@
 <template>
   <div class="side-buttons">
-    <button class="side-button sea-button">
+    <button v-if="!showOnlyTop" class="side-button sea-button">
       <span class="button-text">바다</span>
     </button>
-    <button class="side-button freshwater-button">
+    <button v-if="!showOnlyTop" class="side-button freshwater-button">
       <span class="button-text">민물</span>
     </button>
     <button class="side-button top-button" @click="scrollToTop">
@@ -15,6 +15,12 @@
 <script>
 export default {
   name: 'SideButtons',
+  props: {
+    showOnlyTop: {
+      type: Boolean,
+      default: false
+    }
+  },
   methods: {
     scrollToTop() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -38,7 +44,6 @@ export default {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  border: 1.5px solid var(--gray-600);
   background: white;
   color: var(--gray-600);
   font-weight: bold;
@@ -109,5 +114,11 @@ export default {
   .top-button {
     font-size: 1rem;
   }
+}
+
+/* top 버튼만 있을 때의 스타일 */
+.side-buttons:has(.top-button:only-child) {
+  top: 50%;
+  transform: translateY(-50%);
 }
 </style>

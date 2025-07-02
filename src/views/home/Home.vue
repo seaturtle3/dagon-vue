@@ -1,7 +1,7 @@
 <script setup>
 import Banner from '@/views/home/components/Banner.vue'
 import NoticeBox from '@/views/home/components/NoticeBox.vue'
-import SideButtons from '@/views/home/components/SideButtons.vue'
+import SideButtons from '@/components/common/SideButtons.vue'
 import RecommendationList from '@/views/home/components/RecommendationList.vue'
 import PopularList from '@/views/home/components/PopularList.vue'
 
