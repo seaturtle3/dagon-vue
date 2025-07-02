@@ -54,8 +54,9 @@ let timer = null
 const isReady = ref(false)
 
 function onSwiperReady(swiper) {
+  swiperInstance.value = swiper
   isReady.value = true;
-  // 필요하다면 swiperInstance.value = swiper; // Swiper 8 이상에서는 자동 할당됨
+  console.log('Swiper 인스턴스 설정됨:', swiper)
 }
 
 function onMouseEnter() {
@@ -259,6 +260,17 @@ console.log('swiperInstance.value.swiper:', swiperInstance.value?.swiper);
   <div class="product-detail-container">
     <!-- 페이지 헤더 -->
     <div class="page-header">
+
+      <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
+      <div class="header-actions" style="display: flex; justify-content: flex-end">
+        <ProductEditButton :product="product" v-if="isOwnProduct" />
+
+        <button v-if="isOwnProduct" @click="deleteProduct" class="btn btn-danger">
+          <i class="fa-solid fa-x"></i>
+          삭제
+        </button>
+      </div>
+
       <div class="header-content">
         <div class="header-left">
           <h1 class="page-title">{{ props.product.prodName }}</h1>
@@ -270,17 +282,6 @@ console.log('swiperInstance.value.swiper:', swiperInstance.value?.swiper);
             <span>{{ props.product.prodName }}</span>
           </div>
         </div>
-
-        <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
-        <div class="header-actions">
-            <ProductEditButton :product="product" v-if="isOwnProduct" />
-
-          <button v-if="isOwnProduct" @click="deleteProduct" class="btn btn-danger">
-            <i class="fa-solid fa-x"></i>
-            삭제
-          </button>
-        </div>
-
       </div>
     </div>
 
@@ -577,8 +578,8 @@ console.log('swiperInstance.value.swiper:', swiperInstance.value?.swiper);
 }
 
 .no-image-placeholder {
+  width: 100vw;
   max-width: 500px;
-  width: 100%;
   height: 500px;
   display: flex;
   align-items: center;

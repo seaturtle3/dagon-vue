@@ -5,6 +5,7 @@ import api from '@/lib/axios'
 import BoardWriteForm from "@/components/common/BoardWriteForm.vue";
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import { useAdminAuthStore} from "@/store/auth/auth.js";
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const router = useRouter()
 const route = useRoute()

@@ -26,7 +26,6 @@ const formData = ref({
   title: '',
   content: '',
   fishingAt: new Date().toISOString().split('T')[0],
-  location: '',
   imageFileName: '',
   thumbnailUrl: '',
   user: null,
@@ -50,12 +49,16 @@ const showAutocomplete = ref(false)
 const report = computed(() => fishingReportStore.currentReport)
 
 const isFormValid = computed(() => {
+  const hasThumbnail = thumbnailFile.value || 
+    (props.editMode && report.value && report.value.images && report.value.images.length > 0) ||
+    (props.editMode && report.value && report.value.thumbnailUrl);
+  
   return (
       formData.value.title &&
       formData.value.content &&
       formData.value.fishingAt &&
-      formData.value.location &&
-      selectedProduct.value
+      selectedProduct.value &&
+      hasThumbnail // 수정 모드에서는 기존 썸네일도 허용
   )
 })
 
@@ -153,22 +156,21 @@ onMounted(async () => {
 
   // RichTextEditor는 컴포넌트에서 자동으로 초기화됩니다
   await productListStore.fetchProducts()
-  // 수정 모드일 때 기존 데이터 불러오기
-  if (props.editMode && props.reportId) {
-    await fishingReportStore.fetchReportById(props.reportId)
-    const report = fishingReportStore.currentReport
-    if (report) {
-      formData.value.title = report.title
-      formData.value.content = report.content
-      formData.value.fishingAt = report.fishingAt
-      formData.value.location = report.location
-      formData.value.productId = report.product?.prodId
-      formData.value.productName = report.product?.prodName
-      formData.value.imageFileName = report.imageFileName
-      formData.value.thumbnailUrl = report.thumbnailUrl
-      formData.value.user = report.user
-      formData.value.comments = report.comments
-      formData.value.images = report.images // 또는 report.images를 별도 변수로 사용
+        // 수정 모드일 때 기존 데이터 불러오기
+      if (props.editMode && props.reportId) {
+        await fishingReportStore.fetchReportById(props.reportId)
+        const report = fishingReportStore.currentReport
+        if (report) {
+          formData.value.title = report.title
+          formData.value.content = report.content
+          formData.value.fishingAt = report.fishingAt
+          formData.value.productId = report.product?.prodId
+          formData.value.productName = report.product?.prodName
+          formData.value.imageFileName = report.imageFileName
+          formData.value.thumbnailUrl = report.thumbnailUrl
+          formData.value.user = report.user
+          formData.value.comments = report.comments
+          formData.value.images = report.images // 기존 이미지 정보 저장
 
       console.log('report.images:', report.images)
       // 상품 선택 세팅
@@ -176,9 +178,13 @@ onMounted(async () => {
         selectedProduct.value = report.product
         productSearch.value = report.product.prodName
       }
-      // 썸네일 프리뷰
-      if (report.thumbnailUrl) {
+      // 썸네일 프리뷰 - 기존 이미지가 있으면 표시
+      if (report.images && report.images.length > 0 && report.images[0].imageData) {
+        thumbnailPreviewUrl.value = `data:image/jpeg;base64,${report.images[0].imageData}`
+        console.log('기존 이미지 데이터로 썸네일 프리뷰 설정')
+      } else if (report.thumbnailUrl) {
         thumbnailPreviewUrl.value = report.thumbnailUrl.startsWith('http') ? report.thumbnailUrl : `/api/fishing-report/images/${report.thumbnailUrl}`
+        console.log('기존 thumbnailUrl로 썸네일 프리뷰 설정')
       }
     }
     // DOM 업데이트 후 blur 처리
@@ -196,7 +202,8 @@ onMounted(async () => {
 
 async function onSubmit() {
   if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요. (제목, 내용, 날짜, 장소, 상품)')
+    const requiredFields = props.editMode ? '제목, 내용, 날짜, 상품' : '제목, 내용, 날짜, 상품, 대표 이미지';
+    alert(`필수 항목을 모두 입력해주세요. (${requiredFields})`)
     return
   }
   if (!formData.value.fishingAt) {
@@ -204,18 +211,22 @@ async function onSubmit() {
     return;
   }
 
+  // 썸네일 필수 검증 (등록 모드에서만)
+  if (!props.editMode && !thumbnailFile.value) {
+    alert('대표 이미지를 선택해주세요.');
+    return;
+  }
+
   // 이미지 파일 검증
-  if (thumbnailFile.value) {
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (thumbnailFile.value.size > maxSize) {
-      alert('이미지 파일 크기는 5MB 이하여야 합니다.');
-      return;
-    }
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-    if (!allowedTypes.includes(thumbnailFile.value.type)) {
-      alert('지원되는 이미지 형식: JPG, PNG, GIF');
-      return;
-    }
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (thumbnailFile.value.size > maxSize) {
+    alert('이미지 파일 크기는 5MB 이하여야 합니다.');
+    return;
+  }
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+  if (!allowedTypes.includes(thumbnailFile.value.type)) {
+    alert('지원되는 이미지 형식: JPG, PNG, GIF');
+    return;
   }
 
   const dtoToSend = {
@@ -223,8 +234,7 @@ async function onSubmit() {
     content: formData.value.content,
     prodName: selectedProduct.value ? selectedProduct.value.prodName : '',
     fishingAt: formData.value.fishingAt,
-    location: formData.value.location,
-    imageFileName: thumbnailFile.value ? thumbnailFile.value.name : null,
+    imageFileName: thumbnailFile.value ? thumbnailFile.value.name : (props.editMode ? formData.value.imageFileName : null),
     product: selectedProduct.value ? {
       prodId: selectedProduct.value.prodId,
       prodName: selectedProduct.value.prodName
@@ -233,23 +243,66 @@ async function onSubmit() {
       ? report.value.user
       : (authStore.user ? { userId: authStore.user.userId } : null),
     comments: [],
-    thumbnailUrl: null
+    thumbnailUrl: props.editMode && !thumbnailFile.value ? formData.value.thumbnailUrl : null,
+    // 수정 모드에서 기존 이미지 정보 유지
+    images: props.editMode && !thumbnailFile.value && formData.value.images ? formData.value.images : null,
+    // 수정 모드에서 기존 이미지 유지 플래그
+    keepExistingImage: props.editMode && !thumbnailFile.value && (formData.value.thumbnailUrl || (formData.value.images && formData.value.images.length > 0)) ? true : false,
+    // 수정 모드에서 기존 이미지 데이터 직접 포함
+    existingImageData: props.editMode && !thumbnailFile.value && formData.value.images && formData.value.images.length > 0 ? formData.value.images[0].imageData : null
   }
+
+  console.log('수정 모드 전송 데이터:', {
+    editMode: props.editMode,
+    hasThumbnailFile: !!thumbnailFile.value,
+    hasExistingImages: !!(formData.value.images && formData.value.images.length > 0),
+    dtoToSend: dtoToSend
+  })
 
   try {
     if (props.editMode && props.reportId) {
       // 수정 모드: 수정 API 호출
-      await fishingReportStore.updateFishingReport(props.reportId, dtoToSend, thumbnailFile.value)
+      // 기존 이미지가 있고 새 파일이 없으면 기존 이미지 데이터를 파일로 변환
+      let fileToSend = thumbnailFile.value;
+      if (!thumbnailFile.value && formData.value.images && formData.value.images.length > 0 && formData.value.images[0].imageData) {
+        console.log('기존 이미지 데이터를 파일로 변환');
+        // base64를 Blob으로 변환
+        const base64Data = formData.value.images[0].imageData;
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/jpeg' });
+        fileToSend = new File([blob], 'existing-image.jpg', { type: 'image/jpeg' });
+      }
+      
+      // FormData로 전송하기 위해 dto에서 불필요한 필드 제거
+      const cleanDto = { ...dtoToSend };
+      delete cleanDto.existingImageData; // 백엔드에서 처리하지 않는 필드 제거
+      delete cleanDto.images; // 백엔드에서 처리하지 않는 필드 제거
+      delete cleanDto.keepExistingImage; // 백엔드에서 처리하지 않는 필드 제거
+      
+      const updateResult = await fishingReportStore.updateFishingReport(props.reportId, cleanDto, fileToSend)
+      console.log('수정 API 결과:', updateResult)
       alert('조황정보가 성공적으로 수정되었습니다!')
-      router.push(`/fishing-report/${props.reportId}`)
+      
+      // 수정 완료 후 잠시 대기 후 상세페이지 새로고침
+      setTimeout(async () => {
+        console.log('상세페이지 새로고침 시작')
+        await fishingReportStore.fetchReportById(props.reportId)
+        console.log('상세페이지 새로고침 완료')
+        router.push(`/fishing-report/${props.reportId}`)
+      }, 1000) // 대기 시간을 1초로 증가
     } else {
       // 등록 모드: 등록 API 호출
-      await fishingReportStore.createFishingReport(dtoToSend, thumbnailFile.value)
-      // 임시: 최신 조황정보 frId로 이동
-      const listRes = await fishingReportStore.fetchReports({ page: 0, size: 1, sort: 'frId,DESC' })
-      const frId = listRes?.data?.content?.[0]?.frId || null
-      if (frId) router.push(`/fishing-report/${frId}`)
-      else router.push('/fishing-report')
+      const createdReport = await fishingReportStore.createFishingReport(dtoToSend, thumbnailFile.value)
+      alert('조황정보가 성공적으로 등록되었습니다!')
+      
+      // 등록 성공 후 리스트 새로고침하고 리스트 페이지로 이동
+      await fishingReportStore.fetchReports(0, fishingReportStore.pageSize)
+      router.push('/fishing-report')
     }
 
   } catch (err) {
@@ -269,7 +322,6 @@ function resetForm() {
     title: '',
     content: '',
     fishingAt: new Date().toISOString().split('T')[0],
-    location: '',
     productId: null,
     productName: '',
     imageFileName: '',
@@ -289,17 +341,52 @@ function resetForm() {
 
 watch(productSearch, async (newVal) => {
   if (newVal && newVal.length >= 2) {
+    // 검색어가 2글자 이상일 때 검색 결과 표시
     productSearchLoading.value = true
     try {
       const res = await getProductsByKeyword(newVal)
-      productOptions.value = res.data.content || []
+      const products = res.data.content || []
+      
+      // 검색어와의 관련성에 따라 정렬
+      productOptions.value = products.sort((a, b) => {
+        const aName = a.prodName.toLowerCase()
+        const bName = b.prodName.toLowerCase()
+        const searchTerm = newVal.toLowerCase()
+        
+        // 정확히 일치하는 것을 우선
+        if (aName === searchTerm && bName !== searchTerm) return -1
+        if (bName === searchTerm && aName !== searchTerm) return 1
+        
+        // 검색어로 시작하는 것을 우선
+        const aStartsWith = aName.startsWith(searchTerm)
+        const bStartsWith = bName.startsWith(searchTerm)
+        if (aStartsWith && !bStartsWith) return -1
+        if (bStartsWith && !aStartsWith) return 1
+        
+        // 검색어가 포함된 위치에 따라 정렬
+        const aIndex = aName.indexOf(searchTerm)
+        const bIndex = bName.indexOf(searchTerm)
+        if (aIndex !== bIndex) return aIndex - bIndex
+        
+        // 알파벳 순으로 정렬
+        return aName.localeCompare(bName)
+      })
     } catch (e) {
       productOptions.value = []
     } finally {
       productSearchLoading.value = false
     }
+  } else if (newVal === '') {
+    // 검색어가 비어있을 때 전체 목록 표시
+    loadAllProducts()
   } else {
-    productOptions.value = []
+    // 1글자일 때는 전체 목록에서 필터링
+    if (productOptions.value.length > 0) {
+      const filtered = productOptions.value.filter(product => 
+        product.prodName.toLowerCase().includes(newVal.toLowerCase())
+      )
+      productOptions.value = filtered
+    }
   }
 })
 
@@ -367,8 +454,29 @@ function selectProduct(option) {
 }
 
 function onProductInputFocus() {
-  if (productOptions.value.length > 0) {
-    showAutocomplete.value = true
+  // 포커스 시 전체 상품 목록을 가져와서 표시
+  loadAllProducts()
+  showAutocomplete.value = true
+}
+
+// 전체 상품 목록 로드
+async function loadAllProducts() {
+  if (productOptions.value.length > 0) return // 이미 로드된 경우
+  
+  productSearchLoading.value = true
+  try {
+    const res = await getProductsByKeyword('') // 빈 문자열로 전체 상품 조회
+    const products = res.data.content || []
+    
+    // 상품명 알파벳 순으로 정렬
+    productOptions.value = products.sort((a, b) => {
+      return a.prodName.localeCompare(b.prodName)
+    })
+  } catch (e) {
+    console.error('상품 목록 로드 실패:', e)
+    productOptions.value = []
+  } finally {
+    productSearchLoading.value = false
   }
 }
 </script>
@@ -397,18 +505,13 @@ function onProductInputFocus() {
           </div>
         </div>
 
-        <div class="form-row">
+                <div class="form-row">
           <div class="form-group">
             <label class="form-label required">낚시 날짜</label>
             <div class="date-input-container">
               <input v-model="formData.fishingAt" type="date" class="form-control date-input" placeholder="날짜를 선택하세요"
                      required ref="dateInputRef" @click="onDateInputClick"/>
             </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label required">낚시 장소</label>
-            <input v-model="formData.location" type="text" class="form-control" placeholder="낚시한 장소를 입력하세요" required/>
           </div>
         </div>
 
@@ -419,7 +522,7 @@ function onProductInputFocus() {
                 v-model="productSearch"
                 type="text"
                 class="form-control"
-                placeholder="상품명을 입력하세요 (2글자 이상)"
+                placeholder="클릭하여 상품을 선택하거나 검색하세요"
                 autocomplete="off"
                 ref="productInputRef"
                 @keydown="onProductInputKeydown"
@@ -447,75 +550,84 @@ function onProductInputFocus() {
         </div>
       </div>
 
-      <!-- 이미지 & 내용 작성 섹션 -->
-      <div class="form-section content-section">
-        <h3 class="section-title">📝 {{ editMode ? '조황정보 수정' : '조황정보 작성' }}</h3>
-
-        <div class="content-layout">
-          <!-- 이미지 업로드 영역 -->
-          <div class="image-upload-section">
-            <label class="form-label">대표 이미지</label>
-            <div class="image-upload-container">
-              <div class="image-preview-area">
-                <div v-if="!thumbnailFile" class="upload-placeholder">
-                  <div class="upload-icon">📸</div>
-                  <div class="upload-text">
-                    <span class="upload-title">이미지를 선택해주세요</span>
-                    <span class="upload-subtitle">클릭하여 파일 선택</span>
-                  </div>
-                </div>
-                <div v-else class="image-preview">
-                  <img
-                      v-if="thumbnailPreviewUrl"
-                      :src="thumbnailPreviewUrl"
-                      alt="미리보기"
-                      class="preview-image"
-                  />
-                  <!-- thumbnailPreviewUrl이 없고, image_data가 있다면 -->
-                  <img
-                      v-else-if="formData.thumbnail_image_data"
-                      :src="`data:image/jpeg;base64,${formData.thumbnail_image_data}`"
-                      alt="미리보기"
-                      class="preview-image"
-                  />
-                  <div class="image-overlay">
-                    <button type="button" @click="removeThumbnail" class="remove-image-btn">
-                      <span>✕</span>
+      <!-- 썸네일 업로드 섹션 -->
+              <div class="form-section">
+          <h3 class="section-title">📸 대표 이미지 업로드 <span v-if="!editMode" class="required-mark">*</span></h3>
+        <div class="image-upload-container">
+          <!-- 썸네일 미리보기 -->
+          <div v-if="thumbnailFile || (editMode && report && report.images && report.images.length)" class="thumbnail-preview">
+            <div class="thumbnail-display">
+              <div class="thumbnail-item">
+                <img 
+                  v-if="thumbnailPreviewUrl" 
+                  :src="thumbnailPreviewUrl" 
+                  alt="썸네일 미리보기" 
+                  class="thumbnail-image" 
+                />
+                <img 
+                  v-else-if="editMode && report && report.images && report.images.length && report.images[0].imageData" 
+                  :src="`data:image/jpeg;base64,${report.images[0].imageData}`" 
+                  alt="기존 썸네일" 
+                  class="thumbnail-image" 
+                />
+                <img 
+                  v-else-if="editMode && report && report.thumbnailUrl" 
+                  :src="report.thumbnailUrl.startsWith('http') ? report.thumbnailUrl : `/api/fishing-report/images/${report.thumbnailUrl}`" 
+                  alt="기존 썸네일" 
+                  class="thumbnail-image" 
+                />
+                <div class="thumbnail-overlay">
+                  <div class="thumbnail-actions">
+                    <button 
+                      type="button" 
+                      @click="removeThumbnail" 
+                      class="remove-btn"
+                      title="썸네일 삭제"
+                    >
+                      <i class="fas fa-times"></i>
                     </button>
                   </div>
                 </div>
+                <div class="thumbnail-info">
+                  <span class="thumbnail-name">{{ thumbnailFile ? thumbnailFile.name : '기존 이미지' }}</span>
+                  <span v-if="thumbnailFile" class="thumbnail-size">{{ (thumbnailFile.size / 1024 / 1024).toFixed(1) }}MB</span>
+                </div>
               </div>
-              <input type="file" accept="image/*" class="upload-input" @change="onThumbnailChange"/>
-            </div>
-            <div v-if="thumbnailFile" class="file-info">
-              <span class="file-name">{{ thumbnailFile.name }}</span>
-            </div>
-          </div>
-          <div v-if="editMode && report && report.images && report.images.length" class="image-list">
-            <div v-for="(img, idx) in report.images" :key="idx" class="image-preview">
-              <img
-                  v-if="img.imageData"
-                  :src="`data:image/jpeg;base64,${img.imageData}`"
-                  alt="등록된 이미지"
-                  style="max-width: 120px; max-height: 120px; margin: 8px;"
-              />
-              <img
-                  v-else-if="img.imageUrl"
-                  :src="img.imageUrl"
-                  alt="등록된 이미지"
-                  style="max-width: 120px; max-height: 120px; margin: 8px;"
-              />
-              <span v-else>이미지 없음</span>
             </div>
           </div>
 
-          <!-- 내용 작성 영역 -->
-          <div class="content-editor-section">
-            <div class="form-group">
-              <label class="form-label required">조황정보 내용</label>
-              <RichTextEditor v-model="formData.content" editor-id="fishing-report-editor"/>
+          <!-- 업로드 플레이스홀더 -->
+          <div v-else class="upload-placeholder">
+            <div class="upload-icon">
+              <i class="fas fa-cloud-upload-alt"></i>
             </div>
+            <p class="upload-text">조황정보 대표 이미지를 업로드하세요</p>
+            <p class="upload-hint">JPG, PNG 파일만 가능합니다 (최대 5MB)</p>
+            <p class="upload-hint">대표 이미지는 하나만 업로드 가능합니다</p>
           </div>
+
+          <div class="upload-button-container">
+            <input 
+              type="file" 
+              accept="image/*" 
+              @change="onThumbnailChange" 
+              class="file-input"
+              id="imageUpload"
+            />
+            <label for="imageUpload" class="upload-label">
+              <i class="fas fa-plus"></i>
+              {{ thumbnailFile ? '대표 이미지 변경' : '대표 이미지 선택' }}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 내용 작성 섹션 -->
+      <div class="form-section">
+        <h3 class="section-title">📝 {{ editMode ? '조황정보 수정' : '조황정보 작성' }}</h3>
+        <div class="form-group">
+          <label class="form-label required">조황정보 내용</label>
+          <RichTextEditor v-model="formData.content" editor-id="fishing-report-editor"/>
         </div>
       </div>
 
@@ -582,6 +694,11 @@ function onProductInputFocus() {
   margin-bottom: 20px;
 }
 
+.required-mark {
+  color: #f44336;
+  font-weight: 700;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -643,187 +760,168 @@ function onProductInputFocus() {
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
-/* 새로운 콘텐츠 섹션 스타일 */
-.content-section {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
-  border-left: 4px solid #1976d2;
-}
-
-.content-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.image-upload-section {
-  background: white;
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 2px solid #e0e0e0;
-  transition: all 0.3s ease;
-}
-
-.image-upload-section:hover {
-  border-color: #1976d2;
-  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.15);
-}
-
+/* 썸네일 업로드 스타일 */
 .image-upload-container {
   position: relative;
-  cursor: pointer;
 }
 
-.image-preview-area {
-  border: 2px dashed #e0e0e0;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  min-height: 200px;
+.thumbnail-preview {
+  margin-bottom: 20px;
+}
+
+.thumbnail-display {
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
-.image-upload-container:hover .image-preview-area {
-  border-color: #1976d2;
-  background: #f8f9fa;
-}
-
-.upload-placeholder {
-  text-align: center;
-  padding: 40px 20px;
-  transition: all 0.3s ease;
-}
-
-.upload-placeholder:hover {
-  transform: translateY(-2px);
-}
-
-.upload-icon {
-  font-size: 3.5rem;
-  margin-bottom: 15px;
-  display: block;
-  opacity: 0.7;
-}
-
-.upload-text {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.upload-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #1976d2;
-}
-
-.upload-subtitle {
-  font-size: 0.95rem;
-  color: #666;
-}
-
-.upload-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.image-preview {
+.thumbnail-item {
   position: relative;
+  max-width: 300px;
   width: 100%;
-  height: 100%;
-  min-height: 200px;
 }
 
-.preview-image {
+.thumbnail-image {
   width: 100%;
-  height: 100%;
+  height: 200px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.image-overlay {
+.thumbnail-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 10px;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-.image-preview:hover .image-overlay {
+.thumbnail-item:hover .thumbnail-overlay {
   opacity: 1;
 }
 
-.remove-image-btn {
+.thumbnail-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.thumbnail-actions button {
+  background: rgba(244, 67, 54, 0.9);
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.thumbnail-actions button:hover {
+  background: rgba(244, 67, 54, 1);
+}
+
+.thumbnail-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 0 0 8px 8px;
+  padding: 8px;
+  color: white;
+  font-size: 0.9em;
+}
+
+.thumbnail-name {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.thumbnail-size {
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+
+.upload-placeholder {
+  text-align: center;
+  padding: 40px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  color: #666;
+  margin-bottom: 20px;
+  background: #fafafa;
+}
+
+.upload-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+  color: #1976d2;
+}
+
+.upload-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.upload-hint {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-label {
+  background: #1976d2;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.upload-label:hover {
+  background: #1565c0;
+  transform: translateY(-1px);
+}
+
+.upload-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.remove-btn {
   background: #f44336;
   color: white;
   border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  padding: 4px 8px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 12px;
 }
 
-.remove-image-btn:hover {
+.remove-btn:hover {
   background: #d32f2f;
-  transform: scale(1.1);
-}
-
-.file-info {
-  margin-top: 15px;
-  text-align: center;
-  padding: 10px;
-  background: #f5f5f5;
-  border-radius: 8px;
-}
-
-.file-name {
-  font-size: 0.9rem;
-  color: #333;
-  font-weight: 500;
-}
-
-.content-editor-section {
-  background: white;
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 2px solid #e0e0e0;
-}
-
-.content-editor-section .form-group {
-  margin-bottom: 0;
-}
-
-.content-editor-section :deep(.note-editor) {
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-  min-height: 350px;
-}
-
-.content-editor-section :deep(.note-editor:focus-within) {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
 .error-message {
@@ -892,16 +990,12 @@ function onProductInputFocus() {
     width: 100%;
   }
 
-  .content-layout {
-    gap: 20px;
+  .thumbnail-item {
+    max-width: 100%;
   }
 
-  .image-upload-section {
-    padding: 20px;
-  }
-
-  .image-preview-area {
-    min-height: 150px;
+  .thumbnail-image {
+    height: 150px;
   }
 
   .upload-placeholder {
@@ -909,24 +1003,19 @@ function onProductInputFocus() {
   }
 
   .upload-icon {
-    font-size: 3rem;
+    font-size: 30px;
   }
 
-  .upload-title {
-    font-size: 1.1rem;
+  .upload-text {
+    font-size: 1rem;
   }
 
-  .content-editor-section {
-    padding: 20px;
+  .upload-hint {
+    font-size: 0.8em;
   }
 
-  .content-editor-section :deep(.note-editor) {
-    min-height: 300px;
-  }
-
-  .remove-image-btn {
-    width: 35px;
-    height: 35px;
+  .upload-label {
+    padding: 10px 20px;
     font-size: 14px;
   }
 }
@@ -934,29 +1023,58 @@ function onProductInputFocus() {
 .autocomplete-list {
   background: #fff;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
+  border-radius: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
-  max-height: 180px;
+  max-height: 300px;
   overflow-y: auto;
   position: absolute;
-  z-index: 10;
+  z-index: 1000;
   width: 100%;
   min-width: 120px;
   left: 0;
   top: 100%;
   box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #ddd;
+}
+
+.autocomplete-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.autocomplete-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.autocomplete-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.autocomplete-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .autocomplete-item {
-  padding: 8px 12px;
+  padding: 12px 16px;
   cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
 }
 
 .autocomplete-item.highlighted,
 .autocomplete-item:hover {
   background: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
 }
 
 .selected-product-info {
@@ -999,3 +1117,4 @@ function onProductInputFocus() {
   font-size: 0.9rem;
 }
 </style>
+

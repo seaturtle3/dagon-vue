@@ -47,14 +47,20 @@ function setSwiperRef(swiper, idx) {
 }
 function handleMouseEnter(idx) {
   const swiper = swiperRefs.value[idx]
-  if (swiper && swiper.autoplay) {
+  if (swiper && swiper.params && swiper.autoplay) {
+    swiper.params.autoplay.delay = 500
     swiper.autoplay.start()
   }
 }
+
 function handleMouseLeave(idx) {
   const swiper = swiperRefs.value[idx]
   if (swiper && swiper.autoplay) {
     swiper.autoplay.stop()
+    // Swiper 내부 상태도 수동으로 조정 (중복 방지)
+    if (swiper.autoplay.running) {
+      swiper.autoplay.running = false
+    }
   }
 }
 </script>
@@ -83,7 +89,7 @@ function handleMouseLeave(idx) {
             :slides-per-view="1"
             :pagination="true"
             :navigation="true"
-            :autoplay="{ delay: 300, disableOnInteraction: false }"
+            :autoplay="false"
             style="width:100%;height:180px;"
             @swiper="swiper => setSwiperRef(swiper, idx)"
           >
@@ -103,7 +109,7 @@ function handleMouseLeave(idx) {
             :slides-per-view="1"
             :pagination="true"
             :navigation="true"
-            :autoplay="{ delay: 300, disableOnInteraction: false }"
+            :autoplay="false"
             style="width:100%;height:180px;"
             @swiper="swiper => setSwiperRef(swiper, idx)"
           >
@@ -142,7 +148,7 @@ function handleMouseLeave(idx) {
       </div>
       <!-- 본문 -->
       <div class="content">
-        <p class="weight-max">{{ product.weight }}t & {{ product.maxPerson }}명</p>
+        <p class="weight-max">{{ product.weight }}t · {{ product.maxPerson }}명</p>
         <p class="address">위치 : {{ product.prodAddress }}</p>
       </div>
     </div>

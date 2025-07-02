@@ -6,6 +6,7 @@ import { useAdminAuthStore } from "@/store/auth/auth.js";
 
 import BoardDetailBox from "@/components/common/BoardDetailBox.vue";
 import BoardDetailAction from "@/components/common/BoardDetailAction.vue";
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const route = useRoute()
 const router = useRouter()
@@ -124,8 +125,10 @@ const goToEventList = () => {
   <div v-else-if="event" class="board-detail">
     <BoardDetailBox>
       <template #title>
-        <div class="d-flex justify-between align-items-center">
+        <div class="d-flex justify-between align-items-center" style="position:relative;">
           <span>{{ event.title }}</span>
+          <!-- 제목 오른쪽에 점세개(더보기) 버튼 -->
+          <BoardDetailAction showTopMenu @edit="handleEdit" @delete="handleDelete" />
           <span class="badge bg-success ms-2">{{ event.eventStatus }}</span>
         </div>
       </template>
@@ -139,13 +142,11 @@ const goToEventList = () => {
 
       <template #default>
         <hr class="board-divider" />
-        <div v-if="event.thumbnailUrl" class="event-thumbnail mb-3">
-          <img :src="event.thumbnailUrl" alt="이벤트 썸네일" class="img-fluid rounded" />
-        </div>
         <div v-html="event.content" class="mt-4" />
       </template>
     </BoardDetailBox>
 
+    <!-- 하단 액션 버튼 -->
     <BoardDetailAction @edit="handleEdit" @delete="handleDelete" />
 
     <!-- 이전글/다음글 네비게이션 -->
@@ -225,11 +226,6 @@ hr.board-divider {
   border: none;
   border-top: 1px solid #dee2e6;
   margin: 1rem 0;
-}
-
-.event-thumbnail img {
-  max-width: 100%;
-  height: auto;
 }
 
 .navigation-container {

@@ -36,5 +36,13 @@ export const useProductFishingDiaryStore = defineStore('productFishingDiary', {
             this.diary = []
             this.lastFetchedProductId = null
         }
+    },
+
+    getters: {
+        getDiaryByProductId: (state) => {
+            return (productId) => {
+                return state.diary || []
+            }
+        }
     }
 })

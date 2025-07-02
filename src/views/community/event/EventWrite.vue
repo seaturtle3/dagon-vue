@@ -5,6 +5,7 @@ import {createEvent, updateEvent, fetchEventById} from '@/api/event.js'
 import BoardWriteForm from '@/components/common/BoardWriteForm.vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import {useAdminAuthStore} from '@/store/auth/auth.js'
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const router = useRouter()
 const route = useRoute()
@@ -124,8 +125,7 @@ async function handleThumbnailUpload(event) {
     }
 
     const fileName = await res.text()
-    const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL
-    form.thumbnailUrl = `${baseUrl}/${fileName}`
+    form.thumbnailUrl = `/uploads/${fileName}`
   } catch (err) {
     console.error('썸네일 업로드 실패:', err)
     alert('썸네일 업로드에 실패했습니다.')
@@ -151,7 +151,7 @@ function goBack() {
           <input type="file" class="form-control" accept="image/*" @change="handleThumbnailUpload"/>
           <small class="form-text text-muted">5MB 이하의 이미지 파일만 업로드 가능합니다.</small>
           <div v-if="form.thumbnailUrl" class="mt-2">
-            <img :src="form.thumbnailUrl" alt="썸네일 미리보기" style="max-width: 200px; border-radius: 4px;"/>
+            <img :src="`${BASE_URL}${form.thumbnailUrl}`" alt="썸네일 미리보기" style="max-width: 200px; border-radius: 4px;"/>
           </div>
         </div>
 
