@@ -63,6 +63,15 @@
               <span class="title-content" :class="{ 'with-badge': notice.isTop }">
                 {{ notice.title }}
               </span>
+              <!-- 첨부파일/이미지 아이콘 -->
+              <span v-if="hasAttachments(notice)" class="attachment-icons">
+                <span v-if="hasImages(notice)" class="icon-wrapper" title="이미지 포함">
+                  <font-awesome-icon icon="fa-solid fa-image" class="icon-image" />
+                </span>
+                <span v-if="hasFiles(notice)" class="icon-wrapper" title="첨부파일 포함">
+                  <font-awesome-icon icon="fa-solid fa-paperclip" class="icon-file" />
+                </span>
+              </span>
             </span>
           </div>
           <div class="col-author">{{ notice.adminName || '관리자' }}</div>
@@ -178,6 +187,7 @@
 import { ref, onMounted } from 'vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import { getAdminNotices, createNotice, updateNotice, deleteNotice as deleteNoticeApi, fetchNoticeById } from '@/api/notice.js'
+import { BASE_URL } from '@/constants/baseUrl.js'
 
 export default {
   name: 'Notices',
@@ -370,6 +380,28 @@ export default {
       selectedNotice.value = null
     }
     
+    // 첨부파일/이미지 감지 함수들
+    const hasAttachments = (notice) => {
+      return hasImages(notice) || hasFiles(notice)
+    }
+    
+    const hasImages = (notice) => {
+      if (!notice.content) return false
+      // HTML content에서 img 태그 검색
+      return notice.content.includes('<img') || notice.content.includes('data:image')
+    }
+    
+    const hasFiles = (notice) => {
+      if (!notice.content) return false
+      // HTML content에서 첨부파일 링크 검색 (a 태그)
+      return notice.content.includes('<a href') && 
+             (notice.content.includes('download') || 
+              notice.content.includes('.pdf') || 
+              notice.content.includes('.doc') || 
+              notice.content.includes('.xls') ||
+              notice.content.includes('.zip'))
+    }
+    
     onMounted(() => {
       loadNotices()
     })
@@ -397,6 +429,9 @@ export default {
       submitNotice,
       closeModal,
       closeDetailModal,
+      hasAttachments,
+      hasImages,
+      hasFiles,
       RichTextEditor
     }
   }
@@ -570,6 +605,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 
@@ -584,6 +620,31 @@ export default {
 .title-badges {
   display: flex;
   gap: 0.25rem;
+}
+
+/* 첨부파일/이미지 아이콘 스타일 */
+.attachment-icons {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+}
+
+.icon-image {
+  color: #4299e1;
+}
+
+.icon-file {
+  color: #48bb78;
 }
 
 .badge {
