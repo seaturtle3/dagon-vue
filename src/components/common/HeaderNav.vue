@@ -738,25 +738,32 @@ watch(
 }
 
 .dropdown-menu-custom {
+  background: #fff;
+  color: #222 !important;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  padding: 0.5rem 0;
+  min-width: 160px;
   position: absolute;
   top: 100%;
   left: 0;
-  z-index: 999;
-  background: white;
-  border: 1px solid #ccc;
-  padding: 8px 0;
-  margin: 0;
-  list-style: none;
-  min-width: 160px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
 }
 
-.dropdown-menu-custom li {
-  padding: 4px 20px;
+.dropdown-menu-custom .dropdown-item {
+  color: #222 !important;
+  background: #fff !important;
+  padding: 0.7rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.18s, color 0.18s;
 }
 
-.dropdown-menu-custom li:hover {
-  background-color: #f1f1f1;
+.dropdown-menu-custom .dropdown-item:hover {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
 }
 
 /* 알람 드롭다운 스타일 */
