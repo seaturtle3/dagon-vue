@@ -192,14 +192,27 @@ export default {
     },
     async submit() {
       try {
+        console.log('상품 등록 시작:', this.localForm);
+        console.log('파일 정보:', this.file);
+        
         const formData = new FormData();
         formData.append('product', new Blob([JSON.stringify(this.localForm)], { type: 'application/json' }));
         
         if (this.file) {
+          console.log('썸네일 파일 추가:', this.file.name, this.file.size, this.file.type);
           formData.append('thumbnailFile', this.file);
+        } else {
+          console.log('썸네일 파일이 없습니다.');
+        }
+
+        // FormData 내용 확인
+        for (let [key, value] of formData.entries()) {
+          console.log('FormData 항목:', key, value);
         }
 
         const response = await partnerService.registerProduct(formData);
+        console.log('상품 등록 응답:', response);
+        console.log('응답 데이터:', response.data);
         
         if (response.data) {
           alert('상품이 성공적으로 등록되었습니다.');
@@ -207,6 +220,7 @@ export default {
         }
       } catch (error) {
         console.error('상품 등록 실패:', error);
+        console.error('에러 응답:', error.response);
         alert(error.response?.data || '상품 등록에 실패했습니다.');
       }
     }

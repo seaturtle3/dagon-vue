@@ -18,6 +18,31 @@
 
 /* ===== 전역 스타일 ===== */
 
+/* 전역 input 스타일 */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+  color: #333 !important;
+  background-color: #fff !important;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+input[type="number"]::placeholder,
+input[type="tel"]::placeholder,
+input[type="url"]::placeholder,
+input[type="search"]::placeholder,
+textarea::placeholder {
+  color: #999 !important;
+}
+
 /* 앱 컨테이너 */
 #app {
   min-height: 100vh;
