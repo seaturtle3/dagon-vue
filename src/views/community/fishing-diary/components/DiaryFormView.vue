@@ -15,7 +15,7 @@ const deletedImageNames = ref([])
 const formData = ref({
   title: '',
   content: '',
-  fishingAt: '',
+  fishingAt: new Date().toISOString().split('T')[0],
 })
 
 const authStore = useAuthStore()
@@ -217,7 +217,7 @@ function resetForm() {
   formData.value = {
     title: '',
     content: '',
-    fishingAt: '',
+    fishingAt: new Date().toISOString().split('T')[0],
   }
   selectedProduct.value = null
   productSearch.value = ''
@@ -636,30 +636,17 @@ function onDateInputClick() {
   }
 }
 
-.autocomplete-list {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  max-height: 180px;
-  overflow-y: auto;
-  position: absolute;
-  z-index: 10;
-  width: 100%;
-  min-width: 120px;
-  left: 0;
-  top: 100%;
-  box-sizing: border-box;
-}
+.autocomplete-list,
 .autocomplete-item {
-  padding: 8px 12px;
-  cursor: pointer;
+  color: #222 !important;
+  background: #fff !important;
 }
-.autocomplete-item.highlighted, .autocomplete-item:hover {
-  background: #e3f2fd;
+
+.autocomplete-item:hover {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
 }
+
 .selected-product-info {
   margin-top: 8px;
   color: #1976d2;
