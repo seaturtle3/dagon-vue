@@ -217,16 +217,18 @@ async function onSubmit() {
     return;
   }
 
-  // 이미지 파일 검증
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  if (thumbnailFile.value.size > maxSize) {
-    alert('이미지 파일 크기는 5MB 이하여야 합니다.');
-    return;
-  }
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-  if (!allowedTypes.includes(thumbnailFile.value.type)) {
-    alert('지원되는 이미지 형식: JPG, PNG, GIF');
-    return;
+  // 이미지 파일 검증 (신규 업로드한 파일이 있을 때만)
+  if (thumbnailFile.value) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (thumbnailFile.value.size > maxSize) {
+      alert('이미지 파일 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(thumbnailFile.value.type)) {
+      alert('지원되는 이미지 형식: JPG, PNG, GIF');
+      return;
+    }
   }
 
   const dtoToSend = {
