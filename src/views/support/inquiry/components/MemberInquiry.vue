@@ -1,74 +1,85 @@
 <template>
   <div class="inquiry-container">
     <h2 class="page-title">1:1 문의(회원전용)</h2>
-
-    <!-- 상품 정보 표시 섹션 -->
-    <div v-if="productInfo" class="product-info-section">
-      <h3>상품 정보</h3>
-      <div class="product-info">
-        <p><strong>상품명:</strong> {{ productInfo.productName }}</p>
-        <p><strong>상품ID:</strong> {{ productInfo.productId }}</p>
+    <div v-if="!isLoggedIn">
+      <div class="modal-overlay">
+        <div class="modal-content modal-login">
+          <h2>로그인해야 사용 가능한 기능입니다</h2>
+          <div class="modal-actions">
+            <button class="login-btn" @click="goToLogin">로그인</button>
+            <button class="register-btn" @click="goToRegister">회원가입</button>
+          </div>
+        </div>
       </div>
     </div>
+    <div v-else>
+      <!-- 상품 정보 표시 섹션 -->
+      <div v-if="productInfo" class="product-info-section">
+        <h3>상품 정보</h3>
+        <div class="product-info">
+          <p><strong>상품명:</strong> {{ productInfo.productName }}</p>
+          <p><strong>상품ID:</strong> {{ productInfo.productId }}</p>
+        </div>
+      </div>
 
-    <!-- 항상 보이는 문의하기 작성 폼 -->
-    <div class="inquiry-form">
-      <h3>문의하기 작성</h3>
-      <form @submit.prevent="submitForm">
-        <div class="form-group">
-          <label>작성자</label>
-          <input type="text" :value="userInfo?.uid || ''" readonly class="readonly-input">
-        </div>
-        <div class="form-group">
-          <label>작성자 유형</label>
-          
-          <input type="text" :value="userInfo.role === 'PARTNER' ? '파트너' : '일반회원'" readonly class="readonly-input">
-        </div>
-        <div class="form-group">
-          <label>문의 유형</label>
-          <select v-model="form.inquiryType" required>
-            <option value="">문의 유형을 선택하세요.</option>
-            <option value="BUSINESS">제휴 문의</option>
-            <option value="SYSTEM">시스템 문의</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>제목</label>
-          <input type="text" v-model="form.title" required placeholder="제목을 입력하세요">
-        </div>
-        <div class="form-group">
-          <label>내용</label>
-          <textarea v-model="form.content" required placeholder="내용을 입력하세요"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit">등록</button>
-          <button type="button" @click="resetForm">초기화</button>
-        </div>
+      <!-- 항상 보이는 문의하기 작성 폼 -->
+      <div class="inquiry-form">
+        <h3>문의하기 작성</h3>
+        <form @submit.prevent="submitForm">
+          <div class="form-group">
+            <label>작성자</label>
+            <input type="text" :value="userInfo?.uid || ''" readonly class="readonly-input">
+          </div>
+          <div class="form-group">
+            <label>작성자 유형</label>
+            <input type="text" :value="userInfo.role === 'PARTNER' ? '파트너' : '일반회원'" readonly class="readonly-input">
+          </div>
+          <div class="form-group">
+            <label>문의 유형</label>
+            <select v-model="form.inquiryType" required>
+              <option value="">문의 유형을 선택하세요.</option>
+              <option value="BUSINESS">제휴 문의</option>
+              <option value="SYSTEM">시스템 문의</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>제목</label>
+            <input type="text" v-model="form.title" required placeholder="제목을 입력하세요">
+          </div>
+          <div class="form-group">
+            <label>내용</label>
+            <textarea v-model="form.content" required placeholder="내용을 입력하세요"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit">등록</button>
+            <button type="button" @click="resetForm">초기화</button>
+          </div>
         </form>
-      <div class="inquiry-container">
-        <!-- 기존 코드 생략 -->
+        <div class="inquiry-container">
+          <!-- 기존 코드 생략 -->
 
-        <!-- 문의 등록 모달 -->
-        <MemberInquiryModal
-            v-if="showModal"
-            :inquiry="submittedData"
-            @close="closeModal"
-            @reset-form="resetForm"
-        />
+          <!-- 문의 등록 모달 -->
+          <MemberInquiryModal
+              v-if="showModal"
+              :inquiry="submittedData"
+              @close="closeModal"
+              @reset-form="resetForm"
+          />
+        </div>
       </div>
-    </div>
 
-    <!-- 로그인 안내 모달 -->
-    <div v-if="showLoginModal" class="modal-overlay">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h2>로그인 필요</h2>
-        </div>
-        <div class="modal-body">
-          <p>문의 작성은 로그인 후 이용 가능합니다.</p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary" @click="goToLogin">로그인 페이지로 이동</button>
+      <!-- 로그인 안내 모달 -->
+      <div v-if="showLoginModal" class="modal-overlay">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h2>로그인 필요</h2>
+          </div>
+          <div class="modal-body">
+            <p>문의 작성은 로그인 후 이용 가능합니다.</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" @click="goToLogin">로그인 페이지로 이동</button>
+          </div>
         </div>
       </div>
     </div>
@@ -101,6 +112,11 @@ const form = ref({
 const showLoginModal = ref(false)
 const productInfo = ref(null)
 
+const isLoggedIn = computed(() => {
+  const token = localStorage.getItem('token');
+  const userInfo = localStorage.getItem('userInfo');
+  return !!(token && userInfo);
+});
 
 const initializeProductInfo = () => {
   // URL 쿼리 파라미터에서 상품 정보 가져오기
@@ -217,18 +233,19 @@ const goToLogin = () => {
   router.push('/login')
 }
 
+const goToRegister = () => {
+  router.push('/register')
+}
+
 onMounted(async () => {
   // 로그인 상태 확인
   const token = localStorage.getItem('token');
   const userInfo = localStorage.getItem('userInfo');
   
   if (!token || !userInfo) {
-    console.log('비로그인 사용자가 MemberInquiry에 접근 - GuestInquiry로 리다이렉트');
+    console.log('비로그인 사용자가 MemberInquiry에 접근 - 로그인 페이지로 리다이렉트');
     alert('로그인이 필요한 서비스입니다.');
-    router.push({
-      name: 'GuestInquiry',
-      query: route.query
-    });
+    router.push('/login');
     return;
   }
   

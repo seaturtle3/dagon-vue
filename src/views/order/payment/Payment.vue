@@ -71,7 +71,7 @@
     <div class="reservation-summary" v-if="reservationInfo && !isLoggedIn">
       <!-- 상품 정보 섹션 -->
       <div class="product-info-section">
-        <h4>상품 정보</h4>
+        <h4>선택 상품 정보</h4>
         <div class="product-info">
           <p><strong>상품명:</strong> {{ reservationInfo.prodName || '상품명 없음' }}</p>
           <p><strong>상품ID:</strong> {{ reservationInfo.prodId || '-' }}</p>
