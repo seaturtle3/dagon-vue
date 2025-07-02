@@ -10,6 +10,9 @@ import { useFishingCenterStore } from '@/store/fishing-center/useFishingCenterSt
 import { useProductListStore } from '@/store/product/all-products/useProductListStore.js'
 import { useFishingReportStore} from "@/store/fishing-center/useFishingReportStore.js";
 
+// emits 옵션 추가
+defineEmits(['loginSuccess', 'logout'])
+
 const centerStore = useFishingCenterStore()
 const currentPage = ref(0)
 const pageSize = 8
