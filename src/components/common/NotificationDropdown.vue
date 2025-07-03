@@ -214,13 +214,13 @@ onUnmounted(() => {
 </script>
 <style scoped>
 .notification-dropdown button {
-  border-radius: 50% !important;
+  border-radius: 50%;
   transition: background 0.2s;
 }
 .notification-dot {
   display: inline-block;
   background: #dc3545;
-  border-radius: 50% !important;
+  border-radius: 50%;
   width: 9px;
   height: 9px;
   min-width: 0;

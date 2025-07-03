@@ -1304,6 +1304,9 @@ watch(
   font-size: 1.5rem;
   cursor: pointer;
   color: #888;
+  position: absolute;
+  top: 25px;
+  right: 40px;
 }
 
 .custom-modal-body {
@@ -1346,6 +1349,7 @@ watch(
   color: #d32f2f;
   font-weight: 500;
   vertical-align: middle;
+  border-radius: 6px;
 }
 
 @media (max-width: 480px) {
@@ -1406,6 +1410,7 @@ watch(
   position: relative;
   border: 1.5px solid #e3eaf5;
   animation: modalPop 0.22s cubic-bezier(.4, 1.6, .6, 1) 1;
+  top: 140px;
 }
 
 @keyframes modalPop {
