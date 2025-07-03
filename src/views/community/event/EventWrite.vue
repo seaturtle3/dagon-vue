@@ -16,8 +16,6 @@ const token = authStore.token
 const eventId = route.params.id
 const isEdit = !!eventId
 
-console.log("--------------eventId>",eventId)
-console.log("--------------0isEdit>",isEdit)
 
 // 이미지 관련 상태 추가
 const files = ref([])
@@ -85,7 +83,12 @@ async function submit() {
       thumbnailUrl: form.thumbnailUrl || null,
       isTop: form.isTop,
       deleteImageNames: [...deletedImageNames.value],
-      editorImageChanges: editorImageChanges.value
+      editorImageChanges: editorImageChanges.value,
+      deletedImageNames: [...deletedImageNames.value],
+      existingImages: [...existingImages.value],
+      imageIdList: [...imageIdList.value],
+      thumbnailFiles: [...thumbnailFiles],
+      files: [...files.value]
     }
 
     console.log("--------------isEdit>",isEdit)
@@ -94,6 +97,7 @@ async function submit() {
     console.log("--------------editorImageChanges>",editorImageChanges.value)
     console.log("--------------thumbnailFiles>",thumbnailFiles)
     console.log("--------------썸네일 이미지 개수>",thumbnailFiles.length)
+    console.log("------------->files.value>",files.value)
 
     if (isEdit) {
       console.log("--------------3eventId>",eventId)
@@ -130,7 +134,7 @@ onMounted(async () => {
       // 기존 이미지가 있으면 로드
       if (res.data.imageDataList && res.data.imageDataList.length > 0) {
         existingImages.value = res.data.imageDataList.map((imageData, idx) => ({
-          id: 'existing-' + idx,
+          id: res.data.imageIdList[idx] || 'existing-' + idx, // EventImage 테이블의 PK 사용
           url: `data:image/jpeg;base64,${imageData}`,
           name: `image_${idx}`,
           isExisting: true,
@@ -138,7 +142,6 @@ onMounted(async () => {
             imageData: imageData
           }
         }))
-        
         // 기존 이미지를 files 배열에 추가
         existingImages.value.forEach((existingImg, idx) => {
           if (existingImg.originalImage && existingImg.originalImage.imageData) {
@@ -158,6 +161,8 @@ onMounted(async () => {
       console.error('이벤트 조회 실패:', err)
       alert('이벤트 정보를 불러오는데 실패했습니다.')
     }
+    console.log("--------------existingImages.value>",existingImages.value)
+
   }
 })
 
@@ -191,6 +196,8 @@ function handleImageUpload(event) {
 
 // 이미지 제거
 function removeImage(imageId) {
+  console.log("--------------imageId>",imageId)
+  console.log("--------------1imagePreviews.value>",imagePreviews.value)
   const index = imagePreviews.value.findIndex(img => img.id === imageId)
   if (index > -1) {
     const image = imagePreviews.value[index]
@@ -206,16 +213,37 @@ function removeImage(imageId) {
 
 // 기존 이미지 제거
 function removeExistingImage(imageId) {
+  console.log("--------------imageId>",imageId)
+  console.log("--------------2existingImages.value>",existingImages.value)
+  
+  // existingImages가 비어있는지 확인
+  if (!existingImages.value || existingImages.value.length === 0) {
+    console.log("existingImages가 비어있습니다.")
+    return
+  }
+  
   const idx = existingImages.value.findIndex(img => img.id === imageId)
+  console.log("--------------idx>",idx)
+  
   if (idx > -1) {
     const existingImg = existingImages.value[idx]
-    deletedImageNames.value.push(existingImg.name)
-    existingImages.value.splice(idx, 1)
+    console.log("삭제할 이미지:", existingImg)
     
+    // 삭제된 이미지 이름을 배열에 추가
+    deletedImageNames.value.push(existingImg.id)
+    
+    // existingImages에서 제거
+    existingImages.value.splice(idx, 1)
+    console.log("--------------existingImages.value>",existingImages.value)
+    
+    // files 배열에서도 제거
     const fileIndex = files.value.findIndex(file => file.name === existingImg.name)
     if (fileIndex > -1) {
       files.value.splice(fileIndex, 1)
+      console.log("files 배열에서도 제거됨:", existingImg.id)
     }
+  } else {
+    console.log("해당 이미지를 찾을 수 없습니다:", imageId)
   }
 }
 
@@ -280,7 +308,7 @@ const handleEditorImageChanges = (changes) => {
           <!-- 이미지 미리보기 -->
           <div v-if="allPreviews.length > 0" class="image-previews mt-3">
             <div v-for="image in allPreviews" :key="image.id" class="image-preview-item">
-              <img :src="image.url" :alt="image.name" class="preview-image"/>
+              <img :src="image.url" :alt="image.id" class="preview-image"/>
               <button 
                 type="button" 
                 @click="image.isExisting ? removeExistingImage(image.id) : removeImage(image.id)"

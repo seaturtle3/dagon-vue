@@ -100,7 +100,7 @@ onMounted(() => {
             formData.append('file', file)
 
             let uploadUrl = ''
-            if (props.eventId) {
+            if (props.eventId || props.eventId === 0) {
               formData.append('eventId', props.eventId)
               uploadUrl = '/api/images/event/uploadImage'
             } else {
@@ -126,18 +126,20 @@ onMounted(() => {
               },
               body: formData
             })
+            console.log("--------------response>",response)
             
-            if (!response.ok) {
-              const errorText = await response.text()
-              throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
-            }
-            
-            // 서버에서 반환된 DB URL
-            const dbUrl = await response.text()
-            
-            // BASE_URL을 붙여서 절대경로로 만듦
-            const fullUrl = BASE_URL.replace(/\/$/, '') + dbUrl
-            console.log("--------------fullUrl>",fullUrl)
+            if (response.ok) {
+              // 서버가 JSON 반환 시
+              const dbUrl = await response.json();
+              console.log('dbUrl:', dbUrl);
+
+              // 서버가 문자열 반환 시
+              // const dbUrl = await response.text();
+              // console.log('dbUrl:', dbUrl);
+
+           // BASE_URL을 붙여서 절대경로로 만듦
+           const fullUrl = BASE_URL.replace(/\/$/, '') + dbUrl.dbUrl
+            console.log("--------------fullUrl>",props.eventId, fullUrl)
             
             // 에디터에 이미지 삽입 (DB URL 사용)
             $(`#${props.editorId}`).summernote('insertImage', fullUrl)
@@ -164,6 +166,14 @@ onMounted(() => {
               imageType: 'editor',
               isThumbnail: false
             })
+
+
+            } else {
+              // 에러 처리
+              const errorText = await response.text();
+              console.error('업로드 실패:', errorText);
+            }
+ 
             
           } catch (e) {
             console.error('이미지 업로드 실패', e)
