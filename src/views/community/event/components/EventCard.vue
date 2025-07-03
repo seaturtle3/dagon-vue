@@ -113,7 +113,7 @@ const formattedPeriod = computed(() => {
 .thumbnail-wrapper img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   background-color: #f8f9fa;
 }
 
