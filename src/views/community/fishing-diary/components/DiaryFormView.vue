@@ -49,7 +49,14 @@ const isFormValid = computed(() => {
 
 function onThumbnailChange(event) {
   const uploadedFiles = Array.from(event.target.files)
-  // 썸네일이 이미 있으면 기존 썸네일을 교체(덮어쓰기)
+  // 새로 업로드하면 기존 썸네일(기존+새로) 모두 제거
+  if (existingImages.value.length > 0) {
+    // 기존 이미지 삭제 목록에 추가
+    existingImages.value.forEach(img => {
+      deletedImageNames.value.push(img.name)
+    })
+    existingImages.value = []
+  }
   files.value = []
   imagePreviews.value = []
   if (uploadedFiles.length > 0) {
