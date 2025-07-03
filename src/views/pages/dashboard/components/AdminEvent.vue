@@ -173,6 +173,9 @@ const searchParams = reactive({
   size: 10
 })
 
+// 파일 업로드 관련 상태 추가
+const uploadedFiles = ref([])
+
 function formatDate(dateStr) {
   if (!dateStr) return ''
   try {
@@ -294,16 +297,19 @@ const submitEvent = async () => {
       thumbnailUrl: eventForm.thumbnailUrl,
       isTop: eventForm.isTop
     }
+    
     if (modalMode.value === 'edit') {
-      await updateEvent(eventForm.eventId, data)
+      await updateEvent(eventForm.eventId, data, uploadedFiles.value)
       alert('이벤트가 수정되었습니다.')
     } else {
-      await createEvent(data)
+      await createEvent(data, uploadedFiles.value)
       alert('이벤트가 등록되었습니다.')
     }
     closeModal()
+    uploadedFiles.value = [] // 파일 초기화
     await loadEvents()
   } catch (error) {
+    console.error('이벤트 저장 실패:', error)
     alert('저장 실패')
   } finally {
     submitting.value = false
@@ -341,27 +347,26 @@ function changePage(page) {
 async function handleThumbnailUpload(e) {
   const file = e.target.files[0]
   if (!file) return
+  
   if (file.size > 5 * 1024 * 1024) {
     alert('파일 크기는 5MB 이하여야 합니다.')
     return
   }
+  
   if (!file.type.startsWith('image/')) {
     alert('이미지 파일만 업로드 가능합니다.')
     return
   }
-  const formData = new FormData()
-  formData.append('image', file)
-  try {
-    const res = await fetch('/api/images/upload', {
-      method: 'POST',
-      body: formData
-    })
-    if (!res.ok) throw new Error('이미지 업로드 실패')
-    const fileName = await res.text()
-    eventForm.thumbnailUrl = `/uploads/${fileName}`
-  } catch (err) {
-    alert('썸네일 업로드에 실패했습니다.')
+  
+  // 파일을 uploadedFiles에 추가
+  uploadedFiles.value = [file]
+  
+  // 미리보기용 URL 생성
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    eventForm.thumbnailUrl = e.target.result
   }
+  reader.readAsDataURL(file)
 }
 
 onMounted(() => {
