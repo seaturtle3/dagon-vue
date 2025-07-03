@@ -45,10 +45,16 @@
             <div class="diary-title">{{ diary.title }}</div>
             <div class="diary-meta">
               <span><i class="fas fa-user"></i> {{ diary.user?.nickname || diary.user?.uname || '알 수 없음' }}</span>
+              <span class="meta-sep">·</span>
               <span><i class="fas fa-calendar-day"></i> {{ formatDate(diary.fishingAt) }}</span>
+              <span class="meta-sep">·</span>
               <span><i class="fas fa-clock"></i> {{ formatDateTime(diary.createdAt) }}</span>
+              <span class="meta-sep">·</span>
               <span><i class="fas fa-comments"></i> {{ diary.comments?.length || 0 }}</span>
-              <span v-if="diary.likes !== undefined"><i class="fas fa-heart"></i> {{ diary.likes }}</span>
+              <span v-if="diary.likes !== undefined">
+                <span class="meta-sep">·</span>
+                <i class="fas fa-heart"></i> {{ diary.likes }}
+              </span>
             </div>
             <div class="diary-preview">{{ getPreview(diary.content) }}</div>
             <div class="diary-actions">
@@ -204,9 +210,8 @@ function goToPublicDetail(fdId) {
 
 <style scoped>
 .fishing-diary-list {
-  padding: 2rem;
-  max-width: 1100px;
-  margin: 0 auto;
+  padding: 30px;
+  width: 100%;
   background-color: #e3f2fd;
   min-height: 100vh;
   border-radius: 12px;
@@ -244,7 +249,7 @@ function goToPublicDetail(fdId) {
 }
 .diary-card-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 1.5rem;
 }
 .diary-card {
@@ -252,12 +257,13 @@ function goToPublicDetail(fdId) {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(52, 152, 219, 0.08);
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   cursor: pointer;
   transition: box-shadow 0.2s, transform 0.2s;
   overflow: hidden;
   border: 1.5px solid #e3eaf3;
-  min-height: 140px;
+  min-height: unset;
+  height: 100%;
   position: relative;
 }
 .diary-card:hover {
@@ -266,8 +272,8 @@ function goToPublicDetail(fdId) {
   border-color: #3498db;
 }
 .diary-image-wrapper {
-  width: 120px;
-  height: 100%;
+  width: 100%;
+  height: 220px;
   background: #f4f8fb;
   display: flex;
   align-items: center;
@@ -277,11 +283,10 @@ function goToPublicDetail(fdId) {
 }
 .diary-image {
   width: 100%;
-  height: 100%;
+  height: 220px;
   object-fit: cover;
   border-radius: 0;
-  min-height: 120px;
-  min-width: 120px;
+  background: #f4f8fb;
 }
 .no-image {
   width: 100%;
@@ -310,7 +315,7 @@ function goToPublicDetail(fdId) {
 }
 .diary-info {
   flex: 1;
-  padding: 1.2rem 1.2rem 1.2rem 1.5rem;
+  padding: 1.5rem 1.5rem 1.5rem 2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -325,16 +330,27 @@ function goToPublicDetail(fdId) {
   cursor: pointer;
 }
 .diary-meta {
-  font-size: 0.93rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.97rem;
   color: #7f8c8d;
   margin-bottom: 0.7rem;
-  display: flex;
-  gap: 1.2rem;
-  align-items: center;
+  line-height: 1.7;
+  gap: 0.5rem;
 }
-.diary-meta i {
-  margin-right: 0.3em;
+.diary-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.2em;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.diary-meta .meta-sep {
   color: #b0bec5;
+  font-size: 1.1em;
+  margin: 0 0.3em;
+  user-select: none;
 }
 .diary-preview {
   color: #444;
@@ -389,7 +405,7 @@ function goToPublicDetail(fdId) {
   color: #b0bec5;
   cursor: not-allowed;
 }
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .diary-card-list {
     grid-template-columns: 1fr;
   }
@@ -399,7 +415,7 @@ function goToPublicDetail(fdId) {
   }
   .diary-image-wrapper {
     width: 100%;
-    height: 160px;
+    height: 200px;
   }
   .diary-image, .no-image {
     min-width: unset;
@@ -408,7 +424,7 @@ function goToPublicDetail(fdId) {
     height: 100%;
   }
   .diary-info {
-    padding: 1rem;
+    padding: 1.2rem;
   }
 }
 </style> 
