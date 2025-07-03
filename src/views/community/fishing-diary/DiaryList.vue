@@ -2,13 +2,13 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFishingDiaryStore } from '@/store/fishing-center/useFishingDiaryStore.js'
-import { useUserStore } from '@/store/inquiries/userStore.js'
+import { useAdminAuthStore } from '@/store/auth/auth.js'
 import Pagination from "@/components/common-function/Pagination.vue";
 import DiaryCard from "@/views/community/fishing-diary/components/DiaryCard.vue";
 
 const router = useRouter()
 const store = useFishingDiaryStore()
-const userStore = useUserStore()
+const authStore = useAdminAuthStore()
 
 function getResponsivePageSize() {
   const width = window.innerWidth
@@ -29,6 +29,8 @@ const updatePageSize = async () => {
 onMounted(async () => {
   await updatePageSize()
   window.addEventListener('resize', updatePageSize)
+  
+
 })
 
 onUnmounted(() => {
@@ -51,7 +53,7 @@ const onPageChange = async (page) => {
         <h2 class="page-title">조행기</h2>
         <div class="header-actions">
           <button @click="router.push('/fishing-report')" class="go-btn">조황정보 바로가기</button>
-          <button @click="goToCreateDiary" class="create-btn">✏️ 조행기 등록</button>
+          <button v-if="authStore.isAuthenticated" @click="goToCreateDiary" class="create-btn">✏️ 조행기 등록</button>
         </div>
       </div>
 
@@ -144,13 +146,13 @@ const onPageChange = async (page) => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .create-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
 }
+
 
 .loading-message {
   text-align: center;

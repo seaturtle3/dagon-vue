@@ -3,6 +3,7 @@ import {partnerService} from '@/api/partner';
 import {ref, computed, onMounted, onUnmounted} from 'vue';
 import {useRouter} from 'vue-router';
 import {useFishingReportStore} from '@/store/fishing-center/useFishingReportStore.js';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 const props = defineProps({
   report: {
@@ -451,7 +452,7 @@ function getThumbnailSrc() {
           @click="openReportModal(report, 'report')"
           title="게시글 신고"
       >
-        <i class="fas fa-flag"></i> 신고
+        <font-awesome-icon :icon="['fas', 'flag']" class="fa-icon" /> 신고
       </button>
     </div>
     <div class="info-thumbnail-layout">
@@ -460,7 +461,7 @@ function getThumbnailSrc() {
         <div class="info-header">
           <h3 class="info-title">조황 정보</h3>
           <div class="views-count">
-            <i class="fa fa-eye"></i>
+            <font-awesome-icon :icon="['fas', 'eye']" class="fa-icon" />
             <span>{{ report.views || 0 }}</span>
           </div>
         </div>
@@ -486,21 +487,21 @@ function getThumbnailSrc() {
               </div>
               <div class="info-item">
                 <div class="info-label">
-                  <i class="fa fa-user"></i>
+                  <font-awesome-icon :icon="['fas', 'user']" class="fa-icon" />
                   작성자
                 </div>
                 <div class="info-value">{{ report.user?.uname || '익명' }}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">
-                  <i class="fa fa-calendar"></i>
+                  <font-awesome-icon :icon="['fas', 'calendar']" class="fa-icon" />
                   출조 날짜
                 </div>
                 <div class="info-value">{{ report.fishingAt ? formatDate(report.fishingAt) : '날짜 없음' }}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">
-                  <i class="fa fa-clock"></i>
+                  <font-awesome-icon :icon="['fas', 'clock']" class="fa-icon" />
                   등록 날짜
                 </div>
                 <div class="info-value">{{ report.createdAt ? formatDate(report.createdAt) : '날짜 없음' }}</div>
@@ -517,7 +518,7 @@ function getThumbnailSrc() {
           :to="`/products/${report.product.prodId}?tab=reservation`"
           class="reservation-btn"
       >
-        <i class="fa fa-calendar-check"></i>
+        <font-awesome-icon :icon="['fas', 'calendar-check']" class="fa-icon" />
         {{ report.product.prodName }} 예약하기
       </router-link>
     </div>
@@ -565,7 +566,7 @@ function getThumbnailSrc() {
                 :disabled="submittingComment"
                 title="댓글 신고"
             >
-              <i class="fas fa-flag"></i>신고
+              <font-awesome-icon :icon="['fas', 'flag']" class="fa-icon" />신고
             </button>
             <button
                 v-if="isOwnComment(comment)"
@@ -574,7 +575,7 @@ function getThumbnailSrc() {
                 :disabled="submittingComment"
                 title="댓글 삭제"
             >
-              <i class="fa-solid fa-x"></i>삭제
+              <font-awesome-icon :icon="['fas', 'xmark']" class="fa-icon" />삭제
             </button>
           </div>
         </div>

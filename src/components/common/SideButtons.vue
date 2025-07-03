@@ -1,5 +1,31 @@
 <template>
   <div class="side-buttons">
+    <!-- 파트너 전용 플러스 버튼 (PC에서만 표시) -->
+    <div v-if="isPartner && isDesktop" class="partner-quick-actions">
+      <div class="dropdown">
+        <button class="side-button partner-button" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <div class="button-content">
+            <div class="icon-wrapper partner-icon">
+              <font-awesome-icon :icon="['fas', 'plus']" />
+            </div>
+            <span class="button-text">등록</span>
+          </div>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <router-link class="dropdown-item" to="/partner/products/register">
+              <font-awesome-icon :icon="['fas', 'fish']" class="me-2" />상품등록
+            </router-link>
+          </li>
+          <li>
+            <router-link class="dropdown-item" to="/fishing-report/create">
+              <font-awesome-icon :icon="['fas', 'chart-line']" class="me-2" />조황정보등록
+            </router-link>
+          </li>
+        </ul>
+      </div>
+    </div>
+    
     <button class="side-button sea-button" @click="navigateToSea">
       <div class="button-content">
         <div class="icon-wrapper sea-icon">
@@ -22,12 +48,30 @@
 <script>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useAdminAuthStore } from '@/store/auth/auth.js'
 
 export default {
   name: 'SideButtons',
   components: { FontAwesomeIcon },
   setup() {
     const router = useRouter()
+    const authStore = useAdminAuthStore()
+    
+    // 화면 크기 감지
+    const windowWidth = ref(window.innerWidth)
+    const isDesktop = computed(() => windowWidth.value >= 1024)
+    
+    // 파트너 권한 확인
+    const isPartner = computed(() => {
+      if (!authStore.user || !authStore.user.role) return false;
+      const role = String(authStore.user.role).toUpperCase();
+      return role === 'PARTNER';
+    })
+
+    const handleResize = () => {
+      windowWidth.value = window.innerWidth
+    }
 
     const navigateToSea = () => {
       router.push('/products/sea')
@@ -37,9 +81,19 @@ export default {
       router.push('/products/freshwater')
     }
 
+    onMounted(() => {
+      window.addEventListener('resize', handleResize)
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize)
+    })
+
     return {
       navigateToSea,
-      navigateToFreshwater
+      navigateToFreshwater,
+      isPartner,
+      isDesktop
     }
   }
 };
@@ -133,6 +187,62 @@ export default {
 
 .icon-wrapper.freshwater-icon i {
   color: #34d399;
+}
+
+/* 파트너 전용 버튼 스타일 */
+.partner-button {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-color: #10b981;
+  color: white;
+}
+
+.partner-button:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  border-color: #059669;
+  color: white;
+}
+
+.partner-button:active {
+  background: linear-gradient(135deg, #047857, #065f46);
+  border-color: #047857;
+  color: white;
+}
+
+.icon-wrapper.partner-icon .fa-icon {
+  color: white;
+}
+
+/* 드롭다운 메뉴 스타일 */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  min-width: 160px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: #374151;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+  color: #10b981;
+}
+
+.dropdown-item .fa-icon {
+  color: #10b981;
 }
 
 /* 반응형 */
