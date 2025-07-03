@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
+import {defineStore} from 'pinia'
 import api from '@/lib/axios.js'
 
-    export const useFreshwaterProdStore = defineStore('freshwaterProd', {
+export const useFreshwaterProdStore = defineStore('freshwaterProd', {
     state: () => ({
         products: [],
         page: 0,
@@ -10,11 +10,16 @@ import api from '@/lib/axios.js'
         loading: false,
     }),
     actions: {
-        async fetchProducts({ page = 0, size = 1000, sortBy = 'prodId', direction = 'desc' } = {}) {
+        async fetchProducts({
+                                page = 0,
+                                size = 1000,
+                                sortBy = 'createdAt',
+                                direction = 'desc'
+                            } = {}) {
             this.loading = true
             try {
                 const res = await api.get('/api/product/get-all/freshwater', {
-                    params: { page, size, sortBy, direction }
+                    params: {page, size, sortBy, direction}
                 })
                 this.products = res.data.content
                 this.page = res.data.number
@@ -27,15 +32,28 @@ import api from '@/lib/axios.js'
             }
         },
 
-        async fetchFilteredProducts({ region = '', subType = '', species = '' } = {}) {
+        async fetchFilteredProducts({
+                                        region = '',
+                                        subType = '',
+                                        species = [],
+                                        sortBy = 'createdAt',
+                                        direction = 'desc'
+                                    } = {}) {
             this.loading = true
             try {
-                const res = await api.get('/api/product/get-all/freshwater/filter', {
-                    params: { region, subType, species }
-                })
-                this.products = res.data // 이건 List<ProductDTO> 반환이라고 가정
+                const params = new URLSearchParams()
+                if (region) params.append('region', region)
+                if (subType) params.append('subType', subType)
+                if (species && Array.isArray(species)) {
+                    species.forEach(s => params.append('species', s))
+                }
+                params.append('sortBy', sortBy)
+                params.append('direction', direction)
+
+                const res = await api.get('/api/product/get-all/freshwater/filter?' + params.toString())
+                this.products = res.data
             } catch (error) {
-                console.error('Filtered sea products fetch error:', error)
+                console.error('Filtered freshwater products fetch error:', error)
             } finally {
                 this.loading = false
             }

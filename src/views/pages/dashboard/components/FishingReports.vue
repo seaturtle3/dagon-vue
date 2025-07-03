@@ -72,13 +72,13 @@
               <td>{{ formatDateTime(report.createdAt) }}</td>
               <td class="actions">
                 <button @click="viewReport(report.frId)" class="btn-view">
-                  <i class="fas fa-eye"></i> 보기
+                  보기
                 </button>
-                <button @click="editReport(report.frId)" class="btn-edit">
-                  <i class="fas fa-edit"></i> 수정
+                <button @click="viewComments(report.frId, report.title)" class="btn-comments">
+                  댓글
                 </button>
                 <button @click="deleteReport(report.frId)" class="btn-delete">
-                  <i class="fas fa-trash"></i> 삭제
+                  <i class="fa-solid fa-x"></i> 삭제
                 </button>
               </td>
             </tr>
@@ -106,7 +106,7 @@
             class="page-btn"
             title="첫 페이지"
           >
-            <i class="fas fa-angle-double-left"></i>
+            첫 페이지
           </button>
           
           <button 
@@ -115,7 +115,7 @@
             class="page-btn"
             title="이전 페이지"
           >
-            <i class="fas fa-chevron-left"></i>
+            이전
           </button>
           
           <button 
@@ -133,7 +133,7 @@
             class="page-btn"
             title="다음 페이지"
           >
-            <i class="fas fa-chevron-right"></i>
+            다음
           </button>
           
           <button 
@@ -142,7 +142,7 @@
             class="page-btn"
             title="마지막 페이지"
           >
-            <i class="fas fa-angle-double-right"></i>
+            마지막 페이지
           </button>
         </div>
       </div>
@@ -160,13 +160,62 @@
         </div>
       </div>
     </div>
+
+    <!-- 댓글 관리 모달 -->
+    <div v-if="showCommentsModal" class="modal-overlay" @click="closeCommentsModal">
+      <div class="modal-content comments-modal" @click.stop>
+        <div class="modal-header">
+          <h3>{{ selectedReportTitle }} - 댓글 관리</h3>
+          <button @click="closeCommentsModal" class="modal-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="comments-container">
+          <div v-if="commentsLoading" class="loading">
+            <i class="fas fa-spinner fa-spin"></i> 댓글을 불러오는 중...
+          </div>
+          
+          <div v-else-if="selectedReportComments.length === 0" class="no-comments">
+            <i class="fas fa-comment-slash"></i>
+            <p>등록된 댓글이 없습니다.</p>
+          </div>
+          
+          <div v-else class="comments-list">
+            <div v-for="comment in selectedReportComments" :key="comment.frCommentId" class="comment-item">
+              <div class="comment-content">
+                <div class="comment-header">
+                  <span class="comment-author">{{ comment.user?.nickname || '알 수 없음' }}</span>
+                  <span class="comment-date">{{ formatDateTime(comment.createdAt) }}</span>
+                </div>
+                <div class="comment-text">{{ comment.comment }}</div>
+              </div>
+              <div class="comment-actions">
+                <button
+                  @click="deleteComment(comment.frCommentId)"
+                  class="btn-delete-comment"
+                  style="margin-left:1rem;background:#e74c3c;color:white;border:none;padding:0.5rem 1rem;border-radius:4px;cursor:pointer;font-weight:bold;"
+                  title="댓글 삭제"
+                >
+                  <i class="fa-solid fa-x"></i> 삭제
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button @click="closeCommentsModal" class="btn-cancel">닫기</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from '@/lib/axios'
+import { partnerService } from '@/api/partner'
 
 const router = useRouter()
 
@@ -178,6 +227,13 @@ const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const showDeleteModal = ref(false)
 const reportToDelete = ref(null)
+
+// 댓글 관리 상태
+const showCommentsModal = ref(false)
+const selectedReportComments = ref([])
+const selectedReportTitle = ref('')
+const selectedReportId = ref(null)
+const commentsLoading = ref(false)
 
 // 서버 사이드 페이징을 위한 상태
 const totalPages = ref(1)
@@ -232,51 +288,33 @@ const visiblePages = computed(() => {
 const loadReports = async (page = 1) => {
   loading.value = true
   try {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      throw new Error('인증 토큰이 없습니다.')
-    }
-
     // 페이징 파라미터 추가
     const params = {
       page: page - 1, // 백엔드는 0-based index 사용
       size: itemsPerPage.value
     }
-
-    // 검색어가 있으면 추가
     if (searchQuery.value) {
       params.search = searchQuery.value
     }
 
-    const response = await axios.get('/api/fishing-report/get-all', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      params: params
-    })
-
-    // 백엔드 응답 구조 확인 및 안전한 배열 처리
-    console.log('백엔드 응답:', response.data)
-    
+    // partnerService 사용
+    const response = await partnerService.getFishingReports(params)
     let responseData = response.data
-    
-    // 페이지네이션 응답 구조 처리
+
+    // 이하 기존 로직 동일
     if (responseData && responseData.content) {
-      // Spring Boot Page 응답 구조
       reports.value = responseData.content || []
       totalPages.value = responseData.totalPages || 1
       totalElements.value = responseData.totalElements || 0
       hasNext.value = responseData.hasNext || false
       hasPrevious.value = responseData.hasPrevious || false
     } else if (Array.isArray(responseData)) {
-      // 단순 배열 응답
       reports.value = responseData
       totalPages.value = 1
       totalElements.value = responseData.length
       hasNext.value = false
       hasPrevious.value = false
     } else {
-      // 그 외의 경우 빈 배열로 설정
       reports.value = []
       totalPages.value = 1
       totalElements.value = 0
@@ -284,7 +322,6 @@ const loadReports = async (page = 1) => {
       hasPrevious.value = false
       console.warn('예상하지 못한 응답 구조:', responseData)
     }
-    
     totalReports.value = totalElements.value
     
     // 오늘 등록된 조황정보 수 계산 (클라이언트에서 계산)
@@ -302,9 +339,8 @@ const loadReports = async (page = 1) => {
 
   } catch (error) {
     console.error('조황정보 로드 실패:', error)
-    console.error('에러 상세:', error.response?.data)
     alert('조황정보를 불러오는데 실패했습니다.')
-    reports.value = [] // 에러 시 빈 배열로 설정
+    reports.value = []
   } finally {
     loading.value = false
   }
@@ -323,11 +359,57 @@ const changePage = (page) => {
 }
 
 const viewReport = (frId) => {
-  router.push(`/admin/fishing-reports/${frId}`)
+  router.push(`/fishing-report/${frId}`)
 }
 
-const editReport = (frId) => {
-  router.push(`/admin/fishing-reports/${frId}/edit`)
+const viewComments = (frId, title) => {
+  selectedReportId.value = frId
+  selectedReportTitle.value = title
+  loadComments(frId)
+  showCommentsModal.value = true
+}
+
+const loadComments = async (frId) => {
+  commentsLoading.value = true
+  try {
+    const response = await partnerService.getFishingReportComments(frId)
+    let responseData = response.data
+    if (responseData && responseData.comments) {
+      selectedReportComments.value = responseData.comments || []
+      console.log('조황정보 댓글 목록:', selectedReportComments.value)
+      if (selectedReportComments.value.length > 0) {
+        console.log('조황정보 첫 댓글:', selectedReportComments.value[0])
+      }
+    } else {
+      selectedReportComments.value = []
+      console.warn('댓글 정보가 없습니다:', responseData)
+    }
+  } catch (error) {
+    console.error('조황정보 댓글 로드 실패:', error)
+    alert('조황정보 댓글을 불러오는데 실패했습니다.')
+    selectedReportComments.value = []
+  } finally {
+    commentsLoading.value = false
+  }
+}
+
+const deleteComment = async (commentId) => {
+  if (!confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+    return
+  }
+  try {
+    await partnerService.deleteFishingReportComment(commentId)
+    alert('댓글이 삭제되었습니다.')
+    await loadComments(selectedReportId.value)
+  } catch (error) {
+    console.error('댓글 삭제 실패:', error)
+    alert('댓글 삭제에 실패했습니다.')
+  }
+}
+
+const closeCommentsModal = () => {
+  showCommentsModal.value = false
+  selectedReportComments.value = []
 }
 
 const deleteReport = (frId) => {
@@ -339,17 +421,7 @@ const confirmDelete = async () => {
   if (!reportToDelete.value) return
   
   try {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      throw new Error('인증 토큰이 없습니다.')
-    }
-
-    await axios.delete(`/api/fishing-report/delete/${reportToDelete.value}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-
+    await partnerService.deleteFishingReport(reportToDelete.value)
     alert('조황정보가 삭제되었습니다.')
     await loadReports()
     closeDeleteModal()
@@ -542,7 +614,7 @@ onMounted(() => {
 }
 
 .btn-view,
-.btn-edit,
+.btn-comments,
 .btn-delete {
   padding: 0.25rem 0.5rem;
   border: none;
@@ -563,12 +635,12 @@ onMounted(() => {
   background: #2980b9;
 }
 
-.btn-edit {
+.btn-comments {
   background: #f39c12;
   color: white;
 }
 
-.btn-edit:hover {
+.btn-comments:hover {
   background: #e67e22;
 }
 
@@ -692,6 +764,112 @@ onMounted(() => {
   background: #7f8c8d;
 }
 
+.btn-comments {
+  background: #f39c12;
+  color: white;
+}
+
+.btn-comments:hover {
+  background: #e67e22;
+}
+
+.comments-modal {
+  max-width: 600px;
+  width: 90%;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #7f8c8d;
+  cursor: pointer;
+}
+
+.comments-container {
+  margin-bottom: 1rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 1rem;
+  color: #7f8c8d;
+}
+
+.no-comments {
+  text-align: center;
+  padding: 1rem;
+  color: #7f8c8d;
+}
+
+.comments-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.comment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.comment-author {
+  font-weight: 600;
+}
+
+.comment-date {
+  color: #7f8c8d;
+  font-size: 0.8rem;
+}
+
+.comment-text {
+  margin-top: 0.25rem;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-delete-comment {
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
@@ -751,7 +929,6 @@ onMounted(() => {
   }
   
   .btn-view,
-  .btn-edit,
   .btn-delete {
     font-size: 0.7rem;
     padding: 0.2rem 0.4rem;

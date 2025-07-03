@@ -19,7 +19,7 @@
         </p>
         <p>
           <b>프로필 이미지:</b><br>
-          <img :src="getProfileImgUrl(member.profileImg)" alt="프로필 이미지" style="max-width:120px;max-height:120px;border-radius:50%;border:1px solid #eee;">
+          <img :src="getProfileImgUrl(member.profileImg)" alt="프로필 이미지" style="max-width:120px;max-height:120px;border-radius:50%;border:1px solid #eee;" @error="onImgError">
         </p>
         <p><b>포인트:</b> {{ member.points }}</p>
         <p><b>레벨:</b> {{ getLevelByPoints(member.points) }}</p>
@@ -139,9 +139,13 @@ export default {
   },
   methods: {
     getProfileImgUrl(img) {
-      if (!img) return '/images/default-profile.png';
+      if (!img) return '/img/default-profile.png';
       if (img.startsWith('http')) return img;
-      return `${BASE_URL}/uploads/${img}`;
+      let fixedImg = img;
+      if (img.endsWith('.webpd')) {
+        fixedImg = img.replace(/\.webpd$/, '.webp');
+      }
+      return `${BASE_URL}/uploads/${fixedImg}`;
     },
     getLevelByPoints(points) {
       points = Number(points) || 0;
@@ -174,6 +178,9 @@ export default {
         this.profileImgFile = file;
         this.profileImgPreview = URL.createObjectURL(file);
       }
+    },
+    onImgError(e) {
+      console.error('이미지 로드 실패:', e.target.src);
     },
     submitEdit() {
       this.loading = true;

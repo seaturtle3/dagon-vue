@@ -13,10 +13,10 @@ onMounted(() => {
   }
 })
 
-// 인기 조황정보 10개 (필요하다면 정렬 조건 추가)
+// 인기 조황정보 12개 (필요하다면 정렬 조건 추가)
 const topReports = computed(() =>
     store.reports
-        .slice(0, 10) // 또는 정렬 후 slice
+        .slice(0, 12) // 또는 정렬 후 slice
 )
 
 const goToDetail = (report) => {
@@ -41,14 +41,35 @@ const goToDetail = (report) => {
       >
         <!-- 썸네일 영역 (60% 고정) -->
         <div class="thumbnail-section">
-          <!-- 썸네일 이미지가 있는 경우 -->
           <img
-              v-if="report.thumbnailUrl"
-              class="thumbnail"
-              :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
-              alt="썸네일"
+            class="thumbnail"
+            :src="
+            report.images && report.images.length
+              ? (
+                  report.images[0].imageData
+                    ? `data:image/jpeg;base64,${report.images[0].imageData}`
+                    : (report.images[0].image_data
+                        ? `data:image/jpeg;base64,${report.images[0].image_data}`
+                        : (report.images[0].imageUrl
+                            ? report.images[0].imageUrl
+                            : (report.images[0].image_url
+                                ? report.images[0].image_url
+                                : '/images/no-image.png'
+                              )
+                          )
+                      )
+                )
+              : '/images/no-image.png'
+          "
+            alt="썸네일"
+            v-if="
+              report.images?.imageData ||
+              report.images?.image_data ||
+              report.images?.imageUrl ||
+              report.images?.image_url ||
+              report.images
+            "
           />
-          <!-- 썸네일이 없는 경우 플레이스홀더 -->
           <div v-else class="image-placeholder">
             <i class="fas fa-image"></i>
             <span>이미지 없음</span>
@@ -57,7 +78,7 @@ const goToDetail = (report) => {
 
         <div class="report-info">
           <div class="report-title">{{ report.prodName }}</div>
-          <small class="mb-3">{{ report.title }}</small>
+          <div class="report-title-text">{{ report.title }}</div>
           <p class="report-date">{{ report.fishingAt?.slice(0, 10) || '날짜 없음' }}</p>
         </div>
       </div>
@@ -155,11 +176,43 @@ const goToDetail = (report) => {
 .report-title {
   font-weight: bold;
   margin-bottom: 4px;
+  color: #000000 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .report-date {
   font-size: 12px;
-  color: #777;
-  margin-bottom: 6px;
+  color: #000000 !important;
+  margin-top: auto;
+  margin-bottom: 0;
+}
+
+.report-small {
+  color: #000000 !important;
+}
+
+.report-info {
+  height: 40%;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-shrink: 0;
+  color: #000000 !important;
+}
+
+.report-title-text {
+  color: #000000 !important;
+  font-size: 14px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 8px;
+  flex: 1;
 }
 .report-user {
   font-size: 12px;

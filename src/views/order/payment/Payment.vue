@@ -21,10 +21,6 @@
             <span class="label">상품 주소:</span>
             <span class="value">{{ reservationInfo.prodAddress || '-' }}</span>
           </div>
-          <div class="user-reservation-info-item">
-            <span class="label">어종명:</span>
-            <span class="value">{{ reservationInfo.fishType || '-' }}</span>
-          </div>
         </div>
       </div>
       <div class="section-divider"></div>
@@ -52,8 +48,24 @@
             <span class="value">{{ reservationInfo.totalPeople }}명</span>
           </div>
           <div class="user-reservation-info-item">
-            <span class="label">이용 금액:</span>
-            <span class="value">{{ reservationInfo.Count }}원</span>
+            <span class="label">상품 단가:</span>
+            <span class="value">1,000원</span>
+          </div>
+          <div class="user-reservation-info-item">
+            <span class="label">상품 총액:</span>
+            <span class="value">{{ (reservationInfo.totalPeople * 1000).toLocaleString() }}원</span>
+          </div>
+          <div class="user-reservation-info-item">
+            <span class="label">옵션1:</span>
+            <span class="value">{{ reservationInfo.optionName || '-' }} ({{ reservationInfo.optionCount || 0 }}개)</span>
+          </div>
+          <div class="user-reservation-info-item" v-if="reservationInfo.optionName2">
+            <span class="label">옵션2:</span>
+            <span class="value">{{ reservationInfo.optionName2 }} ({{ reservationInfo.optionCount2 }}개)</span>
+          </div>
+          <div class="user-reservation-info-item" v-if="reservationInfo.optionName3">
+            <span class="label">옵션3:</span>
+            <span class="value">{{ reservationInfo.optionName3 }} ({{ reservationInfo.optionCount3 }}개)</span>
           </div>
         </div>
       </div>
@@ -67,12 +79,11 @@
     <div class="reservation-summary" v-if="reservationInfo && !isLoggedIn">
       <!-- 상품 정보 섹션 -->
       <div class="product-info-section">
-        <h4>상품 정보</h4>
+        <h4>선택 상품 정보</h4>
         <div class="product-info">
           <p><strong>상품명:</strong> {{ reservationInfo.prodName || '상품명 없음' }}</p>
           <p><strong>상품ID:</strong> {{ reservationInfo.prodId || '-' }}</p>
           <p><strong>상품 주소:</strong> {{ reservationInfo.prodAddress || '-' }}</p>
-          <p><strong>어종명:</strong> {{ reservationInfo.fishType || '-' }}</p>
         </div>
       </div>
       <h4>비회원 예약 정보</h4>
@@ -110,12 +121,29 @@
             <span class="value">{{ reservationInfo.totalPeople }}명</span>
           </div>
           <div class="reservation-info-item">
-            <span class="label">이용 금액:</span>
-            <span class="value">{{ reservationInfo.Count }}원</span>
+            <span class="label">상품 단가:</span>
+            <span class="value">1,000원</span>
+          </div>
+          <div class="reservation-info-item">
+            <span class="label">상품 총액:</span>
+            <span class="value">{{ (reservationInfo.totalPeople * 1000).toLocaleString() }}원</span>
+          </div>
+          <div class="reservation-info-item">
+            <span class="label">옵션1:</span>
+            <span class="value">{{ reservationInfo.optionName || '-' }} ({{ reservationInfo.optionCount || 0 }}개)</span>
+          </div>
+          <div class="reservation-info-item" v-if="reservationInfo.optionName2">
+            <span class="label">옵션2:</span>
+            <span class="value">{{ reservationInfo.optionName2 }} ({{ reservationInfo.optionCount2 }}개)</span>
+          </div>
+          <div class="reservation-info-item" v-if="reservationInfo.optionName3">
+            <span class="label">옵션3:</span>
+            <span class="value">{{ reservationInfo.optionName3 }} ({{ reservationInfo.optionCount3 }}개)</span>
           </div>
         </div>
       </div>
 
+      <!-- 결제 금액 항상 표시 -->
       <div class="summary-item total-price">
         <span class="label">결제 금액:</span>
         <span class="value">{{ reservationInfo.estimatedPrice?.toLocaleString() }}원</span>
@@ -177,37 +205,113 @@ export default {
     // 로그인 상태 확인 및 사용자 정보 동기화
     await this.checkAuthStatus();
     
+    console.log('=== URL 쿼리 파라미터 확인 ===');
+    console.log('전체 쿼리:', this.$route.query);
+    console.log('optionId 쿼리값:', this.$route.query.optionId);
+    console.log('optionId2 쿼리값:', this.$route.query.optionId2);
+    console.log('optionId3 쿼리값:', this.$route.query.optionId3);
+    
     // URL 쿼리 파라미터에서 예약 및 상품 정보 가져오기
     this.reservationInfo = {
       fishingAt: this.$route.query.fishingAt,
       adultCount: parseInt(this.$route.query.adultCount) || 0,
       childCount: parseInt(this.$route.query.childCount) || 0,
       totalPeople: parseInt(this.$route.query.totalPeople) || 0,
-      estimatedPrice: parseInt(this.$route.query.estimatedPrice) || 0,
+      estimatedPrice: 0,
       prodId: this.$route.query.prodId || '',
       prodName: this.$route.query.prodName || '',
       prodAddress: this.$route.query.prodAddress || '',
       prodPostcode: this.$route.query.prodPostcode || '',
       optionId: this.$route.query.optionId || '',
       optionName: this.$route.query.optionName || '',
-      optionPrice: this.$route.query.optionPrice || 0,
+      optionPrice: parseInt(this.$route.query.optionPrice) || 0,
+      optionCount: parseInt(this.$route.query.optionCount) || 0,
     }
 
-    // prodId가 있으면 상품 상세 정보 DB에서 가져오기
+    console.log('=== 초기 reservationInfo 설정 ===');
+    console.log('설정된 optionId:', this.reservationInfo.optionId);
+    console.log('설정된 optionName:', this.reservationInfo.optionName);
+    console.log('설정된 optionCount:', this.reservationInfo.optionCount);
+
+    // prodId가 있으면 상품 상세 정보 DB에서 가져오기 (우선순위 높음)
     if (this.reservationInfo.prodId) {
       try {
+        console.log('상품 정보 조회 시작 - prodId:', this.reservationInfo.prodId);
         const res = await partnerService.getProductDetail(this.reservationInfo.prodId);
+        console.log('상품 정보 조회 결과:', res);
+        
         if (res.data) {
-          this.reservationInfo.prodName = res.data.prod_name || this.reservationInfo.prodName;
-          this.reservationInfo.prodId = res.data.prod_id || this.reservationInfo.prodId;
-          this.reservationInfo.prodAddress = res.data.prod_address || '';
-          this.reservationInfo.boatName = res.data.boatName || '';
-          this.reservationInfo.fishType = res.data.fishType || '';
+          // DB에서 가져온 정보로 상품 정보 업데이트
+          this.reservationInfo.prodName = res.data.prod_name || res.data.name || this.reservationInfo.prodName;
+          this.reservationInfo.prodId = res.data.prod_id || res.data.id || this.reservationInfo.prodId;
+          this.reservationInfo.prodAddress = res.data.prod_address || res.data.address || this.reservationInfo.prodAddress;
+          this.reservationInfo.prodPostcode = res.data.prod_postcode || res.data.postcode || this.reservationInfo.prodPostcode;
+          this.reservationInfo.boatName = res.data.boatName || res.data.boat_name || '';
+
+          // 옵션 자동 세팅: 옵션이 1개 이상 있으면 첫 번째 옵션의 opt_id를 자동 세팅
+          if (res.data.options && res.data.options.length > 0) {
+            this.reservationInfo.optionId = res.data.options[0].opt_id || res.data.options[0].id;
+            this.reservationInfo.optionName = res.data.options[0].opt_name || res.data.options[0].name || '';
+            this.reservationInfo.optionPrice = res.data.options[0].opt_price || 0;
+          } else {
+            // 옵션이 없으면 예약 불가
+            alert('이 상품은 예약 가능한 옵션이 없습니다. 관리자에게 문의하세요.');
+            this.$router.push('/reservation-calendar');
+            return;
+          }
+
+          console.log('DB에서 업데이트된 상품 정보:', {
+            prodName: this.reservationInfo.prodName,
+            prodId: this.reservationInfo.prodId,
+            prodAddress: this.reservationInfo.prodAddress,
+            prodPostcode: this.reservationInfo.prodPostcode,
+            optionId: this.reservationInfo.optionId,
+            optionName: this.reservationInfo.optionName,
+            optionPrice: this.reservationInfo.optionPrice
+          });
         }
       } catch (e) {
         console.error('상품 정보 조회 실패:', e);
+        // DB 조회 실패 시 쿼리 파라미터의 정보를 유지
+        console.log('쿼리 파라미터의 상품 정보를 사용합니다.');
       }
+    } else {
+      console.log('prodId가 없어 상품 정보를 가져올 수 없습니다.');
     }
+
+    // 상품 가격과 옵션 가격 합산하여 estimatedPrice 재계산
+    const adultCount = parseInt(this.$route.query.adultCount) || 0;
+    const childCount = parseInt(this.$route.query.childCount) || 0;
+    const totalPeople = adultCount + childCount;
+    
+    // 상품 가격 고정 (1000원)
+    const PRODUCT_PRICE = 1000;
+    
+    const optionCount = parseInt(this.$route.query.optionCount) || 0;
+    const optionPrice = parseInt(this.$route.query.optionPrice) || 0;
+    const optionCount2 = parseInt(this.$route.query.optionCount2) || 0;
+    const optionPrice2 = parseInt(this.$route.query.optionPrice2) || 0;
+    const optionCount3 = parseInt(this.$route.query.optionCount3) || 0;
+    const optionPrice3 = parseInt(this.$route.query.optionPrice3) || 0;
+
+    // 상품 가격 = 상품 가격 × 총 인원수
+    const productPrice = totalPeople * PRODUCT_PRICE;
+    
+    // 옵션 가격 = 옵션 가격 × 옵션 개수
+    const optionsPrice = (optionCount * optionPrice) + (optionCount2 * optionPrice2) + (optionCount3 * optionPrice3);
+
+    // 총 가격 = 상품 가격 + 옵션 가격
+    this.reservationInfo.estimatedPrice = productPrice + optionsPrice;
+    
+    console.log('가격 계산 결과:', {
+      adultCount,
+      childCount,
+      totalPeople,
+      productPrice: PRODUCT_PRICE,
+      productTotalPrice: productPrice,
+      optionsPrice,
+      totalPrice: this.reservationInfo.estimatedPrice
+    });
 
     // 예약 정보가 없으면 이전 페이지로 이동
     if (!this.reservationInfo.fishingAt) {
@@ -237,6 +341,16 @@ export default {
     } else {
       window.IMP.init("imp64386158");
     }
+
+    this.reservationInfo.optionName2 = this.$route.query.optionName2 || '';
+    this.reservationInfo.optionCount2 = parseInt(this.$route.query.optionCount2) || 0;
+    this.reservationInfo.optionName3 = this.$route.query.optionName3 || '';
+    this.reservationInfo.optionCount3 = parseInt(this.$route.query.optionCount3) || 0;
+
+    console.log('=== 최종 reservationInfo 설정 완료 ===');
+    console.log('최종 optionId:', this.reservationInfo.optionId);
+    console.log('최종 optionName:', this.reservationInfo.optionName);
+    console.log('최종 optionCount:', this.reservationInfo.optionCount);
   },
   methods: {
     async loadUserInfo() {
@@ -405,9 +519,12 @@ export default {
           payMethod: this.getPaymentsMethod(rsp.pay_method),
           paidAt: rsp.paid_at
         });
-        if (verifyRes.data && verifyRes.data.success === "true") {
-          // 검증 성공 시 예약 저장
-          this.saveReservation(rsp);
+        
+        console.log('결제 검증 응답:', verifyRes.data);
+        
+        if (verifyRes.data && verifyRes.data.success === true) {
+          // 검증 성공 시 예약 저장 (paymentId 전달)
+          this.saveReservation(rsp, verifyRes.data.paymentId);
         } else {
           alert("결제 검증에 실패했습니다. 관리자에게 문의하세요.");
         }
@@ -422,36 +539,50 @@ export default {
       alert(`결제에 실패했습니다: ${rsp.error_msg}`);
     },
 
-    async saveReservation(paymentResult) {
+    async saveReservation(paymentResult, paymentId) {
       try {
+        console.log('=== 예약 데이터 처리 시작 ===');
+        console.log('원본 reservationInfo:', this.reservationInfo);
+        console.log('optionId 원본값:', this.reservationInfo.optionId);
+        console.log('optionId 타입:', typeof this.reservationInfo.optionId);
+        console.log('백엔드에서 받은 paymentId:', paymentId);
+        
+        // Long 타입 필드는 반드시 Number로 변환, 'default'나 빈 값이면 null
+        const productId = this.reservationInfo.prodId && this.reservationInfo.prodId !== 'default' ? Number(this.reservationInfo.prodId) : null;
+        const productOptionId = this.reservationInfo.optionId && this.reservationInfo.optionId !== 'default' && this.reservationInfo.optionId !== '' ? Number(this.reservationInfo.optionId) : null;
+        // 백엔드에서 받은 paymentId 사용
+        const finalPaymentId = paymentId ? Number(paymentId) : null;
+        const numPerson = this.reservationInfo.totalPeople ? Number(this.reservationInfo.totalPeople) : 0;
+
+        console.log('처리된 productId:', productId);
+        console.log('처리된 productOptionId:', productOptionId);
+        console.log('처리된 paymentId:', finalPaymentId);
+        console.log('처리된 numPerson:', numPerson);
+
+        // 옵션이 없으면 예약 진행 불가
+        if (!productOptionId) {
+          alert('예약 가능한 옵션이 없습니다. 옵션을 선택해주세요.');
+          return;
+        }
+
+        // fishingAt을 LocalDateTime 형식으로 수정 (시간 포함)
+        const fishingAt = this.reservationInfo.fishingAt + 'T00:00:00';
+
         const reservationData = {
-          // 예약자 정보
-          // userId는 백엔드에서 AuthenticationPrincipal로 자동 세팅
-
-          // 상품 정보
-          prodId: this.reservationInfo.prodId, // Product의 PK
-
-          // 옵션 정보
-          optionId: this.reservationInfo.optionId || null, // ProductOption의 PK (없으면 null)
-
-          numPerson: this.reservationInfo.totalPeople,
-          fishingAt: this.toLocalDateTimeString(new Date(this.reservationInfo.fishingAt)),
+          prodId : productId,
+          optionId : productOptionId,
+          numPerson : numPerson,
+          fishingAt: fishingAt, // LocalDateTime 형식
           paidAt: this.toLocalDateTimeString(new Date(paymentResult.paid_at * 1000)),
-          createdAt: this.toLocalDateTimeString(new Date()),
-
-          reservationStatus: 'PAID', // enum 값, 필요시 실제 값으로 매핑
-          paymentsMethod: this.getPaymentsMethod(paymentResult.pay_method), // enum 값 매핑
-
-          paymentId: paymentResult.imp_uid, // 결제 고유 ID (PaymentsEntity의 PK)
-
-          // 화면 표시용
-          productName: this.reservationInfo.prodName,
-          optionName: this.reservationInfo.optionName || '',
-          userName: this.userInfo.buyer_name, 
-          uid: 'user001',
+          reservationStatus: 'PAID',
+          paymentsMethod: this.getPaymentsMethod(paymentResult.pay_method),
+          paymentId: finalPaymentId
         };
 
-        console.log("예약 정보 전체:", JSON.stringify(reservationData, null, 2));
+        // 실제 서버로 보내는 데이터 구조를 명확하게 콘솔에 출력
+        console.log('=== 서버로 전송할 reservationData ===');
+        console.log(JSON.stringify(reservationData, null, 2));
+        console.log('===================================');
 
         const token = localStorage.getItem('token');
         const response = await api.post(
@@ -469,11 +600,25 @@ export default {
           name: 'PaymentResult',
           query: {
             success: 'true',
-            reservationId: response.data.reservationId || 'temp-id'
+            reservationId: response.data.reservationId || 'temp-id',
+            productName: this.reservationInfo.prodName,
+            productId: this.reservationInfo.prodId,
+            productAddress: this.reservationInfo.prodAddress,
+            userName: this.userInfo.buyer_name,
+            email: this.userInfo.buyer_email,
+            phone: this.userInfo.buyer_tel,
+            fishingAt: this.reservationInfo.fishingAt,
+            totalPeople: this.reservationInfo.totalPeople,
+            optionName: this.reservationInfo.optionName,
+            optionCount: this.reservationInfo.optionCount,
+            estimatedPrice: this.reservationInfo.estimatedPrice
           }
         });
       } catch (error) {
         console.error("예약 저장 실패:", error);
+        if (error.response) {
+          console.error("서버 응답:", error.response.data);
+        }
         alert("예약 정보 저장에 실패했습니다.");
       }
     },

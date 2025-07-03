@@ -59,7 +59,7 @@ export const partnerService = {
 
     // 파트너 상품 삭제
     deleteProduct(prodId) {
-        return api.delete(`${API_URL}/products/delete/${prodId}`, {
+        return api.delete(`${API_URL}/product/delete/${prodId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -82,12 +82,8 @@ export const partnerService = {
     },
 
     // 조황정보 목록 조회
-    getFishingReports(prodId = null) {
-        if (prodId) {
-            return api.get(`${API_URL}/fishing-report/mine/${prodId}`);
-        } else {
-            return api.get(`${API_URL}/fishing-report/mine`);
-        }
+    getFishingReports(params) {
+        return api.get(`${API_URL}/fishing-report/get-all`, { params });
     },
 
     // 조황정보 상세 조회
@@ -174,6 +170,10 @@ export const partnerService = {
     // 파트너의 모든 상품 목록 조회 (공개/비공개 포함)
     getPartnerAllProducts() {
         return api.get(`${API_URL}/partner/product/all`, {
+            params: {
+                sortBy: 'createdAt',
+                direction: 'desc'
+            },
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -278,7 +278,10 @@ export const partnerService = {
 
     // 조황정보 댓글 작성 (엔드포인트: /comments/fishing-report/{postId})
     createFishingReportComment(postId, content, userId) {
-        const formData = new URLSearchParams();
+        console.log('postId:', postId)
+        console.log('content:', content)
+        console.log('userId:', userId)
+        const formData = new FormData();
         formData.append('content', content);
         formData.append('userId', userId);
         return api.post(`${API_URL}/comments/fishing-report/${postId}`, formData, {
@@ -291,7 +294,7 @@ export const partnerService = {
 
     // 조행기 댓글 작성 (엔드포인트: /comments/fishing-diary/{postId})
     createFishingDiaryComment(postId, content, userId) {
-        const formData = new URLSearchParams();
+        const formData = new FormData();
         formData.append('content', content);
         formData.append('userId', userId);
         return api.post(`${API_URL}/comments/fishing-diary/${postId}`, formData, {
@@ -304,20 +307,12 @@ export const partnerService = {
 
     // 조행기 댓글 삭제
     deleteFishingDiaryComment(commentId) {
-        return api.delete(`${API_URL}/comments/fishing-diary/${commentId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+        return api.delete(`${API_URL}/comments/fishing-diary/${commentId}`);
     },
 
     // 조황정보 댓글 삭제
     deleteFishingReportComment(commentId) {
-        return api.delete(`${API_URL}/comments/fishing-report/${commentId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+        return api.delete(`${API_URL}/comments/fishing-report/${commentId}`);
     },
 
     // 1:1 문의 생성
@@ -347,5 +342,30 @@ export const partnerService = {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
+    },
+
+    // 조행기 댓글 목록 조회
+    getFishingDiaryComments(fdId) {
+        return api.get(`${API_URL}/fishing-diary/get/${fdId}`);
+    },
+
+    // 조황정보 댓글 목록 조회
+    getFishingReportComments(frId) {
+        return api.get(`${API_URL}/fishing-report/get/${frId}`);
+    },
+
+    // 조행기 목록 조회
+    getFishingDiaries(params) {
+        return api.get(`${API_URL}/fishing-diary/get-all`, { params });
+    },
+
+    // 파트너 본인 조황정보 단건 상세 조회
+    getMyFishingReportDetail(frId) {
+        return api.get(`${API_URL}/fishing-report/${frId}`);
+    },
+
+    // 파트너 본인 조황정보 목록 조회 (GET /api/fishing-report/mine)
+    getMyFishingReports() {
+        return api.get(`${API_URL}/fishing-report/mine`);
     },
 };

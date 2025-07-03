@@ -1,5 +1,5 @@
 <script>
-import { fetchNotices } from '@/api/noticeApi.js';
+import { fetchNotices } from '@/api/notice.js';
 
 export default {
   name: 'NoticeBox',
@@ -109,11 +109,11 @@ export default {
   <div class="notice-container">
     <div class="notice-header">
       <h2 class="notice-title">
-        <i class="fas fa-bullhorn"></i>
+        <font-awesome-icon :icon="['fas', 'bullhorn']" />
         공지사항
       </h2>
       <router-link to="/notice" class="view-all-link">
-        전체보기 <i class="fas fa-arrow-right"></i>
+        전체보기
       </router-link>
     </div>
     
@@ -129,35 +129,35 @@ export default {
             @keyup.enter="handleSearch"
           />
           <button class="search-btn" @click="handleSearch">
-            <i class="fas fa-search"></i>
+            <font-awesome-icon :icon="['fas', 'search']" />
           </button>
         </div>
       </div>
 
       <!-- 로딩 상태 -->
       <div v-if="loading" class="loading-state">
-        <i class="fas fa-spinner fa-spin"></i>
+        <font-awesome-icon :icon="['fas', 'spinner']" spin />
         <p>공지사항을 불러오는 중...</p>
       </div>
 
       <!-- 에러 상태 -->
       <div v-else-if="error" class="error-state">
-        <i class="fas fa-exclamation-triangle"></i>
+        <font-awesome-icon :icon="['fas', 'exclamation-triangle']" />
         <p>{{ error }}</p>
         <button @click="fetchNotices" class="retry-btn">
-          <i class="fas fa-redo"></i> 다시 시도
+          <font-awesome-icon :icon="['fas', 'redo']" /> 다시 시도
         </button>
       </div>
 
       <!-- 공지사항이 없는 경우 -->
       <div v-else-if="!urgentNotices.length && !normalNotices.length" class="empty-state">
-        <i class="fas fa-inbox"></i>
+        <font-awesome-icon :icon="['fas', 'inbox']" />
         <p>등록된 공지사항이 없습니다.</p>
       </div>
 
       <!-- 공지사항 목록 -->
       <div v-else>
-        <!-- 긴급/고정 공지 -->
+        <!-- 고정 공지 -->
         <div v-if="urgentNotices.length > 0" class="urgent-section">
           <div 
             v-for="notice in urgentNotices" 
@@ -166,21 +166,17 @@ export default {
             @click="goToNoticeDetail(notice.noticeId)"
           >
             <div class="notice-info">
+              <div class="notice-meta">
+                <span v-if="notice.isTop" class="top-badge">
+                  <font-awesome-icon :icon="['fas', 'star']" /> 고정공지
+                </span>
+              </div>
               <h4 class="notice-item-title urgent-title">
-                <i class="fas fa-exclamation-triangle"></i>
                 <span class="title-text">{{ truncateTitle(notice.title) }}</span>
                 <span class="notice-date-inline">{{ formatDate(notice.createdAt) }}</span>
               </h4>
-              <div class="notice-meta">
-                <span v-if="notice.isTop" class="top-badge">
-                  <i class="fas fa-star"></i> 고정공지
-                </span>
-                <span v-if="notice.isUrgent" class="urgent-badge">
-                  <i class="fas fa-exclamation-circle"></i> 긴급공지
-                </span>
-              </div>
+
             </div>
-            <i class="fas fa-chevron-right arrow-icon"></i>
           </div>
         </div>
 
@@ -194,12 +190,11 @@ export default {
           >
             <div class="notice-info">
               <h4 class="notice-item-title">
-                <i class="fas fa-file-alt"></i>
+                <font-awesome-icon :icon="['fas', 'file-alt']" class="notice-item-icon"/>
                 <span class="title-text">{{ truncateTitle(notice.title) }}</span>
                 <span class="notice-date-inline">{{ formatDate(notice.createdAt) }}</span>
               </h4>
             </div>
-            <i class="fas fa-chevron-right arrow-icon"></i>
           </div>
         </div>
       </div>
@@ -213,7 +208,8 @@ export default {
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
-  width: 50%;
+  width: 70%;
+  max-width: 600px;
   margin: 0 auto;
 }
 
@@ -235,13 +231,12 @@ export default {
   gap: 0.5rem;
 }
 
-.notice-title i {
+.notice-item-icon {
   color: #667eea;
-  font-size: 1.5rem;
 }
 
 .view-all-link {
-  color: white;
+  color: #667eea;
   text-decoration: none;
   font-weight: 500;
   display: flex;
@@ -251,7 +246,6 @@ export default {
 }
 
 .view-all-link:hover {
-  color: white;
   opacity: 0.8;
 }
 
@@ -386,12 +380,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.175rem;
-}
-
-.arrow-icon {
-  color: #a0aec0;
-  font-size: 0.875rem;
-  transition: transform 0.3s ease;
 }
 
 .notice-item:hover .arrow-icon {

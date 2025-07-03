@@ -1,5 +1,4 @@
 <script setup>
-import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js";
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -9,8 +8,6 @@ const props = defineProps({
     required: true
   }
 });
-
-console.log('ReportCard ID:', props.report?.frId)
 
 const goToDetail = () => {
   router.push(`/fishing-report/${props.report.frId}`)

@@ -168,7 +168,12 @@ const loadInquiries = async () => {
       return;
     }
     const data = await myPageAPI.getMyInquiries();
-    inquiries.value = data;
+    // 최신순으로 정렬 (createdAt 기준 내림차순)
+    inquiries.value = data.sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return dateB - dateA;
+    });
   } catch (error) {
     if (error.response?.status === 401) {
       showLoginModal.value = true;

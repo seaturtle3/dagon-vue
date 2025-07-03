@@ -1,17 +1,17 @@
-import './assets/main.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import './assets/styles/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 
-import 'bootstrap/dist/css/bootstrap.min.css' // Bootstrap CSS
 import 'bootstrap'                            // Bootstrap JS
 import router from './router'
 
 // 🔽 Font Awesome 관련 import 추가
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import '@fortawesome/fontawesome-free/css/all.min.css';
+// import '@fortawesome/fontawesome-free/css/all.min.css';
 import { fas } from '@fortawesome/free-solid-svg-icons'
 import { far } from '@fortawesome/free-regular-svg-icons'
 

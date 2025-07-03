@@ -1,14 +1,33 @@
 <script setup>
-import { useRouter } from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import { useProductFishingReportStore } from '@/store/product/product-detail/useProductFishingReportStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+import {computed, onMounted} from "vue";
 
+const route = useRoute()
 const router = useRouter()
 const store = useProductFishingReportStore()
+const productId = route.params.prodId
+
+onMounted(async () => {
+  try {
+    await store.fetchFishingReport(productId)
+  } catch (error) {
+    // 404 에러는 조황정보가 없다는 의미이므로 무시
+    if (error.response?.status !== 404) {
+      console.error('조황정보 조회 중 오류:', error)
+    }
+  }
+})
+
+const reportList = computed(() => store.getReportByProductId(productId))
 
 const goToDetail = (report) => {
   router.push(`/fishing-report/${report.frId}`)
 }
+
+console.log("-------------ProductId >",productId)
+console.log("-------------reportList >",reportList)
 </script>
 
 <template>
@@ -17,25 +36,36 @@ const goToDetail = (report) => {
     <div v-else-if="store.error">{{ store.error }}</div>
     <div v-else>
 
-      <div v-if="store.report.length > 0" class="report-grid">
-        <div
-            v-for="(report, index) in store.report.slice(0, 15)"
-            :key="report.frId"
-            class="item-box"
-            @click="goToDetail(report)"
-            style="cursor: pointer;"
+      <div v-if="reportList.length > 0" class="report-grid">
+        <div v-for="(report, index) in reportList.slice(0, 15)"
+             :key="report.frId"
+             class="item-box"
+             @click="goToDetail(report)"
         >
           <div class="thumbnail-wrapper">
             <img
-                v-if="report.thumbnailUrl"
-                class="thumbnail"
-                :src="`${IMAGE_BASE_URL}/fishing-report/${report.thumbnailUrl}`"
-                alt="썸네일"
-            />
-            <div v-else class="image-placeholder">
-              <i class="fas fa-image"></i>
-              <span>이미지 없음</span>
-            </div>
+          class="thumbnail-img"
+          :src="
+            report.images && report.images.length
+              ? (
+                  report.images[0].imageData
+                    ? `data:image/jpeg;base64,${report.images[0].imageData}`
+                    : (report.images[0].image_data
+                        ? `data:image/jpeg;base64,${report.images[0].image_data}`
+                        : (report.images[0].imageUrl
+                            ? report.images[0].imageUrl
+                            : (report.images[0].image_url
+                                ? report.images[0].image_url
+                                : '/images/no-image.png'
+                              )
+                          )
+                      )
+                )
+              : '/images/no-image.png'
+          "
+          alt="썸네일"
+      />
+
           </div>
           <div class="item-content">
             <h3>{{ report.product?.prodName }}</h3>
@@ -44,7 +74,7 @@ const goToDetail = (report) => {
           </div>
         </div>
       </div>
-      <!-- <div v-else>조황정보가 없습니다.</div> -->
+       <div v-else>조황정보가 없습니다.</div>
     </div>
   </div>
 </template>
@@ -60,12 +90,6 @@ const goToDetail = (report) => {
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   padding: 10px 0;
-}
-
-.count {
-  color: #4a90e2;
-  font-weight: 600;
-  margin-left: 6px;
 }
 
 .item-box {
@@ -116,6 +140,13 @@ const goToDetail = (report) => {
 .thumbnail-wrapper {
   height: 60%;
   overflow: hidden;
+}
+
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .thumbnail {

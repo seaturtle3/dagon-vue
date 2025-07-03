@@ -1,14 +1,60 @@
 <script setup>
-import { useRouter } from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import { useProductFishingDiaryStore } from '@/store/product/product-detail/useProductFishingDiaryStore.js'
 import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
+import {onMounted, onUnmounted, watch, computed} from "vue";
 
+const route = useRoute()
 const router = useRouter()
 const store = useProductFishingDiaryStore()
+const productId = route.params.prodId
+console.log("-------------2222222222221>",productId)
+
+onMounted(async () => {
+  try {
+    await store.fetchFishingDiary(productId)
+  } catch (error) {
+    // 404 에러는 조행기가 없다는 의미이므로 무시
+    if (error.response?.status !== 404) {
+      console.error('조행기 조회 중 오류:', error)
+    }
+  }
+})
+
+const diaryList = computed(() => store.getDiaryByProductId(productId))
+
+
+watch(() => route.params.prodId, async (newId, oldId) => {
+  if (newId !== oldId) {
+    store.clearDiary()
+    try {
+      await store.fetchFishingDiary(newId)
+    } catch (error) {
+      // 404 에러는 조행기가 없다는 의미이므로 무시
+      if (error.response?.status !== 404) {
+        console.error('조행기 조회 중 오류:', error)
+      }
+    }
+  }
+})
+
+onUnmounted(() => {
+  store.clearDiary()
+})
 
 const goToDetail = (diary) => {
   router.push(`/fishing-diary/${diary.fdId}`)
 }
+
+const filteredDiaries = computed(() => {
+  const diaryArr = Array.isArray(store.diary) ? store.diary : []
+  return diaryArr.filter(diary => String(diary.product?.prodId) === String(productId))
+})
+
+const emit = defineEmits(['update:count'])
+watch(filteredDiaries, (val) => {
+  emit('update:count', val.length)
+}, { immediate: true })
 </script>
 
 <template>
@@ -17,9 +63,9 @@ const goToDetail = (diary) => {
     <div v-else-if="store.error">{{ store.error }}</div>
     <div v-else>
 
-      <div v-if="store.diary.length > 0" class="diary-grid">
+      <div v-if="diaryList.length > 0" class="diary-grid">
         <div
-            v-for="diary in store.diary.slice(0, 15)"
+            v-for="diary in diaryList"
             :key="diary.fdId"
             class="item-box"
             @click="goToDetail(diary)"
@@ -27,14 +73,28 @@ const goToDetail = (diary) => {
         >
           <div class="thumbnail-wrapper">
             <img
-                v-if="diary.thumbnailUrl"
-                class="thumbnail"
-                :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
-            />
-            <div v-else class="image-placeholder">
-              <i class="fas fa-image"></i>
-              <span>이미지 없음</span>
-            </div>
+          class="thumbnail-img"
+          :src="
+            diary.images && diary.images.length
+              ? (
+                  diary.images[0].imageData
+                    ? `data:image/jpeg;base64,${diary.images[0].imageData}`
+                    : (diary.images[0].image_data
+                        ? `data:image/jpeg;base64,${diary.images[0].image_data}`
+                        : (diary.images[0].imageUrl
+                            ? diary.images[0].imageUrl
+                            : (diary.images[0].image_url
+                                ? diary.images[0].image_url
+                                : '/images/no-image.png'
+                              )
+                          )
+                      )
+                )
+              : '/images/no-image.png'
+          "
+          alt="썸네일"
+      />
+
           </div>
           <div class="item-content">
             <h3>{{ diary.product?.prodName }}</h3>
@@ -43,7 +103,7 @@ const goToDetail = (diary) => {
           </div>
         </div>
       </div>
-      <!-- <div v-else>조황정보가 없습니다.</div> -->
+       <div v-else>조행기가 없습니다.</div>
     </div>
   </div>
 </template>
@@ -108,6 +168,14 @@ const goToDetail = (diary) => {
   height: 60%;
   overflow: hidden;
 }
+
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .thumbnail {
   width: 100%;
   height: 100%;

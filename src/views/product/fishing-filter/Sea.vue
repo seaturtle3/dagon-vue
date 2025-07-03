@@ -10,17 +10,16 @@ onMounted(async () => {
   await store.fetchProducts()
 })
 
-const productStore = useSeaProdStore()
-const products = computed(() => productStore.products)
+const products = computed(() => store.products)
 
 const onFilterChange = async (filter) => {
-  await productStore.fetchFilteredProducts(filter)
+  await store.fetchFilteredProducts(filter)
 }
 </script>
 
 <template>
   <div class="sea">
-    <div style="margin-bottom: 3%">
+    <div class="sea-title">
       <h4>바다낚시</h4>
     </div>
 
@@ -37,6 +36,23 @@ const onFilterChange = async (filter) => {
 .sea {
   width: 80%;
   margin: 5% auto;
+}
+
+.sea-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 3%;
+}
+.sea-title h4 {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #1976d2;
+  letter-spacing: 0.1em;
+  padding: 0.5em 2em;
+  border-radius: 2em;
+  background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%);
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
 }
 
 .filter-detail-wrapper {

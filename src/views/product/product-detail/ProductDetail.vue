@@ -12,7 +12,9 @@ import ProductFishingReport from '@/views/product/product-detail/components/Prod
 import ProductFishingDiary from '@/views/product/product-detail/components/ProductFishingDiary.vue'
 import ReservationCalendar from '@/components/calendar/ReservationCalendar.vue'
 
+// 현재 라우트 정보 (path, params, query 등)
 const route = useRoute()
+// 전역 라우터 인스턴스 (페이지 이동, push 등)
 const router = useRouter()
 const prodId = route.params.prodId
 const store = useProductDetailStore()
@@ -26,14 +28,36 @@ const fishingDiaryStore = useProductFishingDiaryStore()
 const activeTab = ref('info')
 const activeSubTab = ref('center')
 const selectedOptionId = ref(null)
-
 onMounted(async () => {
   await store.fetchProductDetail(prodId)
   const prodIdNum = Number(prodId)
   if (!isNaN(prodIdNum)) {
-    fishingCenterStore.fetchFishingCenter(prodIdNum)
-    fishingReportStore.fetchFishingReport(prodIdNum)
-    fishingDiaryStore.fetchFishingDiary(prodIdNum)
+    try {
+      await fishingCenterStore.fetchFishingCenter(prodIdNum)
+    } catch (error) {
+      // 404 에러는 데이터가 없다는 의미이므로 무시
+      if (error.response?.status !== 404) {
+        console.error('조황센터 조회 중 오류:', error)
+      }
+    }
+    
+    try {
+      await fishingReportStore.fetchFishingReport(prodIdNum)
+    } catch (error) {
+      // 404 에러는 조황정보가 없다는 의미이므로 무시
+      if (error.response?.status !== 404) {
+        console.error('조황정보 조회 중 오류:', error)
+      }
+    }
+    
+    try {
+      await fishingDiaryStore.fetchFishingDiary(prodIdNum)
+    } catch (error) {
+      // 404 에러는 조행기가 없다는 의미이므로 무시
+      if (error.response?.status !== 404) {
+        console.error('조행기 조회 중 오류:', error)
+      }
+    }
   }
 })
 
@@ -51,7 +75,7 @@ const centerCount = computed(() => {
   return reportCount + diaryCount
 })
 
-const reportCount = computed(() => fishingReportStore.report?.length || 0)
+const reportCount = computed(() => fishingReportStore.getReportByProductId(prodId)?.length || 0)
 const diaryCount = computed(() => fishingDiaryStore.diary?.length || 0)
 
 onUnmounted(() => {
@@ -130,15 +154,15 @@ const setTab = (tab) => {
         <div v-if="activeTab === 'info'" class="info-content">
           <div v-if="activeSubTab === 'center'" class="content-section">
             <h3 class="section-title">전체 조황 정보/조행기 ({{ centerCount }})</h3>
-            <ProductFishingCenter />
+            <ProductFishingCenter  :product-id="prodId"/>
           </div>
           <div v-if="activeSubTab === 'report'" class="content-section">
             <h3 class="section-title">조황 정보 ({{ reportCount }})</h3>
-            <ProductFishingReport />
+            <ProductFishingReport  :product-id="prodId"/>
           </div>
           <div v-if="activeSubTab === 'diary'" class="content-section">
             <h3 class="section-title">조행기 ({{ diaryCount }})</h3>
-            <ProductFishingDiary />
+            <ProductFishingDiary :product="product"/>
           </div>
         </div>
 
@@ -146,7 +170,7 @@ const setTab = (tab) => {
         <div v-if="activeTab === 'reservation'" class="reservation-content">
           <div class="content-section">
             <h3 class="section-title">예약 캘린더</h3>
-            <ReservationCalendar :product="product" :option-id="selectedOptionId" />
+            <ReservationCalendar  :product="product" :option-id="selectedOptionId" />
           </div>
         </div>
       </div>
@@ -348,6 +372,22 @@ const setTab = (tab) => {
   transition: background 0.2s;
 }
 .go-payment-btn:hover {
+  background: #1251a3;
+}
+
+.inquiry-btn {
+  margin-top: 18px;
+  padding: 10px 28px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.inquiry-btn:hover {
   background: #1251a3;
 }
 </style>

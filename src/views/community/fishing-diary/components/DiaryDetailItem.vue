@@ -1,14 +1,17 @@
 <script setup>
 import { IMAGE_BASE_URL } from "@/constants/imageBaseUrl.js";
 import { partnerService } from '@/api/partner';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useFishingDiaryStore } from '@/store/fishing-center/useFishingDiaryStore.js';
 
 const props = defineProps({
+  editMode: Boolean,
   diary: {
     type: Object,
     required: true
   }
-})
+});
 
 // 신고 관련 상태
 const showReportModal = ref(false);
@@ -37,7 +40,6 @@ const initializeUserInfo = () => {
     const userInfo = localStorage.getItem('userInfo');
     if (userInfo) {
       currentUser.value = JSON.parse(userInfo);
-      console.log('localStorage에서 사용자 정보 복원:', currentUser.value);
     }
     
     // userInfo에 uno가 없으면 토큰에서 추출
@@ -183,68 +185,219 @@ const deleteComment = async (commentId) => {
     alert('삭제에 실패했습니다.');
   }
 };
+
+// 이미지 확대 모달 상태 및 핸들러 추가 (ReportDetailItem.vue 참고)
+const showImageModal = ref(false);
+const modalImages = ref([]); // 전체 이미지 배열
+const modalImageIndex = ref(0); // 현재 인덱스
+
+function getImageSrc(img) {
+  // img가 null/undefined인 경우 기본 이미지 반환
+  if (!img) {
+    return '/images/no-image.png';
+  }
+  
+  if (img.imageData) {
+    return `data:image/jpeg;base64,${img.imageData}`;
+  } else if (img.image_data) {
+    return `data:image/jpeg;base64,${img.image_data}`;
+  } else if (img.imageUrl) {
+    return img.imageUrl;
+  } else if (img.image_url) {
+    return img.image_url;
+  } else {
+    return '/images/no-image.png';
+  }
+}
+
+function openImageModal(img) {
+  // diary.imageUrls 또는 diary.images 등에서 전체 배열과 인덱스 세팅
+  let imagesArr = [];
+  if (props.diary.images && props.diary.images.length) {
+    imagesArr = props.diary.images;
+  }
+  modalImages.value = imagesArr;
+  modalImageIndex.value = imagesArr.findIndex(i => getImageSrc(i) === getImageSrc(img));
+  if (modalImageIndex.value === -1) modalImageIndex.value = 0;
+  showImageModal.value = true;
+}
+
+function closeImageModal() {
+  showImageModal.value = false;
+  modalImageIndex.value = 0;
+  modalImages.value = [];
+}
+
+function prevImage() {
+  if (modalImages.value.length > 0) {
+    modalImageIndex.value = (modalImageIndex.value - 1 + modalImages.value.length) % modalImages.value.length;
+  }
+}
+
+function nextImage() {
+  if (modalImages.value.length > 0) {
+    modalImageIndex.value = (modalImageIndex.value + 1) % modalImages.value.length;
+  }
+}
+
+function handleKeydown(e) {
+  if (!showImageModal.value) return;
+  if (e.key === 'ArrowLeft') {
+    prevImage();
+  } else if (e.key === 'ArrowRight') {
+    nextImage();
+  } else if (e.key === 'Escape') {
+    closeImageModal();
+  }
+}
+
+onMounted(() => {
+  initializeUserInfo();
+  window.addEventListener('keydown', handleKeydown);
+});
+
+const router = useRouter();
+const fishingDiaryStore = useFishingDiaryStore();
+
+function goToEdit() {
+  router.push(`/fishing-diary/edit/${props.diary.fdId}`);
+}
+
+async function confirmDelete() {
+  if (confirm('정말 삭제하시겠습니까?')) {
+    try {
+      await fishingDiaryStore.deleteFishingDiary(props.diary.fdId);
+      alert('삭제되었습니다.');
+      router.push('/fishing-diary');
+    } catch (e) {
+      console.error('조행기 삭제 실패:', e);
+      alert('삭제에 실패했습니다.');
+    }
+  }
+}
+
+// 날짜 형식 변환 함수
+const formatDate = (dateString) => {
+  if (!dateString) return '날짜 없음';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '날짜 없음';
+  
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  
+  return `${year}. ${month}. ${day}`;
+};
 </script>
 
 <template>
-  <div class="detail-container">
+  <div class="detail-container card-style">
+    <!-- 작성자만 수정/삭제 버튼 노출 -->
+    <div v-if="isOwnDiary" class="detail-actions">
+      <button class="btn btn-edit" @click="goToEdit">수정</button>
+      <button class="btn btn-delete" @click="confirmDelete">삭제</button>
+    </div>
     <!-- 제목 -->
     <div class="detail-title-row">
-      <h2 class="detail-title text-center mb-4 fw-bold">{{ diary.title }}</h2>
+      <h2 class="detail-title">{{ diary.title }}</h2>
+    </div>
+    <div class="detail-title-row" style="display: flex; justify-content: flex-end;">
       <button
-        v-if="!isOwnDiary"
-        class="btn-report-post"
-        @click="openReportModal(diary, 'diary')"
-        title="게시글 신고"
+          v-if="!isOwnDiary"
+          class="btn-report-post"
+          @click="openReportModal(diary, 'diary')"
+          title="게시글 신고"
       >
         <i class="fas fa-flag"></i> 신고
       </button>
     </div>
 
-    <!-- 구분선 -->
-    <hr class="my-4" />
+    <div class="info-thumbnail-layout">
+      <div class="info-card">
+        <!-- 상단: 제목과 라인 -->
+        <div class="info-header">
+          <h3 class="info-title">조행기 정보</h3>
+          <div class="views-count">
+            <i class="fa fa-eye"></i>
+            <span>{{ diary.views || 0 }}</span>
+          </div>
+        </div>
+        
+        <!-- 하단: 썸네일과 정보 -->
+        <div class="content-layout">
+          <!-- 좌측: 썸네일 -->
+          <div class="thumbnail-section">
+            <img
+                class="thumbnail-img"
+                :src="getImageSrc(diary.images?.[0])"
+                alt="썸네일"
+                @click="openImageModal(diary.images?.[0])"
+                style="cursor: pointer;"
+            />
+          </div>
 
-    <!-- 썸네일 + 정보 -->
-    <div class="d-flex flex-column flex-md-row align-items-start mb-4 position-relative">
-      <!-- 썸네일 -->
-      <img
-          class="thumbnail rounded"
-          :src="`${IMAGE_BASE_URL}/fishing-diary/${diary.thumbnailUrl}`"
-          alt="썸네일"
-      />
-
-      <!-- 우측 정보 -->
-      <div class="info-section ms-md-4 mt-3 mt-md-0">
-        <p class="mb-3">
-          <router-link
-              v-if="diary.product && diary.product.prodId"
-              :to="`/products/${diary.product.prodId}`"
-              class="text-blue-600 hover:underline"
-              style="font-size: 1.5rem;"
-          >
-            <strong>{{ diary.product.prodName }}</strong>
-          </router-link>
-          <strong v-else style="font-size: 1.5rem;">없음</strong>
-        </p>
-        <p><strong>작성자:</strong> {{ diary.user?.uname || '익명' }}</p>
-        <p><strong>작성일:</strong> {{ diary.fishingAt || '날짜 없음' }}</p>
+          <!-- 우측: 관련 정보 -->
+          <div class="info-section">
+            <div class="info-content">
+              <div class="info-item">
+                <div class="ship-name">{{ diary.product?.prodName || '없음' }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fa fa-user"></i>
+                  작성자
+                </div>
+                <div class="info-value">{{ diary.user?.uname || '익명' }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fa fa-calendar"></i>
+                  조행 날짜
+                </div>
+                <div class="info-value">{{ formatDate(diary.fishingAt) }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fa fa-clock"></i>
+                  등록 날짜
+                </div>
+                <div class="info-value">{{ formatDate(diary.createdAt) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
+    <!-- 관련 상품 예약 버튼 -->
+    <div v-if="diary.product && diary.product.prodId" class="reservation-section">
+      <router-link
+          :to="`/products/${diary.product.prodId}?tab=reservation`"
+          class="reservation-btn"
+      >
+        <i class="fa fa-calendar-check"></i>
+        {{ diary.product.prodName }} 예약하기
+      </router-link>
+    </div>
+
     <!-- 조행기 내용 -->
-    <div class="content mb-4">
+    <div class="content-section">
       <div class="content-text" v-html="diary.content"></div>
     </div>
 
-    <!-- 추가 이미지 예시 (필요시 확장 가능) -->
-    <div v-if="diary.imageUrls && diary.imageUrls.length" class="diary-images mt-3">
-      <h5 class="fw-semibold mb-2">사진</h5>
+    <!-- 추가 이미지 -->
+    <div v-if="diary.images && diary.images.length > 1" class="diary-images mt-3">
+      <h5 class="section-label">사진</h5>
       <div class="d-flex flex-wrap gap-3">
         <img
-            v-for="(img, index) in diary.imageUrls"
-            :key="index"
-            :src="`${IMAGE_BASE_URL}/fishing-diary/${img}`"
-            class="extra-image rounded"
-            alt="조행기 사진"
+          v-for="(img, index) in diary.images.slice(1)"
+          :key="index"
+          :src="getImageSrc(img)"
+          class="extra-image rounded"
+          alt="조행기 사진"
+          @click="openImageModal(img)"
+          style="cursor:pointer;"
         />
       </div>
     </div>
@@ -279,7 +432,7 @@ const deleteComment = async (commentId) => {
         <!-- 댓글 작성자 -->
         <div class="comment-meta">
           <span class="comment-user">{{ comment.user?.uname || '익명' }}</span>
-          <span class="comment-date">{{ comment.createdAt }}</span>
+          <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
         </div>
         <!-- 댓글 내용 -->
         <div class="comment-content">{{ comment.comment }}</div>
@@ -334,32 +487,233 @@ const deleteComment = async (commentId) => {
       </div>
     </div>
   </div>
+
+  <!-- 이미지 확대 모달 -->
+  <div v-if="showImageModal" class="modal-overlay" @click="closeImageModal">
+    <div class="modal-content image-slide-modal" @click.stop>
+      <button v-if="modalImages.length > 1" @click.stop="prevImage" class="slide-arrow left-arrow">
+        <span>&#60;</span>
+      </button>
+      <img :src="getImageSrc(modalImages[modalImageIndex])" alt="확대 이미지" class="slide-image" />
+      <button v-if="modalImages.length > 1" @click.stop="nextImage" class="slide-arrow right-arrow">
+        <span>&#62;</span>
+      </button>
+      <button class="btn-close" @click="closeImageModal">&times;</button>
+      <div v-if="modalImages.length > 1" class="slide-index">
+        {{ modalImageIndex + 1 }} / {{ modalImages.length }}
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.detail-container {
-  max-width: 900px;
-  margin: 0 auto;
-  background-color: #ffffff;
-  padding: 2rem;
+.detail-container.card-style {
+  max-width: 1280px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 36px 48px 32px 48px;
+  position: relative;
+}
+
+.detail-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.detail-title {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  color: black;
+  font-size: 2.5rem;
+}
+
+.info-thumbnail-layout {
+  margin-bottom: 28px;
+}
+
+.info-card {
+  background: #f8f9fa;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  border: 1px solid #e3f2fd;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+  display: flex;
+  flex-direction: column;
 }
 
-.thumbnail {
-  width: 300px;
-  height: auto;
+.content-layout {
+  display: flex;
+  gap: 50px;
+  align-items: stretch;
+}
+
+.thumbnail-section {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-section {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-header {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e3f2fd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-title {
+  margin: 0;
+  color: black;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.views-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.views-count i {
+  color: #1976d2;
+  font-size: 1rem;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  justify-content: center;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 100px;
+  color: #666;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.info-label i {
+  color: #1976d2;
+  width: 16px;
+}
+
+.ship-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  padding: 8px 0;
+  margin-bottom: 8px;
+}
+
+.info-value {
+  color: #333;
+  font-size: 1rem;
+  flex: 1;
+}
+
+.thumbnail-img {
+  width: 100%;
+  height: 220px;
   object-fit: cover;
-  border: 1px solid #ccc;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.12);
+  cursor: pointer;
 }
 
-.info-section p {
-  margin-bottom: 0.4rem;
+.content-section {
+  margin-bottom: 32px;
+  padding: 24px 18px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  min-height: 120px;
+  font-size: 1.08rem;
+  color: #222;
+  line-height: 1.7;
+  word-break: break-all;
+  overflow-x: auto;
 }
 
-.content .content-text {
-  white-space: pre-line;
-  line-height: 10;
+.content-text {
+  min-height: 80px;
+}
+
+.content-text img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 18px auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+}
+
+.section-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin-bottom: 10px;
+}
+
+.reservation-section {
+  margin-bottom: 28px;
+}
+
+.reservation-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.reservation-btn:hover {
+  background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.reservation-btn i {
+  font-size: 1.3rem;
 }
 
 .extra-image {
@@ -367,17 +721,192 @@ const deleteComment = async (commentId) => {
   height: 120px;
   object-fit: cover;
   border: 1px solid #ddd;
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+}
+
+.extra-image:hover {
+  transform: scale(1.05);
 }
 
 .comment-box {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  max-width: 900px;
-  margin: 0 auto; /* 중앙 정렬 */
+  background: #f4f7fb;
+  border-radius: 10px;
+  padding: 22px 18px;
+  margin-top: 18px;
+  border: 1.5px solid #e3f2fd;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.user-name > p {
-  margin-bottom: 0;
+.comment-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+  align-items: flex-start;
+}
+
+.comment-input {
+  flex: 1;
+  border-radius: 6px;
+  border: 1.5px solid #b0bec5;
+  padding: 10px;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 38px;
+  max-height: 90px;
+  background: #fff;
+  transition: border 0.2s;
+}
+
+.comment-input:focus {
+  border: 1.5px solid #1976d2;
+  outline: none;
+}
+
+.comment-submit-btn {
+  min-width: 80px;
+  height: 38px;
+  border-radius: 6px;
+  background: #1976d2;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.comment-submit-btn:disabled {
+  background: #b0bec5;
+  cursor: not-allowed;
+}
+
+.comment-submit-btn:hover:not(:disabled) {
+  background: #1251a3;
+}
+
+.comment-item {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.08);
+  padding: 1.2rem 1.2rem 0.8rem 1.2rem;
+  margin-bottom: 18px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1rem;
+  color: #1976d2;
+  margin-bottom: 2px;
+}
+
+.comment-user {
+  font-weight: 600;
+}
+
+.comment-date {
+  color: #888;
+  font-size: 0.93rem;
+}
+
+.comment-content {
+  color: #222;
+  font-size: 1.05rem;
+  margin-left: 2px;
+  margin-bottom: 0.5rem;
+  word-break: break-all;
+}
+
+.comment-actions-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.btn-action-comment {
+  background: #fff0f0;
+  color: #e74c3c;
+  border: 1.5px solid #e74c3c;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.98rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-action-comment:disabled {
+  background: #f8d7da;
+  color: #b0bec5;
+  border-color: #f8d7da;
+  cursor: not-allowed;
+}
+
+.btn-action-comment:hover:not(:disabled) {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.btn-report-post {
+  background: #fff0f0;
+  color: #e74c3c;
+  border: 1.5px solid #e74c3c;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-report-post i {
+  font-size: 1.1em;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.btn-report-post:hover {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.btn-edit, .btn-delete {
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.btn-edit {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+}
+
+.btn-delete {
+  background: #f44336;
+  color: #fff;
+  border: none;
 }
 
 /* 모달 스타일 */
@@ -447,146 +976,119 @@ const deleteComment = async (commentId) => {
   border-radius: 4px;
 }
 
-/* 스타일 추가 */
-.comment-input-row {
+/* 이미지 슬라이드 모달 스타일 */
+.image-slide-modal {
+  max-width: 90vw;
+  max-height: 90vh;
   display: flex;
-  gap: 10px;
-  margin-bottom: 18px;
-  align-items: flex-start;
-}
-.comment-input {
-  flex: 1;
-  border-radius: 6px;
-  border: 1.5px solid #b0bec5;
-  padding: 10px;
-  font-size: 1rem;
-  resize: vertical;
-  min-height: 38px;
-  max-height: 90px;
-  background: #fff;
-  transition: border 0.2s;
-}
-.comment-input:focus {
-  border: 1.5px solid #1976d2;
-  outline: none;
-}
-.comment-submit-btn {
-  min-width: 80px;
-  height: 38px;
-  border-radius: 6px;
-  background: #1976d2;
-  color: #fff;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.comment-submit-btn:disabled {
-  background: #b0bec5;
-  cursor: not-allowed;
-}
-.comment-submit-btn:hover:not(:disabled) {
-  background: #1251a3;
-}
-.comment-item {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.08);
-  padding: 1.2rem 1.2rem 0.8rem 1.2rem;
-  margin-bottom: 18px;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.comment-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 1rem;
-  color: #1976d2;
-  margin-bottom: 2px;
-}
-.comment-user {
-  font-weight: 600;
-}
-.comment-date {
-  color: #888;
-  font-size: 0.93rem;
-}
-.comment-content {
-  color: #222;
-  font-size: 1.05rem;
-  margin-left: 2px;
-  margin-bottom: 0.5rem;
-  word-break: break-all;
-}
-.comment-actions-row {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 4px;
-}
-.btn-action-comment {
-  background: #fff0f0;
-  color: #e74c3c;
-  border: 1.5px solid #e74c3c;
-  border-radius: 6px;
-  padding: 4px 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.98rem;
-  transition: background 0.2s, color 0.2s;
-}
-.btn-action-comment:disabled {
-  background: #f8d7da;
-  color: #b0bec5;
-  border-color: #f8d7da;
-  cursor: not-allowed;
-}
-.btn-action-comment:hover:not(:disabled) {
-  background: #e74c3c;
-  color: #fff;
+  background: transparent;
+  box-shadow: none;
 }
 
-/* 스타일 추가 (조황정보와 동일) */
-.detail-title-row {
+.slide-image {
+  max-width: 100vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+
+.slide-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  border: none;
+  font-size: 2.2rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 10px;
-}
-.detail-title {
-  flex: 1;
-  text-align: center;
-  margin: 0;
-  color: #1976d2;
-}
-.btn-report-post {
-  background: #fff0f0;
-  color: #e74c3c;
-  border: 1.5px solid #e74c3c;
-  border-radius: 6px;
-  padding: 6px 16px;
-  font-weight: 600;
+  justify-content: center;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  vertical-align: middle;
-  transition: background 0.2s, color 0.2s;
+  z-index: 2;
+  transition: background 0.2s, transform 0.2s;
 }
-.btn-report-post i {
-  font-size: 1.1em;
-  margin-right: 4px;
-  vertical-align: middle;
+
+.slide-arrow:hover {
+  background: rgba(0,0,0,0.8);
+  transform: translateY(-50%) scale(1.08);
 }
-.btn-report-post:hover {
-  background: #e74c3c;
+
+.left-arrow {
+  left: 10px;
+}
+
+.right-arrow {
+  right: 10px;
+}
+
+.slide-index {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   color: #fff;
+  background: rgba(0,0,0,0.4);
+  padding: 4px 16px;
+  border-radius: 12px;
+  font-size: 1rem;
+  z-index: 2;
+}
+
+@media (max-width: 1100px) {
+  .detail-container.card-style {
+    max-width: 98vw;
+    padding: 18px 4vw 18px 4vw;
+  }
+}
+
+@media (max-width: 600px) {
+  .detail-title {
+    font-size: 1.3rem;
+  }
+  .info-card {
+    padding: 16px;
+  }
+  .content-layout {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .thumbnail-section {
+    flex: none;
+  }
+  .thumbnail-img {
+    height: 120px;
+  }
+  .reservation-btn {
+    padding: 14px 20px;
+    font-size: 1.1rem;
+  }
+  .content-section {
+    padding: 12px 4px;
+    font-size: 0.98rem;
+  }
+  .comment-box {
+    padding: 10px 4px;
+  }
+  .slide-arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
+  .btn-close {
+    font-size: 1.5rem;
+    top: 10px;
+    right: 10px;
+  }
+  .slide-index {
+    font-size: 0.95rem;
+    bottom: 10px;
+  }
 }
 </style>

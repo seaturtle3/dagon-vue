@@ -1,46 +1,97 @@
 <script setup>
 import {reactive, watch, toRefs, onMounted, ref, computed} from 'vue'
-import {createProduct} from "@/api/product.js";
 import { useRouter } from 'vue-router'
+import { useProductFormStore } from '@/store/product/all-products/useProductFormStore'
+
+const productFormStore = useProductFormStore()
+import {BASE_URL} from "@/constants/baseUrl.js";
 
 const router = useRouter()
 const files = ref([])  // 여러 파일 업로드 지원
 const imagePreviews = ref([]) // 여러 이미지 미리보기
 
 const props = defineProps({
-  form: Object,
+  form: {
+    type: Object,
+    default: () => ({})
+  },
   regions: Array,
   mainTypes: Array,
-  subTypes: Array
+  subTypes: Array,
+  editMode: Boolean,
+  // prodId: [String, Number]
 })
 
-const localForm = reactive({...props.form})
-
-const isFormValid = computed(() => {
-  return (
-    localForm.prodName &&
-    localForm.prodRegion &&
-    localForm.mainType &&
-    localForm.subType &&
-    localForm.maxPerson &&
-    localForm.weight &&
-    localForm.prodAddress &&
-    files.value.length > 0
-  )
+onMounted(() => {
+  console.log('✅ editMode:', props.editMode)
+  console.log('✅ form.prodId:', props.form?.prodId)
 })
 
-// props.form이 바뀌면 localForm도 반영
+const localForm = reactive({
+  prodName: '',
+  prodRegion: '',
+  mainType: '',
+  subType: '',
+  maxPerson: 0,
+  minPerson: 0,
+  weight: 0,
+  prodAddress: '',
+  prodDescription: '',
+  prodNotice: '',
+  prodEvent: '',
+  prodImageNames: [],
+})
+
+// props.form이 바뀔 때마다 localForm에 반영 (초기 진입 포함)
 watch(
     () => props.form,
     (newForm) => {
-      Object.assign(localForm, newForm)
+      if (props.editMode && newForm) {
+        Object.assign(localForm, newForm);
+      }
     },
-    {deep: true}
+    { immediate: true }
 )
+
+// 기존 이미지 미리보기용 배열
+const existingImages = ref([])
+
+watch(
+    () => props.form.prodImageNames,
+    (newVal) => {
+      if (newVal && newVal.length > 0) {
+        existingImages.value = newVal.map((imgPath, idx) => ({
+          id: 'existing-' + idx,
+          url: BASE_URL + imgPath,
+          isExisting: true,
+        }))
+      } else {
+        existingImages.value = []
+      }
+    },
+    { immediate: true }
+)
+
+const islocalFormValid = computed(() => {
+  const hasImages = files.value.length > 0 || existingImages.value.length > 0;
+  return (
+      localForm.prodName &&
+      localForm.prodRegion &&
+      localForm.mainType &&
+      localForm.subType &&
+      localForm.maxPerson &&
+      localForm.weight &&
+      localForm.prodAddress &&
+      hasImages
+  )
+})
+
+
+const allPreviews = computed(() => [...existingImages.value, ...imagePreviews.value])
 
 function onFileChange(event) {
   const uploadedFiles = Array.from(event.target.files)
-  
+
   uploadedFiles.forEach(file => {
     if (file && file.type.startsWith('image/')) {
       // 파일 크기 체크 (5MB 제한)
@@ -48,7 +99,7 @@ function onFileChange(event) {
         alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
         return
       }
-      
+
       // 이미지 미리보기 생성
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -60,12 +111,27 @@ function onFileChange(event) {
         })
       }
       reader.readAsDataURL(file)
-      
+
       files.value.push(file)
     }
   })
 }
 
+// 기존 이미지 삭제
+const deletedImageNames = ref([])
+
+function removeExistingImage(imageId) {
+  const index = existingImages.value.findIndex(img => img.id === imageId);
+  if (index > -1) {
+    const removed = localForm.prodImageNames.splice(index, 1)[0];
+    if (removed) {
+      deletedImageNames.value.push(removed);
+      existingImages.value.splice(index, 1); // UI에서도 제거
+    }
+  }
+}
+
+// 새로 추가된 이미지 삭제
 function removeImage(imageId) {
   const index = imagePreviews.value.findIndex(img => img.id === imageId)
   if (index > -1) {
@@ -79,34 +145,71 @@ function removeAllImages() {
   imagePreviews.value = []
 }
 
+// 대표 이미지 삭제/교체를 위한 함수 추가
+function removeImageByIndex(idx) {
+  const img = allPreviews.value[idx];
+  if (img.isExisting) {
+    removeExistingImage(img.id);
+  } else {
+    removeImage(img.id);
+  }
+}
+
 async function submit() {
-  if (!isFormValid.value) {
-    alert('필수 항목을 모두 입력해주세요. (배 이름, 지역, 유형, 상세장소, 최대인원, 선박무게, 선박주소, 대표이미지)')
+  if (!islocalFormValid.value) {
+    alert("필수 항목을 모두 입력해주세요.")
     return
   }
+  console.log("📝 삭제된 이미지 목록:", deletedImageNames.value);
 
-  const formData = new FormData()
+  const dtoToSend = {
+    prodName: localForm.prodName,
+    prodRegion: localForm.prodRegion,
+    mainType: localForm.mainType,
+    subType: localForm.subType,
+    maxPerson: localForm.maxPerson,
+    minPerson: localForm.minPerson,
+    weight: localForm.weight,
+    prodAddress: localForm.prodAddress,
+    prodDescription: localForm.prodDescription,
+    prodNotice: localForm.prodNotice,
+    prodEvent: localForm.prodEvent,
+    deletedImageNames: [...deletedImageNames.value]
+  }
 
-  // 👉 여기를 JSON 전체로 묶어서 하나의 Blob으로 추가해야 함
-  const productJson = {...localForm}
+  const formData = new FormData();
   formData.append(
-      "product",
-      new Blob([JSON.stringify(productJson)], {type: "application/json"})
-  )
-  console.log('**************mainType : ', productJson.mainType)
-
-
+      'product',
+      new Blob([JSON.stringify(dtoToSend)], { type: 'application/json' })
+  );
   files.value.forEach(file => {
-    formData.append("thumbnailFiles", file) // ✅ 키는 thumbnailFiles, 반복해서 append
-  })
+    formData.append('images', file)
+  });
+
+  console.log('📦 deletedImageNames:', deletedImageNames.value) // Proxy
+  console.log('✅ 풀린 배열:', [...deletedImageNames.value])     // 일반 Array
 
   try {
-    const response = await createProduct(formData)
-    alert('등록 성공')
-    router.push('/products')
+    if (props.editMode && props.form?.prodId) {
+      await productFormStore.updateProductAction(
+          props.form.prodId,
+          dtoToSend,
+          files.value,
+          router
+      )
+    } else {
+      await productFormStore.createProductAction(dtoToSend, files.value, router)
+    }
+    await router.push('/partner/products')
   } catch (err) {
-    console.error(err)
-    alert('등록 실패')
+    console.error('제품정보 등록/수정 실패:', err)
+    if (err.response?.data?.message) {
+      alert(`제품정보 등록/수정 실패: ${err.response.data.message}`)
+    } else if (err.response?.status === 500) {
+      alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    } else {
+      alert('제품정보 등록/수정에 실패했습니다. 다시 시도해주세요.')
+    }
   }
 }
 
@@ -120,8 +223,8 @@ const filteredSubTypes = computed(() => {
   <div class="product-form-container">
     <!-- 페이지 헤더 -->
     <div class="page-header">
-      <h1 class="page-title">선박 상품 등록</h1>
-      <p class="page-subtitle">새로운 선박 상품을 등록해보세요</p>
+      <h1 class="page-title">{{ props.editMode ? '선박 상품 수정' : '선박 상품 등록' }}</h1>
+      <p class="page-subtitle">{{ props.editMode ? '선박 상품 정보를 수정합니다' : '새로운 선박 상품을 등록해보세요' }}</p>
     </div>
 
     <form @submit.prevent="submit" class="product-form">
@@ -130,47 +233,43 @@ const filteredSubTypes = computed(() => {
         <!-- 이미지 업로드 영역 -->
         <div class="image-upload-section">
           <div class="upload-container">
-            <!-- 이미지 갤러리 -->
-            <div v-if="imagePreviews.length > 0" class="image-gallery">
+
+            <!-- 대표 이미지 + 서브 이미지 분리 -->
+            <div v-if="allPreviews.length > 0" class="image-gallery">
               <div class="gallery-header">
                 <h4 class="gallery-title">
                   <i class="fas fa-images"></i>
-                  업로드된 이미지 ({{ imagePreviews.length }}장)
+                  업로드된 이미지 ({{ allPreviews.length }}장)
                 </h4>
                 <button type="button" @click="removeAllImages" class="clear-all-btn">
                   <i class="fas fa-trash"></i>
                   모두 삭제
                 </button>
               </div>
-              
-              <div class="gallery-grid">
-                <div 
-                  v-for="(image, index) in imagePreviews" 
+
+              <!-- 대표 이미지 -->
+              <div class="main-image-wrapper" v-if="allPreviews[0]">
+                <img :src="allPreviews[0].url" :alt="allPreviews[0].name" class="main-image" />
+                <div class="main-badge">
+                  <i class="fas fa-star"></i>
+                  대표
+                </div>
+                <button type="button" @click="removeImageByIndex(0)" class="remove-btn" title="대표 이미지 삭제">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <!-- 서브 이미지 -->
+              <div class="sub-images" v-if="allPreviews.length > 1">
+                <div
+                  v-for="(image, idx) in allPreviews.slice(1)"
                   :key="image.id"
-                  class="gallery-item"
-                  :class="{ 'main-image': index === 0 }"
+                  class="sub-image-wrapper"
                 >
-                  <img :src="image.url" :alt="image.name" class="gallery-image" />
-                  <div class="image-overlay">
-                    <div class="image-actions">
-                      <button 
-                        type="button" 
-                        @click="removeImage(image.id)" 
-                        class="remove-btn"
-                        :title="'이미지 삭제'"
-                      >
-                        <i class="fas fa-times"></i>
-                      </button>
-                    </div>
-                    <div v-if="index === 0" class="main-badge">
-                      <i class="fas fa-star"></i>
-                      대표
-                    </div>
-                  </div>
-                  <div class="image-info">
-                    <span class="image-name">{{ image.name }}</span>
-                    <span class="image-size">{{ (image.file.size / 1024 / 1024).toFixed(1) }}MB</span>
-                  </div>
+                  <img :src="image.url" :alt="image.name" class="sub-image" />
+                  <button type="button" @click="removeImageByIndex(idx+1)" class="remove-btn" title="이미지 삭제">
+                    <i class="fas fa-times"></i>
+                  </button>
                 </div>
               </div>
             </div>
@@ -186,10 +285,10 @@ const filteredSubTypes = computed(() => {
               <p class="upload-hint required-text">* 필수 항목입니다</p>
             </div>
 
-            <input 
-              type="file" 
-              accept="image/*" 
-              @change="onFileChange" 
+            <input
+              type="file"
+              accept="image/*"
+              @change="onFileChange"
               class="file-input"
               id="imageUpload"
               multiple
@@ -213,10 +312,10 @@ const filteredSubTypes = computed(() => {
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label required">배 이름</label>
-              <input 
-                v-model="localForm.prodName" 
-                type="text" 
-                class="form-input" 
+              <input
+                v-model="localForm.prodName"
+                type="text"
+                class="form-input"
                 placeholder="배 이름을 입력하세요"
                 required
               />
@@ -251,10 +350,10 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label required">최대 인원</label>
-              <input 
-                v-model.number="localForm.maxPerson" 
-                type="number" 
-                class="form-input" 
+              <input
+                v-model.number="localForm.maxPerson"
+                type="number"
+                class="form-input"
                 placeholder="최대 수용 인원"
                 required
               />
@@ -262,10 +361,10 @@ const filteredSubTypes = computed(() => {
 
             <div class="form-group">
               <label class="form-label">최소 인원</label>
-              <input 
-                v-model.number="localForm.minPerson" 
-                type="number" 
-                class="form-input" 
+              <input
+                v-model.number="localForm.minPerson"
+                type="number"
+                class="form-input"
                 placeholder="최소 필요 인원 (선택사항)"
               />
             </div>
@@ -285,10 +384,10 @@ const filteredSubTypes = computed(() => {
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label required">선박 무게</label>
-            <input 
-              v-model.number="localForm.weight" 
-              step="0.01" 
-              type="number" 
+            <input
+              v-model.number="localForm.weight"
+              step="0.01"
+              type="number"
               class="form-input"
               placeholder="선박 무게 (t)"
               required
@@ -297,9 +396,9 @@ const filteredSubTypes = computed(() => {
 
           <div class="form-group">
             <label class="form-label required">선박 주소</label>
-            <input 
-              v-model="localForm.prodAddress" 
-              type="text" 
+            <input
+              v-model="localForm.prodAddress"
+              type="text"
               class="form-input"
               placeholder="선박이 위치한 주소"
               required
@@ -309,8 +408,8 @@ const filteredSubTypes = computed(() => {
 
         <div class="form-group full-width">
           <label class="form-label">상세 설명</label>
-          <textarea 
-            v-model="localForm.prodDescription" 
+          <textarea
+            v-model="localForm.prodDescription"
             class="form-textarea"
             placeholder="선박에 대한 상세한 설명을 입력하세요"
             rows="4"
@@ -349,13 +448,18 @@ const filteredSubTypes = computed(() => {
 
       </div>
 
-      <!-- 제출 버튼 -->
+      <!-- 제출/수정 버튼 -->
       <div class="form-actions">
-        <button type="submit" :disabled="!isFormValid" class="submit-button">
+        <button
+            type="submit"
+            :disabled="!islocalFormValid"
+            class="submit-button"
+        >
           <i class="fas fa-save"></i>
-          {{ isFormValid ? '상품 등록' : '필수 항목을 입력해주세요' }}
+          {{ props.editMode ? '상품 수정' : '상품 등록' }}
         </button>
       </div>
+
     </form>
   </div>
 </template>
@@ -858,5 +962,74 @@ const filteredSubTypes = computed(() => {
   .additional-info-section .section-header {
     padding: 20px 24px;
   }
+}
+
+/* 대표 이미지 스타일 */
+.main-image-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+  border: 3px solid #4299e1;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.main-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+.main-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(66, 153, 225, 0.9);
+  color: white;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+.main-image-wrapper .remove-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+}
+
+/* 서브 이미지 스타일 */
+.sub-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.sub-image-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  background: white;
+}
+.sub-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.sub-image-wrapper .remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
 }
 </style>

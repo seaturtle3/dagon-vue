@@ -148,6 +148,16 @@ const filteredReservations = computed(() => {
   return filtered;
 });
 
+// 상태별 예약 개수 계산
+const reservationCounts = computed(() => {
+  const counts = { PAID: 0, PENDING: 0, CANCELED: 0 };
+  reservations.value.forEach(r => {
+    const status = r.reservationStatus || 'PAID';
+    if (counts[status] !== undefined) counts[status]++;
+  });
+  return counts;
+});
+
 const loadReservations = async () => {
   loading.value = true;
   try {

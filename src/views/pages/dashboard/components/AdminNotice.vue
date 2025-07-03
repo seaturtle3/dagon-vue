@@ -3,7 +3,7 @@
     <div class="header">
       <h1>공지사항 관리</h1>
       <button @click="showCreateModal = true" class="create-btn">
-        <i class="fas fa-plus"></i> 새 공지사항 작성
+        <font-awesome-icon icon="fa-solid fa-plus" /> 새 공지사항 작성
       </button>
     </div>
     
@@ -17,7 +17,7 @@
           @keyup.enter="loadNotices"
         >
         <button @click="loadNotices" class="search-btn">
-          <i class="fas fa-search"></i>
+          <font-awesome-icon icon="fa-solid fa-magnifying-glass" />
         </button>
       </div>
       <div class="filter-box">
@@ -27,32 +27,26 @@
           <option value="content">내용</option>
           <option value="title+content">제목+내용</option>
         </select>
-        <select v-model="searchParams.isTop" @change="loadNotices">
-          <option value="">전체</option>
-          <option value="true">고정공지</option>
-          <option value="false">일반공지</option>
-        </select>
       </div>
     </div>
     
     <!-- 공지사항 목록 -->
     <div class="notices-table">
       <div class="table-header">
-        <div class="col-id">번호</div>
-        <div class="col-title">제목</div>
-        <div class="col-status">상태</div>
-        <div class="col-author">작성자</div>
-        <div class="col-date">작성일</div>
-        <div class="col-actions">관리</div>
+        <div class="col-id" style="color: white;">번호</div>
+        <div class="col-title" style="color: white;">제목</div>
+        <div class="col-author" style="color: white;">작성자</div>
+        <div class="col-date" style="color: white;">작성일</div>
+        <div class="col-actions" style="color: white;">관리</div>
       </div>
       
       <div v-if="loading" class="loading">
-        <i class="fas fa-spinner fa-spin"></i>
+        <font-awesome-icon icon="fa-solid fa-spinner" spin />
         <p>공지사항을 불러오는 중...</p>
       </div>
       
       <div v-else-if="notices.length === 0" class="empty-state">
-        <i class="fas fa-inbox"></i>
+        <font-awesome-icon icon="fa-solid fa-inbox" />
         <p>등록된 공지사항이 없습니다.</p>
       </div>
       
@@ -66,30 +60,31 @@
           <div class="col-title" @click="viewNotice(notice.noticeId)" style="cursor: pointer;">
             <span class="title-text">
               <span v-if="notice.isTop" class="badge top">고정</span>
-              <span v-if="notice.isUrgent" class="badge urgent">긴급</span>
-              <i v-if="notice.isTop" class="fas fa-star title-icon top-icon" title="고정공지"></i>
-              <i v-if="notice.isUrgent" class="fas fa-exclamation-triangle title-icon urgent-icon" title="긴급공지"></i>
-              <span class="title-content" :class="{ 'with-badge': notice.isTop || notice.isUrgent }">
+              <span class="title-content" :class="{ 'with-badge': notice.isTop }">
                 {{ notice.title }}
               </span>
-            </span>
-          </div>
-          <div class="col-status">
-            <span :class="['status', notice.isActive ? 'active' : 'inactive']">
-              {{ notice.isActive ? '활성' : '비활성' }}
+              <!-- 첨부파일/이미지 아이콘 -->
+              <span v-if="hasAttachments(notice)" class="attachment-icons">
+                <span v-if="hasImages(notice)" class="icon-wrapper" title="이미지 포함">
+                  <font-awesome-icon icon="fa-solid fa-image" class="icon-image" />
+                </span>
+                <span v-if="hasFiles(notice)" class="icon-wrapper" title="첨부파일 포함">
+                  <font-awesome-icon icon="fa-solid fa-paperclip" class="icon-file" />
+                </span>
+              </span>
             </span>
           </div>
           <div class="col-author">{{ notice.adminName || '관리자' }}</div>
           <div class="col-date">{{ formatDate(notice.createdAt) }}</div>
           <div class="col-actions">
             <button @click="editNotice(notice)" class="action-btn edit" title="수정">
-              <i class="fas fa-edit"></i>
+              <font-awesome-icon icon="fa-solid fa-pen-to-square" />
             </button>
             <button @click="toggleTop(notice)" class="action-btn" :class="notice.isTop ? 'top-active' : 'top'" :title="notice.isTop ? '고정해제' : '고정'">
-              <i class="fas fa-star"></i>
+              <font-awesome-icon icon="fa-solid fa-star" />
             </button>
             <button @click="deleteNotice(notice.noticeId)" class="action-btn delete" title="삭제">
-              <i class="fas fa-trash"></i>
+              <font-awesome-icon icon="fa-solid fa-trash" />
             </button>
           </div>
         </div>
@@ -103,7 +98,7 @@
         @click="changePage(currentPage - 1)"
         class="page-btn"
       >
-        <i class="fas fa-chevron-left"></i> 이전
+        <font-awesome-icon icon="fa-solid fa-chevron-left" /> 이전
       </button>
       <span class="page-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
       <button 
@@ -111,7 +106,7 @@
         @click="changePage(currentPage + 1)"
         class="page-btn"
       >
-        다음 <i class="fas fa-chevron-right"></i>
+        다음 <font-awesome-icon icon="fa-solid fa-chevron-right" />
       </button>
     </div>
 
@@ -121,7 +116,7 @@
         <div class="modal-header">
           <h2>{{ isEditing ? '공지사항 수정' : '공지사항 작성' }}</h2>
           <button @click="closeModal" class="close-btn">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="fa-solid fa-xmark" />
           </button>
         </div>
         
@@ -138,12 +133,7 @@
           
           <div class="form-group">
             <label>내용 *</label>
-            <textarea 
-              v-model="noticeForm.content" 
-              required
-              rows="10"
-              placeholder="공지사항 내용을 입력하세요"
-            ></textarea>
+            <RichTextEditor v-model="noticeForm.content" editor-id="notice-editor" />
           </div>
           
           <div class="form-group checkbox-group">
@@ -151,11 +141,6 @@
               <input type="checkbox" v-model="noticeForm.isTop">
               <span class="checkmark"></span>
               상단 고정
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" v-model="noticeForm.isUrgent">
-              <span class="checkmark"></span>
-              긴급 공지
             </label>
           </div>
           
@@ -176,17 +161,21 @@
         <div class="modal-header">
           <h2>공지사항 상세보기</h2>
           <button @click="closeDetailModal" class="close-btn">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="fa-solid fa-xmark" />
           </button>
         </div>
         
         <div class="notice-detail">
           <h3>{{ selectedNotice.title }}</h3>
-          <p>{{ selectedNotice.content }}</p>
+          <div class="notice-content">
+            <div v-html="selectedNotice.content"></div>
+          </div>
           <div class="notice-meta">
             <span>작성자: {{ selectedNotice.adminName || '관리자' }}</span>
             <span>작성일: {{ formatDate(selectedNotice.createdAt) }}</span>
-            <span>상태: {{ selectedNotice.isActive ? '활성' : '비활성' }}</span>
+            <span v-if="selectedNotice.modifyAt">수정일: {{ formatDate(selectedNotice.modifyAt) }}</span>
+            <span>조회수: {{ selectedNotice.views || 0 }}</span>
+            <span v-if="selectedNotice.isTop">상단고정: 예</span>
           </div>
         </div>
       </div>
@@ -196,14 +185,14 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { fetchNotices, createNotice, updateNotice, deleteNotice, fetchNoticeById } from '@/api/noticeApi.js'
-import { useAdminAuthStore } from '@/store/auth/auth.js'
+import RichTextEditor from '@/components/common/RichTextEditor.vue'
+import { getAdminNotices, createNotice, updateNotice, deleteNotice as deleteNoticeApi, fetchNoticeById } from '@/api/notice.js'
+import { BASE_URL } from '@/constants/baseUrl.js'
 
 export default {
   name: 'Notices',
+  components: { RichTextEditor },
   setup() {
-    const authStore = useAdminAuthStore()
-    
     const notices = ref([])
     const loading = ref(false)
     const submitting = ref(false)
@@ -218,7 +207,6 @@ export default {
     const searchParams = ref({
       keyword: '',
       type: '',
-      isTop: '',
       page: 0,
       size: 10
     })
@@ -226,19 +214,54 @@ export default {
     const noticeForm = ref({
       title: '',
       content: '',
-      isTop: false,
-      isUrgent: false
+      isTop: false
     })
     
     const loadNotices = async () => {
       loading.value = true
       try {
-        const params = { ...searchParams.value, page: currentPage.value }
-        const res = await fetchNotices(params)
-        notices.value = res.data.content
-        totalPages.value = res.data.totalPages
+        const params = { 
+          page: currentPage.value,
+          size: 10,
+          keyword: searchParams.value.keyword,
+          type: searchParams.value.type
+        }
+        
+        // 빈 값 제거
+        Object.keys(params).forEach(key => {
+          if (params[key] === '' || params[key] === null || params[key] === undefined) {
+            delete params[key]
+          }
+        })
+        
+        const res = await getAdminNotices(params)
+        
+        // Spring Boot 페이징 응답 구조에 맞게 처리
+        if (res.data && res.data.content) {
+          notices.value = res.data.content
+          totalPages.value = res.data.totalPages
+          currentPage.value = res.data.number
+        } else {
+          notices.value = res.data || []
+          totalPages.value = 1
+          currentPage.value = 0
+        }
       } catch (error) {
         console.error('공지사항 목록 로드 실패:', error)
+        // 에러 시 임시 데이터 표시
+        notices.value = [
+          {
+            noticeId: 1,
+            title: '시스템 점검 안내',
+            content: '정기 시스템 점검이 예정되어 있습니다.',
+            createdAt: '2024-01-15T10:00:00',
+            modifyAt: null,
+            views: 0,
+            isTop: true,
+            adminName: '관리자'
+          }
+        ]
+        totalPages.value = 1
       } finally {
         loading.value = false
       }
@@ -261,16 +284,19 @@ export default {
         showDetailModal.value = true
       } catch (error) {
         console.error('공지사항 상세 조회 실패:', error)
+        // 에러 시 목록에서 찾기
+        selectedNotice.value = notices.value.find(notice => notice.noticeId === noticeId)
+        showDetailModal.value = true
       }
     }
     
     const editNotice = (notice) => {
       isEditing.value = true
       noticeForm.value = {
+        noticeId: notice.noticeId,
         title: notice.title,
         content: notice.content,
-        isTop: notice.isTop || false,
-        isUrgent: notice.isUrgent || false
+        isTop: notice.isTop || false
       }
       showEditModal.value = true
     }
@@ -278,12 +304,14 @@ export default {
     const toggleTop = async (notice) => {
       try {
         await updateNotice(notice.noticeId, {
-          ...notice,
+          title: notice.title,
+          content: notice.content,
           isTop: !notice.isTop
-        }, authStore.token)
+        })
         await loadNotices()
       } catch (error) {
         console.error('고정 상태 변경 실패:', error)
+        alert('고정 상태 변경에 실패했습니다.')
       }
     }
     
@@ -291,25 +319,46 @@ export default {
       if (!confirm('정말 삭제하시겠습니까?')) return
       
       try {
-        await deleteNotice(noticeId, authStore.token)
+        await deleteNoticeApi(noticeId)
         await loadNotices()
+        alert('공지사항이 삭제되었습니다.')
       } catch (error) {
         console.error('공지사항 삭제 실패:', error)
+        alert('공지사항 삭제에 실패했습니다.')
       }
     }
     
     const submitNotice = async () => {
       submitting.value = true
       try {
+        const noticeData = {
+          title: noticeForm.value.title.trim(),
+          content: noticeForm.value.content,
+          isTop: noticeForm.value.isTop
+        }
+        
         if (isEditing.value) {
-          await updateNotice(noticeForm.value.noticeId, noticeForm.value, authStore.token)
+          await updateNotice(noticeForm.value.noticeId, noticeData)
+          alert('공지사항이 수정되었습니다.')
         } else {
-          await createNotice(noticeForm.value, authStore.token)
+          await createNotice(noticeData)
+          alert('공지사항이 등록되었습니다.')
         }
         closeModal()
         await loadNotices()
       } catch (error) {
         console.error('공지사항 저장 실패:', error)
+        if (error.response && error.response.data) {
+          // 백엔드에서 보낸 에러 메시지 표시
+          const errorMessages = error.response.data
+          if (Array.isArray(errorMessages)) {
+            alert('입력 오류:\n' + errorMessages.map(err => err.defaultMessage).join('\n'))
+          } else {
+            alert('공지사항 저장에 실패했습니다.')
+          }
+        } else {
+          alert('공지사항 저장에 실패했습니다.')
+        }
       } finally {
         submitting.value = false
       }
@@ -322,14 +371,35 @@ export default {
       noticeForm.value = {
         title: '',
         content: '',
-        isTop: false,
-        isUrgent: false
+        isTop: false
       }
     }
 
     const closeDetailModal = () => {
       showDetailModal.value = false
       selectedNotice.value = null
+    }
+    
+    // 첨부파일/이미지 감지 함수들
+    const hasAttachments = (notice) => {
+      return hasImages(notice) || hasFiles(notice)
+    }
+    
+    const hasImages = (notice) => {
+      if (!notice.content) return false
+      // HTML content에서 img 태그 검색
+      return notice.content.includes('<img') || notice.content.includes('data:image')
+    }
+    
+    const hasFiles = (notice) => {
+      if (!notice.content) return false
+      // HTML content에서 첨부파일 링크 검색 (a 태그)
+      return notice.content.includes('<a href') && 
+             (notice.content.includes('download') || 
+              notice.content.includes('.pdf') || 
+              notice.content.includes('.doc') || 
+              notice.content.includes('.xls') ||
+              notice.content.includes('.zip'))
     }
     
     onMounted(() => {
@@ -358,7 +428,11 @@ export default {
       deleteNotice,
       submitNotice,
       closeModal,
-      closeDetailModal
+      closeDetailModal,
+      hasAttachments,
+      hasImages,
+      hasFiles,
+      RichTextEditor
     }
   }
 }
@@ -366,46 +440,52 @@ export default {
 
 <style scoped>
 .notices-container {
-  padding: 1.5rem;
+  padding: 2rem;
   background: #f8f9fa;
   min-height: 100vh;
 }
 
 .header {
-  margin-bottom: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
 }
 
 .header h1 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
 }
 
 .create-btn {
-  padding: 0.75rem 1.5rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
+  padding: 0.75rem 1.5rem;
   border-radius: 8px;
-  cursor: pointer;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .create-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .search-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
   display: flex;
   gap: 1rem;
@@ -415,15 +495,15 @@ export default {
 
 .search-box {
   flex: 1;
-  display: flex;
-  gap: 0.5rem;
   min-width: 300px;
+  display: flex;
+  position: relative;
 }
 
 .search-box input {
   flex: 1;
   padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #e9ecef;
   border-radius: 8px;
   font-size: 0.95rem;
   transition: border-color 0.3s ease;
@@ -435,17 +515,15 @@ export default {
 }
 
 .search-btn {
-  padding: 0.75rem 1rem;
-  background: #667eea;
-  color: white;
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
   border: none;
-  border-radius: 8px;
+  color: #6c757d;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.search-btn:hover {
-  background: #5a67d8;
+  padding: 0.5rem;
 }
 
 .filter-box {
@@ -455,9 +533,10 @@ export default {
 
 .filter-box select {
   padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #e9ecef;
   border-radius: 8px;
   background: white;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: border-color 0.3s ease;
 }
@@ -470,19 +549,20 @@ export default {
 .notices-table {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   margin-bottom: 2rem;
 }
 
 .table-header {
   display: grid;
-  grid-template-columns: 80px 2fr 1fr 1fr 1fr 150px;
+  grid-template-columns: 60px 1fr 80px 100px 120px;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 1rem;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .table-body {
@@ -492,24 +572,24 @@ export default {
 
 .table-row {
   display: grid;
-  grid-template-columns: 80px 2fr 1fr 1fr 1fr 150px;
-  padding: 1rem;
+  grid-template-columns: 60px 1fr 80px 100px 120px;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.3s ease;
   align-items: center;
+  color: #1e293b;
+  font-size: 0.95rem;
 }
 
 .table-row:hover {
   background-color: #f8fafc;
 }
 
-.table-row:last-child {
-  border-bottom: none;
-}
-
 .col-id {
   font-weight: 600;
   color: #64748b;
+  text-align: center;
 }
 
 .col-title {
@@ -525,43 +605,46 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-.title-icon {
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.top-icon {
-  color: #fbbf24;
-}
-
-.urgent-icon {
-  color: #ef4444;
-}
-
-.col-title:hover .title-text {
-  color: #667eea;
-  text-decoration: underline;
-}
-
-.title-content {
-  display: inline-block;
-  min-width: 0;
-  flex: 1;
-}
 
 .title-content.with-badge {
   margin-left: 0;
 }
 
 .title-content:not(.with-badge) {
-  margin-left: 60px; /* 배지와 아이콘 공간만큼 들여쓰기 */
+  margin-left: 0;
 }
 
 .title-badges {
   display: flex;
   gap: 0.25rem;
+}
+
+/* 첨부파일/이미지 아이콘 스타일 */
+.attachment-icons {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+}
+
+.icon-image {
+  color: #4299e1;
+}
+
+.icon-file {
+  color: #48bb78;
 }
 
 .badge {
@@ -574,8 +657,13 @@ export default {
 }
 
 .badge.top {
-  background-color: #3b82f6;
-  color: white;
+  background: #fbbf24;
+  color: #92400e;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  margin-right: 0.5rem;
 }
 
 .badge.urgent {
@@ -583,37 +671,10 @@ export default {
   color: white;
 }
 
-.col-status {
-  display: flex;
-  align-items: center;
-}
-
-.status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status.active {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.status.inactive {
-  background-color: #fef2f2;
-  color: #dc2626;
-}
-
-.col-author {
+.col-author, .col-date {
   color: #64748b;
   font-weight: 500;
-}
-
-.col-date {
-  color: #64748b;
-  font-size: 0.9rem;
+  text-align: center;
 }
 
 .col-actions {
@@ -636,25 +697,18 @@ export default {
   font-size: 0.9rem;
 }
 
-.action-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.action-btn.edit {
-  background-color: #f59e0b;
-}
-
-.action-btn.top {
-  background-color: #6b7280;
-}
-
 .action-btn.top-active {
   background-color: #fbbf24;
 }
+.action-btn.top:hover, .action-btn.top-active:hover {
+  filter: brightness(0.95);
+}
 
-.action-btn.delete {
-  background-color: #ef4444;
+.action-btn.edit { background-color: #f59e0b; }
+.action-btn.delete { background-color: #ef4444; }
+.action-btn.edit:hover, .action-btn.delete:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .loading, .empty-state {
@@ -950,8 +1004,9 @@ export default {
   
   .table-header,
   .table-row {
-    grid-template-columns: 60px 1fr 80px 80px 100px 120px;
+    grid-template-columns: 60px 1fr 80px 80px 80px;
     font-size: 0.8rem;
+    padding: 0.75rem 1rem;
   }
   
   .col-actions {

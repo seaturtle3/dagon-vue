@@ -57,7 +57,7 @@
         <h3>이미지 ({{ diary.images.length }}장)</h3>
         <div class="image-gallery">
           <div v-for="image in diary.images" :key="image.id || image.imageUrl" class="image-item">
-            <img :src="image.imageUrl" :alt="image.imageName" @click="openImageModal(image)">
+            <img :src="getImageUrl(image)" :alt="image.imageName" @click="openImageModal(image)">
             <div class="image-info">
               <span class="image-name">{{ image.imageName }}</span>
             </div>
@@ -82,7 +82,7 @@
             <div class="comment-content">{{ comment.comment || comment.content || comment.text }}</div>
             <div class="comment-actions">
               <button
-                @click="openReportModal(comment.user?.uid || comment.user?.uno)"
+                @click="openReportModal(comment.fdCommentId)"
                 class="btn-report-comment"
                 :aria-label="'댓글 신고'"
                 :disabled="reporting"
@@ -106,7 +106,7 @@
         <button @click="closeImageModal" class="modal-close">
           <i class="fas fa-times"></i>
         </button>
-        <img :src="selectedImage?.imageUrl" :alt="selectedImage?.imageName">
+        <img :src="getImageUrl(selectedImage)" :alt="selectedImage?.imageName">
         <div class="image-modal-info">
           <h4>{{ selectedImage?.imageName }}</h4>
         </div>
@@ -153,6 +153,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { partnerService } from '@/api/partner.js';
+import { BASE_URL } from '@/constants/baseUrl.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -168,6 +169,23 @@ const showReportModal = ref(false);
 const commentToReport = ref(null);
 const reportReason = ref("");
 const reporting = ref(false);
+
+// 이미지 URL 생성 함수
+function getImageUrl(image) {
+  if (!image) return '/images/default-product.jpg';
+  
+  if (image.imageData) {
+    // base64 데이터가 있으면 직접 사용
+    return `data:image/jpeg;base64,${image.imageData}`;
+  } else if (image.imageUrl) {
+    // imageUrl이 상대 경로인 경우 base URL과 결합
+    if (image.imageUrl.startsWith('/')) {
+      return `${BASE_URL}${image.imageUrl}`;
+    }
+    return image.imageUrl;
+  }
+  return '/images/default-product.jpg';
+}
 
 onMounted(async () => {
   console.log('route.params:', route.params);

@@ -74,12 +74,12 @@ const routes = [
             },
             {
                 path: 'events',
-                component: () => import('@/views/pages/dashboard/components/Events.vue'),
+                component: () => import('@/views/pages/dashboard/components/AdminEvent.vue'),
                 meta: {requiresAuth: true}
             },
             {
                 path: 'notices',
-                component: () => import('@/views/pages/dashboard/components/Notices.vue'),
+                component: () => import('@/views/pages/dashboard/components/AdminNotice.vue'),
                 meta: {requiresAuth: true}
             },
             {
@@ -109,12 +109,17 @@ const routes = [
             },
             {
                 path: 'faq',
-                component: () => import('@/views/pages/dashboard/components/FAQ.vue'),
+                component: () => import('@/views/pages/dashboard/components/AdminFAQ.vue'),
                 meta: {requiresAuth: true}
             },
             {
                 path: 'inquiries',
-                component: () => import('@/views/pages/dashboard/components/Inquiries.vue'),
+                component: () => import('@/views/pages/dashboard/components/MemberInquiries.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'guest-inquiries',
+                component: () => import('@/views/pages/dashboard/components/GuestInquiries.vue'),
                 meta: {requiresAuth: true}
             },
             {
@@ -145,6 +150,7 @@ const routes = [
     // partner pages
     {
         path: '/partner',
+        name: 'PartnerPage',
         component: () => import('@/views/pages/partner-page/PartnerPage.vue'),
         redirect: '/partner/dashboard',
         meta: {requiresAuth: true},
@@ -161,6 +167,14 @@ const routes = [
                 component: () => import('@/views/pages/partner-page/components/ReservationDetail.vue')
             },
             {path: 'products', component: () => import('@/views/pages/partner-page/components/ProductList.vue')},
+            {
+                path: 'products/:prodId',
+                name: 'PartnetProductDetail',
+                component: () => import('@/views/pages/partner-page/components/ProductDetail.vue'),
+            },
+
+            {path: 'products/form', component: () => import('@/views/pages/partner-page/components/ProductForm.vue')},
+            {path: 'products/edit/:id', component: () => import('@/views/pages/partner-page/components/ProductForm.vue')},
             {
                 path: 'market-info',
                 component: () => import('@/views/pages/partner-page/components/FishingReportManager.vue')
@@ -196,13 +210,21 @@ const routes = [
         path: '/products',
         children: [
             {path: '', component: () => import('@/views/product/all-products/ProductList.vue')},
-            {path: 'form', component: () => import('@/views/product/all-products/ProductForm.vue')},
             {path: 'sea', component: () => import('@/views/product/fishing-filter/Sea.vue')},
             {path: 'freshwater', component: () => import('@/views/product/fishing-filter/Freshwater.vue')},
             {
                 path: ':prodId',
                 name: 'ProductDetail',
                 component: () => import('@/views/product/product-detail/ProductDetail.vue'),
+            },
+            {
+                path: 'form',
+                name: 'ProductCreate',
+                component: () => import('@/views/product/all-products/ProductForm.vue')},
+            {
+                path: 'edit/:prodId',
+                name: 'ProductEdit',
+                component: () => import('@/views/product/all-products/ProductEditForm.vue'),
             },
         ]
     },
@@ -225,10 +247,28 @@ const routes = [
     },
 
     {
+        path: '/fishing-report/create',
+        name: 'FishingReportCreate',
+        component: () => import('@/views/community/fishing-report/ReportForm.vue')
+    },
+    {
+        path: '/fishing-report/edit/:frId',
+        name: 'FishingReportEdit',
+        component: () => import('@/views/community/fishing-report/ReportForm.vue'),
+        props: true
+    },
+
+    {
         path: '/fishing-diary',
         children: [
             {path: '', component: () => import('@/views/community/fishing-diary/DiaryList.vue')},
             {path: 'create', component: () => import('@/views/community/fishing-diary/DiaryForm.vue')},
+            {
+                path: 'edit/:fdId',
+                name: 'DiaryEdit',
+                component: () => import('@/views/community/fishing-diary/DiaryForm.vue'),
+                props: route => ({ editMode: true, diaryId: route.params.fdId })
+            },
             {
                 path: ':fdId',
                 name: 'DiaryDetail',
@@ -285,10 +325,21 @@ const routes = [
     // support
     {path: '/customer-service', component: () => import('@/views/support/customer-service/CustomerService.vue')},
     {path: '/inquiry', component: () => import('@/views/support/inquiry/InquiryMain.vue')},
-    {path: '/guest-inquiry', name: 'GuestInquiry', component: () => import('@/views/support/inquiry/components/GuestInquiry.vue')},
+
     {path: '/member-inquiry', name: 'MemberInquiry', component: () => import('@/views/support/inquiry/components/MemberInquiry.vue'), meta: {requiresAuth: true}},
     {path: '/faq', component: () => import('@/views/support/faq/FAQ.vue')},
     {path: '/notice', component: () => import('@/views/support/notice/NoticeList.vue')},
+    {
+        path: '/notice/write',
+        component: () => import('@/views/support/notice/NoticeWrite.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/notice/edit/:id',
+        component: () => import('@/views/support/notice/NoticeWrite.vue'),
+        props: true,
+        meta: { requiresAuth: true }
+    },
     {
         path: '/notice/:id',
         name: 'NoticeDetail',
@@ -310,6 +361,25 @@ const routes = [
         component: () => import('@/views/pages/partner-page/components/ProductRegister.vue')
     },
     { path: '/product-inquiry', component: () => import('@/views/support/inquiry/ProductInquiry.vue') },
+
+    // terms
+    {
+        path: '/terms',
+        component: () => import('@/components/common/TermsView.vue')
+    },
+    {
+        path: '/finance-terms',
+        component: () => import('@/components/common/FinanceTermsView.vue')
+    },
+    {
+        path: '/privacy-policy',
+        component: () => import('@/components/common/PrivacyPolicyView.vue')
+    },
+    {
+        path: '/admin/swagger',
+        component: () => import('@/views/pages/dashboard/SwaggerPage.vue'),
+        meta: {requiresAuth: true}
+    },
 ]
 
 const router = createRouter({
@@ -318,6 +388,42 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+    if (to.path === '/admin/login') {
+        next();
+        return;
+    }
+    if (to.path.startsWith('/admin')) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            next('/admin/login');
+            return;
+        }
+        try {
+            // JWT payload 파싱
+            const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            const role = payload.role || payload.auth || payload.roles || payload.ROLE;
+            if (role !== 'SUPER_ADMIN' && role !== 'ADMIN') {
+                // window.confirm → 커스텀 모달로 변경
+                window.AdminAuthModal.openModal(
+                  () => {
+                    localStorage.removeItem('token');
+                    next('/admin/login');
+                  },
+                  () => {
+                    next(false);
+                  }
+                );
+                return;
+            }
+        } catch (e) {
+            // 토큰 파싱 실패 시 강제 로그아웃
+            localStorage.removeItem('token');
+            next('/admin/login');
+            return;
+        }
+        next();
+        return;
+    }
     if (to.matched.some(record => record.meta.requiresAuth)) {
         const token = localStorage.getItem('token')
         if (!token) {

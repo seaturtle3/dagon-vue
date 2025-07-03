@@ -145,7 +145,14 @@ export const myPageAPI = {
             console.log('문의 내역 API 호출 시작');
             const response = await api.get('/api/inquiry/my-inquiries');
             console.log('문의 내역 조회 결과:', response.data);
-            return Array.isArray(response.data) ? response.data : [];
+            // 응답이 {data: [...], ...} 형태일 때도 처리
+            if (Array.isArray(response.data)) {
+                return response.data;
+            } else if (Array.isArray(response.data.data)) {
+                return response.data.data;
+            } else {
+                return [];
+            }
         } catch (error) {
             console.error('문의 내역 조회 API 에러:', error);
             throw error;
@@ -178,5 +185,15 @@ export const myPageAPI = {
             payMethod,
             paidAt
         })
+    },
+    // 알람 삭제
+    async deleteNotification(id) {
+        try {
+            const response = await api.delete(`/api/notifications/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error('알림 삭제 API 에러:', error);
+            throw error;
+        }
     }
 }; 

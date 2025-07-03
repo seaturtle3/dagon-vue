@@ -65,6 +65,7 @@ const goToDetail = (item) => {
 
 <template>
   <div>
+
     <div class="combined-grid" v-if="pagedList.length > 0">
       <div
           v-for="item in pagedList"

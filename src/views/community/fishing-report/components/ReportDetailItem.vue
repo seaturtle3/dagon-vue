@@ -1,9 +1,8 @@
 <script setup>
-import {IMAGE_BASE_URL} from "@/constants/imageBaseUrl.js";
-import { partnerService } from '@/api/partner';
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js';
+import {partnerService} from '@/api/partner';
+import {ref, computed, onMounted, onUnmounted} from 'vue';
+import {useRouter} from 'vue-router';
+import {useFishingReportStore} from '@/store/fishing-center/useFishingReportStore.js';
 
 const props = defineProps({
   report: {
@@ -12,8 +11,7 @@ const props = defineProps({
   },
   currentUser: {
     type: Object,
-    required: false,
-    default: null
+    required: false
   }
 })
 
@@ -25,27 +23,93 @@ const reportReason = ref('');
 const reportTarget = ref(null);
 const reportType = ref(''); // 'report' 또는 'comment'
 
+// 현재 사용자 정보 - props에서 받거나 localStorage에서 초기화
+const currentUser = ref(props.currentUser || null);
+
 // 현재 사용자가 조황정보 작성자인지 확인
 const isOwnReport = computed(() => {
-  return String(props.currentUser?.uid) === String(props.report?.user?.uid);
+  return String(currentUser.value?.uno) === String(props.report?.user?.uno);
 });
 
 // 현재 사용자가 댓글 작성자인지 확인
 const isOwnComment = (comment) => {
-  if (!props.currentUser || !comment.user) return false;
-  return props.currentUser.uid === comment.user.uid;
+  if (!currentUser.value || !comment.user) return false;
+  return String(currentUser.value.uno) === String(comment.user.uno);
 };
 
+// 사용자 정보 초기화
+const initializeUserInfo = () => {
+  // props로 받은 사용자 정보가 있으면 우선 사용
+  if (props.currentUser) {
+    currentUser.value = props.currentUser;
+    console.log('props에서 사용자 정보 사용:', currentUser.value);
+    return;
+  }
+
+  try {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      currentUser.value = JSON.parse(userInfo);
+      console.log('localStorage에서 사용자 정보 복원:', currentUser.value);
+    }
+
+    // userInfo에 uno가 없으면 토큰에서 추출
+    if (!currentUser.value?.uno) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.uno) {
+            currentUser.value = {...currentUser.value, uno: payload.uno};
+            console.log('토큰에서 uno 추출:', payload.uno);
+          }
+        } catch (tokenError) {
+          console.log('토큰 디코딩 실패:', tokenError);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('사용자 정보 파싱 실패:', error);
+  }
+};
+
+// 커스텀 알림 모달 상태 및 함수
+const alertModal = ref({show: false, message: ''});
+
+function showAlertModal(msg) {
+  alertModal.value.message = msg;
+  alertModal.value.show = true;
+}
+
+function closeAlertModal() {
+  alertModal.value.show = false;
+  alertModal.value.message = '';
+}
+
+// 커스텀 confirm 모달 상태 및 함수
+const confirmModal = ref({show: false, message: '', onConfirm: null});
+
+function showConfirmModal(msg, onConfirm) {
+  confirmModal.value.message = msg;
+  confirmModal.value.onConfirm = onConfirm;
+  confirmModal.value.show = true;
+}
+
+function closeConfirmModal() {
+  confirmModal.value.show = false;
+  confirmModal.value.message = '';
+  confirmModal.value.onConfirm = null;
+}
 
 // 신고하기 버튼 클릭
 const openReportModal = (target, type) => {
   // 자기 자신 신고 방지
   if (type === 'report' && isOwnReport.value) {
-    alert('자기 자신의 게시글은 신고할 수 없습니다.');
+    showAlertModal('자기 자신의 게시글은 신고할 수 없습니다.');
     return;
   }
   if (type === 'comment' && isOwnComment(target)) {
-    alert('자기 자신의 댓글은 신고할 수 없습니다.');
+    showAlertModal('자기 자신의 댓글은 신고할 수 없습니다.');
     return;
   }
 
@@ -53,9 +117,9 @@ const openReportModal = (target, type) => {
   const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
   const itemId = type === 'report' ? target.frId : target.frCommentId;
   const itemType = type === 'report' ? 'report' : 'comment';
-  
+
   if (reportedItems.some(item => item.id === itemId && item.type === itemType)) {
-    alert('이미 신고한 게시글/댓글입니다.');
+    showAlertModal('이미 신고한 게시글/댓글입니다.');
     return;
   }
 
@@ -68,7 +132,7 @@ const openReportModal = (target, type) => {
 // 신고 제출
 const submitReport = async () => {
   if (!reportReason.value.trim()) {
-    alert('신고 사유를 입력해주세요.');
+    showAlertModal('신고 사유를 입력해주세요.');
     return;
   }
 
@@ -77,27 +141,27 @@ const submitReport = async () => {
       await partnerService.reportFishingReport(props.report.frId, reportReason.value);
       // 신고 성공 시 localStorage에 저장
       const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
-      reportedItems.push({ id: props.report.frId, type: 'report' });
+      reportedItems.push({id: props.report.frId, type: 'report'});
       localStorage.setItem('reportedItems', JSON.stringify(reportedItems));
     } else if (reportType.value === 'comment') {
       await partnerService.reportFishingReportComment(reportTarget.value.frCommentId, reportReason.value);
       // 신고 성공 시 localStorage에 저장
       const reportedItems = JSON.parse(localStorage.getItem('reportedItems') || '[]');
-      reportedItems.push({ id: reportTarget.value.frCommentId, type: 'comment' });
+      reportedItems.push({id: reportTarget.value.frCommentId, type: 'comment'});
       localStorage.setItem('reportedItems', JSON.stringify(reportedItems));
     }
-    
-    alert('신고가 접수되었습니다.');
+
+    showAlertModal('신고가 접수되었습니다.');
     showReportModal.value = false;
     reportReason.value = '';
   } catch (error) {
     console.error('신고 실패:', error);
-    
+
     // 서버에서 받은 에러 메시지가 있으면 사용
     if (error.response?.data?.message) {
-      alert(error.response.data.message);
+      showAlertModal(error.response.data.message);
     } else {
-      alert('신고 처리 중 오류가 발생했습니다.');
+      showAlertModal('신고 처리 중 오류가 발생했습니다.');
     }
   }
 };
@@ -108,88 +172,267 @@ const closeReportModal = () => {
   reportReason.value = '';
 };
 
+// 컴포넌트 마운트 시 사용자 정보 초기화
+onMounted(() => {
+  initializeUserInfo();
+
+  console.log('✅ currentUser:', currentUser.value)
+  console.log('✅ report.user:', props.report.user)
+  console.log('✅ UID 비교 결과:', currentUser.value?.uno === props.report.user?.uno)
+  console.log('✅ report.images:', props.report.images)
+  console.log('✅ report.images[0]:', props.report.images && props.report.images[0])
+  console.log('✅ report.thumbnailUrl:', props.report.thumbnailUrl)
+  console.log('✅ report.imageFileName:', props.report.imageFileName)
+
+  // 키보드 좌우 방향키 지원
+  const handleKeydown = (e) => {
+    if (!showImageModal.value) return;
+    if (e.key === 'ArrowLeft') {
+      prevImage();
+    } else if (e.key === 'ArrowRight') {
+      nextImage();
+    } else if (e.key === 'Escape') {
+      closeImageModal();
+    }
+  }
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
+
+// 날짜 형식 변환 함수
+const formatDate = (dateString) => {
+  if (!dateString) return '날짜 없음';
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '날짜 없음';
+
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  return `${year}. ${month}. ${day}`;
+};
+
 const router = useRouter();
 const fishingReportStore = useFishingReportStore();
 
 const goToEdit = () => {
-  router.push(`/fishing-report/form/${props.report.frId}`);
+  router.push(`/fishing-report/edit/${props.report.frId}`);
 };
 
 const confirmDelete = async () => {
   if (confirm('정말 삭제하시겠습니까?')) {
     try {
+      console.log('삭제 시도 - frId:', props.report.frId);
       await fishingReportStore.deleteFishingReport(props.report.frId);
-      alert('삭제되었습니다.');
+      showAlertModal('삭제되었습니다.');
+      
+      // 삭제 성공 후 리스트 페이지로 이동하면서 리스트 새로고침
+      await fishingReportStore.fetchReports(0, fishingReportStore.pageSize);
       router.push('/fishing-report');
     } catch (e) {
-      alert('삭제에 실패했습니다.');
+      console.error('삭제 실패 상세:', e);
+      let errorMessage = '삭제에 실패했습니다.';
+
+      // 서버에서 받은 에러 메시지가 있으면 사용
+      if (e.response?.data?.message) {
+        errorMessage = e.response.data.message;
+      } else if (e.message) {
+        errorMessage = `삭제 실패: ${e.message}`;
+      }
+
+      showAlertModal(errorMessage);
     }
   }
 };
 
-const showImageModal = ref(false);
-const modalImageIndex = ref(0);
-
-function openImageModal(index) {
-  modalImageIndex.value = index;
-  showImageModal.value = true;
-}
-function closeImageModal() {
-  showImageModal.value = false;
-}
-function prevImage() {
-  if (modalImageIndex.value > 0) {
-    modalImageIndex.value--;
-  }
-}
-function nextImage() {
-  if (modalImageIndex.value < (props.report.images.length - 1)) {
-    modalImageIndex.value++;
-  }
-}
-
+const comments = ref(props.report.comments ? [...props.report.comments] : []);
 const newComment = ref('');
 const submittingComment = ref(false);
+
+async function fetchComments() {
+  try {
+    const res = await partnerService.getFishingReportComments(props.report.frId);
+    // res.data.comments 또는 res.data의 구조에 맞게 할당
+    if (res.data && Array.isArray(res.data.comments)) {
+      comments.value = res.data.comments;
+    } else if (Array.isArray(res.data)) {
+      comments.value = res.data;
+    } else {
+      comments.value = [];
+    }
+  } catch (e) {
+    comments.value = [];
+  }
+}
 
 // 댓글 등록 함수
 const submitComment = async () => {
   if (!newComment.value.trim()) {
-    alert('댓글 내용을 입력하세요.');
+    showAlertModal('댓글 내용을 입력하세요.');
     return;
   }
   if (!currentUser.value?.uno) {
-    alert('로그인 후 이용해 주세요.');
+    showAlertModal('로그인 후 이용해 주세요.');
     return;
   }
   submittingComment.value = true;
   try {
     await partnerService.createFishingReportComment(props.report.frId, newComment.value, currentUser.value.uno);
-    alert('댓글이 등록되었습니다.');
+    showAlertModal('댓글이 등록되었습니다.');
     newComment.value = '';
-    // 댓글 목록 새로고침 (emit 또는 reload 필요)
-    location.reload(); // 임시: 새로고침, 추후 emit 등으로 개선 가능
+    await fetchComments();
   } catch (e) {
-    alert('댓글 등록에 실패했습니다.');
+    showAlertModal('댓글 등록에 실패했습니다.');
   } finally {
     submittingComment.value = false;
   }
 };
 
 // 댓글 삭제 함수
-const deleteComment = async (commentId) => {
+function deleteComment(commentId) {
   if (!commentId) {
-    alert('댓글 ID가 없습니다.');
+    showAlertModal('댓글 ID가 없습니다.');
     return;
   }
-  if (!confirm('정말 삭제하시겠습니까?')) return;
-  try {
-    await partnerService.deleteFishingReportComment(commentId);
-    alert('삭제되었습니다.');
-    location.reload(); // 또는 댓글 목록만 갱신
-  } catch (e) {
-    alert('삭제에 실패했습니다.');
+  showConfirmModal('정말 삭제하시겠습니까?', async () => {
+    try {
+      await partnerService.deleteFishingReportComment(commentId);
+      showAlertModal('삭제되었습니다.');
+      await fetchComments();
+    } catch (e) {
+      showAlertModal('삭제에 실패했습니다.');
+    }
+    closeConfirmModal();
+  });
+}
+
+// 이미지 확대 모달 상태 및 핸들러
+const showImageModal = ref(false);
+const modalImages = ref([]); // 전체 이미지 배열
+const modalImageIndex = ref(0); // 현재 인덱스
+
+function getImageSrc(img) {
+  if (img.imageData) {
+    return `data:image/jpeg;base64,${img.imageData}`;
+  } else if (img.image_data) {
+    return `data:image/jpeg;base64,${img.image_data}`;
+  } else if (img.imageUrl) {
+    return img.imageUrl;
+  } else if (img.image_url) {
+    return img.image_url;
+  } else {
+    return '/images/no-image.png';
   }
-};
+}
+
+function openImageModal(img) {
+  // 전체 이미지 배열과 현재 인덱스 세팅
+  if (Array.isArray(props.report.images)) {
+    modalImages.value = props.report.images;
+    modalImageIndex.value = props.report.images.findIndex(i => i === img);
+    if (modalImageIndex.value === -1) modalImageIndex.value = 0;
+  } else {
+    modalImages.value = [img];
+    modalImageIndex.value = 0;
+  }
+  showImageModal.value = true;
+}
+
+function openThumbnailModal() {
+  // 썸네일 이미지로 모달 열기
+  if (props.report.images && props.report.images.length > 0) {
+    modalImages.value = [props.report.images[0]];
+    modalImageIndex.value = 0;
+    showImageModal.value = true;
+  }
+}
+
+function closeImageModal() {
+  showImageModal.value = false;
+  modalImageIndex.value = 0;
+  modalImages.value = [];
+}
+
+function prevImage() {
+  if (modalImages.value.length > 0) {
+    modalImageIndex.value = (modalImageIndex.value - 1 + modalImages.value.length) % modalImages.value.length;
+  }
+}
+
+function nextImage() {
+  if (modalImages.value.length > 0) {
+    modalImageIndex.value = (modalImageIndex.value + 1) % modalImages.value.length;
+  }
+}
+
+// 키보드 좌우 방향키 지원
+function handleKeydown(e) {
+  if (!showImageModal.value) return;
+  if (e.key === 'ArrowLeft') {
+    prevImage();
+  } else if (e.key === 'ArrowRight') {
+    nextImage();
+  } else if (e.key === 'Escape') {
+    closeImageModal();
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
+
+// 썸네일 src 추출 함수
+function getThumbnailSrc() {
+  console.log('getThumbnailSrc 호출 - report.images:', props.report.images);
+  console.log('getThumbnailSrc 호출 - report.thumbnailUrl:', props.report.thumbnailUrl);
+  console.log('getThumbnailSrc 호출 - report.imageFileName:', props.report.imageFileName);
+
+  if (props.report.images && props.report.images.length) {
+    const img = props.report.images[0];
+    console.log('이미지 객체:', img);
+
+    if (img.imageData) {
+      console.log('imageData 사용');
+      return `data:image/jpeg;base64,${img.imageData}`;
+    }
+    if (img.image_data) {
+      console.log('image_data 사용');
+      return `data:image/jpeg;base64,${img.image_data}`;
+    }
+    if (img.imageUrl) {
+      console.log('imageUrl 사용:', img.imageUrl);
+      return img.imageUrl;
+    }
+    if (img.image_url) {
+      console.log('image_url 사용:', img.image_url);
+      return img.image_url;
+    }
+  }
+
+  if (props.report.thumbnailUrl) {
+    console.log('thumbnailUrl 사용:', props.report.thumbnailUrl);
+    // API 경로가 필요한 경우 처리
+    if (props.report.thumbnailUrl.startsWith('http')) return props.report.thumbnailUrl;
+    return `/api/fishing-report/images/${props.report.thumbnailUrl}`;
+  }
+
+  // imageFileName이 있으면 URL 생성
+  if (props.report.imageFileName) {
+    console.log('imageFileName 사용:', props.report.imageFileName);
+    return `/api/fishing-report/images/${props.report.imageFileName}`;
+  }
+
+  console.log('기본 이미지 사용');
+  return '/images/no-image.png';
+}
 </script>
 
 <template>
@@ -201,142 +444,113 @@ const deleteComment = async (commentId) => {
     <!-- 제목 -->
     <div class="detail-title-row">
       <h2 class="detail-title">{{ report.title }}</h2>
+    </div>
+    <div class="detail-title-row" style="display: flex; justify-content: flex-end;">
       <button
-        class="btn-report-post"
-        @click="openReportModal(report, 'report')"
-        title="게시글 신고"
+          class="btn-report-post"
+          @click="openReportModal(report, 'report')"
+          title="게시글 신고"
       >
         <i class="fas fa-flag"></i> 신고
       </button>
     </div>
-    <div class="meta-row">
-      <span class="meta-item">
-        <i class="fa fa-user"></i> {{ report.user?.uname || '익명' }}
-      </span>
-      <span class="meta-item">
-        <i class="fa fa-calendar"></i> {{ report.fishingAt || '날짜 없음' }}
-      </span>
-      <span class="meta-item">
-        <i class="fa fa-tag"></i>
-        <router-link
-          v-if="report.product && report.product.prodId"
-          :to="`/products/${report.product.prodId}`"
-          class="product-link"
-        >
-          {{ report.product.prodName }}
-        </router-link>
-        <span v-else>없음</span>
-      </span>
+    <div class="info-thumbnail-layout">
+      <div class="info-card">
+        <!-- 상단: 제목과 라인 -->
+        <div class="info-header">
+          <h3 class="info-title">조황 정보</h3>
+          <div class="views-count">
+            <i class="fa fa-eye"></i>
+            <span>{{ report.views || 0 }}</span>
+          </div>
+        </div>
+
+        <!-- 하단: 썸네일과 정보 -->
+        <div class="content-layout">
+          <!-- 좌측: 썸네일 -->
+          <div class="thumbnail-section">
+            <img
+                class="thumbnail-img"
+                :src="getThumbnailSrc()"
+                alt="썸네일"
+                @click="openThumbnailModal()"
+                style="cursor: pointer;"
+            />
+          </div>
+
+          <!-- 우측: 관련 정보 -->
+          <div class="info-section">
+            <div class="info-content">
+              <div class="info-item">
+                <div class="ship-name">{{ report.product?.prodName }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fa fa-user"></i>
+                  작성자
+                </div>
+                <div class="info-value">{{ report.user?.uname || '익명' }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fa fa-calendar"></i>
+                  출조 날짜
+                </div>
+                <div class="info-value">{{ report.fishingAt ? formatDate(report.fishingAt) : '날짜 없음' }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fa fa-clock"></i>
+                  등록 날짜
+                </div>
+                <div class="info-value">{{ report.createdAt ? formatDate(report.createdAt) : '날짜 없음' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="thumbnail-section">
-      <img
-        class="thumbnail-img"
-        :src="
-          report.images && report.images.length
-            ? (
-                report.images[0].imageData
-                  ? `data:image/jpeg;base64,${report.images[0].imageData}`
-                  : (report.images[0].image_data
-                      ? `data:image/jpeg;base64,${report.images[0].image_data}`
-                      : (report.images[0].imageUrl
-                          ? report.images[0].imageUrl
-                          : (report.images[0].image_url
-                              ? report.images[0].image_url
-                              : '/images/no-image.png'
-                            )
-                        )
-                    )
-              )
-            : '/images/no-image.png'
-        "
-        alt="썸네일"
-      />
+    <!-- 관련 상품 예약 버튼 -->
+    <div v-if="report.product && report.product.prodId" class="reservation-section">
+      <router-link
+          :to="`/products/${report.product.prodId}?tab=reservation`"
+          class="reservation-btn"
+      >
+        <i class="fa fa-calendar-check"></i>
+        {{ report.product.prodName }} 예약하기
+      </router-link>
     </div>
 
     <div class="content-section">
       <div class="content-text" v-html="report.content"></div>
     </div>
 
-    <div v-if="report.images && report.images.length" class="report-images">
-      <h5 class="section-label">추가 사진</h5>
-      <div class="image-list">
-        <img
-          v-for="(img, index) in report.images"
-          :key="index"
-          :src="
-            img.imageData
-              ? `data:image/jpeg;base64,${img.imageData}`
-              : (img.image_data
-                  ? `data:image/jpeg;base64,${img.image_data}`
-                  : (img.imageUrl
-                      ? img.imageUrl
-                      : (img.image_url
-                          ? img.image_url
-                          : '/images/no-image.png'
-                        )
-                    )
-                )
-          "
-          class="extra-image"
-          alt="조황 사진"
-          @click="openImageModal(index)"
-          style="cursor:pointer"
-        />
-      </div>
-    </div>
-
-    <!-- 이미지 모달 -->
-    <div v-if="showImageModal" class="modal-overlay" @click.self="closeImageModal">
-      <div class="modal-image-content">
-        <button v-if="modalImageIndex > 0" class="modal-nav-btn left" @click.stop="prevImage">&#8592;</button>
-        <img
-          :src="
-            report.images[modalImageIndex].imageData
-              ? `data:image/jpeg;base64,${report.images[modalImageIndex].imageData}`
-              : (report.images[modalImageIndex].image_data
-                  ? `data:image/jpeg;base64,${report.images[modalImageIndex].image_data}`
-                  : (report.images[modalImageIndex].imageUrl
-                      ? report.images[modalImageIndex].imageUrl
-                      : (report.images[modalImageIndex].image_url
-                          ? report.images[modalImageIndex].image_url
-                          : '/images/no-image.png'
-                        )
-                    )
-                )
-          "
-          class="modal-large-image"
-          alt="큰 조황 사진"
-        />
-        <button v-if="modalImageIndex < report.images.length - 1" class="modal-nav-btn right" @click.stop="nextImage">&#8594;</button>
-        <button class="modal-close-btn" @click="closeImageModal">×</button>
-      </div>
-    </div>
 
     <div class="comment-box">
       <h5 class="section-label">댓글</h5>
       <!-- 댓글 입력란: 항상 노출 -->
       <div class="comment-input-row">
         <textarea
-          v-model="newComment"
-          class="comment-input"
-          placeholder="댓글을 입력하세요..."
-          rows="2"
-          :disabled="submittingComment"
+            v-model="newComment"
+            class="comment-input"
+            placeholder="댓글을 입력하세요..."
+            rows="2"
+            :disabled="submittingComment"
         ></textarea>
         <button
-          class="btn btn-primary comment-submit-btn"
-          @click="submitComment"
-          :disabled="submittingComment"
+            class="btn btn-primary comment-submit-btn"
+            @click="submitComment"
+            :disabled="submittingComment"
         >
           {{ submittingComment ? '등록 중...' : '등록' }}
         </button>
       </div>
-      <div v-if="report.comments && report.comments.length">
+      <div v-if="comments && comments.length">
         <div
-          v-for="(comment, index) in report.comments"
-          :key="comment.frCommentId"
-          class="comment-item"
+            v-for="(comment, index) in comments"
+            :key="comment.frCommentId"
+            class="comment-item"
         >
           <div class="comment-meta">
             <span class="comment-user">{{ comment.user?.uname || '익명' }}</span>
@@ -345,20 +559,20 @@ const deleteComment = async (commentId) => {
           <div class="comment-content">{{ comment.comment }}</div>
           <div class="comment-actions-row">
             <button
-              v-if="!isOwnComment(comment)"
-              class="btn-action-comment"
-              @click="openReportModal(comment, 'comment')"
-              :disabled="submittingComment"
-              title="댓글 신고"
+                v-if="!isOwnComment(comment)"
+                class="btn-action-comment"
+                @click="openReportModal(comment, 'comment')"
+                :disabled="submittingComment"
+                title="댓글 신고"
             >
               <i class="fas fa-flag"></i>신고
             </button>
             <button
-              v-if="isOwnComment(comment)"
-              class="btn-action-comment"
-              @click="deleteComment(comment.frCommentId)"
-              :disabled="submittingComment"
-              title="댓글 삭제"
+                v-if="isOwnComment(comment)"
+                class="btn-action-comment"
+                @click="deleteComment(comment.frCommentId)"
+                :disabled="submittingComment"
+                title="댓글 삭제"
             >
               <i class="fa-solid fa-x"></i>삭제
             </button>
@@ -380,17 +594,57 @@ const deleteComment = async (commentId) => {
         <div class="mb-3">
           <label for="reportReason" class="form-label">신고 사유</label>
           <textarea
-            id="reportReason"
-            v-model="reportReason"
-            class="form-control"
-            rows="4"
-            placeholder="신고 사유를 입력해주세요..."
+              id="reportReason"
+              v-model="reportReason"
+              class="form-control"
+              rows="4"
+              placeholder="신고 사유를 입력해주세요..."
           ></textarea>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" @click="closeReportModal">취소</button>
         <button type="button" class="btn btn-danger" @click="submitReport">신고하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 이미지 확대 모달 -->
+  <div v-if="showImageModal" class="modal-overlay" @click="closeImageModal">
+    <div class="modal-content image-slide-modal" @click.stop>
+      <button v-if="modalImages.length > 1" @click.stop="prevImage" class="slide-arrow left-arrow">
+        <span>&#60;</span>
+      </button>
+      <img :src="getImageSrc(modalImages[modalImageIndex])" alt="확대 이미지" class="slide-image"/>
+      <button v-if="modalImages.length > 1" @click.stop="nextImage" class="slide-arrow right-arrow">
+        <span>&#62;</span>
+      </button>
+      <button class="btn-close" @click="closeImageModal">&times;</button>
+      <div v-if="modalImages.length > 1" class="slide-index">
+        {{ modalImageIndex + 1 }} / {{ modalImages.length }}
+      </div>
+    </div>
+  </div>
+
+  <!-- 커스텀 알림 모달 -->
+  <div v-if="alertModal.show" class="modal-overlay" @click="closeAlertModal">
+    <div class="modal-content" style="max-width:350px;min-width:220px;text-align:center;" @click.stop>
+      <div style="padding:32px 18px 18px 18px;font-size:1.1rem;">{{ alertModal.message }}</div>
+      <div style="padding-bottom:24px;">
+        <button class="btn btn-primary" @click="closeAlertModal" style="min-width:80px;">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 커스텀 confirm 모달 -->
+  <div v-if="confirmModal.show" class="modal-overlay" @click="closeConfirmModal">
+    <div class="modal-content" style="max-width:350px;min-width:220px;text-align:center;" @click.stop>
+      <div style="padding:32px 18px 18px 18px;font-size:1.1rem;">{{ confirmModal.message }}</div>
+      <div style="padding-bottom:24px;display:flex;justify-content:center;gap:16px;">
+        <button class="btn btn-secondary" @click="closeConfirmModal" style="min-width:80px;">취소</button>
+        <button class="btn btn-danger" @click="confirmModal.onConfirm && confirmModal.onConfirm()"
+                style="min-width:80px;">확인
+        </button>
       </div>
     </div>
   </div>
@@ -402,10 +656,11 @@ const deleteComment = async (commentId) => {
   margin: 40px auto;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   padding: 36px 48px 32px 48px;
   position: relative;
 }
+
 .detail-title-row {
   display: flex;
   align-items: center;
@@ -413,43 +668,138 @@ const deleteComment = async (commentId) => {
   gap: 16px;
   margin-bottom: 10px;
 }
+
 .detail-title {
   flex: 1;
   text-align: center;
   margin: 0;
-  color: #1976d2;
+  color: black;
+  font-size: 2.5rem;
 }
-.meta-row {
+
+.info-thumbnail-layout {
+  margin-bottom: 28px;
+}
+
+.info-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #e3f2fd;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
   display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-bottom: 18px;
-  color: #666;
-  font-size: 1rem;
+  flex-direction: column;
 }
-.meta-item {
+
+.content-layout {
+  display: flex;
+  gap: 50px;
+  align-items: stretch;
+}
+
+.thumbnail-section {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-section {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-header {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e3f2fd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-title {
+  margin: 0;
+  color: black;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.views-count {
   display: flex;
   align-items: center;
   gap: 6px;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
+
+.views-count i {
+  color: #1976d2;
+  font-size: 1rem;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  justify-content: center;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 100px;
+  color: #666;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.info-label i {
+  color: #1976d2;
+  width: 16px;
+}
+
+.ship-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  padding: 8px 0;
+  margin-bottom: 8px;
+}
+
+.info-value {
+  color: #333;
+  font-size: 1rem;
+  flex: 1;
+}
+
 .product-link {
   color: #1976d2;
   text-decoration: underline;
   font-weight: 500;
 }
-.thumbnail-section {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 28px;
-}
+
 .thumbnail-img {
-  width: 340px;
+  width: 100%;
   height: 220px;
   object-fit: cover;
-  border-radius: 10px;
-  border: 1.5px solid #e0e0e0;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.12);
+  cursor: pointer;
 }
+
 .content-section {
   margin-bottom: 32px;
   padding: 24px 18px;
@@ -462,9 +812,11 @@ const deleteComment = async (commentId) => {
   word-break: break-all;
   overflow-x: auto;
 }
+
 .content-text {
   min-height: 80px;
 }
+
 .content-text img {
   max-width: 100%;
   height: auto;
@@ -473,28 +825,47 @@ const deleteComment = async (commentId) => {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
 }
+
 .section-label {
   font-size: 1.1rem;
   font-weight: 600;
   color: #1976d2;
   margin-bottom: 10px;
 }
-.report-images {
-  margin-bottom: 32px;
+
+.reservation-section {
+  margin-bottom: 28px;
 }
-.image-list {
+
+.reservation-btn {
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
 }
-.extra-image {
-  width: 140px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.07);
+
+.reservation-btn:hover {
+  background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
 }
+
+.reservation-btn i {
+  font-size: 1.3rem;
+}
+
 .comment-box {
   background: #f4f7fb;
   border-radius: 10px;
@@ -502,11 +873,13 @@ const deleteComment = async (commentId) => {
   margin-top: 18px;
   border: 1.5px solid #e3f2fd;
 }
+
 .comment-item {
   margin-bottom: 18px;
   padding-bottom: 10px;
   border-bottom: 1px solid #e0e0e0;
 }
+
 .comment-meta {
   display: flex;
   gap: 12px;
@@ -514,53 +887,67 @@ const deleteComment = async (commentId) => {
   color: #1976d2;
   margin-bottom: 4px;
 }
+
 .comment-user {
   font-weight: 600;
 }
+
 .comment-date {
   color: #888;
   font-size: 0.93rem;
 }
+
 .comment-content {
   color: #222;
   font-size: 1.05rem;
   margin-left: 2px;
 }
+
 .no-comment {
   color: #888;
   text-align: center;
   padding: 18px 0 6px 0;
 }
+
 @media (max-width: 1100px) {
   .detail-container.card-style {
     max-width: 98vw;
     padding: 18px 4vw 18px 4vw;
   }
 }
+
 @media (max-width: 600px) {
   .detail-title {
     font-size: 1.3rem;
   }
-  .meta-row {
-    flex-direction: column;
-    gap: 6px;
-    font-size: 0.98rem;
-    align-items: flex-start;
+
+  .info-card {
+    padding: 16px;
   }
+
+  .content-layout {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .thumbnail-section {
+    flex: none;
+  }
+
   .thumbnail-img {
     height: 120px;
   }
+
+  .reservation-btn {
+    padding: 14px 20px;
+    font-size: 1.1rem;
+  }
+
   .content-section {
     padding: 12px 4px;
     font-size: 0.98rem;
   }
-  .image-list {
-    gap: 6px;
-  }
-  .extra-image {
-    width: 80px;
-    height: 60px;
-  }
+
   .comment-box {
     padding: 10px 4px;
   }
@@ -569,86 +956,89 @@ const deleteComment = async (commentId) => {
 /* 모달 스타일 */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 2000;
-}
-.modal-image-content {
-  position: relative;
-  background: #fff;
-  border-radius: 10px;
-  padding: 16px 48px;
-  max-width: 90vw;
-  max-height: 90vh;
-  display: flex;
   align-items: center;
-  justify-content: center;
+  z-index: 1050;
 }
-.modal-large-image {
-  max-width: 80vw;
-  max-height: 80vh;
+
+.modal-content {
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
-.modal-close-btn {
-  position: absolute;
-  top: 8px; right: 16px;
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 1rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.btn-close {
   background: none;
   border: none;
-  font-size: 2.2rem;
-  color: #333;
+  font-size: 1.5rem;
   cursor: pointer;
-  z-index: 10;
-}
-.modal-close-btn:hover {
-  color: #1976d2;
-}
-.modal-nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(25, 118, 210, 0.8);
-  color: #fff;
-  border: none;
-  font-size: 2.5rem;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 10;
+  padding: 0;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
 }
-.modal-nav-btn.left {
-  left: 8px;
+
+.btn-close:hover {
+  background-color: #f8f9fa;
+  border-radius: 4px;
 }
-.modal-nav-btn.right {
-  right: 8px;
-}
-.modal-nav-btn:hover {
-  background: #1565c0;
-}
+
 .detail-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-bottom: 10px;
 }
+
 .btn-edit, .btn-delete {
   padding: 6px 16px;
   border-radius: 4px;
   font-weight: 600;
 }
+
 .btn-edit {
   background: #1976d2;
   color: #fff;
   border: none;
 }
+
 .btn-delete {
   background: #f44336;
   color: #fff;
@@ -662,6 +1052,7 @@ const deleteComment = async (commentId) => {
   margin-bottom: 18px;
   align-items: flex-start;
 }
+
 .comment-input {
   flex: 1;
   border-radius: 6px;
@@ -674,10 +1065,12 @@ const deleteComment = async (commentId) => {
   background: #fff;
   transition: border 0.2s;
 }
+
 .comment-input:focus {
   border: 1.5px solid #1976d2;
   outline: none;
 }
+
 .comment-submit-btn {
   min-width: 80px;
   height: 38px;
@@ -689,10 +1082,12 @@ const deleteComment = async (commentId) => {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .comment-submit-btn:disabled {
   background: #b0bec5;
   cursor: not-allowed;
 }
+
 .comment-submit-btn:hover:not(:disabled) {
   background: #1251a3;
 }
@@ -712,21 +1107,25 @@ const deleteComment = async (commentId) => {
   vertical-align: middle;
   transition: background 0.2s, color 0.2s;
 }
+
 .btn-report-post i {
   font-size: 1.1em;
   margin-right: 4px;
   vertical-align: middle;
 }
+
 .btn-report-post:hover {
   background: #e74c3c;
   color: #fff;
 }
+
 .comment-actions-row {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
   margin-top: 4px;
 }
+
 .btn-action-comment {
   background: #fff0f0;
   color: #e74c3c;
@@ -741,14 +1140,117 @@ const deleteComment = async (commentId) => {
   font-size: 0.98rem;
   transition: background 0.2s, color 0.2s;
 }
+
 .btn-action-comment:disabled {
   background: #f8d7da;
   color: #b0bec5;
   border-color: #f8d7da;
   cursor: not-allowed;
 }
+
 .btn-action-comment:hover:not(:disabled) {
   background: #e74c3c;
   color: #fff;
+}
+
+/* 이미지 슬라이드 모달 스타일 */
+.image-slide-modal {
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: transparent;
+  box-shadow: none;
+}
+
+.slide-image {
+  max-width: 100vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.slide-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: none;
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.slide-arrow:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.left-arrow {
+  left: 10px;
+}
+
+.right-arrow {
+  right: 10px;
+}
+
+.btn-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 2rem;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  z-index: 3;
+  transition: color 0.2s;
+}
+
+.btn-close:hover {
+  color: #f44336;
+}
+
+.slide-index {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 16px;
+  border-radius: 12px;
+  font-size: 1rem;
+  z-index: 2;
+}
+
+@media (max-width: 600px) {
+  .slide-arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
+
+  .btn-close {
+    font-size: 1.5rem;
+    top: 10px;
+    right: 10px;
+  }
+
+  .slide-index {
+    font-size: 0.95rem;
+    bottom: 10px;
+  }
 }
 </style>

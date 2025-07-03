@@ -33,7 +33,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="inquiry in filteredInquiries" :key="inquiry.id">
+          <tr v-for="inquiry in paginatedInquiries" :key="inquiry.id">
             <td>{{ inquiry.id }}</td>
             <td>{{ inquiry.inquiryType }}</td>
             <td>{{ inquiry.title }}</td>
@@ -109,14 +109,24 @@ export default {
   },
   computed: {
     filteredInquiries() {
-      return this.inquiries.filter(inquiry => {
-        const matchesSearch = inquiry.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                            inquiry.content.toLowerCase().includes(this.searchQuery.toLowerCase());
-        const matchesStatus = this.statusFilter === 'all' || 
-                            (this.statusFilter === 'completed' && inquiry.answerContent) ||
-                            (this.statusFilter === 'pending' && !inquiry.answerContent);
-        return matchesSearch && matchesStatus;
-      });
+      return this.inquiries
+        .filter(inquiry => {
+          const matchesSearch = inquiry.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                                inquiry.content.toLowerCase().includes(this.searchQuery.toLowerCase());
+          const matchesStatus = this.statusFilter === 'all' || 
+                                (this.statusFilter === 'completed' && inquiry.answerContent) ||
+                                (this.statusFilter === 'pending' && !inquiry.answerContent);
+          return matchesSearch && matchesStatus;
+        })
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    },
+    paginatedInquiries() {
+      const start = (this.currentPage - 1) * 10;
+      const end = start + 10;
+      return this.filteredInquiries.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredInquiries.length / 10) || 1;
     }
   },
   methods: {
@@ -155,7 +165,7 @@ export default {
 
         if (response.ok) {
           const data = await response.json();
-          this.inquiries = data;
+          this.inquiries = data.data;
           this.totalPages = Math.ceil(data.length / 10);
         } else {
           alert("문의 목록을 불러오는데 실패했습니다.");

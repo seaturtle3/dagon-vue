@@ -1,5 +1,6 @@
 import api from '@/lib/axios';
 import {BASE_URL} from "@/constants/baseUrl.js";
+import { clearAuthData } from '@/utils/authUtils'
 
 const adminApi = api.create({
   baseURL: `${BASE_URL}/api/admin`,
@@ -17,12 +18,55 @@ export const adminAuth = {
   
   // 관리자 로그아웃
   logout: () => {
-    localStorage.removeItem('token');
+    clearAuthData();
   },
   
   // 토큰 유효성 검사
   checkAuth: () => {
     return !!localStorage.getItem('token');
+  }
+};
+
+// 예약 관리 관련 API
+export const reservationApi = {
+  // 회원 예약 목록 조회 (로그인 상태) - 임시로 전체 API 사용
+  getMemberReservations: (params = {}) => {
+    return api.get('/api/admin/reservations/post', { params });
+  },
+
+  // 비회원 예약 목록 조회 (비로그인 상태) - 임시로 전체 API 사용
+  getGuestReservations: (params = {}) => {
+    return api.get('/api/admin/reservations/post', { params });
+  },
+
+  // 전체 예약 목록 조회 (관리자용)
+  getAllReservations: (params = {}) => {
+    return api.get('/api/admin/reservations/post', { params });
+  },
+
+  // 예약 상세 조회
+  getReservationDetail: (reservationId) => {
+    return api.get(`/api/admin/reservations/${reservationId}`);
+  },
+
+  // 예약 승인
+  approveReservation: (reservationId) => {
+    return api.put(`/api/admin/reservations/${reservationId}/approve`);
+  },
+
+  // 예약 거절
+  rejectReservation: (reservationId) => {
+    return api.put(`/api/admin/reservations/${reservationId}/reject`);
+  },
+
+  // 예약 완료 처리
+  completeReservation: (reservationId) => {
+    return api.put(`/api/admin/reservations/${reservationId}/complete`);
+  },
+
+  // 예약 취소
+  cancelReservation: (reservationId) => {
+    return api.delete(`/api/admin/reservations/${reservationId}`);
   }
 };
 
@@ -83,6 +127,48 @@ export const memberApi = {
   // 회원 활성화
   reactivateMember: (uno) => {
     return api.put(`/api/users/${uno}/reactivate`);
+  },
+
+  sendAlarmToMembers({ receiverUids, title, content }) {
+    // JWT 토큰에서 관리자 정보 추출
+    const token = localStorage.getItem('token');
+    let senderId = 'admin';
+    
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        senderId = payload.sub || payload.aid || payload.id || 'admin';
+      } catch (error) {
+        console.error('토큰 디코딩 실패:', error);
+      }
+    }
+    
+    console.log('알림 전송 데이터:', {
+      receiverUids,
+      title,
+      content,
+      senderId,
+      senderType: 'ADMIN'
+    });
+    
+    // 백엔드에서 기대할 수 있는 여러 형태의 데이터 구조 시도
+    const requestData = {
+      receiverUids,
+      title,
+      content,
+      senderId,
+      senderType: 'ADMIN'
+    };
+    
+    // sender 객체 형태로도 시도
+    if (!requestData.senderId) {
+      requestData.sender = {
+        id: 'admin',
+        type: 'ADMIN'
+      };
+    }
+    
+    return api.post('/api/notifications/bulk', requestData);
   }
 };
 

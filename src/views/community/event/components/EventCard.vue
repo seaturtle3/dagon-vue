@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-
+import { BASE_URL } from '@/constants/baseUrl'
 const props = defineProps({
   event: {
     type: Object,
@@ -26,9 +26,15 @@ const statusClass = computed(() => {
 })
 
 function formatDate(str) {
-  if (!str || str.trim() === '') return '미정'
-  const [y, m, d] = str.split('-')
-  return `${y}. ${m}. ${d}`
+  if (!str || str.trim() === '' || str === 'null' || str === 'undefined') return '미정'
+  try {
+    const [y, m, d] = str.split('-')
+    if (!y || !m || !d) return '미정'
+    return `${y}. ${m}. ${d}`
+  } catch (error) {
+    console.error('날짜 형식 오류:', error)
+    return '미정'
+  }
 }
 
 const formattedPeriod = computed(() => {
@@ -43,7 +49,7 @@ const formattedPeriod = computed(() => {
 <template>
   <div class="event-card" @click="goToDetail">
     <div class="thumbnail-wrapper">
-      <img :src="event.thumbnailUrl || fallbackImage" alt="이벤트 썸네일" />
+      <img :src="`${BASE_URL}${event.thumbnailUrl}` || fallbackImage" alt="이벤트 썸네일" />
       <div v-if="event.isTop" class="badge badge-top">TOP</div>
       <div class="badge badge-status" :class="statusClass">{{ event.eventStatus }}</div>
     </div>
