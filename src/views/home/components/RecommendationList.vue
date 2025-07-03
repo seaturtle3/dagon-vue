@@ -29,24 +29,27 @@ function openDetail(productId) {
       >
         <!-- 썸네일 영역 (60% 고정) -->
         <div class="thumbnail-section">
-            <!-- 1. prodImageDataList가 있으면 그것만 보여줌 -->
+            <!-- 1. prodImageDataList가 있으면 첫 번째 이미지만 보여줌 -->
             <template v-if="product.prodImageDataList && product.prodImageDataList.length > 0">
-              <div v-for="(imgData, idx) in product.prodImageDataList" :key="idx">
-                <img
-                  :src="imgData.startsWith('data:image') ? imgData : `data:image/jpeg;base64,${imgData}`"
-                  class="thumbnail-img"
-                  @error="e => { e.target.src = defaultImage }"
-                >
-              </div>
+              <img
+                :src="product.prodImageDataList[0].startsWith('data:image') ? product.prodImageDataList[0] : `data:image/jpeg;base64,${product.prodImageDataList[0]}`"
+                class="thumbnail-img"
+                @error="e => { e.target.src = '/images/default-product.jpg' }"
+              >
             </template>
-            <!-- 2. prodImageNames가 있으면 그것만 보여줌 -->
+            <!-- 2. prodImageNames가 있으면 첫 번째 이미지만 보여줌 -->
             <template v-else-if="product.prodImageNames && product.prodImageNames.length > 0">
-              <div v-for="img in product.prodImageNames" :key="img">
-                <img
-                  :src="img.startsWith('/') ? img : `${BASE_URL}/uploads/products/${img}`"
-                  class="thumbnail-img"
-                  @error="e => { e.target.src = defaultImage }"
-                >
+              <img
+                :src="product.prodImageNames[0].startsWith('/') ? product.prodImageNames[0] : `${IMAGE_BASE_URL}/uploads/products/${product.prodImageNames[0]}`"
+                class="thumbnail-img"
+                @error="e => { e.target.src = '/images/default-product.jpg' }"
+              >
+            </template>
+            <!-- 3. 이미지가 없으면 기본 이미지 표시 -->
+            <template v-else>
+              <div class="image-placeholder">
+                <i class="fas fa-ship"></i>
+                <span>이미지 없음</span>
               </div>
             </template>
         </div>
@@ -88,7 +91,7 @@ function openDetail(productId) {
   flex-shrink: 0;
 }
 
-.product-img {
+.thumbnail-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -131,11 +134,9 @@ function openDetail(productId) {
   font-size: 1rem;
   color: #2d3748;
   margin-bottom: 8px;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .product-address {
