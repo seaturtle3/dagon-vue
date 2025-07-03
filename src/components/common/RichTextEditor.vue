@@ -70,8 +70,8 @@ onMounted(() => {
 
 watch(() => props.modelValue, (newVal) => {
   const $editor = $(`#${props.editorId}`)
-  if ($editor.length && $editor.summernote('isEmpty') && newVal) {
-    $editor.summernote('code', newVal)
+  if ($editor.length) {
+    $editor.summernote('code', newVal || '')
   }
 })
 </script>

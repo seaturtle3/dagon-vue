@@ -30,7 +30,8 @@ const formData = ref({
   thumbnailUrl: '',
   user: null,
   comments: [],
-  thumbnail_image_data: null
+  thumbnail_image_data: null,
+  images: []
 })
 
 const adminAuthStore = useAdminAuthStore()
@@ -333,7 +334,8 @@ function resetForm() {
     thumbnailUrl: '',
     user: null,
     comments: [],
-    thumbnail_image_data: null
+    thumbnail_image_data: null,
+    images: []
   }
   if (thumbnailPreviewUrl.value) {
     URL.revokeObjectURL(thumbnailPreviewUrl.value)
@@ -341,6 +343,7 @@ function resetForm() {
   thumbnailFile.value = null
   thumbnailPreviewUrl.value = ''
   selectedProduct.value = null
+  productSearch.value = '' // 상품 검색어도 초기화
   // RichTextEditor는 v-model로 자동으로 초기화됩니다
 }
 
@@ -553,25 +556,13 @@ async function loadAllProducts() {
           <h3 class="section-title">📸 대표 이미지 업로드 <span v-if="!editMode" class="required-mark">*</span></h3>
         <div class="image-upload-container">
           <!-- 썸네일 미리보기 -->
-          <div v-if="thumbnailFile || (editMode && report && report.images && report.images.length)" class="thumbnail-preview">
+          <div v-if="thumbnailFile || thumbnailPreviewUrl" class="thumbnail-preview">
             <div class="thumbnail-display">
               <div class="thumbnail-item">
                 <img 
                   v-if="thumbnailPreviewUrl" 
                   :src="thumbnailPreviewUrl" 
                   alt="썸네일 미리보기" 
-                  class="thumbnail-image" 
-                />
-                <img 
-                  v-else-if="editMode && report && report.images && report.images.length && report.images[0].imageData" 
-                  :src="`data:image/jpeg;base64,${report.images[0].imageData}`" 
-                  alt="기존 썸네일" 
-                  class="thumbnail-image" 
-                />
-                <img 
-                  v-else-if="editMode && report && report.thumbnailUrl" 
-                  :src="report.thumbnailUrl.startsWith('http') ? report.thumbnailUrl : `/api/fishing-report/images/${report.thumbnailUrl}`" 
-                  alt="기존 썸네일" 
                   class="thumbnail-image" 
                 />
                 <div class="thumbnail-overlay">
@@ -587,7 +578,7 @@ async function loadAllProducts() {
                   </div>
                 </div>
                 <div class="thumbnail-info">
-                  <span class="thumbnail-name">{{ thumbnailFile ? thumbnailFile.name : '기존 이미지' }}</span>
+                  <span class="thumbnail-name">{{ thumbnailFile ? thumbnailFile.name : '썸네일 없음' }}</span>
                   <span v-if="thumbnailFile" class="thumbnail-size">{{ (thumbnailFile.size / 1024 / 1024).toFixed(1) }}MB</span>
                 </div>
               </div>
