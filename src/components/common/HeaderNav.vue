@@ -133,7 +133,7 @@
             <div class="mobile-quick-actions">
               <div class="quick-actions-title">빠른 등록</div>
               <div class="quick-actions-buttons">
-                <router-link to="/partner/products/register" class="mobile-btn mobile-btn-quick" @click="closeMobileMenu">
+                <router-link to="/partner/products" class="mobile-btn mobile-btn-quick" @click="closeMobileMenu">
                   <font-awesome-icon :icon="['fas', 'fish']" />
                   <span>상품등록</span>
                 </router-link>
