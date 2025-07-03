@@ -28,6 +28,7 @@ const error = ref('')
 const dateInputRef = ref(null)
 const autocompleteRef = ref(null)
 const productInputRef = ref(null)
+const showAutocomplete = ref(false)
 
 const props = defineProps({
   editMode: Boolean,
@@ -201,6 +202,7 @@ async function onSubmit() {
       router.push(`/fishing-diary/${props.diaryId}`)
     } else {
       await fishingDiaryStore.createFishingDiary(dtoToSend, files.value)
+      alert('조행기가 성공적으로 등록되었습니다!')
       const listRes = await fishingDiaryStore.fetchDiaries({ page: 0, size: 1, sort: 'fdId,DESC' })
       const fdId = listRes?.data?.content?.[0]?.fdId || null
       if (fdId) router.push(`/fishing-diary/${fdId}`)
