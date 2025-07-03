@@ -164,10 +164,12 @@ const getEventImages = () => {
     <BoardDetailBox>
       <template #title>
         <div class="d-flex justify-between align-items-center" style="position:relative;">
-          <span>{{ event.title }}</span>
+          <span>
+            {{ event.title }}
+            <span class="badge bg-success ms-2">{{ event.eventStatus }}</span>
+          </span>
           <!-- 제목 오른쪽에 점세개(더보기) 버튼 -->
           <BoardDetailAction showTopMenu @edit="handleEdit" @delete="handleDelete" />
-          <span class="badge bg-success ms-2">{{ event.eventStatus }}</span>
         </div>
       </template>
 
@@ -468,15 +470,13 @@ hr.board-divider {
   transition: transform 0.3s ease;
 }
 
-
 .event-image {
   width: 100%;
-  height: 200px;
-  object-fit: cover;
+  height: 120px;
+  object-fit: contain;
+  display: block;
   transition: opacity 0.3s ease;
 }
-
-
 
 /* 이미지 모달 스타일 */
 .image-modal {

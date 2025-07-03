@@ -231,14 +231,14 @@ const goToDetail = (item) => {
 
 .badge {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top:0;
+  left: 0;
   color: white;
-  font-size: 11px;
-  padding: 4px 8px;
+  font-size: 0.9rem;
+  padding: 6px 8px;
   z-index: 1;
   line-height: 1;
-  border-radius: 4px;
+  border-radius: 0 0 4px 0;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;

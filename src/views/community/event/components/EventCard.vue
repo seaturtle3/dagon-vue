@@ -125,8 +125,8 @@ console.log("-------------->",getEventThumbnail())
 
 .badge {
   position: absolute;
-  padding: 4px 8px;
-  font-size: 0.75rem;
+  padding: 6px 8px;
+  font-size: 0.9rem;
   font-weight: bold;
   border-radius: 4px;
   color: #fff;
