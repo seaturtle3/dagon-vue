@@ -4,11 +4,11 @@ import { useFishingReportStore } from '@/store/fishing-center/useFishingReportSt
 import { useRouter } from 'vue-router'
 import Pagination from '@/components/common-function/Pagination.vue'
 import ReportCard from './components/ReportCard.vue'
-import { useUserStore } from '@/store/inquiries/userStore.js'
+import { useAdminAuthStore } from '@/store/auth/auth.js'
 
 const router = useRouter()
 const store = useFishingReportStore()
-const userStore = useUserStore()
+const authStore = useAdminAuthStore()
 
 // 반응형 pageSize 계산 함수
 function getResponsivePageSize() {
@@ -30,6 +30,8 @@ const updatePageSize = async () => {
 onMounted(async () => {
   await updatePageSize()
   window.addEventListener('resize', updatePageSize)
+  
+
 })
 
 onUnmounted(() => {
@@ -52,7 +54,7 @@ const onPageChange = async (page) => {
         <h2 class="page-title">조황정보</h2>
         <div class="header-actions">
           <button @click="router.push('/fishing-diary')" class="go-btn">조행기 바로가기</button>
-          <button v-if="userStore.role === 'PARTNER'" @click="goToCreateReport" class="create-btn">✏️ 조황정보 등록</button>
+          <button v-if="authStore.user && authStore.user.role === 'PARTNER'" @click="goToCreateReport" class="create-btn">✏️ 조황정보 등록</button>
         </div>
       </div>
 
@@ -144,12 +146,12 @@ const onPageChange = async (page) => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  /* box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); */
 }
 
 .create-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
 }
 
 .loading-message {

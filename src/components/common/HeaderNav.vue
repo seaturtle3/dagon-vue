@@ -127,6 +127,24 @@
             </template>
           </div>
 
+          <!-- 파트너 전용 빠른 등록 버튼 (모바일) -->
+          <template v-if="isPartner">
+            <div class="mobile-menu-divider"></div>
+            <div class="mobile-quick-actions">
+              <div class="quick-actions-title">빠른 등록</div>
+              <div class="quick-actions-buttons">
+                <router-link to="/partner/products" class="mobile-btn mobile-btn-quick" @click="closeMobileMenu">
+                  <font-awesome-icon :icon="['fas', 'fish']" />
+                  <span>상품등록</span>
+                </router-link>
+                <router-link to="/fishing-report/create" class="mobile-btn mobile-btn-quick" @click="closeMobileMenu">
+                  <font-awesome-icon :icon="['fas', 'chart-line']" />
+                  <span>조황정보등록</span>
+                </router-link>
+              </div>
+            </div>
+          </template>
+
           <!-- 구분선 -->
           <div class="mobile-menu-divider"></div>
 
@@ -197,6 +215,7 @@ import {useAdminAuthStore} from "@/store/auth/auth.js";
 import {myPageAPI} from '@/api/mypage.js'
 import {useRouter} from 'vue-router'
 import NotificationDropdown from '@/components/common/NotificationDropdown.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 const authStore = useAdminAuthStore()
 const router = useRouter()
@@ -778,7 +797,7 @@ watch(
   top: 100%;
   left: 0;
   z-index: 999;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 1);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -869,6 +888,8 @@ watch(
   transform: translateY(-1px);
   color: white;
 }
+
+
 
 /* 사용자 프로필 */
 .dropdown-toggle {
@@ -1623,6 +1644,69 @@ watch(
 .mobile-btn-reservation:hover {
   background: #1976ed;
   color: #fff;
+}
+
+/* 모바일 빠른 등록 버튼 */
+.mobile-quick-actions {
+  padding: 0 1.5rem;
+  margin: 1.2rem 0;
+}
+
+.quick-actions-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #10b981;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.quick-actions-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.mobile-btn-quick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.mobile-btn-quick:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+  color: white;
+}
+
+.mobile-btn-quick .fa-icon {
+  font-size: 1.1rem;
+  color: white;
+}
+
+@media (max-width: 480px) {
+  .mobile-quick-actions {
+    padding: 0 0.7rem;
+  }
+  
+  .mobile-btn-quick {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+  
+  .quick-actions-title {
+    font-size: 1rem;
+  }
 }
 
 /* 모바일 메뉴 구분선 */

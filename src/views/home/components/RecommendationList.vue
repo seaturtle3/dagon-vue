@@ -21,7 +21,6 @@ function openDetail(productId) {
   <div style="margin-top: 5%">
     <div class="header">
       <h2 class="fw-bold section-title">추천 선사</h2>
-      <button class="view-all" @click="router.push('/products')">전체보기</button>
     </div>
     <div class="d-grid">
       <div

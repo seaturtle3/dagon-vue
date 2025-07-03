@@ -132,21 +132,25 @@ const getImageUrl = (image) => {
   }
   return '/images/default-product.jpg'
 }
+// 이벤트 썸네일 이미지 가져오기
+const getEventThumbnail = () => {
+  // eventId가 있으면 썸네일 API 호출
+  if (event.value?.eventId) {
+    return `${BASE_URL}/api/images/event/${event.value.eventId}/thumb`
+  }
 
-// 이벤트 이미지 목록 가져오기
-const getEventImages = () => {
-  // imageDataList가 있으면 그것만 반환
+  // 기존 방식으로 fallback
   if (event.value?.imageDataList && event.value.imageDataList.length > 0) {
     return event.value.imageDataList
   }
-  // thumbnailDataList가 있으면 그것만 반환
   if (event.value?.thumbnailDataList && event.value.thumbnailDataList.length > 0) {
     return event.value.thumbnailDataList
   }
-  // images 배열이 있으면 그것만 반환
   if (event.value?.images && event.value.images.length > 0) {
     return event.value.images
   }
+
+
   // 아무것도 없으면 빈 배열
   return []
 }

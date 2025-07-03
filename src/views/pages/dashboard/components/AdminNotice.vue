@@ -696,6 +696,9 @@ export default {
   color: white;
   font-size: 0.9rem;
 }
+.action-btn.top {
+  background-color: #ebebeb;
+}
 
 .action-btn.top-active {
   background-color: #fbbf24;

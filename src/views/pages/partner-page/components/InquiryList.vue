@@ -5,7 +5,9 @@
     <div class="filter-section">
       <div class="search-box">
         <input type="text" v-model="searchQuery" placeholder="제목를 검색해주세요">
-        <button class="search-button" @click="searchInquiries"><i class="fa-solid fa-eye"></i></button>
+        <button class="search-button" @click="searchInquiries">
+          <font-awesome-icon :icon="['fas', 'magnifying-glass']" class="search-icon-white" />
+        </button>
       </div>
       
       <div class="filter-options">
@@ -91,6 +93,7 @@
 <script>
 import {BASE_URL} from "@/constants/baseUrl.js";
 import { partnerService } from '@/api/partner';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 export default {
   name: 'InquiryList',
@@ -656,5 +659,10 @@ tr:last-child td {
     width: 100%;
     padding: 10px;
   }
+}
+
+.search-icon-white {
+  color: #fff;
+  font-size: 1.2em;
 }
 </style> 

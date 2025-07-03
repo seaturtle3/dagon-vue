@@ -10,7 +10,9 @@
     <div class="filter-section">
       <div class="search-box">
         <input type="text" v-model="searchQuery" placeholder="상품명을 입력하세요">
-        <button class="search-button" @click="searchProducts"><i class="fa-solid fa-eye"></i></button>
+        <button class="search-button" @click="searchProducts">
+          <font-awesome-icon :icon="['fas', 'magnifying-glass']" class="search-icon-white" />
+        </button>
       </div>
       
       <div class="filter-options">
@@ -147,6 +149,7 @@ import ReportFormView from '@/views/community/fishing-report/components/ReportFo
 import { createProduct, updateProduct } from "@/api/product.js";
 import { useRoute, useRouter } from 'vue-router'
 import { useProductFormStore } from '@/store/product/all-products/useProductFormStore'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 const router = useRouter()
 
@@ -934,5 +937,10 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+.search-icon-white {
+  color: #fff;
+  font-size: 1.2em;
 }
 </style> 
