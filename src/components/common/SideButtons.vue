@@ -13,7 +13,7 @@
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
           <li>
-            <router-link class="dropdown-item" to="/partner/products/register">
+            <router-link class="dropdown-item" to="/partner/products">
               <font-awesome-icon :icon="['fas', 'fish']" class="me-2" />상품등록
             </router-link>
           </li>
