@@ -1,49 +1,99 @@
 <script setup>
 import {BASE_URL} from "@/constants/baseUrl.js";
 import {useRouter} from "vue-router";
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
   product: Object,
 })
 
 const router = useRouter()
+const currentImageIndex = ref(0)
+const slideInterval = ref(null)
+
+// 이미지 배열 가져오기
+function getImageUrls() {
+  if (props.product.prodImageNames && props.product.prodImageNames.length > 0) {
+    return props.product.prodImageNames.map(imageName => `${BASE_URL}${imageName}`);
+  }
+  return [];
+}
+
+// 이미지가 있는지 확인
+function hasImages() {
+  return props.product.prodImageNames && props.product.prodImageNames.length > 0;
+}
+
+// 이미지 개수 확인
+function getImageCount() {
+  return props.product.prodImageNames ? props.product.prodImageNames.length : 0;
+}
+
+// 슬라이드 시작
+function startSlide() {
+  const imageCount = getImageCount();
+  if (imageCount > 1) {
+    slideInterval.value = setInterval(() => {
+      currentImageIndex.value = (currentImageIndex.value + 1) % imageCount;
+    }, 3000); // 3초마다 슬라이드
+  }
+}
+
+// 슬라이드 정지
+function stopSlide() {
+  if (slideInterval.value) {
+    clearInterval(slideInterval.value);
+    slideInterval.value = null;
+  }
+}
+
+// 수동 슬라이드
+function goToSlide(index) {
+  currentImageIndex.value = index;
+}
 
 function openDetail(product) {
   router.push(`/products/${product.prodId}`)
 }
 
-// 썸네일 이미지 URL 생성
-function getThumbnailUrl() {
-  if (props.product.prodImageNames && props.product.prodImageNames.length > 0) {
-    // 배열의 첫 번째 이미지를 썸네일로 사용
-    const firstImage = props.product.prodImageNames[0];
-    if (firstImage) {
-      return `${BASE_URL}${firstImage}`;
-    }
-  }
-  // 이미지가 없으면 null 반환 (CSS로 처리)
-  return null;
-}
+onMounted(() => {
+  startSlide();
+});
 
-// 이미지가 있는지 확인
-function hasImage() {
-  return props.product.prodImageNames && 
-         props.product.prodImageNames.length > 0 && 
-         props.product.prodImageNames[0];
-}
+onUnmounted(() => {
+  stopSlide();
+});
 </script>
 
 <template>
-  <div class="card" @click="openDetail(product)">
-    <!-- 썸네일 영역 (60% 고정) -->
-    <div class="thumbnail-section">
+  <div class="product-card" @click="openDetail(product)">
+    <!-- 썸네일 영역 -->
+    <div class="thumbnail-section" @mouseenter="stopSlide" @mouseleave="startSlide">
       <!-- 이미지가 있는 경우 -->
-      <img
-          v-if="hasImage()"
-          :src="getThumbnailUrl()"
-          class="card-img-top"
-          alt="썸네일"
-      />
+      <div v-if="hasImages()" class="image-slider">
+        <img
+            :src="getImageUrls()[currentImageIndex]"
+            class="product-image"
+            alt="상품 이미지"
+        />
+        
+        <!-- 이미지가 여러 개일 때 인디케이터 표시 -->
+        <div v-if="getImageCount() > 1" class="image-indicators">
+          <div
+              v-for="(image, index) in getImageUrls()"
+              :key="index"
+              class="indicator"
+              :class="{ active: index === currentImageIndex }"
+              @click.stop="goToSlide(index)"
+          ></div>
+        </div>
+        
+        <!-- 이미지 개수 표시 -->
+        <div v-if="getImageCount() > 1" class="image-counter">
+          {{ currentImageIndex + 1 }} / {{ getImageCount() }}
+        </div>
+      </div>
+      
       <!-- 이미지가 없는 경우 플레이스홀더 -->
       <div v-else class="image-placeholder">
         <i class="fas fa-ship"></i>
@@ -51,82 +101,137 @@ function hasImage() {
       </div>
     </div>
     
-    <!-- 내용 영역 (40%) -->
-    <div class="card-body">
-      <h6 class="card-title">{{ product.prodName }}</h6>
-      <p class="card-text text-muted" style="font-size: 0.8rem">
-        {{ product.prodRegion }}
-      </p>
-      <small class="text-muted">{{ new Date(product.createdAt).toLocaleDateString() }}</small>
+    <!-- 내용 영역 -->
+    <div class="card-content">
+      <h3 class="product-title">{{ product.prodName }}</h3>
+      <p class="product-region">{{ product.prodRegion }}</p>
+      <div class="product-meta">
+        <span class="created-date">{{ new Date(product.createdAt).toLocaleDateString() }}</span>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.card {
+.product-card {
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 360px;
-  overflow: hidden;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 105, 192, 0.2);
 }
 
 .thumbnail-section {
-  height: 60%;
+  height: 200px;
   overflow: hidden;
-  flex-shrink: 0;
+  position: relative;
+  background: #f8fafc;
 }
 
-.card-img-top {
+.image-slider {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.product-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
 }
 
 .image-placeholder {
   height: 100%;
-  background: linear-gradient(135deg, #f7fafc, #edf2f7);
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #a0aec0;
+  color: #1976d2;
 }
 
 .image-placeholder i {
-  font-size: 2rem;
-  margin-bottom: 8px;
-  color: #cbd5e0;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.7;
 }
 
 .image-placeholder span {
   font-size: 0.875rem;
-  color: #a0aec0;
+  font-weight: 500;
+  opacity: 0.8;
 }
 
-.card-body {
-  height: 40%;
-  padding: 16px;
+/* 이미지 인디케이터 */
+.image-indicators {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.indicator.active {
+  background: #1976d2;
+  transform: scale(1.2);
+}
+
+/* 이미지 카운터 */
+.image-counter {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  z-index: 2;
+}
+
+.card-content {
+  padding: 1.25rem;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  flex-shrink: 0;
-  overflow: hidden;
 }
 
-.card-title {
-  font-size: 1rem;
-  color: #2d3748;
-  margin: 0 0 6px 0;
+.product-title {
+  font-size: 1.125rem;
   font-weight: 600;
-  line-height: 1.3;
+  color: #0d47a1;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -134,17 +239,65 @@ function hasImage() {
   word-break: break-word;
 }
 
-.card-text {
-  font-size: 0.85rem;
-  color: #718096;
-  margin: 0 0 6px 0;
+.product-region {
+  font-size: 0.875rem;
+  color: #1976d2;
+  margin: 0 0 1rem 0;
   font-weight: 500;
-  flex-grow: 1;
 }
 
-.card-body small {
-  color: #a0aec0;
-  font-size: 0.8rem;
+.product-meta {
   margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.created-date {
+  font-size: 0.75rem;
+  color: #90a4ae;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .thumbnail-section {
+    height: 180px;
+  }
+  
+  .card-content {
+    padding: 1rem;
+  }
+  
+  .product-title {
+    font-size: 1rem;
+  }
+  
+  .product-region {
+    font-size: 0.8rem;
+  }
+  
+  .indicator {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .image-counter {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .thumbnail-section {
+    height: 160px;
+  }
+  
+  .card-content {
+    padding: 0.875rem;
+  }
+  
+  .product-title {
+    font-size: 0.95rem;
+  }
 }
 </style>

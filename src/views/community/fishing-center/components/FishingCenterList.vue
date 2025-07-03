@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed} from 'vue'
+import {ref, computed, onMounted, onUnmounted} from 'vue'
 import {IMAGE_BASE_URL} from '@/constants/imageBaseUrl.js'
 import {useRouter} from "vue-router";
 import Pagination from "@/components/common-function/Pagination.vue";
@@ -14,8 +14,32 @@ const props = defineProps({
 
 const router = useRouter()  // 라우터 인스턴스 생성
 
-const itemsPerPage = 18
+const itemsPerPage = ref(16)
 const currentPage = ref(1)
+
+function getResponsivePageSize() {
+  const width = window.innerWidth
+  if (width > 1200) return 16   // 4x4
+  if (width > 900) return 8     // 2x4
+  if (width > 480) return 4     // 1x4
+  return 2                      // 모바일 최소
+}
+
+const updatePageSize = () => {
+  const newSize = getResponsivePageSize()
+  if (itemsPerPage.value !== newSize) {
+    itemsPerPage.value = newSize
+    currentPage.value = 1 // 페이지 리셋
+  }
+}
+
+onMounted(() => {
+  updatePageSize()
+  window.addEventListener('resize', updatePageSize)
+})
+onUnmounted(() => {
+  window.removeEventListener('resize', updatePageSize)
+})
 
 const combinedList = computed(() => {
   if (!Array.isArray(props.centers)) return []
@@ -39,12 +63,12 @@ const combinedList = computed(() => {
 })
 
 const pagedList = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  return combinedList.value.slice(start, start + itemsPerPage)
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  return combinedList.value.slice(start, start + itemsPerPage.value)
 })
 
 const totalPages = computed(() =>
-    Math.ceil(combinedList.value.length / itemsPerPage)
+    Math.ceil(combinedList.value.length / itemsPerPage.value)
 )
 
 const goToPage = (page) => {
@@ -65,7 +89,6 @@ const goToDetail = (item) => {
 
 <template>
   <div>
-
     <div class="combined-grid" v-if="pagedList.length > 0">
       <div
           v-for="item in pagedList"
@@ -77,11 +100,38 @@ const goToDetail = (item) => {
         <!-- 썸네일 -->
         <div class="thumbnail-wrapper">
           <img
-              v-if="item.thumbnailUrl"
               class="thumbnail"
-              :src="`${IMAGE_BASE_URL}/${item._type === 'report' ? 'fishing-report' : 'fishing-diary'}/${item.thumbnailUrl}`"
+              :src="
+                item.images && item.images.length
+                  ? (
+                    item.images[0].imageData
+                        ? `data:image/jpeg;base64,${item.images[0].imageData}`
+                        : (item.images[0].image_data
+                            ? `data:image/jpeg;base64,${item.images[0].image_data}`
+                            : (item.images[0].imageUrl
+                                ? item.images[0].imageUrl
+                                : (item.images[0].image_url
+                                    ? item.images[0].image_url
+                                    : '/images/no-image.png'
+                                  )
+                              )
+                          )
+                    )
+                  : '/images/no-image.png'
+              "
               alt="썸네일"
+              v-if="
+                item.images?.imageData ||
+                item.images?.image_data ||
+                item.images?.imageUrl ||
+                item.images?.image_url ||
+                item.images
+              "
           />
+          <div v-else class="image-placeholder">
+            <i class="fas fa-image"></i>
+            <span>이미지 없음</span>
+          </div>
           <div
               class="badge"
               :class="item._type === 'report' ? 'badge-report' : 'badge-diary'"
@@ -98,7 +148,7 @@ const goToDetail = (item) => {
       </div>
     </div>
 
-    <div v-else class="text-gray-500">표시할 조황정보나 조행기가 없습니다.</div>
+    <div v-else class="empty-message">표시할 조황정보나 조행기가 없습니다.</div>
 
     <Pagination
       :page="currentPage"
@@ -112,35 +162,40 @@ const goToDetail = (item) => {
 <style scoped>
 .combined-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
   padding: 10px 0;
   margin-bottom: 40px;
 }
 
 .combined-box {
-  border: 1px solid #aaa;
-  border-radius: 6px;
-  background-color: #f9f9f9;
-  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 300px;
-  overflow: hidden;
+  width: 100%;
+  height: 260px;
+  transition: border-color 0.18s, transform 0.12s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.combined-box p {
-  margin: 2px 0;
-  font-size: 14px;
+.combined-box:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .thumbnail-wrapper {
   position: relative;
   width: 100%;
   height: 60%;
-  overflow: hidden; /* 이게 있어야 뱃지가 박스 밖으로 안 튀어나감 */
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-bottom: 1px solid #f3f4f6;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .thumbnail {
@@ -151,66 +206,65 @@ const goToDetail = (item) => {
   display: block;
 }
 
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #bfc5cb;
+  font-size: 1rem;
+}
+
+.image-placeholder i {
+  font-size: 1.7rem;
+  margin-bottom: 6px;
+  color: #d1d5db;
+}
+
+.image-placeholder span {
+  font-size: 0.8rem;
+  color: #bfc5cb;
+}
+
 .badge {
   position: absolute;
-  top: 0;
+  top:0;
   left: 0;
-  background-color: rgba(0, 123, 255, 0.9);
   color: white;
-  font-size: 12px;
-  padding: 4px 8px;
+  font-size: 0.9rem;
+  padding: 6px 8px;
   z-index: 1;
   line-height: 1;
-  border-radius: 0 0 6px 0; /* 오른쪽 아래만 둥글게 */
+  border-radius: 0 0 4px 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .badge-report {
-  background-color: #007bff; /* 파랑 */
+  background-color: #3b82f6;
 }
 
 .badge-diary {
-  background-color: #28a745; /* 초록 */
-}
-
-.count {
-  color: #4a90e2;
-  font-weight: 600;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  padding-bottom: 20px;
-}
-
-.pagination button {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  background: white;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.pagination button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  background-color: #10b981;
 }
 
 .content {
   height: 40%;
-  padding: 12px;
+  padding: 14px 12px 10px 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  flex-shrink: 0;
+  background-color: #f7f8fa;
 }
 
 .product-name {
   font-size: 0.9rem;
-  color: #666;
+  color: #6b7280;
   margin: 0 0 4px 0;
   font-weight: 500;
   white-space: nowrap;
@@ -220,7 +274,7 @@ const goToDetail = (item) => {
 
 .item-title {
   font-size: 1rem;
-  color: #333;
+  color: #1f2937;
   margin: 0;
   font-weight: 600;
   line-height: 1.3;
@@ -232,9 +286,28 @@ const goToDetail = (item) => {
 }
 
 .item-date {
-  color: #999;
+  color: #9ca3af;
   font-size: 0.8rem;
   margin-top: auto;
   flex-shrink: 0;
+}
+
+.empty-message {
+  text-align: center;
+  padding: 80px 0;
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 900px) {
+  .combined-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .combined-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

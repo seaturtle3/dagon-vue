@@ -650,7 +650,7 @@ export default {
 .badge {
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -659,7 +659,7 @@ export default {
 .badge.top {
   background: #fbbf24;
   color: #92400e;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   font-weight: 600;
@@ -695,6 +695,9 @@ export default {
   transition: all 0.3s ease;
   color: white;
   font-size: 0.9rem;
+}
+.action-btn.top {
+  background-color: #ebebeb;
 }
 
 .action-btn.top-active {

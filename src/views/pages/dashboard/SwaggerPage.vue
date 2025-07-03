@@ -101,6 +101,7 @@ const goDashboard = () => {
 .sidebar-header h1 {
   margin: 0;
   font-size: 1.5rem;
+  color: #fff;
 }
 .swagger-group-list {
   margin-top: 1rem;

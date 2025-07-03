@@ -105,10 +105,10 @@ export default {
 
 .sidebar {
   width: 250px;
+  min-height: 100vh;
   background-color: #ffffff;
   color: #2c3e50;
   padding: 20px 0;
-  position: fixed;
   overflow-y: auto;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   top: 0;
@@ -123,7 +123,7 @@ export default {
 }
 
 .logo {
-  padding: 0 20px;
+  padding: 40px 20px 0;
   margin-bottom: 30px;
   text-align: center;
 }
@@ -132,7 +132,7 @@ export default {
   margin: 0;
   font-size: 1.5rem;
   color: #3498db;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 nav {
@@ -172,9 +172,9 @@ nav {
 
 .main-content {
   flex: 1;
-  margin-left: 250px;
   background-color: #f8f9fa;
   min-height: 100vh;
+  padding: 40px 20px 0;
 }
 
 /* 위임 토큰인 경우 배너 높이만큼 main-content top 조정 */

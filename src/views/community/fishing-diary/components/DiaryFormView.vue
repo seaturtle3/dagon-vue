@@ -28,6 +28,7 @@ const error = ref('')
 const dateInputRef = ref(null)
 const autocompleteRef = ref(null)
 const productInputRef = ref(null)
+const showAutocomplete = ref(false)
 
 const props = defineProps({
   editMode: Boolean,
@@ -35,36 +36,29 @@ const props = defineProps({
 });
 
 const isFormValid = computed(() => {
+  // 썸네일(기존+새로 업로드) 1장 이상 필수
+  const hasAnyImage = files.value.length > 0 || existingImages.value.length > 0;
   return (
       formData.value.title &&
       formData.value.content &&
       formData.value.fishingAt &&
-      selectedProduct.value
+      selectedProduct.value &&
+      hasAnyImage
   )
 })
 
 function onThumbnailChange(event) {
   const uploadedFiles = Array.from(event.target.files)
-  
-  // 새로운 이미지만 제거 (기존 이미지는 유지)
-  const newImageIndex = imagePreviews.value.findIndex(img => !img.isExisting)
-  if (newImageIndex > -1) {
-    imagePreviews.value.splice(newImageIndex, 1)
-    const fileIndex = files.value.findIndex(file => file === imagePreviews.value[newImageIndex]?.file)
-    if (fileIndex > -1) {
-      files.value.splice(fileIndex, 1)
-    }
-  }
-  
+  // 썸네일이 이미 있으면 기존 썸네일을 교체(덮어쓰기)
+  files.value = []
+  imagePreviews.value = []
   if (uploadedFiles.length > 0) {
     const file = uploadedFiles[0] // 첫 번째 파일만 사용
-    
     if (file && file.type.startsWith('image/')) {
       if (file.size > 5 * 1024 * 1024) {
         alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
         return
       }
-      
       const reader = new FileReader()
       reader.onload = (e) => {
         imagePreviews.value.push({
@@ -76,7 +70,6 @@ function onThumbnailChange(event) {
         })
       }
       reader.readAsDataURL(file)
-      
       files.value.push(file)
     }
   }
@@ -209,6 +202,7 @@ async function onSubmit() {
       router.push(`/fishing-diary/${props.diaryId}`)
     } else {
       await fishingDiaryStore.createFishingDiary(dtoToSend, files.value)
+      alert('조행기가 성공적으로 등록되었습니다!')
       const listRes = await fishingDiaryStore.fetchDiaries({ page: 0, size: 1, sort: 'fdId,DESC' })
       const fdId = listRes?.data?.content?.[0]?.fdId || null
       if (fdId) router.push(`/fishing-diary/${fdId}`)

@@ -82,7 +82,7 @@ onMounted(() => {
 
 <template>
   <div class="notice-list center">
-    <h2 class="center">공지사항</h2>
+    <h2 class="center-title">공지사항</h2>
 
     <!-- 검색 (선택) -->
     <BoardSearchBox v-model:search="search" @search="onSearch"/>
@@ -130,6 +130,13 @@ onMounted(() => {
   width: 80%;
   margin: 5% auto;
   text-align: center;
+}
+
+.center-title {
+ font-size: 2.5rem;
+ font-weight: 700;
+ color: #2d3748;
+ padding: 0.5em 2em;
 }
 
 .list-header {

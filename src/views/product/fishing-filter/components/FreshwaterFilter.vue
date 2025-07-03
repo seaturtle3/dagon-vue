@@ -171,18 +171,20 @@ watch(selected, (val) => {
 <style scoped>
 .freshwater-filter-detail {
   width: 80%;
+  max-width: 1000px;
+  height:106px;
   margin: 0 auto;
   padding: 2rem;
-  border: 2px solid #4a90e2;
-  border-radius: 16px;
-  background-color: #f9fbff;
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+  border-radius:53px;
+  border: 1px solid #4caf505e;
+  background: rgb(232, 245, 233);
+  box-shadow: 0 4px 12px rgba(56, 142, 60, 0.12);
 }
 
 .filter-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 2rem; /* 묶음 간 넉넉한 간격 */
+  gap: 2rem;
   justify-content: space-evenly;
   align-items: center;
 }
@@ -190,12 +192,11 @@ watch(selected, (val) => {
 .filter-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* label과 select 간 간격 */
+  gap: 0.5rem;
 }
 
 .filter-item label {
   font-weight: 600;
-  color: #2c3e50;
   text-align: right;
   user-select: none;
 }
@@ -203,7 +204,7 @@ watch(selected, (val) => {
 .filter-item select {
   min-width: 150px;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #4a90e2;
+  border: none;
   border-radius: 8px;
   background-color: #fff;
   color: #2c3e50;
@@ -214,15 +215,15 @@ watch(selected, (val) => {
 
 .filter-item select:hover,
 .filter-item select:focus {
-  border-color: #3366cc;
+  border-color: #388e3c;
   outline: none;
-  box-shadow: 0 0 6px #7aa9f7;
+  box-shadow: 0 0 6px #a5d6a7;
 }
 
 .species-select-btn {
   min-width: 150px;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #4a90e2;
+  border: none;
   border-radius: 8px;
   background: #fff;
   color: #2c3e50;
@@ -233,9 +234,56 @@ watch(selected, (val) => {
 }
 .species-select-btn:hover,
 .species-select-btn:focus {
-  border-color: #3366cc;
+  border-color: #388e3c;
   outline: none;
-  box-shadow: 0 0 6px #7aa9f7;
+  box-shadow: 0 0 6px #a5d6a7;
+}
+
+@media (max-width: 900px) {
+  .freshwater-filter-detail {
+    width: 98%;
+    padding: 1.2rem 0.5rem;
+    border-radius: 32px;
+    height: auto;
+  }
+  .filter-row {
+    gap: 1.2rem;
+  }
+  .filter-item select,
+  .species-select-btn {
+    min-width: 120px;
+    font-size: 0.93rem;
+    padding: 0.45rem 0.7rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .freshwater-filter-detail {
+    width: 100%;
+    padding: 0.7rem 0.2rem;
+    border-radius: 18px;
+    height: auto;
+  }
+  .filter-row {
+    flex-direction: column;
+    gap: 0.7rem;
+    align-items: stretch;
+  }
+  .filter-item {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .filter-item label {
+    min-width: 60px;
+    font-size: 0.98rem;
+  }
+  .filter-item select,
+  .species-select-btn {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.98rem;
+    padding: 0.45rem 0.7rem;
+  }
 }
 
 .modal-backdrop {

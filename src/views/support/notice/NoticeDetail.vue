@@ -305,7 +305,7 @@ hr.board-divider {
 }
 
 .nav-label {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -313,7 +313,7 @@ hr.board-divider {
 }
 
 .nav-title {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;

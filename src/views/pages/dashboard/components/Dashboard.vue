@@ -420,7 +420,9 @@ export default {
 .activity-icon.user {
   background-color: #6a8baf;
 }
-
+.activity-icon i {
+  color: #fff;
+}
 .activity-icon.partner {
   background-color: #f1c40f;
 }

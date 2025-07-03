@@ -18,6 +18,28 @@
 
 /* ===== 전역 스타일 ===== */
 
+body, html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Pretendard', sans-serif;
+}
+
+/* 링크 스타일 */
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--transition-normal);
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+a:focus {
+  outline: none;
+}
+
 /* 전역 input 스타일 */
 input[type="text"],
 input[type="email"],
@@ -41,27 +63,6 @@ input[type="url"]::placeholder,
 input[type="search"]::placeholder,
 textarea::placeholder {
   color: #999 !important;
-}
-
-body, html {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* 링크 스타일 */
-a {
-  text-decoration: none;
-  color: inherit;
-  transition: color var(--transition-normal);
-}
-
-a:hover {
-  text-decoration: none;
-}
-
-a:focus {
-  outline: none;
 }
 
 /* Summernote 에디터 전역 스타일 */
@@ -89,8 +90,8 @@ a:focus {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--gray-50);
-  font-family: 'Noto Sans KR', sans-serif;
+  /* background-color: var(--gray-50); */
+  font-family: 'Pretendard', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--gray-900);

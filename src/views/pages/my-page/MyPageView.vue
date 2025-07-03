@@ -1,4 +1,5 @@
 <template>
+  <div class="mypage-container-wrapper">
   <div class="mypage-container">
     <div class="sidebar">
       <h2 class="sidebar-title">마이페이지</h2>
@@ -37,6 +38,7 @@
       <router-view></router-view>
     </div>
   </div>
+</div>
 </template>
 
 <script setup>
@@ -48,10 +50,15 @@ document.head.appendChild(materialIconsLink);
 </script>
 
 <style scoped>
+.mypage-container-wrapper{
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #e3f2fd, #bbdefb);
+}
+
 .mypage-container {
   display: flex;
   min-height: calc(100vh - 64px);
-  background: linear-gradient(to bottom, #e3f2fd, #bbdefb);
   padding: 1rem;
   gap: 1rem;
   max-width: 1400px;

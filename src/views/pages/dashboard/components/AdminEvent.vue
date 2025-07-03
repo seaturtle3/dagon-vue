@@ -44,8 +44,8 @@
         <div v-for="(event, idx) in events" :key="event.eventId" class="table-row">
           <div class="col-id">{{ idx + 1 + searchParams.page * searchParams.size }}</div>
           <div class="col-thumbnail">
-            <div v-if="event.thumbnailUrl" class="thumbnail-preview" @click="openDetailModal(event.eventId)" style="cursor:pointer;">
-              <img :src="`${BASE_URL}${event.thumbnailUrl}`" :alt="event.title" />
+            <div v-if="getEventThumbnail(event)" class="thumbnail-preview" @click="openDetailModal(event.eventId)" style="cursor:pointer;">
+              <img :src="getEventThumbnail(event)" :alt="event.title" />
             </div>
             <div v-else class="thumbnail-placeholder">
               <font-awesome-icon icon="fa-solid fa-image" />
@@ -107,8 +107,8 @@
           <div class="form-group">
             <label>썸네일 이미지</label>
             <input type="file" accept="image/*" @change="handleThumbnailUpload" />
-            <div v-if="eventForm.thumbnailUrl" class="mt-2">
-              <img :src="`${BASE_URL}${eventForm.thumbnailUrl}`" alt="썸네일 미리보기" style="max-width: 200px; max-height: 120px; border-radius: 4px; object-fit: cover;" />
+            <div v-if="getEventThumbnail(eventForm)" class="mt-2">
+              <img :src="getEventThumbnail(eventForm)" alt="썸네일 미리보기" style="max-width: 200px; max-height: 120px; border-radius: 4px; object-fit: cover;" />
             </div>
           </div>
           <div class="form-group">
@@ -173,6 +173,9 @@ const searchParams = reactive({
   size: 10
 })
 
+// 파일 업로드 관련 상태 추가
+const uploadedFiles = ref([])
+
 function formatDate(dateStr) {
   if (!dateStr) return ''
   try {
@@ -199,6 +202,24 @@ function statusText(status) {
   if (status === 'ONGOING') return '진행중'
   if (status === 'COMPLETED') return '종료'
   return status || ''
+}
+
+const getEventThumbnail = (event) => {
+  // 1. imageDataList
+  if (event?.imageDataList && event.imageDataList.length > 0) {
+    return `data:image/jpeg;base64,${event.imageDataList[0]}`
+  }
+  // 2. thumbnailDataList
+  if (event?.thumbnailDataList && event.thumbnailDataList.length > 0) {
+    return `data:image/jpeg;base64,${event.thumbnailDataList[0]?.thumbnail_data}`
+  }
+  // 3. thumbnailUrl
+  if (event?.thumbnailUrl) {
+    if (event.thumbnailUrl.startsWith('http')) return event.thumbnailUrl
+    return `${BASE_URL}${event.thumbnailUrl}`
+  }
+  // fallback(없으면 빈 문자열)
+  return ''
 }
 
 const loadEvents = async () => {
@@ -276,16 +297,19 @@ const submitEvent = async () => {
       thumbnailUrl: eventForm.thumbnailUrl,
       isTop: eventForm.isTop
     }
+    
     if (modalMode.value === 'edit') {
-      await updateEvent(eventForm.eventId, data)
+      await updateEvent(eventForm.eventId, data, uploadedFiles.value)
       alert('이벤트가 수정되었습니다.')
     } else {
-      await createEvent(data)
+      await createEvent(data, uploadedFiles.value)
       alert('이벤트가 등록되었습니다.')
     }
     closeModal()
+    uploadedFiles.value = [] // 파일 초기화
     await loadEvents()
   } catch (error) {
+    console.error('이벤트 저장 실패:', error)
     alert('저장 실패')
   } finally {
     submitting.value = false
@@ -323,27 +347,26 @@ function changePage(page) {
 async function handleThumbnailUpload(e) {
   const file = e.target.files[0]
   if (!file) return
+  
   if (file.size > 5 * 1024 * 1024) {
     alert('파일 크기는 5MB 이하여야 합니다.')
     return
   }
+  
   if (!file.type.startsWith('image/')) {
     alert('이미지 파일만 업로드 가능합니다.')
     return
   }
-  const formData = new FormData()
-  formData.append('image', file)
-  try {
-    const res = await fetch('/api/images/upload', {
-      method: 'POST',
-      body: formData
-    })
-    if (!res.ok) throw new Error('이미지 업로드 실패')
-    const fileName = await res.text()
-    eventForm.thumbnailUrl = `/uploads/${fileName}`
-  } catch (err) {
-    alert('썸네일 업로드에 실패했습니다.')
+  
+  // 파일을 uploadedFiles에 추가
+  uploadedFiles.value = [file]
+  
+  // 미리보기용 URL 생성
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    eventForm.thumbnailUrl = e.target.result
   }
+  reader.readAsDataURL(file)
 }
 
 onMounted(() => {
@@ -563,6 +586,7 @@ onMounted(() => {
   font-size: 0.9rem;
 }
 
+
 .action-btn.top-active {
   background-color: #fbbf24;
 }
@@ -576,6 +600,10 @@ onMounted(() => {
 .action-btn.edit:hover, .action-btn.delete:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn.top {
+  background-color: #ebebeb;
 }
 
 .loading, .empty-state {
