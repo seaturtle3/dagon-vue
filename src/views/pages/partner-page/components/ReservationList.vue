@@ -89,14 +89,17 @@ export default {
   },
   computed: {
     filteredReservations() {
-      return this.reservations.filter(reservation => {
-        const matchesSearch = 
-          (reservation.productName?.toLowerCase() || '').includes(this.searchQuery.toLowerCase()) ||
-          (reservation.userName?.toLowerCase() || '').includes(this.searchQuery.toLowerCase());
-        const matchesStatus = this.statusFilter === 'all' || 
-          (reservation.reservationStatus || '').toUpperCase() === this.statusFilter;
-        return matchesSearch && matchesStatus;
-      });
+      return this.reservations
+        .slice()
+        .sort((a, b) => new Date(b.createdAt || b.fishingAt) - new Date(a.createdAt || a.fishingAt))
+        .filter(reservation => {
+          const matchesSearch = 
+            (reservation.productName?.toLowerCase() || '').includes(this.searchQuery.toLowerCase()) ||
+            (reservation.userName?.toLowerCase() || '').includes(this.searchQuery.toLowerCase());
+          const matchesStatus = this.statusFilter === 'all' || 
+            (reservation.reservationStatus || '').toUpperCase() === this.statusFilter;
+          return matchesSearch && matchesStatus;
+        });
     }
   },
   methods: {
