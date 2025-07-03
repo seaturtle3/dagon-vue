@@ -47,6 +47,7 @@ const fishingReportStore = useFishingReportStore()
 const titleInputRef = ref(null)
 const showAutocomplete = ref(false)
 const report = computed(() => fishingReportStore.currentReport)
+const autocompleteRef = ref(null)
 
 const isFormValid = computed(() => {
   const hasThumbnail = thumbnailFile.value || 
@@ -198,6 +199,8 @@ onMounted(async () => {
   }
 
   console.log('editMode:', props.editMode, 'reportId:', props.reportId)
+
+  window.addEventListener('mousedown', handleClickOutside);
 })
 
 async function onSubmit() {
@@ -217,16 +220,18 @@ async function onSubmit() {
     return;
   }
 
-  // 이미지 파일 검증
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  if (thumbnailFile.value.size > maxSize) {
-    alert('이미지 파일 크기는 5MB 이하여야 합니다.');
-    return;
-  }
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-  if (!allowedTypes.includes(thumbnailFile.value.type)) {
-    alert('지원되는 이미지 형식: JPG, PNG, GIF');
-    return;
+  // 이미지 파일 검증 (신규 업로드한 파일이 있을 때만)
+  if (thumbnailFile.value) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (thumbnailFile.value.size > maxSize) {
+      alert('이미지 파일 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(thumbnailFile.value.type)) {
+      alert('지원되는 이미지 형식: JPG, PNG, GIF');
+      return;
+    }
   }
 
   const dtoToSend = {
@@ -341,34 +346,25 @@ function resetForm() {
 
 watch(productSearch, async (newVal) => {
   if (newVal && newVal.length >= 2) {
-    // 검색어가 2글자 이상일 때 검색 결과 표시
     productSearchLoading.value = true
     try {
       const res = await getProductsByKeyword(newVal)
-      const products = res.data.content || []
-      
+      let products = res.data.content || []
+      const searchTerm = newVal.toLowerCase()
+      products = products.filter(p => p.prodName.toLowerCase().includes(searchTerm))
       // 검색어와의 관련성에 따라 정렬
       productOptions.value = products.sort((a, b) => {
         const aName = a.prodName.toLowerCase()
         const bName = b.prodName.toLowerCase()
-        const searchTerm = newVal.toLowerCase()
-        
-        // 정확히 일치하는 것을 우선
         if (aName === searchTerm && bName !== searchTerm) return -1
         if (bName === searchTerm && aName !== searchTerm) return 1
-        
-        // 검색어로 시작하는 것을 우선
         const aStartsWith = aName.startsWith(searchTerm)
         const bStartsWith = bName.startsWith(searchTerm)
         if (aStartsWith && !bStartsWith) return -1
         if (bStartsWith && !aStartsWith) return 1
-        
-        // 검색어가 포함된 위치에 따라 정렬
         const aIndex = aName.indexOf(searchTerm)
         const bIndex = bName.indexOf(searchTerm)
         if (aIndex !== bIndex) return aIndex - bIndex
-        
-        // 알파벳 순으로 정렬
         return aName.localeCompare(bName)
       })
     } catch (e) {
@@ -377,10 +373,8 @@ watch(productSearch, async (newVal) => {
       productSearchLoading.value = false
     }
   } else if (newVal === '') {
-    // 검색어가 비어있을 때 전체 목록 표시
     loadAllProducts()
   } else {
-    // 1글자일 때는 전체 목록에서 필터링
     if (productOptions.value.length > 0) {
       const filtered = productOptions.value.filter(product => 
         product.prodName.toLowerCase().includes(newVal.toLowerCase())
@@ -440,6 +434,7 @@ onUnmounted(() => {
   if (thumbnailPreviewUrl.value) {
     URL.revokeObjectURL(thumbnailPreviewUrl.value)
   }
+  window.removeEventListener('mousedown', handleClickOutside);
 })
 
 function selectProduct(option) {
@@ -454,29 +449,32 @@ function selectProduct(option) {
 }
 
 function onProductInputFocus() {
-  // 포커스 시 전체 상품 목록을 가져와서 표시
-  loadAllProducts()
-  showAutocomplete.value = true
+  loadAllProducts();
+  showAutocomplete.value = true;
+}
+
+function handleClickOutside(event) {
+  if (
+    autocompleteRef.value &&
+    !autocompleteRef.value.contains(event.target) &&
+    productInputRef.value &&
+    !productInputRef.value.contains(event.target)
+  ) {
+    showAutocomplete.value = false;
+  }
 }
 
 // 전체 상품 목록 로드
 async function loadAllProducts() {
-  if (productOptions.value.length > 0) return // 이미 로드된 경우
-  
-  productSearchLoading.value = true
   try {
-    const res = await getProductsByKeyword('') // 빈 문자열로 전체 상품 조회
-    const products = res.data.content || []
-    
-    // 상품명 알파벳 순으로 정렬
-    productOptions.value = products.sort((a, b) => {
-      return a.prodName.localeCompare(b.prodName)
-    })
+    const res = await getProductsByKeyword(''); // 빈 문자열로 전체 상품 조회
+    const products = res.data.content || [];
+    // 최신 등록순 정렬 (prodId DESC)
+    productOptions.value = products.sort((a, b) => b.prodId - a.prodId);
   } catch (e) {
-    console.error('상품 목록 로드 실패:', e)
-    productOptions.value = []
+    productOptions.value = [];
   } finally {
-    productSearchLoading.value = false
+    productSearchLoading.value = false;
   }
 }
 </script>
@@ -530,11 +528,11 @@ async function loadAllProducts() {
                 @focus="onProductInputFocus"
             />
             <div v-if="productSearchLoading" style="color: #1976d2; font-size: 0.9em;">검색 중...</div>
-            <ul v-if="showAutocomplete" class="autocomplete-list">
+            <ul v-if="showAutocomplete" class="autocomplete-list" ref="autocompleteRef">
               <li
                   v-for="(option, idx) in productOptions"
                   :key="option.prodId"
-                  @click="selectProduct(option)"
+                  @mousedown="selectProduct(option)"
                   :class="['autocomplete-item', { highlighted: idx === highlightedIndex }]"
               >
                 {{ option.prodName }}
@@ -729,12 +727,18 @@ async function loadAllProducts() {
   border-radius: 6px;
   font-size: 14px;
   transition: border-color 0.3s ease;
+  color: #333 !important;
+  background-color: #fff !important;
 }
 
 .form-control:focus {
   outline: none;
   border-color: #1976d2;
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.form-control::placeholder {
+  color: #999 !important;
 }
 
 /* 날짜 입력 필드 스타일 */
@@ -1020,6 +1024,12 @@ async function loadAllProducts() {
   }
 }
 
+.autocomplete-list,
+.autocomplete-item {
+  color: #222 !important;
+  background: #fff !important;
+}
+
 .autocomplete-list {
   background: #fff;
   border: 1px solid #e0e0e0;
@@ -1027,7 +1037,7 @@ async function loadAllProducts() {
   margin: 0;
   padding: 0;
   list-style: none;
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
   position: absolute;
   z-index: 1000;
@@ -1079,8 +1089,12 @@ async function loadAllProducts() {
 
 .selected-product-info {
   margin-top: 8px;
-  color: #1976d2;
+  color: #222;
   font-size: 0.95em;
+}
+
+.selected-product-info strong {
+  color: #222;
 }
 
 .image-list {

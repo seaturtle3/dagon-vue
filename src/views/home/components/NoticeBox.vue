@@ -109,17 +109,16 @@ export default {
   <div class="notice-container">
     <div class="notice-header">
       <h2 class="notice-title">
-        <i class="fas fa-bullhorn"></i>
         공지사항
       </h2>
       <router-link to="/notice" class="view-all-link">
-        전체보기 <i class="fas fa-arrow-right"></i>
+        전체보기
       </router-link>
     </div>
     
     <div class="notice-content">
       <!-- 검색 기능 -->
-      <div class="search-section">
+      <!-- <div class="search-section">
         <div class="search-box">
           <input 
             v-model="search" 
@@ -129,29 +128,29 @@ export default {
             @keyup.enter="handleSearch"
           />
           <button class="search-btn" @click="handleSearch">
-            <i class="fas fa-search"></i>
+            <font-awesome-icon :icon="['fas', 'search']" />
           </button>
         </div>
-      </div>
+      </div> -->
 
       <!-- 로딩 상태 -->
       <div v-if="loading" class="loading-state">
-        <i class="fas fa-spinner fa-spin"></i>
+        <font-awesome-icon :icon="['fas', 'spinner']" spin />
         <p>공지사항을 불러오는 중...</p>
       </div>
 
       <!-- 에러 상태 -->
       <div v-else-if="error" class="error-state">
-        <i class="fas fa-exclamation-triangle"></i>
+        <font-awesome-icon :icon="['fas', 'exclamation-triangle']" />
         <p>{{ error }}</p>
         <button @click="fetchNotices" class="retry-btn">
-          <i class="fas fa-redo"></i> 다시 시도
+          <font-awesome-icon :icon="['fas', 'redo']" /> 다시 시도
         </button>
       </div>
 
       <!-- 공지사항이 없는 경우 -->
       <div v-else-if="!urgentNotices.length && !normalNotices.length" class="empty-state">
-        <i class="fas fa-inbox"></i>
+        <font-awesome-icon :icon="['fas', 'inbox']" />
         <p>등록된 공지사항이 없습니다.</p>
       </div>
 
@@ -168,11 +167,10 @@ export default {
             <div class="notice-info">
               <div class="notice-meta">
                 <span v-if="notice.isTop" class="top-badge">
-                  <i class="fas fa-star"></i> 고정공지
+                  <font-awesome-icon :icon="['fas', 'star']" /> 고정공지
                 </span>
               </div>
               <h4 class="notice-item-title urgent-title">
-                <i class="fas fa-exclamation-triangle"></i>
                 <span class="title-text">{{ truncateTitle(notice.title) }}</span>
                 <span class="notice-date-inline">{{ formatDate(notice.createdAt) }}</span>
               </h4>
@@ -184,14 +182,14 @@ export default {
         <!-- 일반 공지 -->
         <div v-if="normalNotices.length > 0" class="normal-section">
           <div 
-            v-for="notice in normalNotices" 
+            v-for="notice in normalNotices.slice(0, 5)" 
             :key="notice.noticeId" 
             class="notice-item"
             @click="goToNoticeDetail(notice.noticeId)"
           >
             <div class="notice-info">
               <h4 class="notice-item-title">
-                <i class="fas fa-file-alt"></i>
+                <font-awesome-icon :icon="['fas', 'file-alt']" class="notice-item-icon"/>
                 <span class="title-text">{{ truncateTitle(notice.title) }}</span>
                 <span class="notice-date-inline">{{ formatDate(notice.createdAt) }}</span>
               </h4>
@@ -207,11 +205,14 @@ export default {
 .notice-container {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
-  width: 70%;
+  width: 100%;
   max-width: 600px;
   margin: 0 auto;
+  border: 1.5px solid #e5e7eb;
+  height: 560px;
+  display: flex;
+  flex-direction: column;
 }
 
 .notice-header {
@@ -232,9 +233,8 @@ export default {
   gap: 0.5rem;
 }
 
-.notice-title i {
+.notice-item-icon {
   color: #667eea;
-  font-size: 1.5rem;
 }
 
 .view-all-link {
@@ -430,7 +430,7 @@ export default {
 
 .urgent-section {
   margin-bottom: 0.7rem;
-  border-bottom: 2px solid #fecaca;
+  /* border-bottom: 2px solid #fecaca; */
   padding-bottom: 0.7rem;
 }
 
@@ -440,36 +440,10 @@ export default {
 }
 
 /* 반응형 디자인 */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .notice-container {
-    width: 90%;
-  }
-  
-  .notice-header {
-    padding: 1rem 1.5rem;
-  }
-  
-  .notice-title {
-    font-size: 1.25rem;
-  }
-  
-  .notice-content {
-    padding: 1.5rem;
-  }
-  
-  .search-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .search-box {
-    max-width: none;
-  }
-  
-  .notice-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+    height: auto;
+    min-height: 320px;
   }
 }
 

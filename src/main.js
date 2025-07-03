@@ -1,10 +1,10 @@
-import './assets/main.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import './assets/styles/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 
-import 'bootstrap/dist/css/bootstrap.min.css' // Bootstrap CSS
 import 'bootstrap'                            // Bootstrap JS
 import router from './router'
 

@@ -170,6 +170,10 @@ export const partnerService = {
     // 파트너의 모든 상품 목록 조회 (공개/비공개 포함)
     getPartnerAllProducts() {
         return api.get(`${API_URL}/partner/product/all`, {
+            params: {
+                sortBy: 'createdAt',
+                direction: 'desc'
+            },
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }

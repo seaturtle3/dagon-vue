@@ -88,9 +88,9 @@ function resetSpeciesSelection() {
 // 필터된 상품 조회 함수
 const fetchProducts = async (filterValues) => {
   const normalizedVal = {
-    region: filterValues.region || null,
-    subType: filterValues.subType || null,
-    species: filterValues.species || null,
+    region: filterValues.region || '',
+    subType: filterValues.subType || '',
+    species: filterValues.species || [],
   }
   await seaStore.fetchFilteredProducts(normalizedVal)
 }
@@ -134,7 +134,7 @@ watch(selected, (val) => {
         <label>어종 : </label>
         <button type="button" class="species-select-btn" @click="openSpeciesModal">
           <template v-if="selected.species.length === 0">
-            어종 선택
+            전체
           </template>
           <template v-else-if="selected.species.length <= 3">
             {{ selected.species.join(', ') }}
@@ -151,6 +151,13 @@ watch(selected, (val) => {
       <div class="modal-content">
         <h3>어종 선택</h3>
         <div class="species-grid">
+          <button
+            :class="['species-box', { selected: tempSelectedSpecies.length === 0 }]"
+            @click="resetSpeciesSelection"
+            type="button"
+          >
+            전체
+          </button>
           <button
             v-for="f in filters.fishSpecies"
             :key="f"
@@ -174,18 +181,20 @@ watch(selected, (val) => {
 <style scoped>
 .sea-filter-detail {
   width: 80%;
+  max-width: 1000px;
+  height:106px;
   margin: 0 auto;
   padding: 2rem;
-  border: 2px solid #4a90e2;
-  border-radius: 16px;
-  background-color: #f9fbff;
+  border-radius:53px;
+  border: 1px solid #4a91e25e;
+  background: rgb(227, 240, 255) ;
   box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
 }
 
 .filter-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 2rem; /* 묶음 간 넉넉한 간격 */
+  gap: 2rem;
   justify-content: space-evenly;
   align-items: center;
 }
@@ -193,12 +202,11 @@ watch(selected, (val) => {
 .filter-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* label과 select 간 간격 */
+  gap: 0.5rem;
 }
 
 .filter-item label {
   font-weight: 600;
-  color: #2c3e50;
   text-align: right;
   user-select: none;
 }
@@ -206,7 +214,7 @@ watch(selected, (val) => {
 .filter-item select {
   min-width: 150px;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #4a90e2;
+  border: none;
   border-radius: 8px;
   background-color: #fff;
   color: #2c3e50;
@@ -225,7 +233,7 @@ watch(selected, (val) => {
 .species-select-btn {
   min-width: 150px;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #4a90e2;
+  border: none;
   border-radius: 8px;
   background: #fff;
   color: #2c3e50;
@@ -262,12 +270,18 @@ watch(selected, (val) => {
   margin: 16px 0;
 }
 .species-box {
-  border: 1px solid #4a90e2;
+  border: 1px solid #4a91e25e;
   border-radius: 8px;
   padding: 8px 16px;
   background: #fff;
+  color: #2c3e50; /* 어종 모달 글자 색 */
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
+}
+
+.species-box:hover {
+  border: 1px solid #4a90e2;
+  font-weight: bold;
 }
 .species-box.selected {
   background: #4a90e2;
@@ -322,5 +336,52 @@ watch(selected, (val) => {
 .reset-btn:hover {
   background: #e3f2fd;
   color: #1565c0;
+}
+
+@media (max-width: 900px) {
+  .sea-filter-detail {
+    width: 98%;
+    padding: 1.2rem 0.5rem;
+    border-radius: 32px;
+    height: auto;
+  }
+  .filter-row {
+    gap: 1.2rem;
+  }
+  .filter-item select,
+  .species-select-btn {
+    min-width: 120px;
+    font-size: 0.93rem;
+    padding: 0.45rem 0.7rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .sea-filter-detail {
+    width: 100%;
+    padding: 0.7rem 0.2rem;
+    border-radius: 18px;
+    height: auto;
+  }
+  .filter-row {
+    flex-direction: column;
+    gap: 0.7rem;
+    align-items: stretch;
+  }
+  .filter-item {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .filter-item label {
+    min-width: 60px;
+    font-size: 0.98rem;
+  }
+  .filter-item select,
+  .species-select-btn {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.98rem;
+    padding: 0.45rem 0.7rem;
+  }
 }
 </style>

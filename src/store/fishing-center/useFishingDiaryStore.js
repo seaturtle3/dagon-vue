@@ -44,8 +44,6 @@ export const useFishingDiaryStore = defineStore('fishingDiary', {
         // 조행기 생성 액션 (api.multipartPost 사용, 상품과 통일)
         async createFishingDiary(dto, files) {
             try {
-                console.log('🟡 조행기 생성 - dto:', dto)
-                console.log('🟡 조행기 생성 - files:', files)
                 const res = await api.multipartPost({
                     url: '/api/fishing-diary/create',
                     dto: dto,

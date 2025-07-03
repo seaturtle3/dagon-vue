@@ -10,8 +10,15 @@ const store = useProductFishingDiaryStore()
 const productId = route.params.prodId
 console.log("-------------2222222222221>",productId)
 
-onMounted(() => {
-  store.fetchFishingDiary(productId)
+onMounted(async () => {
+  try {
+    await store.fetchFishingDiary(productId)
+  } catch (error) {
+    // 404 에러는 조행기가 없다는 의미이므로 무시
+    if (error.response?.status !== 404) {
+      console.error('조행기 조회 중 오류:', error)
+    }
+  }
 })
 
 const diaryList = computed(() => store.getDiaryByProductId(productId))
@@ -20,7 +27,14 @@ const diaryList = computed(() => store.getDiaryByProductId(productId))
 watch(() => route.params.prodId, async (newId, oldId) => {
   if (newId !== oldId) {
     store.clearDiary()
-    await store.fetchFishingDiary(newId)
+    try {
+      await store.fetchFishingDiary(newId)
+    } catch (error) {
+      // 404 에러는 조행기가 없다는 의미이므로 무시
+      if (error.response?.status !== 404) {
+        console.error('조행기 조회 중 오류:', error)
+      }
+    }
   }
 })
 
@@ -154,6 +168,14 @@ watch(filteredDiaries, (val) => {
   height: 60%;
   overflow: hidden;
 }
+
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .thumbnail {
   width: 100%;
   height: 100%;

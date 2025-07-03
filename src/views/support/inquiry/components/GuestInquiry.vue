@@ -143,11 +143,8 @@ export default {
         inquiryType: ''
       },
       inquiryTypes: [
-        { value: 'PRODUCT', label: '상품 문의' },
         { value: 'BUSINESS', label: '제휴 문의' },
         { value: 'SYSTEM', label: '시스템 문의' },
-        { value: 'RESERVATION', label: '예약 문의' },
-        { value: 'RESERVATION_CANCEL', label: '예약 취소 문의' }
       ],
       productInfo: null,
       emailId: '',
@@ -167,19 +164,16 @@ export default {
     checkLoginStatus() {
       const token = localStorage.getItem('token');
       const userInfo = localStorage.getItem('userInfo');
-      
+
       if (token && userInfo) {
-        console.log('로그인된 사용자가 GuestInquiry에 접근 - MemberInquiry로 리다이렉트');
-        this.$router.push({
-          name: 'MemberInquiry',
-          query: this.$route.query
-        });
+        console.log('로그인된 사용자가 GuestInquiry에 접근 - 문의 페이지로 리다이렉트');
+        this.$router.push('/inquiry');
       }
     },
-    
+
     initializeProductInfo() {
       const route = useRoute();
-      
+
       // URL 쿼리 파라미터에서 상품 정보 가져오기
       if (route.query.productId && route.query.productName) {
         this.productInfo = {
@@ -187,9 +181,9 @@ export default {
           productName: route.query.productName,
           productType: route.query.productType || 'product'
         };
-        
+
         console.log('상품 정보 받음:', this.productInfo);
-        
+
         // 상품 문의인 경우 자동으로 문의 유형만 설정
         if (this.productInfo.productType === 'product') {
           this.form.inquiryType = 'PRODUCT';
@@ -197,7 +191,7 @@ export default {
         }
       }
     },
-    
+
     async submitForm() {
       try {
         // 상품 정보가 있으면 문의 내용에 추가
@@ -205,12 +199,12 @@ export default {
         if (this.productInfo) {
           content = `상품 정보:\n- 상품명: ${this.productInfo.productName}\n- 상품ID: ${this.productInfo.productId}\n\n문의 내용:\n${content}`;
         }
-        
+
         const inquiryData = {
           ...this.form,
           content: content
         };
-        
+
         await inquiryApi.createInquiry(inquiryData);
         alert('문의가 등록되었습니다.');
         this.resetForm();
@@ -220,7 +214,7 @@ export default {
         alert('문의 등록에 실패했습니다. 다시 시도해주세요.');
       }
     },
-    
+
     resetForm() {
       this.form = {
         name: '',
@@ -239,7 +233,7 @@ export default {
       this.phone2 = '';
       this.phone3 = '';
     },
-    
+
     cancelForm() {
       if (confirm('작성을 취소하시겠습니까?')) {
         this.resetForm();
@@ -491,4 +485,4 @@ button:hover {
   color: #666;
   cursor: not-allowed;
 }
-</style> 
+</style>

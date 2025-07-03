@@ -1,7 +1,3 @@
-<script>
-
-</script>
-
 <template>
   <div class="customer-service-container">
     <div class="service-header">
@@ -41,7 +37,7 @@
           <div class="contact-details">
             <h3>1:1 문의</h3>
             <p class="inquiry-text">온라인으로 편리하게</p>
-            <router-link to="/inquiry" class="inquiry-link">문의하기</router-link>
+            <router-link to="/inquiry" class="inquiry-link" @click="handleInquiryClick">문의하기</router-link>
           </div>
         </div>
       </div>
@@ -141,13 +137,27 @@
         </div>
       </div>
     </div>
+
+    <!-- 로그인 안내 모달 -->
+    <div v-if="showLoginModal" class="modal-overlay">
+      <div class="modal-content modal-login">
+        <h2>먼저 로그인 후 이용해주세요</h2>
+        <div class="modal-actions">
+          <button class="login-btn" @click="goToLogin">로그인</button>
+          <button class="register-btn" @click="goToRegister">회원가입</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const expandedFAQ = ref(null)
+const showLoginModal = ref(false)
+const router = useRouter()
 
 // FAQ 미리보기 데이터
 const faqPreview = ref([
@@ -170,6 +180,24 @@ const faqPreview = ref([
 
 const toggleFAQ = (id) => {
   expandedFAQ.value = expandedFAQ.value === id ? null : id
+}
+
+function handleInquiryClick(e) {
+  const token = localStorage.getItem('token')
+  const userInfo = localStorage.getItem('userInfo')
+  if (!token || !userInfo) {
+    e.preventDefault()
+    showLoginModal.value = true
+  }
+}
+
+function goToLogin() {
+  showLoginModal.value = false
+  router.push('/login')
+}
+function goToRegister() {
+  showLoginModal.value = false
+  router.push('/register')
 }
 </script>
 
@@ -518,5 +546,59 @@ const toggleFAQ = (id) => {
   .quick-menu-item {
     padding: 1.5rem;
   }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.modal-content.modal-login {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2.5rem 2rem 2rem 2rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  text-align: center;
+  min-width: 320px;
+}
+.modal-content.modal-login h2 {
+  font-size: 1.3rem;
+  margin-bottom: 2rem;
+  color: #333;
+}
+.modal-actions {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+}
+.login-btn, .register-btn {
+  padding: 0.7rem 2.2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.login-btn {
+  background: #667eea;
+  color: #fff;
+}
+.login-btn:hover {
+  background: #5a67d8;
+}
+.register-btn {
+  background: #e2e8f0;
+  color: #333;
+}
+.register-btn:hover {
+  background: #cbd5e1;
 }
 </style>

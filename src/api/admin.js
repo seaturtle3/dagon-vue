@@ -27,6 +27,49 @@ export const adminAuth = {
   }
 };
 
+// 예약 관리 관련 API
+export const reservationApi = {
+  // 회원 예약 목록 조회 (로그인 상태) - 임시로 전체 API 사용
+  getMemberReservations: (params = {}) => {
+    return api.get('/api/admin/reservations/post', { params });
+  },
+
+  // 비회원 예약 목록 조회 (비로그인 상태) - 임시로 전체 API 사용
+  getGuestReservations: (params = {}) => {
+    return api.get('/api/admin/reservations/post', { params });
+  },
+
+  // 전체 예약 목록 조회 (관리자용)
+  getAllReservations: (params = {}) => {
+    return api.get('/api/admin/reservations/post', { params });
+  },
+
+  // 예약 상세 조회
+  getReservationDetail: (reservationId) => {
+    return api.get(`/api/admin/reservations/${reservationId}`);
+  },
+
+  // 예약 승인
+  approveReservation: (reservationId) => {
+    return api.put(`/api/admin/reservations/${reservationId}/approve`);
+  },
+
+  // 예약 거절
+  rejectReservation: (reservationId) => {
+    return api.put(`/api/admin/reservations/${reservationId}/reject`);
+  },
+
+  // 예약 완료 처리
+  completeReservation: (reservationId) => {
+    return api.put(`/api/admin/reservations/${reservationId}/complete`);
+  },
+
+  // 예약 취소
+  cancelReservation: (reservationId) => {
+    return api.delete(`/api/admin/reservations/${reservationId}`);
+  }
+};
+
 // 파트너 신청 관련 API
 export const partnerApplicationApi = {
   // 파트너 신청 목록 조회

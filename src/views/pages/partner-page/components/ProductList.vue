@@ -32,7 +32,7 @@
       등록된 상품이 없습니다.
     </div>
     <div v-else class="product-grid">
-      <div v-for="product in filteredProducts" :key="product.prodId" class="product-card" :class="{ 'deleted': product.deleted }">
+      <div v-for="(product, index) in filteredProducts" :key="product.prodId" class="product-card" :class="{ 'deleted': product.deleted }" :style="{ order: index }">
         <div class="product-image" @click="$router.push(`/partner/products/${product.prodId}`)">
           <div class="image-thumbnails">
             <!-- 1. prodImageDataList가 있으면 그것만 보여줌 -->
@@ -81,10 +81,11 @@
           <p class="product-region">{{ product.prodRegion || '지역 미지정' }}</p>
           <p class="product-subtype">{{ getSubTypeText(product.subType) }}</p>
           <div class="product-actions">
-            <button v-if="!product.deleted" class="delete-button" @click.stop="deleteProduct(product.prodId)">비공개</button>
-            <button v-else class="restore-button" @click.stop="restoreProduct(product.prodId)">복구</button>
             <button class="report-button" @click="goToCreateReport(product.prodId)">
               조황 등록
+            </button>
+            <button class="delete-button" @click="deleteProduct(product.prodId)">
+              삭제
             </button>
           </div>
         </div>
@@ -173,25 +174,39 @@ const productReport = ref({ reason: '' })
 const productFormStore = useProductFormStore()
 
 const filteredProducts = computed(() => {
-  return products.value.filter(product => {
-    const matchesSearch = product.prodName.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesType = typeFilter.value === 'all' || product.mainType === typeFilter.value
-    const matchesStatus = statusFilter.value === 'all' ||
-      (statusFilter.value === 'active' && !product.deleted) ||
-      (statusFilter.value === 'deleted' && product.deleted)
-    return matchesSearch && matchesType && matchesStatus
-  })
+  return products.value
+    .filter(product => {
+      const matchesSearch = product.prodName.toLowerCase().includes(searchQuery.value.toLowerCase())
+      const matchesType = typeFilter.value === 'all' || product.mainType === typeFilter.value
+      const matchesStatus = statusFilter.value === 'all' ||
+        (statusFilter.value === 'active' && !product.deleted) ||
+        (statusFilter.value === 'deleted' && product.deleted)
+      return matchesSearch && matchesType && matchesStatus
+    })
+    .reverse() // 최신 상품이 먼저 나오도록 순서 뒤집기
 })
 
 async function loadProducts() {
   try {
     loading.value = true
     const response = await partnerService.getPartnerAllProducts()
-    products.value = response.data.map(product => ({
-      ...product,
-      deleted: product.deleted || false
-    }))
+    console.log('상품 목록 응답:', response);
+    console.log('상품 데이터:', response.data);
+    
+    products.value = response.data.map(product => {
+      console.log('개별 상품:', product);
+      console.log('상품 이미지 정보:', {
+        prodImageNames: product.prodImageNames,
+        prodThumbnail: product.prodThumbnail,
+        prodImageDataList: product.prodImageDataList
+      });
+      return {
+        ...product,
+        deleted: product.deleted || false
+      }
+    })
   } catch (error) {
+    console.error('상품 목록 로드 실패:', error);
     alert('상품 목록을 불러오는데 실패했습니다.')
   } finally {
     loading.value = false
@@ -250,20 +265,7 @@ function getSubTypeText(subType) {
 function searchProducts() {}
 function filterProducts() {}
 
-function deleteProduct(prodId) {
-  alert('준비중입니다.')
-}
 
-async function restoreProduct(prodId) {
-  if (!confirm('이 상품을 다시 공개하시겠습니까?')) return
-  try {
-    await partnerService.restoreProduct(prodId)
-    alert('상품이 성공적으로 복구되었습니다.')
-    await loadProducts()
-  } catch (error) {
-    alert(error.response?.data?.message || '상품 복구에 실패했습니다.')
-  }
-}
 
 function openCreateReportForm(prodId) {
   selectedProdId.value = prodId
@@ -354,6 +356,22 @@ function goToProductForm() {
 
 function goToCreateReport(prodId) {
   router.push({ path: '/fishing-report/create', query: { prodId } })
+}
+
+async function deleteProduct(prodId) {
+  if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) {
+    return
+  }
+
+  try {
+    await partnerService.deleteProduct(prodId)
+    alert('상품이 성공적으로 삭제되었습니다.')
+    await loadProducts() // 상품 목록을 다시 로드
+  } catch (error) {
+    console.error('상품 삭제 실패:', error)
+    const errorMessage = error.response?.data?.message || '상품 삭제에 실패했습니다. 다시 시도해주세요.'
+    alert(errorMessage)
+  }
 }
 
 onMounted(() => {
@@ -482,7 +500,7 @@ onMounted(() => {
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 25px;
   margin-bottom: 30px;
 }
@@ -584,22 +602,7 @@ onMounted(() => {
   border-top: 1px solid #f0f0f0;
 }
 
-.delete-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  background-color: #e57373;
-  color: white;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
 
-.delete-button:hover {
-  background-color: #ef5350;
-  transform: translateY(-2px);
-}
 
 /* 조황 등록 버튼 스타일 */
 .report-button {
@@ -612,11 +615,29 @@ onMounted(() => {
   color: white;
   font-weight: 600;
   transition: all 0.3s ease;
-  margin-left: 10px; /* 삭제 버튼과의 간격 */
+  margin-right: 10px; /* 삭제 버튼과의 간격 */
 }
 
 .report-button:hover {
   background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+/* 삭제 버튼 스타일 */
+.delete-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  background-color: #e74c3c;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.delete-button:hover {
+  background-color: #c0392b;
   transform: translateY(-2px);
 }
 
@@ -813,22 +834,7 @@ onMounted(() => {
   color: #6c757d;
 }
 
-.restore-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  background-color: #2ecc71;
-  color: white;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
 
-.restore-button:hover {
-  background-color: #27ae60;
-  transform: translateY(-2px);
-}
 
 /* 상품 신고 폼 스타일 */
 .report-product-overlay {

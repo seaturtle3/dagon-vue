@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
 
 const router = useRouter()
 
@@ -16,10 +17,8 @@ const goToDetail = () => {
 </script>
 
 <template>
-
-  <div class="diary-card"
-       @click="goToDetail">
-    <div class="thumbnail-list">
+  <div class="diary-card" @click="goToDetail">
+    <div class="thumbnail-section">
       <img
         class="thumbnail"
         :src="
@@ -30,9 +29,9 @@ const goToDetail = () => {
                   : (diary.images[0].image_data
                       ? `data:image/jpeg;base64,${diary.images[0].image_data}`
                       : (diary.images[0].imageUrl
-                          ? diary.images[0].imageUrl
+                          ? `${IMAGE_BASE_URL}${diary.images[0].imageUrl}`
                           : (diary.images[0].image_url
-                              ? diary.images[0].image_url
+                              ? `${IMAGE_BASE_URL}${diary.images[0].image_url}`
                               : '/images/no-image.png'
                             )
                         )
@@ -40,7 +39,19 @@ const goToDetail = () => {
               )
             : '/images/no-image.png'
         "
-    />
+        alt="썸네일"
+        v-if="
+          diary.images?.imageData ||
+          diary.images?.image_data ||
+          diary.images?.imageUrl ||
+          diary.images?.image_url ||
+          diary.images
+        "
+      />
+      <div v-else class="image-placeholder">
+        <i class="fas fa-image"></i>
+        <span>이미지 없음</span>
+      </div>
     </div>
     <div class="content">
       <h3 class="product-name">{{ diary.product?.prodName }}</h3>
@@ -52,26 +63,32 @@ const goToDetail = () => {
 
 <style scoped>
 .diary-card {
-  border: 1px solid #ccc;
+  background: #fff;
   border-radius: 8px;
-  background-color: #f9f9f9;
-  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: start;
-  height: 300px;
+  width: 100%;
+  height: 260px;
+  transition: border-color 0.18s, transform 0.12s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   cursor: pointer;
 }
 
-.thumbnail-list {
-  width: 100%;
+.diary-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.thumbnail-section {
   height: 60%;
-  margin-bottom: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-bottom: 1px solid #f3f4f6;
+  background: #f8fafc;
+  display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  display: flex;
 }
 
 .thumbnail {
@@ -79,21 +96,45 @@ const goToDetail = () => {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  border-radius: 0;
   display: block;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #bfc5cb;
+  font-size: 1rem;
+}
+
+.image-placeholder i {
+  font-size: 1.7rem;
+  margin-bottom: 6px;
+  color: #d1d5db;
+}
+
+.image-placeholder span {
+  font-size: 0.8rem;
+  color: #bfc5cb;
 }
 
 .content {
   height: 40%;
-  padding: 12px;
+  padding: 14px 12px 10px 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  flex-shrink: 0;
+  background-color: #f7f8fa;
 }
 
 .product-name {
   font-size: 0.9rem;
-  color: #666;
+  color: #6b7280;
   margin: 0 0 4px 0;
   font-weight: 500;
   white-space: nowrap;
@@ -103,7 +144,7 @@ const goToDetail = () => {
 
 .diary-title {
   font-size: 1rem;
-  color: #333;
+  color: #1f2937;
   margin: 0;
   font-weight: 600;
   line-height: 1.3;
@@ -115,7 +156,7 @@ const goToDetail = () => {
 }
 
 .diary-date {
-  color: #999;
+  color: #9ca3af;
   font-size: 0.8rem;
   margin-top: auto;
   flex-shrink: 0;
