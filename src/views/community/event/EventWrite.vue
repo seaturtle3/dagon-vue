@@ -3,7 +3,7 @@ import {reactive, onMounted, ref, computed} from 'vue'
 import {useRouter, useRoute} from 'vue-router'
 import {createEvent, updateEvent, fetchEventById} from '@/api/event.js'
 import BoardWriteForm from '@/components/common/BoardWriteForm.vue'
-import RichTextEditor from '@/components/common/RichTextEditorEvent.vue'
+import RichTextEditorEvent from '@/components/common/RichTextEditorEvent.vue'
 import {useAdminAuthStore} from '@/store/auth/auth.js'
 import {BASE_URL} from "@/constants/baseUrl.js";
 
@@ -24,6 +24,11 @@ const files = ref([])
 const imagePreviews = ref([])
 const existingImages = ref([])
 const deletedImageNames = ref([])
+const editorImageChanges = ref({
+  deletedImages: [],
+  newImages: [],
+  existingImages: []
+})
 
 const form = reactive({
   title: '',
@@ -36,6 +41,7 @@ const form = reactive({
 
 const event = ref(null)
 const imageIdList = ref([])
+const richTextEditorRef = ref(null)
 
 const loadEventData = async () => {
   const res = await fetchEventById(route.params.id)
@@ -64,6 +70,13 @@ async function submit() {
   }
 
   try {
+    // input으로 업로드된 이미지들에 썸네일 플래그 추가
+    const thumbnailFiles = files.value.map(file => ({
+      file: file,
+      isThumbnail: true,
+      imageType: 'thumbnail'
+    }))
+    
     const eventData = {
       title: form.title.trim(),
       content: form.content.trim(),
@@ -71,20 +84,24 @@ async function submit() {
       endAt: form.endAt || null,
       thumbnailUrl: form.thumbnailUrl || null,
       isTop: form.isTop,
-      deleteImageNames: [...deletedImageNames.value]
+      deleteImageNames: [...deletedImageNames.value],
+      editorImageChanges: editorImageChanges.value
     }
 
     console.log("--------------isEdit>",isEdit)
     console.log("--------------2eventId>",eventId)
     console.log("--------------2imageIdList>",imageIdList)
+    console.log("--------------editorImageChanges>",editorImageChanges.value)
+    console.log("--------------thumbnailFiles>",thumbnailFiles)
+    console.log("--------------썸네일 이미지 개수>",thumbnailFiles.length)
 
     if (isEdit) {
       console.log("--------------3eventId>",eventId)
       console.log("--------------3imageIdList>",imageIdList)
-      await updateEvent(eventId, eventData, files.value)
+      await updateEvent(eventId, eventData, thumbnailFiles)
       alert('이벤트가 수정되었습니다.')
     } else {
-      await createEvent(eventData, files.value)
+      await createEvent(eventData, thumbnailFiles)
       alert('이벤트가 등록되었습니다.')
     }
     router.push('/event')
@@ -223,6 +240,27 @@ const deleteAllImages = async () => {
     })
   })
 }
+
+// 에디터에서 이미지 데이터를 받는 함수 (백엔드에서 자동 처리되므로 로그만 출력)
+const handleEditorImageData = (imageData) => {
+  console.log('에디터 이미지 업로드 완료:', imageData)
+}
+
+// 에디터에서 이미지 변경사항을 받는 함수
+const handleEditorImageChanges = (changes) => {
+  editorImageChanges.value = changes
+  console.log('에디터 이미지 변경사항:', changes)
+  
+  // 삭제된 이미지가 있으면 확인
+  if (changes.deletedImages && changes.deletedImages.length > 0) {
+    console.log('삭제된 이미지들:', changes.deletedImages)
+  }
+  
+  // 새로 추가된 이미지가 있으면 확인
+  if (changes.newImages && changes.newImages.length > 0) {
+    console.log('새로 추가된 이미지들:', changes.newImages)
+  }
+}
 </script>
 
 <template>
@@ -266,7 +304,14 @@ const deleteAllImages = async () => {
 
         <div class="form-group mb-3">
           <label>내용 *</label>
-          <RichTextEditor v-model="form.content"/>
+          <RichTextEditorEvent 
+            v-model="form.content" 
+            :eventId="eventId" 
+            :existingImages="existingImages"
+            @imageData="handleEditorImageData" 
+            @imageChanges="handleEditorImageChanges"
+            ref="richTextEditorRef"
+          />
         </div>
 
         <div class="form-check mb-3">
