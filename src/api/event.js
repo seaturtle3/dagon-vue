@@ -1,32 +1,36 @@
 import api from '@/lib/axios'
 
-export const createEvent = async (eventData, token) => {
-    const res = await api.post('/api/admin/event', eventData, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })
-    return res.data
+// 사용자용 이벤트 목록 조회
+export const fetchEvents = (params) => {
+    return api.get('/api/event', { params })
 }
 
-export const updateEvent = async (id, eventData, token) => {
-    const res = await api.post(`/api/admin/event/${id}`, eventData, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })
-    return res.data
+// 사용자용 이벤트 상세 조회
+export const fetchEventById = (id) => {
+    return api.get(`/api/event/${id}`)
 }
 
-export const fetchEventById = async (id) => {
-    const res = await api.get(`/api/event/${id}`)
-    return res.data
+// 관리자용 이벤트 목록 조회
+export const getAdminEvents = (params) => {
+    return api.get('/api/admin/event', { params })
 }
 
-export const deleteEvent = async (id, token) => {
-    await api.delete(`/api/admin/event/${id}`, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })
+// 관리자용 이벤트 생성
+export const createEvent = (eventData) => {
+    return api.post('/api/admin/event', eventData)
+}
+
+// 관리자용 이벤트 수정
+export const updateEvent = (id, eventData) => {
+    return api.post(`/api/admin/event/${id}`, eventData)
+}
+
+// 관리자용 이벤트 삭제
+export const deleteEvent = (id) => {
+    return api.delete(`/api/admin/event/${id}`)
+}
+
+// 관리자용 이벤트 상세 조회
+export const getEventById = (id) => {
+    return api.get(`/api/admin/event/${id}`)
 }

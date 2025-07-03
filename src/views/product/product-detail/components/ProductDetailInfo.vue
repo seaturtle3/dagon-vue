@@ -3,12 +3,15 @@ import { ref, computed, onMounted } from 'vue'
 import { partnerService } from '@/api/partner'
 import {BASE_URL} from "@/constants/baseUrl.js";
 import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Navigation, Pagination } from 'swiper/modules';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { useRouter } from 'vue-router'
+
+import ProductEditButton from "@/views/product/product-detail/components/ProductEditButton.vue";
 
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import 'swiper/css/autoplay';
 
 const props = defineProps({
   product: {
@@ -28,6 +31,48 @@ const currentUser = ref(null);
 
 // 현재 사용자가 상품 작성자인지 확인
 const isOwnProduct = ref(false);
+
+// 이미지 모달 관련 상태
+const showImageModal = ref(false)
+const modalStartIndex = ref(0)
+
+const imageList = computed(() => {
+  if (props.product.prodImageDataList && props.product.prodImageDataList.length > 0) {
+    return props.product.prodImageDataList.map(img =>
+      img.startsWith('data:image') ? img : `data:image/jpeg;base64,${img}`
+    )
+  } else if (props.product.prodImageNames && props.product.prodImageNames.length > 0) {
+    return props.product.prodImageNames.map(img =>
+      img.startsWith('/') ? `${BASE_URL}${img}` : `${BASE_URL}${img}`
+    )
+  }
+  return []
+})
+
+const swiperInstance = ref(null)
+let timer = null
+const isReady = ref(false)
+
+function onSwiperReady(swiper) {
+  isReady.value = true;
+  // 필요하다면 swiperInstance.value = swiper; // Swiper 8 이상에서는 자동 할당됨
+}
+
+function onMouseEnter() {
+  timer = setTimeout(() => {
+    if (isReady.value && swiperInstance.value?.slideNext) {
+      swiperInstance.value.slideNext();
+    } else if (isReady.value && swiperInstance.value?.swiper?.slideNext) {
+      swiperInstance.value.swiper.slideNext();
+    } else {
+      console.log('Swiper 인스턴스가 아직 준비되지 않았습니다.', swiperInstance.value);
+    }
+  }, 2000);
+}
+
+function onMouseLeave() {
+  clearTimeout(timer);
+}
 
 // 파트너 상품 목록에서 본인 상품인지 확인
 const checkOwnership = async () => {
@@ -69,24 +114,13 @@ const initializeUserInfo = () => {
   }
 };
 
-console.log('***********prodImageNames:', props.product.prodImageNames)
-
-function formatDate(dateStr) {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
 function onContactClick() {
-  // 상품명과 ID를 쿼리로 넘기며 문의 페이지로 이동
   router.push({
     path: '/product-inquiry',
     query: {
       productName: props.product.prodName,
-      productId: props.product.prodId
+      productId: props.product.prodId,
+      partnerUno: props.product.uno
     }
   });
 }
@@ -202,9 +236,13 @@ async function deleteProduct() {
   }
 }
 
-// 상품 수정 페이지로 이동
-function editProduct() {
-  router.push(`/products/edit/${props.product.prodId}`)
+// 이미지 클릭 시 모달 오픈
+function openImageModal(idx) {
+  modalStartIndex.value = idx
+  showImageModal.value = true
+}
+function closeImageModal() {
+  showImageModal.value = false
 }
 
 // 컴포넌트 마운트 시 사용자 정보 초기화
@@ -212,6 +250,9 @@ onMounted(() => {
   initializeUserInfo();
   checkOwnership();
 });
+
+console.log('swiperInstance.value:', swiperInstance.value);
+console.log('swiperInstance.value.swiper:', swiperInstance.value?.swiper);
 </script>
 
 <template>
@@ -229,17 +270,17 @@ onMounted(() => {
             <span>{{ props.product.prodName }}</span>
           </div>
         </div>
+
         <!-- 작성자인 경우에만 수정/삭제 버튼 표시 -->
-        <div v-if="isOwnProduct" class="header-actions">
-          <button @click="editProduct" class="btn btn-primary">
-            <i class="fas fa-edit"></i>
-            수정
-          </button>
-          <button @click="deleteProduct" class="btn btn-danger">
+        <div class="header-actions">
+            <ProductEditButton :product="product" v-if="isOwnProduct" />
+
+          <button v-if="isOwnProduct" @click="deleteProduct" class="btn btn-danger">
             <i class="fa-solid fa-x"></i>
             삭제
           </button>
         </div>
+
       </div>
     </div>
 
@@ -249,27 +290,49 @@ onMounted(() => {
       <div class="thumbnail-section">
         <div class="thumbnail-container">
           <Swiper
-              :modules="[Navigation, Pagination]"
+              ref="swiperInstance"
+              :modules="[Navigation, Pagination, Autoplay]"
               :slides-per-view="1"
               :space-between="10"
+              :loop="true"
+              :autoplay="{ delay: 2500, disableOnInteraction: false }"
               navigation
               pagination
               class="main-swiper"
+              @swiper="onSwiperReady"
+              @mouseenter="onMouseEnter"
+              @mouseleave="onMouseLeave"
           >
-            <!-- 썸네일이 있으면 이미지 슬라이드 보여줌 -->
-            <SwiperSlide
-                v-for="(img, idx) in (props.product.prodImageNames || []).filter(Boolean)"
-                :key="idx"
-            >
-              <img :src="`${BASE_URL}${img}`" class="slide-image" alt="상품 이미지" />
-            </SwiperSlide>
-
-            <!-- 썸네일이 없으면 대체 이미지 or 빈 슬라이드 -->
-            <SwiperSlide v-if="!props.product.prodImageNames || props.product.prodImageNames.length === 0">
-              <div class="no-image-placeholder">
-                이미지 없음
-              </div>
-            </SwiperSlide>
+            <!-- 1. prodImageDataList가 있으면 그것만 보여줌 -->
+            <template v-if="props.product.prodImageDataList && props.product.prodImageDataList.length > 0">
+              <SwiperSlide
+                v-for="(imgData, idx) in props.product.prodImageDataList"
+                :key="'data-'+idx"
+                @click="openImageModal(idx)"
+                style="cursor: pointer"
+              >
+                <img :src="imgData.startsWith('data:image') ? imgData : `data:image/jpeg;base64,${imgData}`" class="slide-image" alt="상품 이미지" />
+              </SwiperSlide>
+            </template>
+            <!-- 2. prodImageNames가 있으면 그것만 보여줌 -->
+            <template v-else-if="props.product.prodImageNames && props.product.prodImageNames.length > 0">
+              <SwiperSlide
+                v-for="(img, idx) in props.product.prodImageNames"
+                :key="'name-'+idx"
+                @click="openImageModal(idx)"
+                style="cursor: pointer"
+              >
+                <img :src="img.startsWith('/') ? img : `${BASE_URL}${img}`" class="slide-image" alt="상품 이미지" />
+              </SwiperSlide>
+            </template>
+            <!-- 3. 둘 다 없으면 placeholder -->
+            <template v-else>
+              <SwiperSlide>
+                <div class="no-image-placeholder">
+                  이미지 없음
+                </div>
+              </SwiperSlide>
+            </template>
           </Swiper>
 
           <div class="thumbnail-overlay">
@@ -435,6 +498,29 @@ onMounted(() => {
         </form>
       </div>
     </div>
+
+    <!-- 이미지 모달 -->
+    <div v-if="showImageModal" class="image-modal-overlay" @click.self="closeImageModal">
+      <div class="image-modal-content">
+        <button class="modal-close-btn" @click="closeImageModal">×</button>
+        <Swiper
+          :modules="[Navigation, Pagination]"
+          :slides-per-view="1"
+          :space-between="10"
+          navigation
+          pagination
+          :initial-slide="modalStartIndex"
+          class="modal-swiper"
+        >
+          <SwiperSlide
+            v-for="(img, idx) in imageList"
+            :key="'modal-'+idx"
+          >
+            <img :src="img" class="modal-slide-image" alt="상품 이미지" />
+          </SwiperSlide>
+        </Swiper>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -525,12 +611,25 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.swiper-wrapper {
+  /* Swiper 내부 래퍼 */
+  display: flex !important;
+}
+
+.swiper-slide {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
 .slide-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
   border-radius: 16px;
+  display: block;
 }
 
 /* Swiper 좌우 화살표 스타일 커스터마이징 */
@@ -944,6 +1043,49 @@ onMounted(() => {
   .btn {
     justify-content: center;
   }
+}
+
+/* 이미지 모달 스타일 */
+.image-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.image-modal-content {
+  position: relative;
+  background: transparent;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 800px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  font-size: 2rem;
+  color: #fff;
+  background: none;
+  border: none;
+  z-index: 10;
+  cursor: pointer;
+}
+.modal-swiper {
+  width: 100%;
+  height: 70vh;
+  background: transparent;
+}
+.modal-slide-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #222;
+  border-radius: 12px;
 }
 </style>
 

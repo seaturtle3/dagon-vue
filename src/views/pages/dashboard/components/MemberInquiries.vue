@@ -1,11 +1,6 @@
 <template>
   <div class="inquiries">
-    <h1>1:1 문의 관리</h1>
-
-    <div class="expand-controls">
-      <button @click="expandAllCategories" title="전체 펼치기"><span class="expand-icon">▼</span></button>
-      <button @click="collapseAllCategories" title="전체 접기"><span class="expand-icon">▲</span></button>
-    </div>
+    <h2>회원 문의 관리</h2>
 
     <div class="search-bar">
       <input type="text" v-model="searchQuery" placeholder="제목 또는 작성자로 검색">
@@ -33,33 +28,32 @@
     <!-- 문의 목록 -->
     <div class="inquiries-list">
       <div v-for="inquiry in paginatedInquiries" :key="inquiry.id" class="inquiry-item">
-            <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
-              <span class="inquiry-status" :class="inquiry.status">{{ inquiry.status }}</span>
-              <h3>{{ inquiry.title }}</h3>
+        <div class="inquiry-header" @click="toggleInquiry(inquiry.id)">
+          <span class="inquiry-status" :class="inquiry.status">{{ inquiry.status }}</span>
+          <h3>{{ inquiry.title }}</h3>
           <span class="inquiry-author">{{ inquiry.userName || inquiry.author }}</span>
-              <span class="inquiry-date">{{ formatDate(inquiry.createdAt) }}</span>
-              <span class="inquiry-toggle">{{ expandedInquiries.includes(inquiry.id) ? '▼' : '▶' }}</span>
+          <span class="inquiry-date">{{ formatDate(inquiry.createdAt) }}</span>
+        </div>
+        <!-- 문의 상세 펼침 영역 -->
+        <div v-if="expandedInquiries.includes(inquiry.id)" class="inquiry-content">
+          <div class="inquiry-message">
+            <h4>문의 내용</h4>
+            <p>{{ inquiry.content }}</p>
+          </div>
+          <!-- 답변이 있을 경우 -->
+          <div v-if="inquiry.answerContent" class="inquiry-reply">
+            <h4>답변</h4>
+            <p class="reply-label">[관리자 답변]</p>
+            <p class="reply-content">{{ inquiry.answerContent }}</p>
+            <p class="reply-date">{{ formatDate(inquiry.answeredAt) }}</p>
+            <div class="reply-actions">
+              <button @click="editReply(inquiry.id)">수정</button>
+              <button @click="deleteReply(inquiry.id)">삭제</button>
             </div>
-            <!-- 문의 상세 펼침 영역 -->
-            <div v-if="expandedInquiries.includes(inquiry.id)" class="inquiry-content">
-              <div class="inquiry-message">
-                <h4>문의 내용</h4>
-                <p>{{ inquiry.content }}</p>
-              </div>
-              <!-- 답변이 있을 경우 -->
-              <div v-if="inquiry.answerContent" class="inquiry-reply">
-                <h4>답변</h4>
-                <p class="reply-label">[관리자 답변]</p>
-                <p class="reply-content">{{ inquiry.answerContent }}</p>
-                <p class="reply-date">{{ formatDate(inquiry.answeredAt) }}</p>
-                <div class="reply-actions">
-                  <button @click="editReply(inquiry.id)">수정</button>
-                  <button @click="deleteReply(inquiry.id)">삭제</button>
-                </div>
-              </div>
-              <!-- 답변이 없을 경우 -->
-              <div v-else class="inquiry-actions">
-                <button @click="openReplyModal(inquiry.id)">답변하기</button>
+          </div>
+          <!-- 답변이 없을 경우 -->
+          <div v-else class="inquiry-actions">
+            <button @click="openReplyModal(inquiry.id)">답변하기</button>
           </div>
         </div>
       </div>
@@ -703,11 +697,6 @@ export default {
 .inquiry-date {
   color: #666;
   font-size: 0.875rem;
-}
-
-.inquiry-toggle {
-  font-size: 1.25rem;
-  color: #666;
 }
 
 .inquiry-content {

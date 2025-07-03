@@ -10,11 +10,10 @@ onMounted(async () => {
   await store.fetchProducts()
 })
 
-const productStore = useSeaProdStore()
-const products = computed(() => productStore.products)
+const products = computed(() => store.products)
 
 const onFilterChange = async (filter) => {
-  await productStore.fetchFilteredProducts(filter)
+  await store.fetchFilteredProducts(filter)
 }
 </script>
 

@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted, watch, defineEmits } from 'vue'
 import api from '@/lib/axios'
-import { useSeaProdStore } from '@/store/product/fishing-filter/useSeaProdStore.js'
+import { useFreshwaterProdStore } from '@/store/product/fishing-filter/useFreshwaterProdStore.js'
 
 const emit = defineEmits(['update:filter'])
-const seaStore = useSeaProdStore()
+const freshwaterStore = useFreshwaterProdStore()
 
 const regionMap = {
   SEOUL: '서울',
@@ -27,16 +27,6 @@ const regionMap = {
 }
 
 const subTypeMap = {
-  BREAK_WATER: "방파제",
-  ROCKY_SHORE: "갯바위",
-  ESTUARY: "하구",
-  BOAT: "선상",
-  MUD_FLAT: "갯벌",
-  ARTIFICIAL: "인공낚시터",
-  OPEN_SEA: "해상",
-  BEACH: "해변",
-  REEF: "암초",
-  OTHER_SEA: "기타_바다",
   RIVER: "강",
   RESERVOIR: "저수지",
   DAM: "댐",
@@ -51,7 +41,7 @@ const subTypeMap = {
 // 필터 옵션
 const filters = ref({
   regions: [],
-  subTypes: [],   // API에서 subTypes 키라면 여기도 맞춰야 함
+  subTypes: [],
   fishSpecies: []
 })
 
@@ -69,12 +59,12 @@ const fetchProducts = async (filterValues) => {
     subType: filterValues.subType || null,
     species: filterValues.species || null,
   }
-  await seaStore.fetchFilteredProducts(normalizedVal)
+  await freshwaterStore.fetchFilteredProducts(normalizedVal)
 }
 
 // 마운트 시 초기 필터 옵션 불러오기 및 상품 조회
 onMounted(async () => {
-  const { data } = await api.get('/api/product/sea/filter')
+  const { data } = await api.get('api/product/freshwater/filter')
   filters.value = data
 
   fetchProducts({})  // 전체 조회
@@ -88,7 +78,7 @@ watch(selected, (val) => {
 </script>
 
 <template>
-  <div class="sea-filter-detail">
+  <div class="freshwater-filter-detail">
     <div class="filter-row">
 
       <div class="filter-item">
@@ -120,7 +110,7 @@ watch(selected, (val) => {
 </template>
 
 <style scoped>
-.sea-filter-detail {
+.freshwater-filter-detail {
   width: 80%;
   margin: 0 auto;
   padding: 2rem;
@@ -169,4 +159,4 @@ watch(selected, (val) => {
   outline: none;
   box-shadow: 0 0 6px #7aa9f7;
 }
-</style>
+</style> 

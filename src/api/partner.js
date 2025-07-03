@@ -59,7 +59,7 @@ export const partnerService = {
 
     // 파트너 상품 삭제
     deleteProduct(prodId) {
-        return api.delete(`${API_URL}/products/delete/${prodId}`, {
+        return api.delete(`${API_URL}/product/delete/${prodId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -274,7 +274,10 @@ export const partnerService = {
 
     // 조황정보 댓글 작성 (엔드포인트: /comments/fishing-report/{postId})
     createFishingReportComment(postId, content, userId) {
-        const formData = new URLSearchParams();
+        console.log('postId:', postId)
+        console.log('content:', content)
+        console.log('userId:', userId)
+        const formData = new FormData();
         formData.append('content', content);
         formData.append('userId', userId);
         return api.post(`${API_URL}/comments/fishing-report/${postId}`, formData, {
@@ -287,7 +290,7 @@ export const partnerService = {
 
     // 조행기 댓글 작성 (엔드포인트: /comments/fishing-diary/{postId})
     createFishingDiaryComment(postId, content, userId) {
-        const formData = new URLSearchParams();
+        const formData = new FormData();
         formData.append('content', content);
         formData.append('userId', userId);
         return api.post(`${API_URL}/comments/fishing-diary/${postId}`, formData, {

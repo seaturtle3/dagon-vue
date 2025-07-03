@@ -58,6 +58,9 @@ export const createFAQ = (faqData) => {
     
     // 카테고리 문자열을 ID로 변환하는 매핑
     const categoryMapping = {
+        '일반회원': 1,
+        '파트너': 2,
+        '관리자': 3,
         '예약관련': 4,
         '결제관련': 5,
     }
@@ -109,6 +112,9 @@ export const updateFAQ = (id, faqData) => {
     
     // 카테고리 문자열을 ID로 변환하는 매핑
     const categoryMapping = {
+        '일반회원': 1,
+        '파트너': 2,
+        '관리자': 3,
         '예약관련': 4,
         '결제관련': 5,
     }

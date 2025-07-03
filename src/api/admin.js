@@ -1,5 +1,6 @@
 import api from '@/lib/axios';
 import {BASE_URL} from "@/constants/baseUrl.js";
+import { clearAuthData } from '@/utils/authUtils'
 
 const adminApi = api.create({
   baseURL: `${BASE_URL}/api/admin`,
@@ -17,7 +18,7 @@ export const adminAuth = {
   
   // 관리자 로그아웃
   logout: () => {
-    localStorage.removeItem('token');
+    clearAuthData();
   },
   
   // 토큰 유효성 검사

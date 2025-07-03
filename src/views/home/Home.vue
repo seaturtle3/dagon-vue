@@ -53,13 +53,13 @@ const recommendedProducts = computed(() => {
   <div class="home">
     <SideButtons />
     
+    <PopularList :reports="reportStore.reports" />
+    <RecommendationList :products="recommendedProducts" />
     <!-- 공지사항 섹션 -->
     <div class="notice-section">
       <NoticeBox />
     </div>
-    
-    <PopularList :reports="reportStore.reports" />
-    <RecommendationList :products="recommendedProducts" />
+
   </div>
 </template>
 

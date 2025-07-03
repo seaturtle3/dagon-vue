@@ -97,7 +97,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import {partnerService} from '@/api/partner'
 
@@ -244,6 +243,24 @@ export default {
 </script>
 
 <style scoped>
+.partner-page {
+  display: flex;
+  min-height: 100vh;
+}
+.sidebar {
+  width: 250px;
+  background: #fff;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.main-content {
+  flex: 1;
+  margin-left: 250px;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
 .dashboard {
   padding: 24px;
   background-color: #f8f9fa;

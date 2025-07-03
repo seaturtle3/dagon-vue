@@ -134,4 +134,25 @@ export default {
 .bar.active {
   background: white;
 }
+
+.fishing-footer {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.fishing-footer .container-fluid {
+  width: 100% !important;
+  max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.fishing-footer .row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+.fishing-footer .col-md-4,
+.fishing-footer .col {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
 </style>

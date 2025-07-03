@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueDevTools from 'vite-plugin-vue-devtools';
@@ -13,10 +12,11 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://0.0.0.0:8095/',
+        target: 'http://localhost:8095',
         changeOrigin: true,
         secure: false,
-        ws: true,
+        // ws: true, // 필요시만 사용
+        // rewrite: (path) => path.replace(/^\/api/, ''), // 필요시만 사용
       },
     },
   },

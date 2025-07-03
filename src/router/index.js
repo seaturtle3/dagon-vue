@@ -74,12 +74,12 @@ const routes = [
             },
             {
                 path: 'events',
-                component: () => import('@/views/pages/dashboard/components/Events.vue'),
+                component: () => import('@/views/pages/dashboard/components/AdminEvent.vue'),
                 meta: {requiresAuth: true}
             },
             {
                 path: 'notices',
-                component: () => import('@/views/pages/dashboard/components/Notices.vue'),
+                component: () => import('@/views/pages/dashboard/components/AdminNotice.vue'),
                 meta: {requiresAuth: true}
             },
             {
@@ -109,12 +109,17 @@ const routes = [
             },
             {
                 path: 'faq',
-                component: () => import('@/views/pages/dashboard/components/FAQ.vue'),
+                component: () => import('@/views/pages/dashboard/components/AdminFAQ.vue'),
                 meta: {requiresAuth: true}
             },
             {
                 path: 'inquiries',
-                component: () => import('@/views/pages/dashboard/components/Inquiries.vue'),
+                component: () => import('@/views/pages/dashboard/components/MemberInquiries.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'guest-inquiries',
+                component: () => import('@/views/pages/dashboard/components/GuestInquiries.vue'),
                 meta: {requiresAuth: true}
             },
             {
@@ -145,6 +150,7 @@ const routes = [
     // partner pages
     {
         path: '/partner',
+        name: 'PartnerPage',
         component: () => import('@/views/pages/partner-page/PartnerPage.vue'),
         redirect: '/partner/dashboard',
         meta: {requiresAuth: true},
@@ -161,6 +167,7 @@ const routes = [
                 component: () => import('@/views/pages/partner-page/components/ReservationDetail.vue')
             },
             {path: 'products', component: () => import('@/views/pages/partner-page/components/ProductList.vue')},
+            {path: 'products/form', component: () => import('@/views/pages/partner-page/ProductForm.vue')},
             {
                 path: 'market-info',
                 component: () => import('@/views/pages/partner-page/components/FishingReportManager.vue')
@@ -203,6 +210,10 @@ const routes = [
                 path: ':prodId',
                 name: 'ProductDetail',
                 component: () => import('@/views/product/product-detail/ProductDetail.vue'),
+            },            {
+                path: 'edit/:prodId',
+                name: 'ProductEdit',
+                component: () => import('@/views/product/all-products/ProductForm.vue'),
             },
         ]
     },
@@ -222,6 +233,18 @@ const routes = [
                 props: true, // <--- 이걸 해야 route.params.id를 prop으로 받을 수 있어},
             },
         ]
+    },
+
+    {
+        path: '/fishing-report/create',
+        name: 'FishingReportCreate',
+        component: () => import('@/views/community/fishing-report/ReportForm.vue')
+    },
+    {
+        path: '/fishing-report/edit/:frId',
+        name: 'FishingReportEdit',
+        component: () => import('@/views/community/fishing-report/ReportForm.vue'),
+        props: true
     },
 
     {
@@ -332,6 +355,42 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+    if (to.path === '/admin/login') {
+        next();
+        return;
+    }
+    if (to.path.startsWith('/admin')) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            next('/admin/login');
+            return;
+        }
+        try {
+            // JWT payload 파싱
+            const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            const role = payload.role || payload.auth || payload.roles || payload.ROLE;
+            if (role !== 'SUPER_ADMIN' && role !== 'ADMIN') {
+                // window.confirm → 커스텀 모달로 변경
+                window.AdminAuthModal.openModal(
+                  () => {
+                    localStorage.removeItem('token');
+                    next('/admin/login');
+                  },
+                  () => {
+                    next(false);
+                  }
+                );
+                return;
+            }
+        } catch (e) {
+            // 토큰 파싱 실패 시 강제 로그아웃
+            localStorage.removeItem('token');
+            next('/admin/login');
+            return;
+        }
+        next();
+        return;
+    }
     if (to.matched.some(record => record.meta.requiresAuth)) {
         const token = localStorage.getItem('token')
         if (!token) {

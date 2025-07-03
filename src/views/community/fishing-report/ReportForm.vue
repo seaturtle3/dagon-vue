@@ -1,11 +1,16 @@
 <template>
   <div class="center">
-    <ReportFormView />
+    <ReportFormView :edit-mode="editMode" :report-id="reportId" />
   </div>
 </template>
 
 <script setup>
-import ReportFormView from "@/views/community/fishing-report/components/ReportFormView.vue";
+import { useRoute } from 'vue-router'
+import ReportFormView from './components/ReportFormView.vue'
+
+const route = useRoute()
+const editMode = route.name === 'FishingReportEdit'
+const reportId = route.params.frId
 </script>
 
 <style>

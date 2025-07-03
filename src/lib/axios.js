@@ -1,14 +1,29 @@
 import axios from 'axios'
 import {BASE_URL} from "@/constants/baseUrl.js";
+import { clearAuthData } from '@/utils/authUtils'
 
 console.log('BASE_URL:', BASE_URL)
+
+function base64UrlDecode(str) {
+  // Base64Url → Base64 변환
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  // 패딩 추가
+  while (str.length % 4) {
+    str += '=';
+  }
+  return atob(str);
+}
 
 const api = axios.create({
     baseURL: BASE_URL || 'http://localhost:8095',
     timeout: 30000,
     headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accept': 'application/json; charset=utf-8'
     }
+    // headers: {
+    //     'Content-Type': 'application/json',
+    // }
 })
 
 // 요청 인터셉터
@@ -17,9 +32,21 @@ api.interceptors.request.use(
         // localStorage에서 토큰 가져와서 헤더에 추가
         const token = localStorage.getItem('token')
         if (token) {
+            const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
             config.headers.Authorization = `Bearer ${token}`
         }
         
+        // data가 FormData인지 확인해서 Content-Type을 동적으로 설정
+        if (config.data instanceof FormData) {
+            // FormData일 때는 Content-Type을 axios가 자동으로 설정하도록 둔다
+            config.headers['Content-Type'] = 'multipart/form-data'
+        } else if (config.headers['Content-Type']) {
+            // 이미 Content-Type이 있으면 그대로 둔다
+        } else {
+            // JSON 데이터일 때만 Content-Type을 명시
+            config.headers['Content-Type'] = 'application/json'
+        }
+
         console.log('API 요청:', config.method?.toUpperCase(), config.url, config.data)
         console.log('요청 헤더:', config.headers)
         return config
@@ -71,7 +98,7 @@ api.interceptors.response.use(
         // 401 에러 시 토큰 삭제 및 로그인 페이지로 리다이렉트
         if (errorStatus === 401) {
             console.log('인증 실패, 토큰 삭제 및 로그인 페이지로 이동')
-            localStorage.removeItem('token')
+            clearAuthData()
             const path = window.location.pathname
             if (path.startsWith('/admin')) {
                 if (window.location.pathname !== '/admin/login') {
@@ -91,5 +118,45 @@ api.interceptors.response.use(
         return Promise.reject(error)
     }
 )
+
+// 멀티파트 업로드 전용 메서드 추가
+api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
+  const formData = new FormData();
+  const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
+  formData.append(dtoKey, blob);
+  if (Array.isArray(files)) {
+    files.forEach(file => {
+      if (file) formData.append(fileKey, file);
+    });
+  } else if (files) {
+    formData.append(fileKey, files);
+  }
+  const token = localStorage.getItem('token');
+  return api.post(url, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+};
+
+// PUT용 멀티파트 업로드 메서드 추가
+api.multipartPut = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
+  const formData = new FormData();
+  const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
+  formData.append(dtoKey, blob);
+  if (Array.isArray(files)) {
+    files.forEach(file => {
+      if (file) formData.append(fileKey, file);
+    });
+  } else if (files) {
+    formData.append(fileKey, files);
+  }
+  const token = localStorage.getItem('token');
+  return api.put(url, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+};
 
 export default api
