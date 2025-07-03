@@ -120,7 +120,8 @@ console.log("-------------->",getEventThumbnail())
 .thumbnail-wrapper img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: #f8f9fa;
 }
 
 .badge {
