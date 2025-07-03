@@ -12,12 +12,14 @@
     :message="errorMessage"
     :onConfirm="() => showErrorModal = false"
   />
-  <ModalDialog
-    :show="showSuccessModal"
-    title="성공"
-    message="회원정보가 성공적으로 수정되었습니다."
-    :onConfirm="handleSuccessConfirm"
-  />
+  <teleport to="body">
+    <ModalDialog
+      :show="showSuccessModal"
+      title="성공"
+      message="회원정보가 성공적으로 수정되었습니다."
+      :onConfirm="handleSuccessConfirm"
+    />
+  </teleport>
   <div class="profile-container">
     <h2 class="page-title">회원정보</h2>
     <div class="profile-form">

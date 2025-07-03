@@ -1,4 +1,16 @@
 <template>
+  <teleport to="body">
+    <div v-if="isModalOpen" class="modal-overlay" @click="closeModal">
+      <div class="modal-box" @click.stop>
+        <h3>정말 탈퇴하시겠습니까?</h3>
+        <p>이 작업은 되돌릴 수 없습니다.</p>
+        <div class="modal-actions">
+          <button class="btn btn-gray" @click="closeModal">취소</button>
+          <button class="btn btn-danger" @click="confirmWithdrawal">탈퇴하기</button>
+        </div>
+      </div>
+    </div>
+  </teleport>
   <ModalDialog
     :visible="showLoginModal"
     title="로그인 필요"
@@ -40,17 +52,6 @@
         <button class="btn btn-danger full" @click="showConfirmModal" :disabled="!password">
           회원 탈퇴
         </button>
-      </div>
-    </div>
-
-    <div v-if="isModalOpen" class="modal-overlay" @click="closeModal">
-      <div class="modal-box" @click.stop>
-        <h3>정말 탈퇴하시겠습니까?</h3>
-        <p>이 작업은 되돌릴 수 없습니다.</p>
-        <div class="modal-actions">
-          <button class="btn btn-gray" @click="closeModal">취소</button>
-          <button class="btn btn-danger" @click="confirmWithdrawal">탈퇴하기</button>
-        </div>
       </div>
     </div>
   </div>
@@ -100,7 +101,7 @@ const closeErrorModal = () => {
 
 const confirmWithdrawal = async () => {
   try {
-    await myPageAPI.deleteAccount(password.value);
+    await myPageAPI.deleteAccount({ password: password.value });
     adminAuth.logout();
     router.push('/login');
   } catch (error) {
@@ -231,7 +232,7 @@ const goToLogin = () => {
 
 .modal-overlay {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   width: 100vw;
   height: 100vh;
   background: rgba(0,0,0,0.5);
