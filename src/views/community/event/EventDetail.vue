@@ -472,15 +472,13 @@ hr.board-divider {
   transition: transform 0.3s ease;
 }
 
-
 .event-image {
   width: 100%;
   height: 200px;
   object-fit: cover;
+  background-color: #fff;
   transition: opacity 0.3s ease;
 }
-
-
 
 /* 이미지 모달 스타일 */
 .image-modal {

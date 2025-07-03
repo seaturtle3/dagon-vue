@@ -52,14 +52,14 @@ const initializeExistingImages = () => {
 onMounted(() => {
   // 기존 이미지 초기화
   initializeExistingImages()
-  
+
   $(`#${props.editorId}`).summernote({
     height: 500,
     placeholder: '내용을 입력하세요',
     callbacks: {
       onChange: (contents) => {
         emit('update:modelValue', contents)
-        
+
         // 이미지 변경 추적
         trackImageChanges(contents)
       },
@@ -74,7 +74,7 @@ onMounted(() => {
         
         // 에디터 내부 모든 텍스트 요소에 색상 적용
         $editable.find('*').css('color', '#333')
-        
+
         // 초기 콘텐츠에서 이미지 변경 추적
         if (props.modelValue) {
           trackImageChanges(props.modelValue)
@@ -88,19 +88,19 @@ onMounted(() => {
               alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
               continue
             }
-            
+
             // 파일 타입 체크
             if (!file.type.startsWith('image/')) {
               alert(`${file.name}은 이미지 파일이 아닙니다.`)
               continue
             }
-            
+
             // FormData 생성
             const formData = new FormData()
             formData.append('file', file)
 
             let uploadUrl = ''
-            if (props.eventId) {
+            if (props.eventId || props.eventId === 0) {
               formData.append('eventId', props.eventId)
               uploadUrl = '/api/images/event/uploadImage'
             } else {
@@ -126,22 +126,24 @@ onMounted(() => {
               },
               body: formData
             })
-            
-            if (!response.ok) {
-              const errorText = await response.text()
-              throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
-            }
-            
-            // 서버에서 반환된 DB URL
-            const dbUrl = await response.text()
-            
-            // BASE_URL을 붙여서 절대경로로 만듦
-            const fullUrl = BASE_URL.replace(/\/$/, '') + dbUrl
-            console.log("--------------fullUrl>",fullUrl)
-            
+            console.log("--------------response>",response)
+
+            if (response.ok) {
+              // 서버가 JSON 반환 시
+              const dbUrl = await response.json();
+              console.log('dbUrl:', dbUrl);
+
+              // 서버가 문자열 반환 시
+              // const dbUrl = await response.text();
+              // console.log('dbUrl:', dbUrl);
+
+           // BASE_URL을 붙여서 절대경로로 만듦
+           const fullUrl = BASE_URL.replace(/\/$/, '') + dbUrl.dbUrl
+            console.log("--------------fullUrl>",props.eventId, fullUrl)
+
             // 에디터에 이미지 삽입 (DB URL 사용)
             $(`#${props.editorId}`).summernote('insertImage', fullUrl)
-            
+
             // 새 이미지로 등록
             newImages.value.push({
               url: fullUrl,
@@ -150,13 +152,13 @@ onMounted(() => {
               isThumbnail: false,
               uploadedAt: new Date()
             })
-            
+
             // 부모 컴포넌트에 이미지 업로드 완료 알림
             emit('imageData', { success: true, url: fullUrl })
-            
+
             // 이미지 변경사항 전달
             emitImageChanges()
-            
+
             console.log('에디터 이미지 업로드 성공:', {
               url: fullUrl,
               fileName: file.name,
@@ -164,7 +166,15 @@ onMounted(() => {
               imageType: 'editor',
               isThumbnail: false
             })
-            
+
+
+            } else {
+              // 에러 처리
+              const errorText = await response.text();
+              console.error('업로드 실패:', errorText);
+            }
+
+
           } catch (e) {
             console.error('이미지 업로드 실패', e)
             alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.')
@@ -184,7 +194,7 @@ onMounted(() => {
 const trackImageChanges = (content) => {
   const currentImageUrls = extractImageUrls(content)
   const currentUrlSet = new Set(currentImageUrls)
-  
+
   // 삭제된 이미지 찾기
   const deleted = []
   existingImageUrls.value.forEach(url => {
@@ -192,16 +202,16 @@ const trackImageChanges = (content) => {
       deleted.push(url)
     }
   })
-  
+
   // 새로 추가된 이미지 찾기 (기존에 없던 URL)
   const newlyAdded = currentImageUrls.filter(url => {
-    return !existingImageUrls.value.has(url) && 
+    return !existingImageUrls.value.has(url) &&
            !newImages.value.some(img => img.url === url)
   })
-  
+
   // 삭제된 이미지 업데이트
   deletedImages.value = deleted
-  
+
   // 새로 추가된 이미지들을 newImages에 추가
   newlyAdded.forEach(url => {
     if (!newImages.value.some(img => img.url === url)) {
@@ -211,7 +221,7 @@ const trackImageChanges = (content) => {
       })
     }
   })
-  
+
   // 부모 컴포넌트에 변경사항 전달
   emitImageChanges()
 }
@@ -230,7 +240,7 @@ watch(() => props.modelValue, (newVal) => {
   if ($editor.length && $editor.summernote('isEmpty') && newVal) {
     $editor.summernote('code', newVal)
   }
-  
+
   // 콘텐츠 변경 시 이미지 추적
   if (newVal) {
     trackImageChanges(newVal)
