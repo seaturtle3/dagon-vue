@@ -56,42 +56,7 @@ const fetchEventList = async () => {
     }
   } catch (err) {
     console.error('이벤트 목록 불러오기 실패:', err)
-    // 에러 시 임시 데이터 표시
-    events.value = [
-      {
-        eventId: 1,
-        title: '봄맞이 할인 이벤트',
-        content: '봄 시즌을 맞이하여 진행되는 특별 할인 이벤트입니다.',
-        thumbnailUrl: '/images/event1.jpg',
-        startAt: '2024-03-01',
-        endAt: '2024-03-31',
-        eventStatus: '진행중',
-        isTop: true,
-        createdAt: '2024-01-15T10:00:00'
-      },
-      {
-        eventId: 2,
-        title: '여름 낚시 대회',
-        content: '여름 시즌 특별 낚시 대회를 개최합니다.',
-        thumbnailUrl: '/images/event2.jpg',
-        startAt: '2024-06-01',
-        endAt: '2024-06-30',
-        eventStatus: '진행예정',
-        isTop: false,
-        createdAt: '2024-01-20T10:00:00'
-      },
-      {
-        eventId: 3,
-        title: '가을 낚시 체험',
-        content: '가을 낚시의 매력을 체험해보세요.',
-        thumbnailUrl: '/images/event3.jpg',
-        startAt: '2024-09-01',
-        endAt: '2024-09-30',
-        eventStatus: '진행예정',
-        isTop: false,
-        createdAt: '2024-01-25T10:00:00'
-      }
-    ]
+    events.value = []
     totalPages.value = 1
   } finally {
     loading.value = false

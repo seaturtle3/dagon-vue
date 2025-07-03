@@ -18,6 +18,28 @@
 
 /* ===== 전역 스타일 ===== */
 
+body, html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Pretendard', sans-serif;
+}
+
+/* 링크 스타일 */
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--transition-normal);
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+a:focus {
+  outline: none;
+}
+
 /* 전역 input 스타일 */
 input[type="text"],
 input[type="email"],
@@ -68,8 +90,8 @@ textarea::placeholder {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--gray-50);
-  font-family: 'Noto Sans KR', sans-serif;
+  /* background-color: var(--gray-50); */
+  font-family: 'Pretendard', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--gray-900);
@@ -378,4 +400,10 @@ textarea::placeholder {
 /* 헤더 네비게이션 */
 .header-nav, .headerNav {
   z-index: 2000 !important;
-} 
+}
+
+/* 햄버거 메뉴 등 토글 버튼의 포커스(클릭/탭) 시 자연스러운 파란색 outline */
+.navbar-toggler:focus {
+  outline: 1px solid #6b7280 !important;
+  box-shadow: none !important;
+}

@@ -19,7 +19,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="main">
+  <div class="product-edit-container">
     <ProductFormView
         :form="formStore.form"
         :regions="enumStore.regions"
@@ -30,10 +30,18 @@ onMounted(async () => {
   </div>
 </template>
 
+<style scoped>
+.product-edit-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 64px);
+  background: linear-gradient(to bottom, #e3f2fd, #bbdefb);
+}
 
-<style>
-.main {
-  width: 80%;
-  margin: 5% auto;
+@media (max-width: 768px) {
+  .product-edit-container {
+    padding: 1rem 0.5rem;
+  }
 }
 </style>

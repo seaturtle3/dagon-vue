@@ -15,7 +15,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="main">
+  <div class="product-list-container">
     <!-- ProductListView -->
     <ProductListView
         :products="listStore.products"
@@ -27,8 +27,17 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.main {
-  width: 80%;
-  margin: 5% auto;
+.product-list-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 64px);
+  background: linear-gradient(to bottom, #e3f2fd, #bbdefb);
+}
+
+@media (max-width: 768px) {
+  .product-list-container {
+    padding: 1rem 0.5rem;
+  }
 }
 </style>

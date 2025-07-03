@@ -19,7 +19,7 @@ const props = defineProps({
 
 const router = useRouter()
 const currentPage = ref(1)
-const pageSize = 12
+const pageSize = 15 // 5개씩 3줄
 
 const totalPages = computed(() =>
     Math.ceil(props.seaProducts.length / pageSize)
@@ -75,7 +75,7 @@ function handleMouseLeave(idx) {
         style="cursor: pointer"
     >
       <div class="card-top">
-        <span class="prod-name mb-2 fs-5">{{ product.prodName }}</span>
+        <span class="prod-name fs-5">{{ product.prodName }}</span>
       </div>
       <!-- 썸네일 -->
       <div class="thumbnail-wrapper"
@@ -164,9 +164,10 @@ function handleMouseLeave(idx) {
 <style scoped>
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* ✅ 반응형 열 */
+  grid-template-columns: repeat(5, 1fr); /* 5열 고정 */
   gap: 32px;
-  place-items: center; /* ✅ 아이템들을 가운데 정렬 */
+  place-items: center;
+  margin-bottom: 120px;
 }
 
 @media (max-width: 1200px) {
@@ -195,8 +196,8 @@ function handleMouseLeave(idx) {
   flex-direction: column;
   min-width: 0;
   width: 100%;
-  max-width: 320px;  /* ✅ 고정된 카드 폭 */
-  margin: 0 auto;    /* ✅ 가운데 정렬 */
+  max-width: 320px;
+  margin: 0 auto;
 }
 
 .card-top {
@@ -204,8 +205,9 @@ function handleMouseLeave(idx) {
   justify-content: center;
   align-items: center;      /* (선택) 수직 정렬 */
   font-size: 1.1rem;
-  background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%);
-  color: black;
+  /* background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%); */
+  background: #6991ff;
+  color: rgb(255, 255, 255);
   padding: 12px 16px 8px 16px;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
@@ -228,7 +230,7 @@ function handleMouseLeave(idx) {
   width: 100%;
   height: 180px;
   object-fit: cover;
-  border-radius: 0 0 10px 10px;
+  /* border-radius: 0 0 10px 10px; */
   display: block;
 }
 

@@ -19,7 +19,7 @@ const props = defineProps({
 
 const router = useRouter()
 const currentPage = ref(1)
-const pageSize = 12
+const pageSize = 15 // 5개씩 3줄
 
 const totalPages = computed(() =>
     Math.ceil(props.filteredProducts.length / pageSize)
@@ -59,7 +59,6 @@ function handleMouseLeave(idx) {
   const swiper = swiperRefs.value[idx]
   if (swiper && swiper.autoplay) {
     swiper.autoplay.stop()
-    // Swiper 내부 상태도 수동으로 조정 (중복 방지)
     if (swiper.autoplay.running) {
       swiper.autoplay.running = false
     }
@@ -167,9 +166,10 @@ function handleMouseLeave(idx) {
 <style scoped>
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* ✅ 반응형 열 */
+  grid-template-columns: repeat(5, 1fr); /* 5열 고정 */
   gap: 32px;
-  place-items: center; /* ✅ 아이템들을 가운데 정렬 */
+  place-items: center;
+  margin-bottom: 120px;
 }
 
 @media (max-width: 1200px) {
@@ -198,17 +198,17 @@ function handleMouseLeave(idx) {
   flex-direction: column;
   min-width: 0;
   width: 100%;
-  max-width: 320px;  /* ✅ 고정된 카드 폭 */
-  margin: 0 auto;    /* ✅ 가운데 정렬 */
+  max-width: 320px;
+  margin: 0 auto;
 }
 
 .card-top {
-  display: flex;            /* ✅ flex 컨테이너로 만들고 */
+  display: flex;
   justify-content: center;
-  align-items: center;      /* (선택) 수직 정렬 */
+  align-items: center;
   font-size: 1.1rem;
-  background: linear-gradient(90deg, #e8f5e9 0%, #c8e6c9 100%);
-  color: black;
+  background: #46af87;
+  color: #fff;
   padding: 12px 16px 8px 16px;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
@@ -217,10 +217,10 @@ function handleMouseLeave(idx) {
 
 .prod-name {
   font-weight: bold;
-  display: block;       /* ✅ 줄바꿈 방지 */
+  display: block;
   overflow: hidden;
-  text-overflow: ellipsis; /* ✅ 말줄임 표시 */
-  white-space: nowrap;  /* ✅ 한 줄로 고정 */
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .thumbnail-wrapper {
@@ -231,7 +231,6 @@ function handleMouseLeave(idx) {
   width: 100%;
   height: 180px;
   object-fit: cover;
-  border-radius: 0 0 10px 10px;
   display: block;
 }
 
@@ -244,17 +243,17 @@ function handleMouseLeave(idx) {
   color: #666;
   margin-bottom: 5%;
   overflow: hidden;
-  text-overflow: ellipsis; /* ✅ 말줄임 표시 */
-  white-space: nowrap;  /* ✅ 한 줄로 고정 */
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 button {
   width: 100%;
   padding: 10px 16px;
   border-radius: 8px;
-  border: 2px solid #007bff;
+  border: 2px solid #388e3c;
   background: #ffffff;
-  color: #007bff;
+  color: #388e3c;
   font-weight: bold;
   font-size: 1rem;
   cursor: pointer;
@@ -262,7 +261,7 @@ button {
 }
 
 button:hover {
-  background: #e6f0ff;
+  background: #e8f5e9;
 }
 
 .weight-max {

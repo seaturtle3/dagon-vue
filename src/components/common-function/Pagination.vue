@@ -44,33 +44,88 @@ function goToNextGroup() {
 </script>
 
 <template>
-  <div class="d-flex justify-content-center mt-5">
+  <div class="pagination">
     <button
-      class="btn btn-outline-secondary mx-1"
+      class="arrow-btn"
       :disabled="startPage === 1"
       @click="goToPrevGroup"
     >
-      이전
+      <span aria-hidden="true">&lt;</span>
     </button>
 
     <button
       v-for="pageNum in pageNumbers"
       :key="pageNum"
-      class="btn mx-1"
-      :class="(zeroBased ? page === (pageNum - 1) : page === pageNum)
-        ? 'btn-primary'
-        : 'btn-outline-primary'"
+      :class="['page-btn', (zeroBased ? page === (pageNum - 1) : page === pageNum) ? 'active' : '']"
       @click="goToPage(zeroBased ? pageNum - 1 : pageNum)"
     >
       {{ pageNum }}
     </button>
 
     <button
-      class="btn btn-outline-secondary mx-1"
+      class="arrow-btn"
       :disabled="endPage === totalPages"
       @click="goToNextGroup"
     >
-      다음
+      <span aria-hidden="true">&gt;</span>
     </button>
   </div>
 </template>
+
+<style scoped>
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+.page-btn {
+  background: transparent;
+  color: #222;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.page-btn.active,
+.page-btn:focus {
+  background: #2563eb;
+  color: #fff;
+  font-weight: 700;
+}
+.page-btn:hover:not(.active):not(:disabled) {
+  background: #f3f4f6;
+}
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.arrow-btn {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  color: #2563eb;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: border-color 0.18s;
+}
+.arrow-btn:hover:not(:disabled) {
+  border-color: #2563eb;
+}
+.arrow-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

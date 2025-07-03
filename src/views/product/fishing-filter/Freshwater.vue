@@ -42,22 +42,18 @@ const onFilterChange = async (filter) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 3%;
+  margin-bottom: 0;
 }
 .fresh-title h4 {
   font-size: 2.2rem;
   font-weight: bold;
-  color: #388e3c;
   letter-spacing: 0.1em;
   padding: 0.5em 2em;
-  border-radius: 2em;
-  background: linear-gradient(90deg, #e8f5e9 0%, #c8e6c9 100%);
-  box-shadow: 0 2px 8px rgba(56, 142, 60, 0.08);
 }
 
 .filter-detail-wrapper {
   display: flex;
-  justify-content: center; /* 수평 중앙 정렬 */
-  margin-bottom: 5rem; /* 아래쪽 여백 */
+  justify-content: center;
+  margin-bottom: 100px;
 }
 </style>
