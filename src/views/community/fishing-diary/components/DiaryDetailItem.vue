@@ -4,6 +4,7 @@ import { partnerService } from '@/api/partner';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useFishingDiaryStore } from '@/store/fishing-center/useFishingDiaryStore.js';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 const props = defineProps({
   editMode: Boolean,
@@ -309,7 +310,7 @@ const formatDate = (dateString) => {
           @click="openReportModal(diary, 'diary')"
           title="게시글 신고"
       >
-        <i class="fas fa-flag"></i> 신고
+        <font-awesome-icon :icon="['fas', 'flag']" class="fa-icon" /> 신고
       </button>
     </div>
 
@@ -319,7 +320,7 @@ const formatDate = (dateString) => {
         <div class="info-header">
           <h3 class="info-title">조행기 정보</h3>
           <div class="views-count">
-            <i class="fa fa-eye"></i>
+            <font-awesome-icon :icon="['fas', 'eye']" class="fa-icon" />
             <span>{{ diary.views || 0 }}</span>
           </div>
         </div>
@@ -345,21 +346,21 @@ const formatDate = (dateString) => {
               </div>
               <div class="info-item">
                 <div class="info-label">
-                  <i class="fa fa-user"></i>
+                  <font-awesome-icon :icon="['fas', 'user']" class="fa-icon" />
                   작성자
                 </div>
                 <div class="info-value">{{ diary.user?.uname || '익명' }}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">
-                  <i class="fa fa-calendar"></i>
+                  <font-awesome-icon :icon="['fas', 'calendar']" class="fa-icon" />
                   조행 날짜
                 </div>
                 <div class="info-value">{{ formatDate(diary.fishingAt) }}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">
-                  <i class="fa fa-clock"></i>
+                  <font-awesome-icon :icon="['fas', 'clock']" class="fa-icon" />
                   등록 날짜
                 </div>
                 <div class="info-value">{{ formatDate(diary.createdAt) }}</div>
@@ -376,7 +377,7 @@ const formatDate = (dateString) => {
           :to="`/products/${diary.product.prodId}?tab=reservation`"
           class="reservation-btn"
       >
-        <i class="fa fa-calendar-check"></i>
+        <font-awesome-icon :icon="['fas', 'calendar-check']" class="fa-icon" />
         {{ diary.product.prodName }} 예약하기
       </router-link>
     </div>
@@ -445,7 +446,7 @@ const formatDate = (dateString) => {
             :disabled="submittingComment"
             title="댓글 신고"
           >
-            <i class="fas fa-flag"></i>신고
+            <font-awesome-icon :icon="['fas', 'flag']" class="fa-icon" />신고
           </button>
           <button
             v-if="isOwnComment(comment)"
@@ -454,7 +455,7 @@ const formatDate = (dateString) => {
             :disabled="submittingComment"
             title="댓글 삭제"
           >
-            <i class="fa-solid fa-x"></i>삭제
+            <font-awesome-icon :icon="['fas', 'xmark']" class="fa-icon" />삭제
           </button>
         </div>
       </div>
