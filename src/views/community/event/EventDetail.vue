@@ -112,6 +112,44 @@ const goToNextEvent = () => {
 const goToEventList = () => {
   router.push('/event')
 }
+
+// 이미지 URL 처리 함수
+const getImageUrl = (image) => {
+  if (image.imageData) {
+    return `data:image/jpeg;base64,${image.imageData}`
+  } else if (image.image_data) {
+    return `data:image/jpeg;base64,${image.image_data}`
+  } else if (image.imageUrl) {
+    if (image.imageUrl.startsWith('http')) {
+      return image.imageUrl
+    }
+    return `${BASE_URL}${image.imageUrl}`
+  } else if (image.image_url) {
+    if (image.image_url.startsWith('http')) {
+      return image.image_url
+    }
+    return `${BASE_URL}${image.image_url}`
+  }
+  return '/images/default-product.jpg'
+}
+
+// 이벤트 이미지 목록 가져오기
+const getEventImages = () => {
+  // imageDataList가 있으면 그것만 반환
+  if (event.value?.imageDataList && event.value.imageDataList.length > 0) {
+    return event.value.imageDataList
+  }
+  // thumbnailDataList가 있으면 그것만 반환
+  if (event.value?.thumbnailDataList && event.value.thumbnailDataList.length > 0) {
+    return event.value.thumbnailDataList
+  }
+  // images 배열이 있으면 그것만 반환
+  if (event.value?.images && event.value.images.length > 0) {
+    return event.value.images
+  }
+  // 아무것도 없으면 빈 배열
+  return []
+}
 </script>
 
 <template>
@@ -126,10 +164,12 @@ const goToEventList = () => {
     <BoardDetailBox>
       <template #title>
         <div class="d-flex justify-between align-items-center" style="position:relative;">
-          <span>{{ event.title }}</span>
+          <span>
+            {{ event.title }}
+            <span class="badge bg-success ms-2">{{ event.eventStatus }}</span>
+          </span>
           <!-- 제목 오른쪽에 점세개(더보기) 버튼 -->
           <BoardDetailAction showTopMenu @edit="handleEdit" @delete="handleDelete" />
-          <span class="badge bg-success ms-2">{{ event.eventStatus }}</span>
         </div>
       </template>
 
@@ -142,6 +182,19 @@ const goToEventList = () => {
 
       <template #default>
         <hr class="board-divider" />
+        
+        <!-- 이미지 표시 -->
+        <div v-if="event.imageDataList && event.imageDataList.length > 0" class="event-images mt-4 mb-4">
+          <div class="image-gallery">
+            <div v-for="(image, index) in event.imageDataList" :key="index" class="image-item">
+              <img 
+                :src="`data:image/jpeg;base64,${image}`"
+                :alt="`이벤트 이미지 ${index + 1}`"
+                class="event-image"
+              />
+            </div>
+          </div>
+        </div>
         <div v-html="event.content" class="mt-4" />
       </template>
     </BoardDetailBox>
@@ -397,5 +450,102 @@ hr.board-divider {
   font-size: 3rem;
   margin-bottom: 1rem;
   color: #e53e3e;
+}
+
+/* 이미지 갤러리 스타일 */
+.event-images {
+  margin: 2rem 0;
+}
+
+.image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.image-item {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.event-image {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+  display: block;
+  transition: opacity 0.3s ease;
+}
+
+/* 이미지 모달 스타일 */
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: default;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.modal-image {
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+/* 반응형 이미지 갤러리 */
+@media (max-width: 768px) {
+  .image-gallery {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.5rem;
+  }
+  
+  .event-image {
+    height: 150px;
+  }
+  
+  .modal-content {
+    max-width: 95%;
+    max-height: 95%;
+  }
 }
 </style>

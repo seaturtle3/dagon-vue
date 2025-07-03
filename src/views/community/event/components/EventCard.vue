@@ -13,6 +13,37 @@ const router = useRouter()
 const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL
 const fallbackImage = `${baseUrl}/thumbnail/default-event-thumbnail.png`
 
+// 이벤트 썸네일 이미지 URL 가져오기
+const getEventThumbnail = () => {
+  // ImageDataList가 있으면 첫 번째 이미지 사용 (최우선)
+
+  console.log("--------------1>",props.event?.imageDataList)
+  if (props.event?.imageDataList && props.event.imageDataList.length > 0) {
+    const image = props.event.imageDataList[0]
+    console.log("--------------1-1>",image)
+      return `data:image/jpeg;base64,${image}`
+  }
+  
+  // thumbnailDataList가 있으면 첫 번째 이미지 사용 (두 번째 우선순위)
+  console.log("--------------2>",props.event?.thumbnailDataList)
+  if (props.event?.thumbnailDataList && props.event.thumbnailDataList.length > 0) {
+    const thumbnail = props.event.thumbnailDataList[0]
+    console.log("--------------2-1>",thumbnail)
+      return `data:image/jpeg;base64,${thumbnail.thumbnail_data}`
+  }
+  
+  // 기존 thumbnailUrl 사용 (세 번째 우선순위)
+  console.log("--------------3>",props.event?.thumbnailUrl)
+  if (props.event?.thumbnailUrl) {
+    if (props.event.thumbnailUrl.startsWith('http')) {
+      return props.event.thumbnailUrl
+    }
+    return `${BASE_URL}${props.event.thumbnailUrl}`
+  }
+  
+  // return fallbackImage
+}
+
 const goToDetail = () => {
   router.push(`/event/${props.event.eventId}`)
 }
@@ -44,12 +75,15 @@ const formattedPeriod = computed(() => {
   if (start === '미정' && end === '미정') return '상시 진행'
   return `${start} ~ ${end}`
 })
+
+// console.log("-------------->",props.event)
+console.log("-------------->",getEventThumbnail())
 </script>
 
 <template>
   <div class="event-card" @click="goToDetail">
     <div class="thumbnail-wrapper">
-      <img :src="`${BASE_URL}${event.thumbnailUrl}` || fallbackImage" alt="이벤트 썸네일" />
+      <img :src="getEventThumbnail()" alt="이벤트 썸네일" />
       <div v-if="event.isTop" class="badge badge-top">TOP</div>
       <div class="badge badge-status" :class="statusClass">{{ event.eventStatus }}</div>
     </div>
@@ -91,8 +125,8 @@ const formattedPeriod = computed(() => {
 
 .badge {
   position: absolute;
-  padding: 4px 8px;
-  font-size: 0.75rem;
+  padding: 6px 8px;
+  font-size: 0.9rem;
   font-weight: bold;
   border-radius: 4px;
   color: #fff;

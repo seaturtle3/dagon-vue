@@ -15,14 +15,34 @@ export const getAdminEvents = (params) => {
     return api.get('/api/admin/event', { params })
 }
 
-// 관리자용 이벤트 생성
-export const createEvent = (eventData) => {
-    return api.post('/api/admin/event', eventData)
+// 관리자용 이벤트 생성 (이미지 포함)
+export const createEvent = (eventData, files = []) => {
+    if (files && files.length > 0) {
+        return api.multipartPost({
+            url: '/api/admin/event',
+            dto: eventData,
+            files: files,
+            dtoKey: 'dto',
+            fileKey: 'images'
+        })
+    } else {
+        return api.post('/api/admin/event', eventData)
+    }
 }
 
-// 관리자용 이벤트 수정
-export const updateEvent = (id, eventData) => {
-    return api.post(`/api/admin/event/${id}`, eventData)
+// 관리자용 이벤트 수정 (이미지 포함)
+export const updateEvent = (id, eventData, files = []) => {
+    if (files && files.length > 0) {
+        return api.multipartPut({
+            url: `/api/admin/event/${id}`,
+            dto: eventData,
+            files: files,
+            dtoKey: 'dto',
+            fileKey: 'images'
+        })
+    } else {
+        return api.post(`/api/admin/event/${id}`, eventData)
+    }
 }
 
 // 관리자용 이벤트 삭제

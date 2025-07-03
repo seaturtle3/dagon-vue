@@ -42,7 +42,7 @@
       </div>
 
       <!-- 저작권 -->
-      <div class="row mt-3">
+      <div class="row">
         <div class="col text-center">
           <p class="copyright mb-0">&copy; 2025 Fishing Haven. All Rights Reserved.</p>
         </div>
@@ -142,7 +142,7 @@ import { faEnvelope, faPhone, faMapMarkerAlt } from '@fortawesome/free-solid-svg
 .fishing-footer .copyright {
   color: #cbcccf;
   font-size: 0.97rem;
-  margin-top: 2.5rem;
+  margin-top: 1.5rem;
   letter-spacing: 0.01em;
 }
 

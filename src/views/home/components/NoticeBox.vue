@@ -109,7 +109,6 @@ export default {
   <div class="notice-container">
     <div class="notice-header">
       <h2 class="notice-title">
-        <font-awesome-icon :icon="['fas', 'bullhorn']" />
         공지사항
       </h2>
       <router-link to="/notice" class="view-all-link">
@@ -119,7 +118,7 @@ export default {
     
     <div class="notice-content">
       <!-- 검색 기능 -->
-      <div class="search-section">
+      <!-- <div class="search-section">
         <div class="search-box">
           <input 
             v-model="search" 
@@ -132,7 +131,7 @@ export default {
             <font-awesome-icon :icon="['fas', 'search']" />
           </button>
         </div>
-      </div>
+      </div> -->
 
       <!-- 로딩 상태 -->
       <div v-if="loading" class="loading-state">
@@ -183,7 +182,7 @@ export default {
         <!-- 일반 공지 -->
         <div v-if="normalNotices.length > 0" class="normal-section">
           <div 
-            v-for="notice in normalNotices" 
+            v-for="notice in normalNotices.slice(0, 5)" 
             :key="notice.noticeId" 
             class="notice-item"
             @click="goToNoticeDetail(notice.noticeId)"
@@ -206,11 +205,14 @@ export default {
 .notice-container {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
-  width: 70%;
+  width: 100%;
   max-width: 600px;
   margin: 0 auto;
+  border: 1.5px solid #e5e7eb;
+  height: 560px;
+  display: flex;
+  flex-direction: column;
 }
 
 .notice-header {
@@ -428,7 +430,7 @@ export default {
 
 .urgent-section {
   margin-bottom: 0.7rem;
-  border-bottom: 2px solid #fecaca;
+  /* border-bottom: 2px solid #fecaca; */
   padding-bottom: 0.7rem;
 }
 
@@ -438,36 +440,10 @@ export default {
 }
 
 /* 반응형 디자인 */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .notice-container {
-    width: 90%;
-  }
-  
-  .notice-header {
-    padding: 1rem 1.5rem;
-  }
-  
-  .notice-title {
-    font-size: 1.25rem;
-  }
-  
-  .notice-content {
-    padding: 1.5rem;
-  }
-  
-  .search-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .search-box {
-    max-width: none;
-  }
-  
-  .notice-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+    height: auto;
+    min-height: 320px;
   }
 }
 
