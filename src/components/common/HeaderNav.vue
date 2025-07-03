@@ -778,7 +778,7 @@ watch(
   top: 100%;
   left: 0;
   z-index: 999;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 1);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);

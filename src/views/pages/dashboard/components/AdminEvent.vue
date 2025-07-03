@@ -44,8 +44,8 @@
         <div v-for="(event, idx) in events" :key="event.eventId" class="table-row">
           <div class="col-id">{{ idx + 1 + searchParams.page * searchParams.size }}</div>
           <div class="col-thumbnail">
-            <div v-if="event.thumbnailUrl" class="thumbnail-preview" @click="openDetailModal(event.eventId)" style="cursor:pointer;">
-              <img :src="`${BASE_URL}${event.thumbnailUrl}`" :alt="event.title" />
+            <div v-if="getEventThumbnail(event)" class="thumbnail-preview" @click="openDetailModal(event.eventId)" style="cursor:pointer;">
+              <img :src="getEventThumbnail(event)" :alt="event.title" />
             </div>
             <div v-else class="thumbnail-placeholder">
               <font-awesome-icon icon="fa-solid fa-image" />
@@ -107,8 +107,8 @@
           <div class="form-group">
             <label>썸네일 이미지</label>
             <input type="file" accept="image/*" @change="handleThumbnailUpload" />
-            <div v-if="eventForm.thumbnailUrl" class="mt-2">
-              <img :src="`${BASE_URL}${eventForm.thumbnailUrl}`" alt="썸네일 미리보기" style="max-width: 200px; max-height: 120px; border-radius: 4px; object-fit: cover;" />
+            <div v-if="getEventThumbnail(eventForm)" class="mt-2">
+              <img :src="getEventThumbnail(eventForm)" alt="썸네일 미리보기" style="max-width: 200px; max-height: 120px; border-radius: 4px; object-fit: cover;" />
             </div>
           </div>
           <div class="form-group">
@@ -199,6 +199,24 @@ function statusText(status) {
   if (status === 'ONGOING') return '진행중'
   if (status === 'COMPLETED') return '종료'
   return status || ''
+}
+
+const getEventThumbnail = (event) => {
+  // 1. imageDataList
+  if (event?.imageDataList && event.imageDataList.length > 0) {
+    return `data:image/jpeg;base64,${event.imageDataList[0]}`
+  }
+  // 2. thumbnailDataList
+  if (event?.thumbnailDataList && event.thumbnailDataList.length > 0) {
+    return `data:image/jpeg;base64,${event.thumbnailDataList[0]?.thumbnail_data}`
+  }
+  // 3. thumbnailUrl
+  if (event?.thumbnailUrl) {
+    if (event.thumbnailUrl.startsWith('http')) return event.thumbnailUrl
+    return `${BASE_URL}${event.thumbnailUrl}`
+  }
+  // fallback(없으면 빈 문자열)
+  return ''
 }
 
 const loadEvents = async () => {
@@ -563,6 +581,7 @@ onMounted(() => {
   font-size: 0.9rem;
 }
 
+
 .action-btn.top-active {
   background-color: #fbbf24;
 }
@@ -576,6 +595,10 @@ onMounted(() => {
 .action-btn.edit:hover, .action-btn.delete:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn.top {
+  background-color: #ebebeb;
 }
 
 .loading, .empty-state {

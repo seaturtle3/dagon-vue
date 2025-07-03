@@ -260,21 +260,25 @@ export default {
 .multtae-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 70px 20px 50px 20px;
   font-family: 'Noto Sans KR', sans-serif;
 }
 
 .multtae-header {
+
+ padding: 0.5em 2em;
+ color: #2d3748;
   text-align: center;
   margin-bottom: 40px;
-  padding: 30px 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
   color: white;
   border-radius: 15px;
 }
 
+
 .multtae-header h1 {
   font-size: 2.5rem;
+  
   margin-bottom: 10px;
   font-weight: 700;
 }

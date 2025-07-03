@@ -1,6 +1,6 @@
 <template>
   <div class="inquiry-container">
-    <h2 class="page-title">1:1 문의(회원전용)</h2>
+    <h2 class="page-title">1:1 문의<br><span>(회원전용)</span></h2>
     <div v-if="!isLoggedIn">
       <div class="modal-overlay">
         <div class="modal-content modal-login">
@@ -259,13 +259,21 @@ onMounted(async () => {
 .inquiry-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 80px 20px;
 }
 
-.page-title {
-  margin-bottom: 30px;
-  font-size: 24px;
-  font-weight: bold;
+.page-title{
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  padding: 0.5rem 2rem 2rem 2rem;
+  text-align: center;
+}
+
+.page-title span{
+  font-size: 1.25rem;
+  color: #656d7a;
+  font-weight: 400;
 }
 
 .inquiry-table th,
@@ -313,8 +321,12 @@ onMounted(async () => {
 .inquiry-form {
   background: white;
   padding: 20px;
+  width: 80%;
+  margin: 0 auto;
+  max-width: 800px;
+  border: 1px solid #ddd;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .product-info-section {

@@ -55,10 +55,10 @@ const closeMenu = () => showMenu.value = false
     <template v-else>
       <div class="detail-action text-end mt-3">
         <template v-if="isAdmin">
-          <button class="btn btn-outline-primary me-2" @click="handleEdit">수정</button>
-          <button class="btn btn-outline-danger me-2" @click="handleDelete">삭제</button>
+          <button class="btn-custom btn-edit me-2" @click="handleEdit">수정</button>
+          <button class="btn-custom btn-delete me-2" @click="handleDelete">삭제</button>
         </template>
-        <button class="btn btn-outline-secondary" @click="handleBack">목록</button>
+        <button class="btn-custom btn-list" @click="handleBack">목록</button>
       </div>
     </template>
   </div>
@@ -116,5 +116,48 @@ const closeMenu = () => showMenu.value = false
 .detail-action button {
   min-width: 80px;
   text-align: center;
+}
+
+/* 커스텀 버튼 스타일 - 다른 컴포넌트들과 통일 */
+.btn-custom {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-edit {
+  background-color: #fff;
+  color: #1976d2;
+  border-color: #1976d2;
+}
+
+.btn-edit:hover {
+  background-color: #1976d2;
+  color: #fff;
+}
+
+.btn-delete {
+  background-color: #fff;
+  color: #e53e3e;
+  border-color: #e53e3e;
+}
+
+.btn-delete:hover {
+  background-color: #e53e3e;
+  color: #fff;
+}
+
+.btn-list {
+  background-color: #fff;
+  color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-list:hover {
+  background-color: #6c757d;
+  color: #fff;
 }
 </style>

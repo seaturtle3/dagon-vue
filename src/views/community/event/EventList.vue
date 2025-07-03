@@ -18,7 +18,7 @@ const search = ref({
 
 const status = ref('')
 const page = ref(0)
-const size = ref(9)
+const size = ref(12)
 
 const fetchEventList = async () => {
   loading.value = true
@@ -106,8 +106,8 @@ const handleStatusChange = (newStatus) => {
         <i class="fas fa-calendar-alt"></i>
         <p>등록된 이벤트가 없습니다.</p>
       </div>
-      <div v-else class="row row-cols-1 row-cols-md-3 g-3">
-        <div class="col" v-for="event in events" :key="event.eventId">
+      <div v-else class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
+        <div class="col" v-for="event in events.slice(0, 12)" :key="event.eventId">
           <EventCard :event="event"/>
         </div>
       </div>
@@ -127,8 +127,11 @@ const handleStatusChange = (newStatus) => {
 }
 
 .center-title {
-  text-align: center;
-  margin-bottom: 1.5rem;
+ 
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  padding: 0.5em 2em;
 }
 
 button {

@@ -45,9 +45,9 @@ const onFilterChange = async (filter) => {
   margin-bottom: 0;
 }
 .fresh-title h4 {
-  font-size: 2.2rem;
-  font-weight: bold;
-  letter-spacing: 0.1em;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
   padding: 0.5em 2em;
 }
 

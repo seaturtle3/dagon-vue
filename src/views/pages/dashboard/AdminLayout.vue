@@ -6,67 +6,67 @@
       </div>
       <nav class="sidebar-nav">
         <router-link to="/admin/dashboard" class="nav-item" active-class="nav-item-active" exact>
-          <i class="fas fa-chart-bar"></i>
+          <font-awesome-icon :icon="['fas', 'chart-bar']" class="sidebar-icon" />
           <span>대시보드</span>
         </router-link>
         <router-link to="/admin/members" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-thumbs-up"></i>
+          <font-awesome-icon :icon="['fas', 'thumbs-up']" class="sidebar-icon" />
           <span>회원 정보</span>
         </router-link>
         <router-link to="/admin/partners" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-handshake"></i>
+          <font-awesome-icon :icon="['fas', 'handshake']" class="sidebar-icon" />
           <span>파트너 관리</span>
         </router-link>
         <router-link to="/admin/partner-applications" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-file-alt"></i>
+          <font-awesome-icon :icon="['fas', 'file-alt']" class="sidebar-icon" />
           <span>파트너 신청 목록</span>
         </router-link>
         <router-link to="/admin/reservations" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-calendar-check"></i>
+          <font-awesome-icon :icon="['fas', 'calendar-check']" class="sidebar-icon" />
           <span>예약 목록</span>
         </router-link>
         <router-link to="/admin/notifications" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-bell"></i>
+          <font-awesome-icon :icon="['fas', 'bell']" class="sidebar-icon" />
           <span>알림</span>
         </router-link>
         <router-link to="/admin/reports" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-flag"></i>
+          <font-awesome-icon :icon="['fas', 'flag']" class="sidebar-icon" />
           <span>신고 목록</span>
         </router-link>
         <router-link to="/admin/events" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-calendar-alt"></i>
+          <font-awesome-icon :icon="['fas', 'calendar-alt']" class="sidebar-icon" />
           <span>이벤트</span>
         </router-link>
         <router-link to="/admin/notices" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-paper-plane"></i>
+          <font-awesome-icon :icon="['fas', 'paper-plane']" class="sidebar-icon" />
           <span>공지사항</span>
         </router-link>
         <router-link to="/admin/fishing-reports" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-bookmark"></i>
+          <font-awesome-icon :icon="['fas', 'bookmark']" class="sidebar-icon" />
           <span>조황정보 관리</span>
         </router-link>
         <router-link to="/admin/fishing-diaries" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-building"></i>
+          <font-awesome-icon :icon="['fas', 'building']" class="sidebar-icon" />
           <span>조행기 관리</span>
         </router-link>
         <router-link to="/admin/faq" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-question-circle"></i>
+          <font-awesome-icon :icon="['fas', 'question-circle']" class="sidebar-icon" />
           <span>FAQ</span>
         </router-link>
         <router-link to="/admin/inquiries" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-comments"></i>
+          <font-awesome-icon :icon="['fas', 'comments']" class="sidebar-icon" />
           <span>1:1 문의</span>
         </router-link>
         <router-link to="/admin/register" class="nav-item" active-class="nav-item-active">
-          <i class="fa-solid fa-user"></i>
+          <font-awesome-icon :icon="['fas', 'user']" class="sidebar-icon" />
           <span>관리자 회원가입</span>
         </router-link>
         <router-link to="/admin/logout" class="nav-item" active-class="nav-item-active">
-          <i class="fas fa-eye-slash"></i>
+          <font-awesome-icon :icon="['fas', 'eye-slash']" class="sidebar-icon" />
           <span>로그아웃</span>
         </router-link>
         <router-link to="/admin/swagger" class="nav-item" active-class="nav-item-active">
-          <font-awesome-icon icon="fa-solid fa-book" />
+          <font-awesome-icon :icon="['fas', 'book']" class="sidebar-icon" />
           <span>스웨거 바로가기</span>
         </router-link>
       </nav>
@@ -78,6 +78,7 @@
 </template>
 
 <script>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 export default {
   name: 'AdminLayout'
 }
@@ -104,6 +105,7 @@ export default {
 
 .sidebar-header h1 {
   margin: 0;
+  color: #fff !important;
   font-size: 1.5rem;
 }
 
@@ -190,4 +192,11 @@ export default {
   border: none;
   min-height: 600px;
 }
+.sidebar-icon {
+  color: #fff;
+  margin-right: 0.75rem;
+  width: 20px;
+  text-align: center;
+}
+
 </style> 

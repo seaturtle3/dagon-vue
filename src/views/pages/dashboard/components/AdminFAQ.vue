@@ -1098,6 +1098,7 @@ export default {
   border-top: 1px solid #e9ecef;
 }
 
+
 @media (max-width: 768px) {
   .faq-container {
     padding: 1rem;
