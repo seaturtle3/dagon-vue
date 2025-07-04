@@ -17,23 +17,18 @@ const fallbackImage = `${baseUrl}/thumbnail/default-event-thumbnail.png`
 const getEventThumbnail = () => {
   // ImageDataList가 있으면 첫 번째 이미지 사용 (최우선)
 
-  console.log("--------------1>",props.event?.imageDataList)
   if (props.event?.imageDataList && props.event.imageDataList.length > 0) {
     const image = props.event.imageDataList[0]
-    console.log("--------------1-1>",image)
       return `data:image/jpeg;base64,${image}`
   }
   
   // thumbnailDataList가 있으면 첫 번째 이미지 사용 (두 번째 우선순위)
-  console.log("--------------2>",props.event?.thumbnailDataList)
   if (props.event?.thumbnailDataList && props.event.thumbnailDataList.length > 0) {
     const thumbnail = props.event.thumbnailDataList[0]
-    console.log("--------------2-1>",thumbnail)
       return `data:image/jpeg;base64,${thumbnail.thumbnail_data}`
   }
   
   // 기존 thumbnailUrl 사용 (세 번째 우선순위)
-  console.log("--------------3>",props.event?.thumbnailUrl)
   if (props.event?.thumbnailUrl) {
     if (props.event.thumbnailUrl.startsWith('http')) {
       return props.event.thumbnailUrl
@@ -76,8 +71,6 @@ const formattedPeriod = computed(() => {
   return `${start} ~ ${end}`
 })
 
-// console.log("-------------->",props.event)
-console.log("-------------->",getEventThumbnail())
 </script>
 
 <template>
@@ -120,7 +113,7 @@ console.log("-------------->",getEventThumbnail())
 .thumbnail-wrapper img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   background-color: #f8f9fa;
 }
 

@@ -49,11 +49,13 @@ import eventImg from '@/assets/images/event-sample.jpg'
   background: #f7f8fa;
   border-radius: 10px;
   border: 1.5px solid #e5e7eb;
+  overflow: hidden;
 }
 .event-img {
   width: 100%;
+  height: 100%;
   border-radius: 10px;
-  
+  object-fit: cover;
 }
 .event-placeholder {
   color: #6b7280;

@@ -89,6 +89,7 @@ export const updateEvent = (id, eventData, files = []) => {
 
 // 관리자용 이벤트 삭제
 export const deleteEvent = (id) => {
+    console.log("--------------deleteEvent>",id)
     return api.delete(`/api/admin/event/${id}`)
 }
 

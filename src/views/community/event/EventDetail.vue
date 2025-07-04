@@ -169,10 +169,8 @@ const getEventThumbnail = () => {
       <template #title>
         <div class="d-flex justify-between align-items-center" style="position:relative;">
           <span>
-            {{ event.title }}
-            <span class="badge bg-success ms-2">{{ event.eventStatus }}</span>
+            {{ event.title }}<span class="badge bg-success ms-2">{{ event.eventStatus }}</span>
           </span>
-          <!-- 제목 오른쪽에 점세개(더보기) 버튼 -->
           <BoardDetailAction showTopMenu @edit="handleEdit" @delete="handleDelete" />
         </div>
       </template>
@@ -476,9 +474,15 @@ hr.board-divider {
 
 .event-image {
   width: 100%;
+<<<<<<< HEAD
+  height: 200px;
+  object-fit: contain;
+  background-color: #fff;
+=======
   height: 120px;
   object-fit: contain;
   display: block;
+>>>>>>> d350003c45ac5df8ad1da7dbd33a50205a5bb060
   transition: opacity 0.3s ease;
 }
 
