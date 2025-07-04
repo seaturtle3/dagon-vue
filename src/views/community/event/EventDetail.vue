@@ -474,9 +474,15 @@ hr.board-divider {
 
 .event-image {
   width: 100%;
+<<<<<<< HEAD
   height: 200px;
   object-fit: contain;
   background-color: #fff;
+=======
+  height: 120px;
+  object-fit: contain;
+  display: block;
+>>>>>>> d350003c45ac5df8ad1da7dbd33a50205a5bb060
   transition: opacity 0.3s ease;
 }
 
