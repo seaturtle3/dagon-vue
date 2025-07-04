@@ -1,9 +1,9 @@
 <script setup>
-import {reactive, onMounted} from 'vue'
+import {reactive, onMounted, ref, computed} from 'vue'
 import {useRouter, useRoute} from 'vue-router'
 import {createEvent, updateEvent, fetchEventById} from '@/api/event.js'
 import BoardWriteForm from '@/components/common/BoardWriteForm.vue'
-import RichTextEditor from '@/components/common/RichTextEditor.vue'
+import RichTextEditorEvent from '@/components/common/RichTextEditorEvent.vue'
 import {useAdminAuthStore} from '@/store/auth/auth.js'
 import {BASE_URL} from "@/constants/baseUrl.js";
 
@@ -16,6 +16,18 @@ const token = authStore.token
 const eventId = route.params.id
 const isEdit = !!eventId
 
+
+// 이미지 관련 상태 추가
+const files = ref([])
+const imagePreviews = ref([])
+const existingImages = ref([])
+const deletedImageNames = ref([])
+const editorImageChanges = ref({
+  deletedImages: [],
+  newImages: [],
+  existingImages: []
+})
+
 const form = reactive({
   title: '',
   content: '',
@@ -24,6 +36,16 @@ const form = reactive({
   thumbnailUrl: '',
   isTop: false
 })
+
+const event = ref(null)
+const imageIdList = ref([])
+const richTextEditorRef = ref(null)
+
+const loadEventData = async () => {
+  const res = await fetchEventById(route.params.id)
+  event.value = res.data
+  imageIdList.value = res.data.imageIdList || []
+}
 
 // ✅ 저장 요청
 async function submit() {
@@ -46,20 +68,44 @@ async function submit() {
   }
 
   try {
+    // input으로 업로드된 이미지들에 썸네일 플래그 추가
+    const thumbnailFiles = files.value.map(file => ({
+      file: file,
+      isThumbnail: true,
+      imageType: 'thumbnail'
+    }))
+
     const eventData = {
       title: form.title.trim(),
       content: form.content.trim(),
       startAt: form.startAt || null,
       endAt: form.endAt || null,
       thumbnailUrl: form.thumbnailUrl || null,
-      isTop: form.isTop
+      isTop: form.isTop,
+      deleteImageNames: [...deletedImageNames.value],
+      editorImageChanges: editorImageChanges.value,
+      deletedImageNames: [...deletedImageNames.value],
+      existingImages: [...existingImages.value],
+      imageIdList: [...imageIdList.value],
+      thumbnailFiles: [...thumbnailFiles],
+      files: [...files.value]
     }
 
+    console.log("--------------isEdit>",isEdit)
+    console.log("--------------2eventId>",eventId)
+    console.log("--------------2imageIdList>",imageIdList)
+    console.log("--------------editorImageChanges>",editorImageChanges.value)
+    console.log("--------------thumbnailFiles>",thumbnailFiles)
+    console.log("--------------썸네일 이미지 개수>",thumbnailFiles.length)
+    console.log("------------->files.value>",files.value)
+
     if (isEdit) {
-      await updateEvent(eventId, eventData)
+      console.log("--------------3eventId>",eventId)
+      console.log("--------------3imageIdList>",imageIdList)
+      await updateEvent(eventId, eventData, thumbnailFiles)
       alert('이벤트가 수정되었습니다.')
     } else {
-      await createEvent(eventData)
+      await createEvent(eventData, thumbnailFiles)
       alert('이벤트가 등록되었습니다.')
     }
     router.push('/event')
@@ -84,56 +130,164 @@ onMounted(async () => {
     try {
       const res = await fetchEventById(eventId)
       Object.assign(form, res.data)
+      
+      // 기존 이미지가 있으면 로드
+      if (res.data.imageDataList && res.data.imageDataList.length > 0) {
+        existingImages.value = res.data.imageDataList.map((imageData, idx) => ({
+          id: res.data.imageIdList[idx] || 'existing-' + idx, // EventImage 테이블의 PK 사용
+          url: `data:image/jpeg;base64,${imageData}`,
+          name: `image_${idx}`,
+          isExisting: true,
+          originalImage: {
+            imageData: imageData
+          }
+        }))
+        // 기존 이미지를 files 배열에 추가
+        existingImages.value.forEach((existingImg, idx) => {
+          if (existingImg.originalImage && existingImg.originalImage.imageData) {
+            const byteCharacters = atob(existingImg.originalImage.imageData)
+            const byteNumbers = new Array(byteCharacters.length)
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i)
+            }
+            const byteArray = new Uint8Array(byteNumbers)
+            const blob = new Blob([byteArray], { type: 'image/jpeg' })
+            const file = new File([blob], existingImg.name, { type: 'image/jpeg' })
+            files.value.push(file)
+          }
+        })
+      }
     } catch (err) {
       console.error('이벤트 조회 실패:', err)
       alert('이벤트 정보를 불러오는데 실패했습니다.')
     }
+    console.log("--------------existingImages.value>",existingImages.value)
+
   }
 })
 
-// ✅ 썸네일 파일 선택 시 이미지 업로드 처리
-async function handleThumbnailUpload(event) {
-  const file = event.target.files[0]
-  if (!file) return
-
-  // 파일 크기 검사 (5MB 제한)
-  if (file.size > 5 * 1024 * 1024) {
-    alert('파일 크기는 5MB 이하여야 합니다.')
-    return
-  }
-
-  // 파일 타입 검사
-  if (!file.type.startsWith('image/')) {
-    alert('이미지 파일만 업로드 가능합니다.')
-    return
-  }
-
-  const formData = new FormData()
-  formData.append('image', file)
-
-  try {
-    const res = await fetch('/api/images/upload', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        Authorization: `Bearer ${token}`
+// ✅ 이미지 업로드 처리 (조행기 방식 참고)
+function handleImageUpload(event) {
+  const uploadedFiles = Array.from(event.target.files)
+  files.value = []
+  imagePreviews.value = []
+  
+  uploadedFiles.forEach(file => {
+    if (file && file.type.startsWith('image/')) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name} 파일이 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
+        return
       }
-    })
-
-    if (!res.ok) {
-      throw new Error('이미지 업로드 실패')
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        imagePreviews.value.push({
+          id: Date.now() + Math.random(),
+          url: e.target.result,
+          file: file,
+          name: file.name,
+          isExisting: false
+        })
+      }
+      reader.readAsDataURL(file)
+      files.value.push(file)
     }
+  })
+}
 
-    const fileName = await res.text()
-    form.thumbnailUrl = `/uploads/${fileName}`
-  } catch (err) {
-    console.error('썸네일 업로드 실패:', err)
-    alert('썸네일 업로드에 실패했습니다.')
+// 이미지 제거
+function removeImage(imageId) {
+  console.log("--------------imageId>",imageId)
+  console.log("--------------1imagePreviews.value>",imagePreviews.value)
+  const index = imagePreviews.value.findIndex(img => img.id === imageId)
+  if (index > -1) {
+    const image = imagePreviews.value[index]
+    
+    const fileIndex = files.value.findIndex(file => file === image.file)
+    if (fileIndex > -1) {
+      files.value.splice(fileIndex, 1)
+    }
+    
+    imagePreviews.value.splice(index, 1)
   }
 }
 
+// 기존 이미지 제거
+function removeExistingImage(imageId) {
+  console.log("--------------imageId>",imageId)
+  console.log("--------------2existingImages.value>",existingImages.value)
+
+  // existingImages가 비어있는지 확인
+  if (!existingImages.value || existingImages.value.length === 0) {
+    console.log("existingImages가 비어있습니다.")
+    return
+  }
+
+  const idx = existingImages.value.findIndex(img => img.id === imageId)
+  console.log("--------------idx>",idx)
+
+  if (idx > -1) {
+    const existingImg = existingImages.value[idx]
+    console.log("삭제할 이미지:", existingImg)
+
+    // 삭제된 이미지 이름을 배열에 추가
+    deletedImageNames.value.push(existingImg.id)
+
+    // existingImages에서 제거
+    existingImages.value.splice(idx, 1)
+    console.log("--------------existingImages.value>",existingImages.value)
+
+    // files 배열에서도 제거
+    const fileIndex = files.value.findIndex(file => file.name === existingImg.name)
+    if (fileIndex > -1) {
+      files.value.splice(fileIndex, 1)
+      console.log("files 배열에서도 제거됨:", existingImg.id)
+    }
+  } else {
+    console.log("해당 이미지를 찾을 수 없습니다:", imageId)
+  }
+}
+
+// 모든 이미지 미리보기
+const allPreviews = computed(() => [...existingImages.value, ...imagePreviews.value])
+
 function goBack() {
   router.back()
+}
+
+const deleteAllImages = async () => {
+  if (!event.value || !event.value.eventId || !imageIdList.value.length) return
+  await fetch('/api/images/deleteBatch', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      eventId: event.value.eventId,
+      imageIdList: imageIdList.value
+    })
+  })
+}
+
+// 에디터에서 이미지 데이터를 받는 함수 (백엔드에서 자동 처리되므로 로그만 출력)
+const handleEditorImageData = (imageData) => {
+  console.log('에디터 이미지 업로드 완료:', imageData)
+}
+
+// 에디터에서 이미지 변경사항을 받는 함수
+const handleEditorImageChanges = (changes) => {
+  editorImageChanges.value = changes
+  console.log('에디터 이미지 변경사항:', changes)
+
+  // 삭제된 이미지가 있으면 확인
+  if (changes.deletedImages && changes.deletedImages.length > 0) {
+    console.log('삭제된 이미지들:', changes.deletedImages)
+  }
+
+  // 새로 추가된 이미지가 있으면 확인
+  if (changes.newImages && changes.newImages.length > 0) {
+    console.log('새로 추가된 이미지들:', changes.newImages)
+  }
 }
 </script>
 
@@ -147,11 +301,22 @@ function goBack() {
         </div>
 
         <div class="form-group mb-3">
-          <label>썸네일 이미지</label>
-          <input type="file" class="form-control" accept="image/*" @change="handleThumbnailUpload"/>
+          <label>이미지 업로드</label>
+          <input type="file" class="form-control" accept="image/*" multiple @change="handleImageUpload"/>
           <small class="form-text text-muted">5MB 이하의 이미지 파일만 업로드 가능합니다.</small>
-          <div v-if="form.thumbnailUrl" class="mt-2">
-            <img :src="`${BASE_URL}${form.thumbnailUrl}`" alt="썸네일 미리보기" style="max-width: 200px; border-radius: 4px;"/>
+          
+          <!-- 이미지 미리보기 -->
+          <div v-if="allPreviews.length > 0" class="image-previews mt-3">
+            <div v-for="image in allPreviews" :key="image.id" class="image-preview-item">
+              <img :src="image.url" :alt="image.id" class="preview-image"/>
+              <button 
+                type="button" 
+                @click="image.isExisting ? removeExistingImage(image.id) : removeImage(image.id)"
+                class="remove-image-btn"
+              >
+                ×
+              </button>
+            </div>
           </div>
         </div>
 
@@ -167,7 +332,14 @@ function goBack() {
 
         <div class="form-group mb-3">
           <label>내용 *</label>
-          <RichTextEditor v-model="form.content"/>
+          <RichTextEditorEvent
+            v-model="form.content"
+            :eventId="eventId"
+            :existingImages="existingImages"
+            @imageData="handleEditorImageData"
+            @imageChanges="handleEditorImageChanges"
+            ref="richTextEditorRef"
+          />
         </div>
 
         <div class="form-check mb-3">
@@ -176,7 +348,6 @@ function goBack() {
         </div>
       </template>
     </BoardWriteForm>
-
   </div>
 </template>
 
@@ -188,5 +359,45 @@ function goBack() {
 .form-text {
   font-size: 0.875rem;
   color: #6c757d;
+}
+
+.image-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.image-preview-item {
+  position: relative;
+  display: inline-block;
+}
+
+.preview-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-image-btn:hover {
+  background: #c82333;
 }
 </style>

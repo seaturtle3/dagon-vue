@@ -27,6 +27,7 @@
       </div>
     </div>
     <button type="submit" class="admin-btn">로그인</button>
+    <div ref="loginSuccessMsg" style="display:none;text-align:center;color:#1976ed;font-weight:700;font-size:1.2rem;margin-top:18px;">로그인 성공</div>
   </form>
 </template>
 
@@ -86,8 +87,12 @@ export default {
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
           console.log('로그인 성공, 토큰 저장됨:', token);
-          alert('로그인 성공');
-          this.$router.push('/admin/dashboard');
+          // 2초간 성공 메시지 후 이동
+          this.$root.$emit && this.$root.$emit('show-toast', '로그인 성공'); // 전역 토스트가 있으면 사용
+          this.$refs.loginSuccessMsg && (this.$refs.loginSuccessMsg.style.display = 'block');
+          setTimeout(() => {
+            this.$router.push('/admin/dashboard');
+          }, 2000);
         }
       } catch (error) {
         console.error('로그인 실패:', error);

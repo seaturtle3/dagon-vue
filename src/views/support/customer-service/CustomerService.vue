@@ -205,7 +205,7 @@ function goToRegister() {
 .customer-service-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 100px 2rem 0 0;
 }
 
 .service-header {

@@ -73,6 +73,7 @@ console.log('isAuthenticated:', isAuthenticated)
 </template>
 
 <style scoped>
+
 .non-member-container {
   max-width: 1200px;
   margin: 0 auto;

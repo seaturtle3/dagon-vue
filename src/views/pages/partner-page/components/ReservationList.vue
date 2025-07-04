@@ -5,7 +5,9 @@
     <div class="filter-section">
       <div class="search-box">
         <input type="text" v-model="searchQuery" placeholder="상품명을 입력하세요">
-        <button class="search-button" @click="searchReservations"><i class="fa-solid fa-eye"></i></button>
+        <button class="search-button" @click="searchReservations">
+          <font-awesome-icon :icon="['fas', 'magnifying-glass']" class="search-icon-white" />
+        </button>
       </div>
       
       <div class="filter-options">
@@ -74,6 +76,7 @@
 
 <script>
 import { partnerService } from '@/api/partner'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 export default {
   name: 'ReservationList',
@@ -86,14 +89,17 @@ export default {
   },
   computed: {
     filteredReservations() {
-      return this.reservations.filter(reservation => {
-        const matchesSearch = 
-          (reservation.productName?.toLowerCase() || '').includes(this.searchQuery.toLowerCase()) ||
-          (reservation.userName?.toLowerCase() || '').includes(this.searchQuery.toLowerCase());
-        const matchesStatus = this.statusFilter === 'all' || 
-          (reservation.reservationStatus || '').toUpperCase() === this.statusFilter;
-        return matchesSearch && matchesStatus;
-      });
+      return this.reservations
+        .slice()
+        .sort((a, b) => new Date(b.createdAt || b.fishingAt) - new Date(a.createdAt || a.fishingAt))
+        .filter(reservation => {
+          const matchesSearch = 
+            (reservation.productName?.toLowerCase() || '').includes(this.searchQuery.toLowerCase()) ||
+            (reservation.userName?.toLowerCase() || '').includes(this.searchQuery.toLowerCase());
+          const matchesStatus = this.statusFilter === 'all' || 
+            (reservation.reservationStatus || '').toUpperCase() === this.statusFilter;
+          return matchesSearch && matchesStatus;
+        });
     }
   },
   methods: {
@@ -466,5 +472,10 @@ export default {
     padding-top: 10px;
     border-top: 1px solid #f0f0f0;
   }
+}
+
+.search-icon-white {
+  color: #fff;
+  font-size: 1.2em;
 }
 </style> 

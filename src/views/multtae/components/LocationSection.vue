@@ -3,13 +3,13 @@
     <div class="location-card">
       <div class="card-header">
         <h5>
-          <i class="fas fa-map-marker-alt"></i> 위치 기반 관측소 찾기
+          <font-awesome-icon :icon="['fas', 'map-marker-alt']" class="location-icon" /> 위치 기반 관측소 찾기
         </h5>
       </div>
       <div class="card-body">
         <p>현재 위치를 기반으로 가장 가까운 관측소의 물때 정보를 자동으로 조회합니다.</p>
         <button @click="requestLocation" class="location-btn" :disabled="loading">
-          <i class="fas fa-location-arrow"></i> 현재 위치로 관측소 찾기
+          <font-awesome-icon :icon="['fas', 'location-arrow']" /> 현재 위치로 관측소 찾기
         </button>
         <div v-if="locationInfo" class="location-info" v-html="locationInfo"></div>
       </div>
@@ -19,6 +19,7 @@
 
 <script>
 import { ref } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 export default {
   name: 'LocationSection',
@@ -126,6 +127,11 @@ export default {
   margin: 0;
   color: #333;
   font-weight: 600;
+}
+
+.location-icon {
+  color: white;
+  margin-right: 8px;
 }
 
 .card-body {

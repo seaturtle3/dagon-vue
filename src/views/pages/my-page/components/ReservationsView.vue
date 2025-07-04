@@ -29,6 +29,12 @@
         @click="currentTab = tab.value"
       >
         {{ tab.label }}
+        <span
+          v-if="reservationCounts[tab.value] !== undefined"
+          class="count-badge"
+        >
+          {{ reservationCounts[tab.value] }}
+        </span>
       </button>
     </div>
 
@@ -479,5 +485,28 @@ onMounted(() => {
     align-items: flex-start;
     gap: 0.5rem;
   }
+}
+
+.count-badge {
+  display: inline-block;
+  min-width: 28px;
+  padding: 0 8px;
+  height: 24px;
+  margin-left: 8px;
+  background: #1976d2;
+  color: #fff;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  line-height: 24px;
+  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.15);
+  vertical-align: middle;
+  transition: background 0.2s;
+}
+.tab-button.active .count-badge {
+  background: #fff;
+  color: #1976d2;
+  border: 1.5px solid #1976d2;
 }
 </style> 
