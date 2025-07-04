@@ -48,21 +48,22 @@
 
       <div class="detail-section">
         <h3>추가 정보</h3>
-        <div class="info-grid">
-          <div class="info-item full-width">
-            <label>파트너 정보</label>
-            <p>{{ application.pinfo }}</p>
+        <div class="info-flex">
+          <div class="info-grid">
+            <div class="info-item full-width">
+              <label>파트너 정보</label>
+              <p>{{ application.pinfo }}</p>
+            </div>
+            <div v-if="application.paRejectionReason" class="info-item full-width">
+              <label>반려 사유</label>
+              <p class="rejection-reason">{{ application.paRejectionReason }}</p>
+            </div>
           </div>
-          <div v-if="application.paRejectionReason" class="info-item full-width">
-            <label>반려 사유</label>
-            <p class="rejection-reason">{{ application.paRejectionReason }}</p>
-          </div>
-          <div v-if="application.businessLicenseImage" class="info-item full-width">
+          <div v-if="application.businessLicenseImage" class="image-box">
             <label>사업자등록증 이미지</label>
             <img
               :src="getImageUrl(application.businessLicenseImage)"
               alt="사업자등록증 이미지"
-              style="max-width:300px;max-height:300px;border:1px solid #eee;border-radius:8px;display:block;margin-top:0.5rem;"
             />
           </div>
         </div>
@@ -182,7 +183,7 @@ export default {
   background: white;
   border-radius: 8px;
   padding: 2rem;
-  max-width: 800px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
@@ -212,7 +213,7 @@ export default {
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
 
@@ -358,5 +359,26 @@ export default {
   text-align: center;
   padding: 2rem;
   color: #dc3545;
+}
+
+.info-flex {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.image-box {
+  min-width: 220px;
+  max-width: 320px;
+}
+
+.image-box img {
+  width: 100%;
+  max-width: 300px;
+  max-height: 300px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  display: block;
+  margin-top: 0.5rem;
 }
 </style> 

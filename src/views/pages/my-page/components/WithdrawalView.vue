@@ -35,7 +35,8 @@
           <li>탈퇴 시 모든 개인정보가 삭제되며, 복구가 불가능합니다.</li>
           <li>보유하신 포인트는 모두 소멸되며, 환불되지 않습니다.</li>
           <li>작성하신 게시글 및 댓글은 삭제되지 않습니다.</li>
-          <li>진행 중인 예약이 있는 경우 탈퇴가 제한될 수 있습니다.</li>
+          <li>진행 중인 예약이 있는 경우 탈퇴가 제한됩니다. 예약을 먼저 취소해주세요.</li>
+          <li>탈퇴 전 마이페이지에서 예약 현황을 확인하시기 바랍니다.</li>
         </ul>
       </div>
 
@@ -101,13 +102,18 @@ const closeErrorModal = () => {
 
 const confirmWithdrawal = async () => {
   try {
+    console.log('회원 탈퇴 시도 - 비밀번호:', password.value);
     await myPageAPI.deleteAccount({ password: password.value });
+    console.log('회원 탈퇴 성공');
     adminAuth.logout();
     router.push('/login');
   } catch (error) {
-    console.error('회원 탈퇴 에러:', error, error.response);
+    console.error('회원 탈퇴 에러:', error);
+    console.error('에러 응답:', error.response);
+    console.error('에러 데이터:', error.response?.data);
+    
     if (error.response?.status === 400) {
-      errorMessage.value = '비밀번호가 일치하지 않습니다.';
+      errorMessage.value = '진행 중인 예약이 있어서 회원 탈퇴가 불가능합니다. 예약을 취소한 후 다시 시도해주세요.';
     } else {
       errorMessage.value = error.response?.data?.error || '회원 탈퇴 처리 중 오류가 발생했습니다.';
     }
@@ -120,6 +126,8 @@ const confirmWithdrawal = async () => {
 const goToLogin = () => {
   router.push('/login');
 };
+
+
 </script>
 
 <style scoped>

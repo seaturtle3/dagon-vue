@@ -51,14 +51,17 @@ export const myPageAPI = {
     },
 
     // 회원 탈퇴
-    async deleteAccount(password) {
+    async deleteAccount(passwordData) {
         try {
+            console.log('회원 탈퇴 요청 데이터:', passwordData);
             const response = await api.delete('/api/mypage/delete', {
-                data: {password}
+                data: passwordData
             });
+            console.log('회원 탈퇴 응답:', response);
             return response;
         } catch (error) {
-            console.error('API Error:', error);
+            console.error('회원 탈퇴 API Error:', error);
+            console.error('에러 응답 데이터:', error.response?.data);
             throw error;
         }
     },
