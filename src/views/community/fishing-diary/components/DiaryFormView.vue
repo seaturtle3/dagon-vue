@@ -52,6 +52,15 @@ function onThumbnailChange(event) {
   // 썸네일이 이미 있으면 기존 썸네일을 교체(덮어쓰기)
   files.value = []
   imagePreviews.value = []
+
+  // [추가] 수정 모드에서 기존 이미지가 있으면 모두 삭제
+  if (uploadedFiles.length > 0 && existingImages.value.length > 0) {
+    existingImages.value.forEach(img => {
+      deletedImageNames.value.push(img.name)
+    })
+    existingImages.value = []
+  }
+
   if (uploadedFiles.length > 0) {
     const file = uploadedFiles[0] // 첫 번째 파일만 사용
     if (file && file.type.startsWith('image/')) {
