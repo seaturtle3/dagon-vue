@@ -21,8 +21,23 @@ onMounted(async () => {
   }
 })
 
-const diaryList = computed(() => store.getDiaryByProductId(productId))
-
+const diaryList = computed(() => {
+  const list = store.getDiaryByProductId(productId) || [];
+  return [...list].sort((a, b) => {
+    // fishingAt(날짜) 기준 내림차순, 없으면 fdId 내림차순
+    const dateA = a.fishingAt ? new Date(a.fishingAt) : null;
+    const dateB = b.fishingAt ? new Date(b.fishingAt) : null;
+    if (dateA && dateB) {
+      return dateB - dateA;
+    } else if (dateA) {
+      return -1;
+    } else if (dateB) {
+      return 1;
+    } else {
+      return (b.fdId || 0) - (a.fdId || 0);
+    }
+  });
+})
 
 watch(() => route.params.prodId, async (newId, oldId) => {
   if (newId !== oldId) {

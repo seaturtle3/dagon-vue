@@ -20,7 +20,23 @@ onMounted(async () => {
   }
 })
 
-const reportList = computed(() => store.getReportByProductId(productId))
+const reportList = computed(() => {
+  const list = store.getReportByProductId(productId) || [];
+  return [...list].sort((a, b) => {
+    // fishingAt(날짜) 기준 내림차순, 없으면 frId 내림차순
+    const dateA = a.fishingAt ? new Date(a.fishingAt) : null;
+    const dateB = b.fishingAt ? new Date(b.fishingAt) : null;
+    if (dateA && dateB) {
+      return dateB - dateA;
+    } else if (dateA) {
+      return -1;
+    } else if (dateB) {
+      return 1;
+    } else {
+      return (b.frId || 0) - (a.frId || 0);
+    }
+  });
+});
 
 const goToDetail = (report) => {
   router.push(`/fishing-report/${report.frId}`)

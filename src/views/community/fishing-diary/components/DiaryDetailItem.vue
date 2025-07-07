@@ -269,6 +269,7 @@ async function confirmDelete() {
     try {
       await fishingDiaryStore.deleteFishingDiary(props.diary.fdId);
       alert('삭제되었습니다.');
+      await fishingDiaryStore.fetchDiaries(0, fishingDiaryStore.size);
       router.push('/fishing-diary');
     } catch (e) {
       console.error('조행기 삭제 실패:', e);

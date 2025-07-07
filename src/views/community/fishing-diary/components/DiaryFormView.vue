@@ -203,10 +203,8 @@ async function onSubmit() {
     } else {
       await fishingDiaryStore.createFishingDiary(dtoToSend, files.value)
       alert('조행기가 성공적으로 등록되었습니다!')
-      const listRes = await fishingDiaryStore.fetchDiaries({ page: 0, size: 1, sort: 'fdId,DESC' })
-      const fdId = listRes?.data?.content?.[0]?.fdId || null
-      if (fdId) router.push(`/fishing-diary/${fdId}`)
-      else router.push('/fishing-diary')
+      await fishingDiaryStore.fetchDiaries(0, fishingDiaryStore.size)
+      router.push('/fishing-diary')
     }
   } catch (err) {
     error.value = '조행기 등록/수정에 실패했습니다. 다시 시도해주세요.'
