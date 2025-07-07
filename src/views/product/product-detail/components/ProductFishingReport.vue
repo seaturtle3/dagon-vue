@@ -102,6 +102,7 @@ console.log("-------------reportList >",reportList)
   flex-direction: column;
   height: 400px;
   padding: 0;
+  cursor: pointer;
 }
 
 .item-content {
