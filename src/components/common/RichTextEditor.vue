@@ -71,7 +71,10 @@ onMounted(() => {
 watch(() => props.modelValue, (newVal) => {
   const $editor = $(`#${props.editorId}`)
   if ($editor.length) {
-    $editor.summernote('code', newVal || '')
+    // 현재 에디터 내용과 다를 때만 set
+    if ($editor.summernote('code') !== newVal) {
+      $editor.summernote('code', newVal || '')
+    }
   }
 })
 </script>

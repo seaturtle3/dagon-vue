@@ -616,7 +616,7 @@ async function loadAllProducts() {
         <h3 class="section-title">📝 {{ editMode ? '조황정보 수정' : '조황정보 작성' }}</h3>
         <div class="form-group">
           <label class="form-label required">조황정보 내용</label>
-          <RichTextEditor v-model="formData.content" editor-id="fishing-report-editor"/>
+          <RichTextEditor v-model="formData.content" editor-id="fishing-report-editor" />
         </div>
       </div>
 
