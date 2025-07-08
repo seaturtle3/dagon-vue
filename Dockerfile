@@ -1,20 +1,16 @@
-# Node.js 18 Alpine 이미지 사용
-FROM node:18-alpine
+# 1단계: 빌드
+FROM node:18-alpine AS builder
 
-# 작업 디렉토리 설정
 WORKDIR /app
-
-# package.json과 package-lock.json 복사
 COPY package*.json ./
-
-# 의존성 설치 (개발 의존성 포함)
 RUN npm ci
-
-# 소스 코드 복사
 COPY . .
+RUN npm run build
 
-# 개발 서버 실행 (호스트를 0.0.0.0으로 설정하여 외부 접근 허용)
+# 2단계: nginx로 정적 파일 서빙 (5173포트)
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 5173
 
-# 개발 서버 실행
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["nginx", "-g", "daemon off;"]
