@@ -52,7 +52,7 @@ const selectSwaggerGroup = (name) => {
   selectedSwaggerGroup.value = name
 }
 
-const baseUrl = import.meta.env.VITE_BASE_API_URL || 'http://localhost:8095'
+const baseUrl = import.meta.env.VITE_BASE_API_URL || 'http://localhost:8097'
 
 const renderSwagger = (groupName) => {
   SwaggerUI({

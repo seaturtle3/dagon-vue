@@ -14,6 +14,7 @@ export default defineConfig({
   server: {
     port: 5173,
     host: '0.0.0.0',
+    allowedHosts: ['localhost', '127.0.0.1', 'docs.yi.or.kr'],
     proxy: {
       '/api': {
         target: API_TARGET,

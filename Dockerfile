@@ -1,5 +1,5 @@
 # Node.js 18 Alpine 이미지 사용
-FROM node:18-alpine
+FROM node:18-slim
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -17,4 +17,5 @@ COPY . .
 EXPOSE 5173
 
 # 개발 서버 실행
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"] 
+#CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["npm", "run", "build"]
