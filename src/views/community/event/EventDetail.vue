@@ -75,14 +75,14 @@ const handleEdit = () => {
 
 const handleDelete = async () => {
   if (!confirm('정말 삭제하시겠습니까?')) return
-  
+
   // 토큰 유효성 확인
   if (!authStore.isTokenValid()) {
     alert('인증이 만료되었습니다. 다시 로그인해주세요.')
     router.push('/admin/login')
     return
   }
-  
+
   try {
     await deleteEvent(route.params.id)
     alert('이벤트가 삭제되었습니다.')
@@ -163,7 +163,7 @@ const getEventThumbnail = () => {
       <p>이벤트를 불러오는 중...</p>
     </div>
   </div>
-  
+
   <div v-else-if="event" class="board-detail">
     <BoardDetailBox>
       <template #title>
@@ -171,7 +171,7 @@ const getEventThumbnail = () => {
           <span>
             {{ event.title }}<span class="badge bg-success ms-2">{{ event.eventStatus }}</span>
           </span>
-          <BoardDetailAction showTopMenu @edit="handleEdit" @delete="handleDelete" />
+          <BoardDetailAction showTopMenu @edit="handleEdit" @delete="handleDelete"/>
         </div>
       </template>
 
@@ -183,46 +183,46 @@ const getEventThumbnail = () => {
       </template>
 
       <template #default>
-        <hr class="board-divider" />
-        
+        <hr class="board-divider"/>
+
         <!-- 이미지 표시 -->
         <div v-if="event.imageDataList && event.imageDataList.length > 0" class="event-images mt-4 mb-4">
           <div class="image-gallery">
             <div v-for="(image, index) in event.imageDataList" :key="index" class="image-item">
-              <img 
-                :src="`data:image/jpeg;base64,${image}`"
-                :alt="`이벤트 이미지 ${index + 1}`"
-                class="event-image"
+              <img
+                  :src="`data:image/jpeg;base64,${image}`"
+                  :alt="`이벤트 이미지 ${index + 1}`"
+                  class="event-image"
               />
             </div>
           </div>
         </div>
-        <div v-html="event.content" class="mt-4" />
+        <div v-html="event.content" class="mt-4"/>
       </template>
     </BoardDetailBox>
 
     <!-- 하단 액션 버튼 -->
-    <BoardDetailAction @edit="handleEdit" @delete="handleDelete" />
+    <BoardDetailAction @edit="handleEdit" @delete="handleDelete"/>
 
     <!-- 이전글/다음글 네비게이션 -->
     <div class="navigation-container">
       <div class="navigation-buttons">
         <!-- 이전글 버튼 -->
-        <button 
-          v-if="prevEvent" 
-          @click="goToPrevEvent" 
-          class="nav-button prev-button"
-          :title="`이전글: ${prevEvent.title}`"
-          type="button"
+        <button
+            v-if="prevEvent"
+            @click="goToPrevEvent"
+            class="nav-button prev-button"
+            :title="`이전글: ${prevEvent.title}`"
+            type="button"
         >
-          <font-awesome-icon icon="fa-solid fa-chevron-left" />
+          <font-awesome-icon icon="fa-solid fa-chevron-left"/>
           <span class="nav-text">
             <span class="nav-label">이전글</span>
             <span class="nav-title">{{ prevEvent.title }}</span>
           </span>
         </button>
         <div v-else class="nav-button disabled">
-          <font-awesome-icon icon="fa-solid fa-chevron-left" />
+          <font-awesome-icon icon="fa-solid fa-chevron-left"/>
           <span class="nav-text">
             <span class="nav-label">이전글</span>
             <span class="nav-title">이전 글이 없습니다</span>
@@ -231,37 +231,37 @@ const getEventThumbnail = () => {
 
         <!-- 목록으로 버튼 -->
         <button @click="goToEventList" class="nav-button list-button" type="button">
-          <font-awesome-icon icon="fa-solid fa-list" />
+          <font-awesome-icon icon="fa-solid fa-list"/>
           <span class="nav-text">
             <span class="nav-label">목록</span>
           </span>
         </button>
 
         <!-- 다음글 버튼 -->
-        <button 
-          v-if="nextEvent" 
-          @click="goToNextEvent" 
-          class="nav-button next-button"
-          :title="`다음글: ${nextEvent.title}`"
-          type="button"
+        <button
+            v-if="nextEvent"
+            @click="goToNextEvent"
+            class="nav-button next-button"
+            :title="`다음글: ${nextEvent.title}`"
+            type="button"
         >
           <span class="nav-text">
             <span class="nav-label">다음글</span>
             <span class="nav-title">{{ nextEvent.title }}</span>
           </span>
-          <font-awesome-icon icon="fa-solid fa-chevron-right" />
+          <font-awesome-icon icon="fa-solid fa-chevron-right"/>
         </button>
         <div v-else class="nav-button disabled">
           <span class="nav-text">
             <span class="nav-label">다음글</span>
             <span class="nav-title">다음 글이 없습니다</span>
           </span>
-          <font-awesome-icon icon="fa-solid fa-chevron-right" />
+          <font-awesome-icon icon="fa-solid fa-chevron-right"/>
         </div>
       </div>
     </div>
   </div>
-  
+
   <div v-else class="error-container">
     <div class="error-message">
       <i class="fas fa-exclamation-triangle"></i>
@@ -392,19 +392,19 @@ hr.board-divider {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .nav-button {
     width: 100%;
     max-width: none;
     justify-content: center;
   }
-  
+
   .prev-button,
   .next-button {
     text-align: center;
     flex-direction: row;
   }
-  
+
   .nav-title {
     max-width: 150px;
   }
@@ -474,15 +474,9 @@ hr.board-divider {
 
 .event-image {
   width: 100%;
-<<<<<<< HEAD
   height: 200px;
   object-fit: contain;
   background-color: #fff;
-=======
-  height: 120px;
-  object-fit: contain;
-  display: block;
->>>>>>> d350003c45ac5df8ad1da7dbd33a50205a5bb060
   transition: opacity 0.3s ease;
 }
 
@@ -546,11 +540,11 @@ hr.board-divider {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 0.5rem;
   }
-  
+
   .event-image {
     height: 150px;
   }
-  
+
   .modal-content {
     max-width: 95%;
     max-height: 95%;
