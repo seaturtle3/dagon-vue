@@ -205,17 +205,24 @@ function statusText(status) {
 }
 
 const getEventThumbnail = (event) => {
-  // 1. imageDataList
+  // 1. data URL (미리보기용)
+  if (event?.thumbnailUrl && event.thumbnailUrl.startsWith('data:')) {
+    return event.thumbnailUrl
+  }
+  // 2. imageDataList
   if (event?.imageDataList && event.imageDataList.length > 0) {
     return `data:image/jpeg;base64,${event.imageDataList[0]}`
   }
-  // 2. thumbnailDataList
+  // 3. thumbnailDataList
   if (event?.thumbnailDataList && event.thumbnailDataList.length > 0) {
     return `data:image/jpeg;base64,${event.thumbnailDataList[0]?.thumbnail_data}`
   }
-  // 3. thumbnailUrl
+  // 4. thumbnailUrl (서버 URL)
   if (event?.thumbnailUrl) {
-    if (event.thumbnailUrl.startsWith('http')) return event.thumbnailUrl
+    if (event.thumbnailUrl.startsWith('http')) {
+      // localhost를 실제 도메인으로 변경
+      return event.thumbnailUrl.replace('http://localhost:8095', 'http://docs.yi.or.kr:8097')
+    }
     return `${BASE_URL}${event.thumbnailUrl}`
   }
   // fallback(없으면 빈 문자열)
@@ -297,7 +304,7 @@ const submitEvent = async () => {
       thumbnailUrl: eventForm.thumbnailUrl,
       isTop: eventForm.isTop
     }
-    
+
     if (modalMode.value === 'edit') {
       await updateEvent(eventForm.eventId, data, uploadedFiles.value)
       alert('이벤트가 수정되었습니다.')
@@ -347,20 +354,20 @@ function changePage(page) {
 async function handleThumbnailUpload(e) {
   const file = e.target.files[0]
   if (!file) return
-  
+
   if (file.size > 5 * 1024 * 1024) {
     alert('파일 크기는 5MB 이하여야 합니다.')
     return
   }
-  
+
   if (!file.type.startsWith('image/')) {
     alert('이미지 파일만 업로드 가능합니다.')
     return
   }
-  
+
   // 파일을 uploadedFiles에 추가
   uploadedFiles.value = [file]
-  
+
   // 미리보기용 URL 생성
   const reader = new FileReader()
   reader.onload = (e) => {
