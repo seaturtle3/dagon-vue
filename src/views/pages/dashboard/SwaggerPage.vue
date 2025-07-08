@@ -52,11 +52,11 @@ const selectSwaggerGroup = (name) => {
   selectedSwaggerGroup.value = name
 }
 
-const baseUrl = import.meta.env.VITE_BASE_API_URL || 'http://localhost:8097'
+const baseUrl = import.meta.env.VITE_BASE_API_URL || 'http://docs.yi.or.kr:8097'
 
 const renderSwagger = (groupName) => {
   SwaggerUI({
-    url: `${baseUrl}/api-docs/${groupName}`,
+    url: `http://docs.yi.or.kr:8097/api-docs/${groupName}`,
     dom_id: '#swagger-ui',
     layout: 'BaseLayout', // 헤더 최소화
     deepLinking: true,
