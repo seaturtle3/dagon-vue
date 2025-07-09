@@ -266,10 +266,11 @@ function openCreateModal() {
     content: '',
     startAt: '',
     endAt: '',
-    thumbnailUrl: '',
+    thumbnailUrl: '', // 썸네일 미리보기 초기화
     isTop: false,
     eventStatus: ''
   })
+  uploadedFiles.value = [] // 업로드 파일 상태 초기화
   showModal.value = true
 }
 function openEditModal(event) {
