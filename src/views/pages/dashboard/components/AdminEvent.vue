@@ -149,6 +149,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { fetchEvents, fetchEventById, createEvent, updateEvent, deleteEvent as apiDeleteEvent } from '@/api/event.js'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import { BASE_URL } from '@/constants/baseUrl.js'
+import { convertLocalhostToDomain } from '@/utils/authUtils'
 
 const events = ref([])
 const loading = ref(false)
@@ -220,8 +221,8 @@ const getEventThumbnail = (event) => {
   // 4. thumbnailUrl (서버 URL)
   if (event?.thumbnailUrl) {
     if (event.thumbnailUrl.startsWith('http')) {
-      // localhost를 실제 도메인으로 변경
-      return event.thumbnailUrl.replace('http://localhost:8095', 'http://docs.yi.or.kr:8097')
+      // localhost를 실제 도메인으로 변경 (HTTPS)
+      return convertLocalhostToDomain(event.thumbnailUrl)
     }
     return `${event.thumbnailUrl}`
   }
