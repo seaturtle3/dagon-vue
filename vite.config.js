@@ -63,6 +63,7 @@ export default defineConfig({
               rewrites: [
                 { from: /^\/login$/, to: '/index.html' },
                 { from: /^\/mypage.*$/, to: '/index.html' },
+                { from: /^\/admin.*$/, to: '/index.html' },
                 { from: /^\/api\/.*$/, to: ctx => ctx.parsedUrl.pathname },
                 { from: /^\/auth\/.*$/, to: ctx => ctx.parsedUrl.pathname },
                 { from: /./, to: '/index.html' }

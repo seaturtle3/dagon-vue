@@ -65,10 +65,10 @@ export const updateEvent = (id, eventData, files = []) => {
         }
     }
     
-    // thumbnailUrl이 base64 데이터인 경우 제거 (백엔드에서 처리할 수 없음)
-    if (eventData.thumbnailUrl && eventData.thumbnailUrl.startsWith('data:')) {
-        delete eventData.thumbnailUrl
-    }
+    // thumbnailUrl이 base64 데이터인 경우 유지 (수정 시에도 base64 처리)
+    // if (eventData.thumbnailUrl && eventData.thumbnailUrl.startsWith('data:')) {
+    //     delete eventData.thumbnailUrl
+    // }
     
     if (files && files.length > 0) {
         console.log("------------------------------------1")
