@@ -134,7 +134,7 @@ onMounted(async () => {
       // 기존 이미지가 있으면 로드
       if (res.data.imageDataList && res.data.imageDataList.length > 0) {
         existingImages.value = res.data.imageDataList.map((imageData, idx) => ({
-          id: res.data.imageIdList[idx] || 'existing-' + idx, // EventImage 테이블의 PK 사용
+          id: res.data.imageIdList[idx] || 'existing-' + idx, // EventImage.java 테이블의 PK 사용
           url: `data:image/jpeg;base64,${imageData}`,
           name: `image_${idx}`,
           isExisting: true,
