@@ -38,8 +38,8 @@ api.interceptors.request.use(
 
         // data가 FormData인지 확인해서 Content-Type을 동적으로 설정
         if (config.data instanceof FormData) {
-            // FormData일 때는 Content-Type을 axios가 자동으로 설정하도록 둔다
-            config.headers['Content-Type'] = 'multipart/form-data'
+            // FormData일 때는 Content-Type 헤더를 제거하여 브라우저가 자동으로 설정하도록 함
+            delete config.headers['Content-Type']
         } else if (config.headers['Content-Type']) {
             // 이미 Content-Type이 있으면 그대로 둔다
         } else {
