@@ -39,7 +39,7 @@ onMounted(() => {
           formData.append('image', file)
           try {
             const token = localStorage.getItem('token')
-            const res = await fetch('http://docs.yi.or.kr:8097/api/images/event/uploadImage', {
+            const res = await fetch('https://docs.yi.or.kr:8097/api/images/event/uploadImage', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -52,7 +52,7 @@ onMounted(() => {
             }
 
             const path = await res.text()
-            $(`#${props.editorId}`).summernote('insertImage', `http://docs.yi.or.kr:8097${path}`)
+            $(`#${props.editorId}`).summernote('insertImage', `https://docs.yi.or.kr:8097${path}`)
           } catch (e) {
             console.error('이미지 업로드 실패', e)
             alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.')

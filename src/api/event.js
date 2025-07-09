@@ -22,8 +22,6 @@ export const createEvent = (eventData, files = []) => {
         const thumbnailFiles = files.filter(item => item.isThumbnail).map(item => item.file)
         const normalFiles = files.filter(item => !item.isThumbnail).map(item => item.file)
         
-        // 썸네일 이미지들만 전송
-        if (thumbnailFiles.length > 0) {
             return api.multipartPost({
                 url: '/api/admin/event',
                 dto: eventData,
@@ -31,9 +29,6 @@ export const createEvent = (eventData, files = []) => {
                 dtoKey: 'dto',
                 fileKey: 'images'
             })
-        } else {
-            return api.post('/api/admin/event', eventData)
-        }
     } else {
         return api.post('/api/admin/event', eventData)
     }
@@ -66,12 +61,14 @@ export const updateEvent = (id, eventData, files = []) => {
     }
     
     if (files && files.length > 0) {
+        console.log("------------------------------------1")
+
         // 썸네일 플래그가 있는 파일들 처리
         const thumbnailFiles = files.filter(item => item.isThumbnail).map(item => item.file)
         const normalFiles = files.filter(item => !item.isThumbnail).map(item => item.file)
         
         // 썸네일 이미지들만 전송
-        if (thumbnailFiles.length > 0) {
+            console.log("------------------------------------2")
             return api.multipartPut({
                 url: `/api/admin/event/${id}`,
                 dto: eventData,
@@ -79,10 +76,9 @@ export const updateEvent = (id, eventData, files = []) => {
                 dtoKey: 'dto',
                 fileKey: 'images'
             })
-        } else {
-            return api.put(`/api/admin/event/${id}`, eventData)
-        }
     } else {
+        console.log("------------------------------------3")
+
         return api.put(`/api/admin/event/${id}`, eventData)
     }
 }

@@ -39,7 +39,7 @@ onMounted(() => {
           formData.append('file', file);
           try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://docs.yi.or.kr:8097/api/images/event/uploadImage', {
+            const res = await fetch('https://docs.yi.or.kr:8097/api/images/event/uploadImage', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -61,7 +61,7 @@ onMounted(() => {
             console.log("dbUrl ----> ", dbUrl);
 
             // 🔽 에디터에 이미지 삽입
-            $(`#${props.editorId}`).summernote('insertImage', `http://docs.yi.or.kr:8097${dbUrl}`);
+            $(`#${props.editorId}`).summernote('insertImage', `https://docs.yi.or.kr:8097${dbUrl}`);
 
           } catch (e) {
             console.error('이미지 업로드 실패', e);

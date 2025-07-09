@@ -21,7 +21,7 @@ COPY localhost+2-key.pem ./localhost+2-key.pem
 COPY localhost+2.pem ./localhost+2.pem
 
 # 환경 변수 파일 복사
-COPY env.production .env.production
+COPY .env.production .env.production
 
 # 포트 노출
 EXPOSE 5173
