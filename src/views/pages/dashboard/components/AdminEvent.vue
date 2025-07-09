@@ -366,8 +366,11 @@ async function handleThumbnailUpload(e) {
     return
   }
 
-  // 파일을 uploadedFiles에 추가
-  uploadedFiles.value = [file]
+  // 파일을 uploadedFiles에 추가 (isThumbnail 플래그와 함께)
+  uploadedFiles.value = [{
+    file: file,
+    isThumbnail: true
+  }]
 
   // 미리보기용 URL 생성
   const reader = new FileReader()

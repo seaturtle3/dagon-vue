@@ -17,6 +17,11 @@ export const getAdminEvents = (params) => {
 
 // 관리자용 이벤트 생성 (이미지 포함)
 export const createEvent = (eventData, files = []) => {
+    // thumbnailUrl이 base64 데이터인 경우 제거 (백엔드에서 처리할 수 없음)
+    if (eventData.thumbnailUrl && eventData.thumbnailUrl.startsWith('data:')) {
+        delete eventData.thumbnailUrl
+    }
+    
     if (files && files.length > 0) {
         // 썸네일 플래그가 있는 파일들 처리
         const thumbnailFiles = files.filter(item => item.isThumbnail).map(item => item.file)
@@ -58,6 +63,11 @@ export const updateEvent = (id, eventData, files = []) => {
         if (imageChanges.newImages && imageChanges.newImages.length > 0) {
             console.log('새로 추가된 이미지들:', imageChanges.newImages)
         }
+    }
+    
+    // thumbnailUrl이 base64 데이터인 경우 제거 (백엔드에서 처리할 수 없음)
+    if (eventData.thumbnailUrl && eventData.thumbnailUrl.startsWith('data:')) {
+        delete eventData.thumbnailUrl
     }
     
     if (files && files.length > 0) {
