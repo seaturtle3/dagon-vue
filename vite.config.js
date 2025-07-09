@@ -6,6 +6,9 @@ import history from 'connect-history-api-fallback'
 import { fileURLToPath, URL } from 'node:url'
 import fs from 'fs'
 
+// 환경변수로 백엔드 URL 설정
+const API_TARGET = process.env.VITE_API_TARGET || 'https://localhost:8097';
+
 
 export default defineConfig({
   plugins: [
@@ -16,6 +19,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@views': fileURLToPath(new URL('./src/views', import.meta.url)),
       global: 'globalThis'
     }
   },
@@ -30,35 +34,41 @@ export default defineConfig({
       plugins: [nodePolyfills()]
     }
   },
-  server: {
-    port: 5173,
-    host: '0.0.0.0',
-    open: false,
-    https: {
-      key: fs.readFileSync('./localhost+2-key.pem'),
-      cert: fs.readFileSync('./localhost+2.pem')
-    },
-
-    cors: true,
-    fs: {
-      strict: false
-    },
-    // ✅ 여기서 Vue Router fallback 적용!
-    configureServer: ({ middlewares }) => {
-      middlewares.use(
-          history({
-            disableDotRule: true,
-            htmlAcceptHeaders: ['text/html','application/xhtml+xml'],
-            // ❌ rewrites 제거: /api 요청을 HTML로 넘기지 않도록!
-            rewrites: [
-              { from: /^\/login$/, to: '/index.html' },
-              { from: /^\/mypage.*$/, to: '/index.html' },
-              { from: /^\/api\/.*$/, to: ctx => ctx.parsedUrl.pathname },
-              { from: /^\/auth\/.*$/, to: ctx => ctx.parsedUrl.pathname },
-              { from: /./, to: '/index.html' }
-            ]
-          })
-      );
+      server: {
+      port: 5173,
+      host: '0.0.0.0',
+      open: false,
+      https: {
+        key: fs.readFileSync('./localhost+2-key.pem'),
+        cert: fs.readFileSync('./localhost+2.pem')
+      },
+      cors: true,
+      fs: {
+        strict: false
+      },
+      proxy: {
+        '/api': {
+          target: API_TARGET,
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+      // ✅ 여기서 Vue Router fallback 적용!
+      configureServer: ({ middlewares }) => {
+        middlewares.use(
+            history({
+              disableDotRule: true,
+              htmlAcceptHeaders: ['text/html','application/xhtml+xml'],
+              // ❌ rewrites 제거: /api 요청을 HTML로 넘기지 않도록!
+              rewrites: [
+                { from: /^\/login$/, to: '/index.html' },
+                { from: /^\/mypage.*$/, to: '/index.html' },
+                { from: /^\/api\/.*$/, to: ctx => ctx.parsedUrl.pathname },
+                { from: /^\/auth\/.*$/, to: ctx => ctx.parsedUrl.pathname },
+                { from: /./, to: '/index.html' }
+              ]
+            })
+        );
+      }
     }
-  }
 });

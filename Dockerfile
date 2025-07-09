@@ -16,6 +16,10 @@ RUN npm ci
 # 소스 코드 복사
 COPY . .
 
+# SSL 인증서 파일 복사
+COPY localhost+2-key.pem ./localhost+2-key.pem
+COPY localhost+2.pem ./localhost+2.pem
+
 # 환경 변수 파일 복사
 COPY env.production .env.production
 

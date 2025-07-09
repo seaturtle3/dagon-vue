@@ -348,7 +348,7 @@ const routes = [
         meta: { noCache: true }
     },
 
-    {path: '/memberInquiryModal', component: () => import('@views/support/inquiry/components/MemberInquiryModal.vue')},
+    {path: '/memberInquiryModal', component: () => import('@/views/support/inquiry/components/MemberInquiryModal.vue')},
 
     {
         path: '/partner/product/list',
