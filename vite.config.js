@@ -4,7 +4,7 @@ import vueDevTools from 'vite-plugin-vue-devtools';
 import path from 'path';
 
 // 환경변수로 백엔드 URL 설정 (Docker 환경에서는 'backend', 로컬에서는 'localhost')
-const API_TARGET = process.env.VITE_API_TARGET || 'http://localhost:8097';
+const API_TARGET = process.env.VITE_API_TARGET || 'https://localhost:8097';
 
 export default defineConfig({
   plugins: [

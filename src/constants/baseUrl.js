@@ -1,1 +1,1 @@
-export const BASE_URL = 'http://docs.yi.or.kr:8097';
+export const BASE_URL = 'https://docs.yi.or.kr:8097';

@@ -9,4 +9,20 @@ export function clearAuthData() {
   localStorage.removeItem('token');
   localStorage.removeItem('userInfo');
   localStorage.removeItem('loginType');
+}
+
+/**
+ * localhost URL을 실제 도메인으로 변환 (HTTPS)
+ * @param {string} url - 변환할 URL
+ * @returns {string} 변환된 URL
+ */
+export function convertLocalhostToDomain(url) {
+  if (!url) return url;
+  if (url.startsWith('http://localhost:8095')) {
+    return url.replace('http://localhost:8095', 'https://docs.yi.or.kr:8097');
+  }
+  if (url.startsWith('http://localhost:8097')) {
+    return url.replace('http://localhost:8097', 'https://docs.yi.or.kr:8097');
+  }
+  return url;
 } 
