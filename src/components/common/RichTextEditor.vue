@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, watch } from 'vue'
+import {onMounted, watch} from 'vue'
 import $ from 'jquery'
 import 'summernote/dist/summernote-lite.min.css'
 import 'summernote/dist/summernote-lite.min.js'
@@ -29,34 +29,43 @@ onMounted(() => {
           'color': '#333 !important',
           'background-color': '#fff !important'
         })
-        
+
         // 에디터 내부 모든 텍스트 요소에 색상 적용
         $editable.find('*').css('color', '#333')
       },
       onImageUpload: async (files) => {
         for (const file of files) {
-          const formData = new FormData()
-          formData.append('image', file)
+          const formData = new FormData();
+          formData.append('file', file);
           try {
-            const token = localStorage.getItem('token')
-            const res = await fetch('/api/images/upload', {
+            const token = localStorage.getItem('token');
+            const res = await fetch('http://docs.yi.or.kr:8097/api/images/event/uploadImage', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`
+                // Content-Type은 생략해야 FormData가 제대로 전송됨
               },
               body: formData
-            })
-            
+            });
+
             if (!res.ok) {
-              throw new Error(`HTTP error! status: ${res.status}`)
+              throw new Error(`HTTP error! status: ${res.status}`);
             }
-            
-            const path = await res.text()
-            const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL || ''
-            $(`#${props.editorId}`).summernote('insertImage', `${baseUrl}/${path}`)
+
+            // 🔽 JSON으로 파싱
+            const result = await res.json();
+            console.log("result ----> ", result);
+
+            // 🔽 dbUrl 키값 추출
+            const dbUrl = result.dbUrl;
+            console.log("dbUrl ----> ", dbUrl);
+
+            // 🔽 에디터에 이미지 삽입
+            $(`#${props.editorId}`).summernote('insertImage', `http://docs.yi.or.kr:8097${dbUrl}`);
+
           } catch (e) {
-            console.error('이미지 업로드 실패', e)
-            alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.')
+            console.error('이미지 업로드 실패', e);
+            alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
           }
         }
       }

@@ -223,7 +223,7 @@ const getEventThumbnail = (event) => {
       // localhost를 실제 도메인으로 변경
       return event.thumbnailUrl.replace('http://localhost:8095', 'http://docs.yi.or.kr:8097')
     }
-    return `${BASE_URL}${event.thumbnailUrl}`
+    return `${event.thumbnailUrl}`
   }
   // fallback(없으면 빈 문자열)
   return ''
