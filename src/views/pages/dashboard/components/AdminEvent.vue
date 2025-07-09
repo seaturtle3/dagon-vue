@@ -275,6 +275,8 @@ function openCreateModal() {
 function openEditModal(event) {
   modalMode.value = 'edit'
   Object.assign(eventForm, { ...event })
+  // 수정 모달 열 때 uploadedFiles 초기화
+  uploadedFiles.value = []
   showModal.value = true
 }
 async function openDetailModal(eventId) {
@@ -307,7 +309,13 @@ const submitEvent = async () => {
     }
 
     if (modalMode.value === 'edit') {
-      await updateEvent(eventForm.eventId, data, uploadedFiles.value)
+      // 수정 시: 새 파일이 있으면 multipart, 없으면 JSON으로 전송
+      if (uploadedFiles.value.length > 0) {
+        await updateEvent(eventForm.eventId, data, uploadedFiles.value)
+      } else {
+        // 새 파일이 없으면 일반 JSON 요청으로 전송
+        await updateEvent(eventForm.eventId, data, [])
+      }
       alert('이벤트가 수정되었습니다.')
     } else {
       await createEvent(data, uploadedFiles.value)

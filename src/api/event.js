@@ -71,23 +71,22 @@ export const updateEvent = (id, eventData, files = []) => {
     // }
     
     if (files && files.length > 0) {
-        console.log("------------------------------------1")
+        console.log("새 파일이 있어서 multipart로 전송")
 
         // 썸네일 플래그가 있는 파일들 처리
         const thumbnailFiles = files.filter(item => item.isThumbnail).map(item => item.file)
         const normalFiles = files.filter(item => !item.isThumbnail).map(item => item.file)
         
         // 썸네일 이미지들만 전송
-            console.log("------------------------------------2")
-            return api.multipartPut({
-                url: `/api/admin/event/${id}`,
-                dto: eventData,
-                files: thumbnailFiles,
-                dtoKey: 'dto',
-                fileKey: 'images'
-            })
+        return api.multipartPut({
+            url: `/api/admin/event/${id}`,
+            dto: eventData,
+            files: thumbnailFiles,
+            dtoKey: 'dto',
+            fileKey: 'images'
+        })
     } else {
-        console.log("------------------------------------3")
+        console.log("새 파일이 없어서 JSON으로 전송")
 
         return api.put(`/api/admin/event/${id}`, eventData)
     }
