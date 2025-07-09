@@ -270,13 +270,11 @@ function openCreateModal() {
     isTop: false,
     eventStatus: ''
   })
-  uploadedFiles.value = [] // 신규 등록 모달 열 때 파일 초기화
-ㄴㄴㄴ  showModal.value = true
+  showModal.value = true
 }
 function openEditModal(event) {
   modalMode.value = 'edit'
   Object.assign(eventForm, { ...event })
-  uploadedFiles.value = [] // 수정 모달 열 때 파일 초기화
   showModal.value = true
 }
 async function openDetailModal(eventId) {
@@ -309,11 +307,7 @@ const submitEvent = async () => {
     }
 
     if (modalMode.value === 'edit') {
-      // 수정 시: 새로운 파일이 있으면 업로드, 없으면 기존 썸네일 유지
-      const filesToUpload = uploadedFiles.value.length > 0 ? uploadedFiles.value : []
-      console.log('수정 모드 - 업로드할 파일:', filesToUpload)
-      console.log('수정할 데이터:', data)
-      await updateEvent(eventForm.eventId, data, filesToUpload)
+      await updateEvent(eventForm.eventId, data, uploadedFiles.value)
       alert('이벤트가 수정되었습니다.')
     } else {
       await createEvent(data, uploadedFiles.value)
