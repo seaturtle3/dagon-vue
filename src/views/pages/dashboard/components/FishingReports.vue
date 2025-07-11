@@ -359,7 +359,7 @@ const changePage = (page) => {
 }
 
 const viewReport = (frId) => {
-  router.push(`/fishing-report/${frId}`)
+  router.push(`/admin/fishing-reports/${frId}`)
 }
 
 const viewComments = (frId, title) => {
