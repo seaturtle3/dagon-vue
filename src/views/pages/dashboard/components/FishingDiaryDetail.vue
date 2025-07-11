@@ -141,20 +141,27 @@ const showDeleteModal = ref(false);
 const deleteTarget = ref(''); // 'diary' or 'comment'
 const deleteId = ref(null);
 
-const fetchDiary = async () => {
-  loading.value = true;
+const loadDiary = async () => {
   try {
-    const response = await axios.get(`/api/fishing-diary/get/${fdId}`);
-    diary.value = response.data;
-  } catch (error) {
-    console.error('Error fetching diary detail:', error);
-    diary.value = null;
-  } finally {
-    loading.value = false;
-  }
-};
+    const token = localStorage.getItem('token')
+    if (!token) return
 
-onMounted(fetchDiary);
+    const response = await axios.get(`/api/admin/fishing-diary/get/${fdId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    diary.value = response.data
+    console.log('로드된 조행기:', response.data)
+  } catch (error) {
+    console.error('조행기 로드 실패:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadDiary);
 
 const goBack = () => {
   router.push('/admin/fishing-diaries');
@@ -164,11 +171,26 @@ const editDiary = () => {
   router.push(`/admin/fishing-diaries/${fdId}/edit`);
 };
 
-const deleteDiary = () => {
-  deleteTarget.value = 'diary';
-  deleteId.value = fdId;
-  showDeleteModal.value = true;
-};
+const deleteDiary = async () => {
+  if (!confirm('정말로 이 조행기를 삭제하시겠습니까?')) {
+    return
+  }
+
+  try {
+    const token = localStorage.getItem('token')
+    await axios.delete(`/api/admin/fishing-diary/delete/${fdId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    alert('조행기가 삭제되었습니다.')
+    router.push('/admin/fishing-diaries')
+  } catch (error) {
+    console.error('조행기 삭제 실패:', error)
+    alert('조행기 삭제에 실패했습니다: ' + error.response?.data || error.message)
+  }
+}
 
 const deleteComment = (commentId) => {
   deleteTarget.value = 'comment';
@@ -183,7 +205,7 @@ const confirmDelete = async () => {
       router.push('/admin/fishing-diaries');
     } else if (deleteTarget.value === 'comment') {
       await axios.delete(`/api/fishing-diary/comments/${deleteId.value}`);
-      fetchDiary(); // Refresh diary details to show updated comments
+      loadDiary(); // Refresh diary details to show updated comments
     }
   } catch (error) {
     console.error(`Error deleting ${deleteTarget.value}:`, error);

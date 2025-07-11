@@ -210,6 +210,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { partnerService } from '@/api/partner'
+import axios from 'axios'
 
 const router = useRouter()
 
@@ -265,57 +266,31 @@ const visiblePages = computed(() => {
 })
 
 // 메서드
-const loadDiaries = async (page = 1) => {
-  loading.value = true
+const loadDiaries = async () => {
   try {
-    const params = {
-      page: page - 1, // 백엔드는 0-based index 사용
-      size: itemsPerPage.value,
-      sortBy: 'fdId',
-      direction: 'desc'
-    }
-    const response = await partnerService.getFishingDiaries(params)
-    let responseData = response.data
+    loading.value = true
+    const token = localStorage.getItem('token')
+    if (!token) return
 
-    if (responseData && responseData.content) {
-      diaries.value = responseData.content || []
-      totalPages.value = responseData.totalPages || 1
-      totalElements.value = responseData.totalElements || 0
-      hasNext.value = responseData.hasNext || false
-      hasPrevious.value = responseData.hasPrevious || false
-    } else if (Array.isArray(responseData)) {
-      diaries.value = responseData
-      totalPages.value = 1
-      totalElements.value = responseData.length
-      hasNext.value = false
-      hasPrevious.value = false
-    } else {
-      diaries.value = []
-      totalPages.value = 1
-      totalElements.value = 0
-      hasNext.value = false
-      hasPrevious.value = false
-      console.warn('예상하지 못한 응답 구조:', responseData)
-    }
-    totalDiaries.value = totalElements.value
-    
-    // 오늘 등록된 조행기 수 계산 (클라이언트에서 계산)
-    const today = new Date().toISOString().split('T')[0]
-    todayDiaries.value = diaries.value.filter(diary => 
-      diary.createdAt && diary.createdAt.startsWith(today)
-    ).length
-    
-    // 이번 주 등록된 조행기 수 계산 (클라이언트에서 계산)
-    const weekAgo = new Date()
-    weekAgo.setDate(weekAgo.getDate() - 7)
-    thisWeekDiaries.value = diaries.value.filter(diary => 
-      diary.createdAt && new Date(diary.createdAt) >= weekAgo
-    ).length
+    const response = await axios.get('/api/admin/fishing-diary/get-all', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      params: {
+        page: currentPage.value - 1,
+        size: itemsPerPage.value,
+        sortBy: 'fdId',
+        direction: 'desc'
+      }
+    })
 
+    diaries.value = response.data.content
+    totalElements.value = response.data.totalElements
+    totalPages.value = response.data.totalPages
+    
+    console.log('로드된 조행기 목록:', response.data)
   } catch (error) {
-    console.error('조행기 로드 실패:', error)
-    alert('조행기를 불러오는데 실패했습니다.')
-    diaries.value = []
+    console.error('조행기 목록 로드 실패:', error)
   } finally {
     loading.value = false
   }

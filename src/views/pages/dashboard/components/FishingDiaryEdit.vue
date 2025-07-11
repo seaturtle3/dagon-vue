@@ -157,7 +157,7 @@ const loadDiary = async () => {
       throw new Error('인증 토큰이 없습니다.')
     }
 
-    const response = await axios.get(`/api/fishing-diary/get/${route.params.fdId}`, {
+    const response = await axios.get(`/api/admin/fishing-diary/edit/${route.params.fdId}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -270,7 +270,7 @@ const handleSubmit = async () => {
       submitData.append('images', file)
     })
 
-    await axios.put(`/api/fishing-diary/update/${route.params.fdId}`, submitData, {
+    await axios.put(`/api/admin/fishing-diary/update/${route.params.fdId}`, submitData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`
