@@ -254,6 +254,52 @@ const commentToDelete = ref(null)
 // const hasPrevious = computed(() => currentIndex.value > 0)
 // const hasNext = computed(() => currentIndex.value < totalCount.value - 1)
 
+// 1. prevNext 상태 추가
+const prevNext = ref({ prev: null, next: null })
+
+// 2. prev-next API 호출 함수
+const loadPrevNext = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('인증 토큰이 없습니다.')
+    const res = await axios.get(`/api/fishing-report/${route.params.frId}/prev-next`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    prevNext.value = res.data
+  } catch (e) {
+    prevNext.value = { prev: null, next: null }
+  }
+}
+
+// 3. goToPrevious/goToNext 수정
+const goToPrevious = () => {
+  if (prevNext.value.prev) {
+    router.push(`/admin/fishing-reports/${prevNext.value.prev.frId}`)
+  }
+}
+const goToNext = () => {
+  if (prevNext.value.next) {
+    router.push(`/admin/fishing-reports/${prevNext.value.next.frId}`)
+  }
+}
+
+// 4. onMounted와 라우트 변경 시 prevNext도 불러오기
+onMounted(async () => {
+  await loadReport()
+  await loadPrevNext()
+  document.addEventListener('keydown', handleKeydown)
+})
+
+import { watch } from 'vue'
+watch(() => route.params.frId, async () => {
+  await loadReport()
+  await loadPrevNext()
+})
+
+// 5. hasPrevious/hasNext 계산식 prevNext로 대체
+const hasPrevious = computed(() => !!prevNext.value.prev)
+const hasNext = computed(() => !!prevNext.value.next)
+
 // 메서드
 const loadAllReports = async () => {
   try {
@@ -325,24 +371,6 @@ const loadReport = async () => {
     alert('조황정보를 불러오는데 실패했습니다.')
   } finally {
     loading.value = false
-  }
-}
-
-const goToPrevious = async () => {
-  if (hasPrevious.value && allReports.value[currentIndex.value - 1]) {
-    navigationLoading.value = true
-    const prevReport = allReports.value[currentIndex.value - 1]
-    await router.push(`/admin/fishing-reports/${prevReport.frId}`)
-    navigationLoading.value = false
-  }
-}
-
-const goToNext = async () => {
-  if (hasNext.value && allReports.value[currentIndex.value + 1]) {
-    navigationLoading.value = true
-    const nextReport = allReports.value[currentIndex.value + 1]
-    await router.push(`/admin/fishing-reports/${nextReport.frId}`)
-    navigationLoading.value = false
   }
 }
 
