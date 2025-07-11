@@ -1,30 +1,46 @@
 import axios from 'axios'
 import {BASE_URL} from "@/constants/baseUrl.js";
-import { clearAuthData } from '@/utils/authUtils'
+import {clearAuthData} from '@/utils/authUtils'
 
 console.log('BASE_URL:', BASE_URL)
+const HTTPS_AGENT = {
+    rejectUnauthorized: false
+};
 
 function base64UrlDecode(str) {
-  // Base64Url → Base64 변환
-  str = str.replace(/-/g, '+').replace(/_/g, '/');
-  // 패딩 추가
-  while (str.length % 4) {
-    str += '=';
-  }
-  return atob(str);
+    // Base64Url → Base64 변환
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    // 패딩 추가
+    while (str.length % 4) {
+        str += '=';
+    }
+    return atob(str);
 }
 
+// 커스텀 인스턴스 생성 (axios 대신 이것만 사용)
 const api = axios.create({
-    baseURL: BASE_URL || 'http://localhost:8097',
-    timeout: 30000,
+    baseURL: "/api",
+    withCredentials: true,
+    httpsAgent: HTTPS_AGENT,
+    timeout: 30000, // 30초 타임아웃 추가
     headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json; charset=utf-8'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
     }
-    // headers: {
-    //     'Content-Type': 'application/json',
-    // }
-})
+});
+
+// 공개 API용 인스턴스 (토큰 없이 호출 가능)
+const publicApi = axios.create({
+    baseURL: "/api",
+    withCredentials: true,
+    httpsAgent: HTTPS_AGENT,
+    timeout: 30000, // 30초 타임아웃 추가
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
+});
+
 
 // 요청 인터셉터
 api.interceptors.request.use(
@@ -122,48 +138,48 @@ api.interceptors.response.use(
 )
 
 // 멀티파트 업로드 전용 메서드 추가
-api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
-  const formData = new FormData();
-  const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
-  formData.append(dtoKey, blob);
-  if (Array.isArray(files)) {
-    files.forEach(file => {
-      if (file) formData.append(fileKey, file);
-    });
-  } else if (files) {
-    formData.append(fileKey, files);
-  }
-  const token = localStorage.getItem('token');
-  return api.post(url, formData, {
-    headers: {
-      Authorization: `Bearer ${token}`
+api.multipartPost = async function ({url, dto, files, dtoKey = 'dto', fileKey = 'images'}) {
+    const formData = new FormData();
+    const blob = new Blob([JSON.stringify(dto)], {type: 'application/json'});
+    formData.append(dtoKey, blob);
+    if (Array.isArray(files)) {
+        files.forEach(file => {
+            if (file) formData.append(fileKey, file);
+        });
+    } else if (files) {
+        formData.append(fileKey, files);
     }
-  });
+    const token = localStorage.getItem('token');
+    return api.post(url, formData, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
 };
 
 // PUT용 멀티파트 업로드 메서드 추가
-api.multipartPut = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
+api.multipartPut = async function ({url, dto, files, dtoKey = 'dto', fileKey = 'images'}) {
 
-  console.log('🟡 dto3----->:', dto);
-  console.log('🟡 files3----->:', files);
-  const formData = new FormData();
-  const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
-  formData.append(dtoKey, blob);
-  if (Array.isArray(files)) {
-    files.forEach(file => {
-      if (file) formData.append(fileKey, file);
-    });
-  } else if (files) {
-    formData.append(fileKey, files);
-  }
-  console.log('🟡 formData----->:', formData);
-
-  const token = localStorage.getItem('token');
-  return api.put(url, formData, {
-    headers: {
-      Authorization: `Bearer ${token}`
+    console.log('🟡 dto3----->:', dto);
+    console.log('🟡 files3----->:', files);
+    const formData = new FormData();
+    const blob = new Blob([JSON.stringify(dto)], {type: 'application/json'});
+    formData.append(dtoKey, blob);
+    if (Array.isArray(files)) {
+        files.forEach(file => {
+            if (file) formData.append(fileKey, file);
+        });
+    } else if (files) {
+        formData.append(fileKey, files);
     }
-  });
+    console.log('🟡 formData----->:', formData);
+
+    const token = localStorage.getItem('token');
+    return api.put(url, formData, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
 };
 
 export default api
