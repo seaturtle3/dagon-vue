@@ -6,6 +6,9 @@ import history from 'connect-history-api-fallback'
 import { fileURLToPath, URL } from 'node:url'
 import fs from 'fs'
 
+// 환경변수로 백엔드 URL 설정
+// const API_TARGET = process.env.VITE_API_TARGET || 'https://localhost:8097';
+const API_TARGET = 'https://docs.yi.or.kr:8097';
 
 export default defineConfig({
   plugins: [

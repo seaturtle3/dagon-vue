@@ -19,10 +19,11 @@ function base64UrlDecode(str) {
 
 // 커스텀 인스턴스 생성 (axios 대신 이것만 사용)
 const api = axios.create({
-    baseURL: "/api",
+    baseURL: '/api', // OK
     withCredentials: true,
     httpsAgent: HTTPS_AGENT,
     timeout: 30000, // 30초 타임아웃 추가
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
