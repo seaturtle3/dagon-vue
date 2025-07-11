@@ -112,13 +112,22 @@
         <h3>상세 내용</h3>
         <div class="content-body" v-html="report.content"></div>
       </div>
-
       <!-- 이미지 섹션 -->
       <div v-if="report.images && report.images.length > 0" class="images-section">
         <h3>이미지 ({{ report.images.length }}장)</h3>
         <div class="image-gallery">
           <div v-for="image in report.images" :key="image.id" class="image-item">
-            <img :src="image.imageData ? `data:image/jpeg;base64,${image.imageData}` : image.imageUrl" :alt="image.imageName" @click="openImageModal(image)">
+            <img 
+              :src="
+                image.imageData 
+                  ? `data:image/jpeg;base64,${image.imageData}` 
+                  : image.thumbnail
+                    ? image.thumbnail
+                    : image.imageUrl
+              " 
+              :alt="image.imageName" 
+              @click="openImageModal(image)"
+            >
             <div class="image-info">
               <span class="image-name">{{ image.imageName }}</span>
               <span v-if="image.thumbnail" class="thumbnail-badge">대표</span>
