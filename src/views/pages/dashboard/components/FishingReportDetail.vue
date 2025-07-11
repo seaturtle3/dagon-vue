@@ -19,12 +19,11 @@
     <div class="navigation-bar">
       <button 
         @click="goToPrevious" 
-        :disabled="!hasPrevious || navigationLoading"
+        :disabled="!prevNext.prev"
         class="nav-btn nav-prev"
         title="이전 조황정보 (←)"
       >
-        <i v-if="navigationLoading" class="fas fa-spinner fa-spin"></i>
-        <i v-else class="fas fa-chevron-left"></i>
+        <i v-if="prevNext.prev" class="fas fa-chevron-left"></i>
         <span class="nav-text">이전</span>
       </button>
       
@@ -39,13 +38,12 @@
       
       <button 
         @click="goToNext" 
-        :disabled="!hasNext || navigationLoading"
+        :disabled="!prevNext.next"
         class="nav-btn nav-next"
         title="다음 조황정보 (→)"
       >
         <span class="nav-text">다음</span>
-        <i v-if="navigationLoading" class="fas fa-spinner fa-spin"></i>
-        <i v-else class="fas fa-chevron-right"></i>
+        <i v-if="prevNext.next" class="fas fa-chevron-right"></i>
       </button>
     </div>
 
@@ -226,7 +224,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onUnmounted } from 'vue'
+import { ref, onMounted, computed, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '@/lib/axios'
 
@@ -244,62 +242,10 @@ const selectedImage = ref(null)
 const showCommentDeleteModal = ref(false)
 const commentToDelete = ref(null)
 
-// 네비게이션 관련 상태
-// const allReports = ref([])
-// const currentIndex = ref(0)
-// const totalCount = ref(0)
-// const navigationLoading = ref(false)
-
-// 계산된 속성
-// const hasPrevious = computed(() => currentIndex.value > 0)
-// const hasNext = computed(() => currentIndex.value < totalCount.value - 1)
+// 네비게이션 상태
+const prevNext = ref({ prev: null, next: null });
 
 // 메서드
-const loadAllReports = async () => {
-  try {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      throw new Error('인증 토큰이 없습니다.')
-    }
-
-    // 네비게이션을 위한 간단한 조황정보 목록만 가져오기
-    const response = await axios.get('/api/fishing-report/get-all', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      params: {
-        page: 0,
-        size: 1000, // 충분히 큰 수로 설정하여 모든 조황정보 가져오기
-        sort: 'frId,desc' // 최신순으로 정렬
-      }
-    })
-
-    let responseData = response.data
-    
-    if (responseData && responseData.content) {
-      allReports.value = responseData.content
-      totalCount.value = responseData.totalElements
-    } else if (Array.isArray(responseData)) {
-      allReports.value = responseData
-      totalCount.value = responseData.length
-    } else {
-      allReports.value = []
-      totalCount.value = 0
-    }
-
-    // 현재 조황정보의 인덱스 찾기
-    const currentFrId = parseInt(route.params.frId)
-    currentIndex.value = allReports.value.findIndex(r => r.frId === currentFrId)
-    
-    if (currentIndex.value === -1) {
-      currentIndex.value = 0
-    }
-  } catch (error) {
-    console.error('조황정보 목록 로드 실패:', error)
-    // 네비게이션 실패 시에도 상세 정보는 로드할 수 있도록 에러를 숨김
-  }
-}
-
 const loadReport = async () => {
   loading.value = true
   try {
@@ -328,23 +274,30 @@ const loadReport = async () => {
   }
 }
 
-const goToPrevious = async () => {
-  if (hasPrevious.value && allReports.value[currentIndex.value - 1]) {
-    navigationLoading.value = true
-    const prevReport = allReports.value[currentIndex.value - 1]
-    await router.push(`/admin/fishing-reports/${prevReport.frId}`)
-    navigationLoading.value = false
+// prev-next API 호출
+const loadPrevNext = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await axios.get(`/api/fishing-report/${route.params.frId}/prev-next`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    prevNext.value = res.data;
+  } catch (e) {
+    prevNext.value = { prev: null, next: null };
   }
-}
+};
 
-const goToNext = async () => {
-  if (hasNext.value && allReports.value[currentIndex.value + 1]) {
-    navigationLoading.value = true
-    const nextReport = allReports.value[currentIndex.value + 1]
-    await router.push(`/admin/fishing-reports/${nextReport.frId}`)
-    navigationLoading.value = false
+// 이전/다음 이동
+const goToPrevious = () => {
+  if (prevNext.value.prev) {
+    router.push(`/admin/fishing-reports/${prevNext.value.prev.frId}`);
   }
-}
+};
+const goToNext = () => {
+  if (prevNext.value.next) {
+    router.push(`/admin/fishing-reports/${prevNext.value.next.frId}`);
+  }
+};
 
 const goBack = () => {
   router.push('/admin/fishing-reports')
@@ -407,19 +360,14 @@ const formatDateTime = (dateString) => {
 
 // 라우트 변경 감지
 const handleRouteChange = async () => {
-  if (allReports.value.length > 0) {
-    const currentFrId = parseInt(route.params.frId)
-    currentIndex.value = allReports.value.findIndex(r => r.frId === currentFrId)
-    if (currentIndex.value === -1) {
-      currentIndex.value = 0
-    }
-  }
   await loadReport()
+  await loadPrevNext()
 }
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   await loadReport()
+  await loadPrevNext()
   
   // 키보드 이벤트 리스너 추가
   document.addEventListener('keydown', handleKeydown)
@@ -449,13 +397,13 @@ const handleKeydown = (event) => {
   }
   
   // 왼쪽 화살표 키: 이전 조황정보
-  if (event.key === 'ArrowLeft' && hasPrevious.value && !navigationLoading.value) {
+  if (event.key === 'ArrowLeft' && prevNext.value.prev && !loading.value) {
     event.preventDefault()
     goToPrevious()
   }
   
   // 오른쪽 화살표 키: 다음 조황정보
-  if (event.key === 'ArrowRight' && hasNext.value && !navigationLoading.value) {
+  if (event.key === 'ArrowRight' && prevNext.value.next && !loading.value) {
     event.preventDefault()
     goToNext()
   }
@@ -468,7 +416,6 @@ const handleKeydown = (event) => {
 }
 
 // 라우트 변경 감지
-import { watch } from 'vue'
 watch(() => route.params.frId, handleRouteChange)
 
 const deleteComment = (commentId) => {
