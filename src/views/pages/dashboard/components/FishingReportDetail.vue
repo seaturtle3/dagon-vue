@@ -245,14 +245,14 @@ const showCommentDeleteModal = ref(false)
 const commentToDelete = ref(null)
 
 // 네비게이션 관련 상태
-const allReports = ref([])
-const currentIndex = ref(0)
-const totalCount = ref(0)
-const navigationLoading = ref(false)
+// const allReports = ref([])
+// const currentIndex = ref(0)
+// const totalCount = ref(0)
+// const navigationLoading = ref(false)
 
 // 계산된 속성
-const hasPrevious = computed(() => currentIndex.value > 0)
-const hasNext = computed(() => currentIndex.value < totalCount.value - 1)
+// const hasPrevious = computed(() => currentIndex.value > 0)
+// const hasNext = computed(() => currentIndex.value < totalCount.value - 1)
 
 // 메서드
 const loadAllReports = async () => {
@@ -419,7 +419,6 @@ const handleRouteChange = async () => {
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
-  await loadAllReports()
   await loadReport()
   
   // 키보드 이벤트 리스너 추가
