@@ -52,8 +52,20 @@
         <h3><i class="fas fa-images"></i> 이미지 ({{ diary.images.length }}장)</h3>
         <div class="image-gallery">
           <div v-for="image in diary.images" :key="image.id" class="image-item" @click="openImageModal(image)">
-            <img :src="image.imageUrl" :alt="image.imageName">
-            <div class="image-overlay"><i class="fas fa-search-plus"></i></div>
+            <img 
+              :src="
+                image.thumbnail 
+                  ? image.thumbnail 
+                  : image.imageData 
+                    ? `data:image/jpeg;base64,${image.imageData}`
+                    : image.imageUrl
+              " 
+              :alt="image.imageName"
+            >
+            <div class="image-overlay">
+              <i class="fas fa-search-plus"></i>
+              <span v-if="image.thumbnail" class="thumbnail-badge">대표</span>
+            </div>
           </div>
         </div>
       </div>
