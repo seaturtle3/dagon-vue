@@ -52,7 +52,7 @@ export default defineConfig({
         target: API_TARGET,
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        // rewrite 제거 - /api 경로를 그대로 유지
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('proxy error', err);
@@ -70,7 +70,7 @@ export default defineConfig({
         target: API_TARGET,
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/auth/, '/auth'),
+        // rewrite 제거 - /auth 경로를 그대로 유지
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('auth proxy error', err);
@@ -82,7 +82,7 @@ export default defineConfig({
         target: API_TARGET,
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/uploads/, '/uploads'),
+        // rewrite 제거 - /uploads 경로를 그대로 유지
       },
       // 웹소켓 프록시 (필요한 경우)
       '/ws': {
