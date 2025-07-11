@@ -301,51 +301,6 @@ const hasPrevious = computed(() => !!prevNext.value.prev)
 const hasNext = computed(() => !!prevNext.value.next)
 
 // 메서드
-const loadAllReports = async () => {
-  try {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      throw new Error('인증 토큰이 없습니다.')
-    }
-
-    // 네비게이션을 위한 간단한 조황정보 목록만 가져오기
-    const response = await axios.get('/api/fishing-report/get-all', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      params: {
-        page: 0,
-        size: 1000, // 충분히 큰 수로 설정하여 모든 조황정보 가져오기
-        sort: 'frId,desc' // 최신순으로 정렬
-      }
-    })
-
-    let responseData = response.data
-    
-    if (responseData && responseData.content) {
-      allReports.value = responseData.content
-      totalCount.value = responseData.totalElements
-    } else if (Array.isArray(responseData)) {
-      allReports.value = responseData
-      totalCount.value = responseData.length
-    } else {
-      allReports.value = []
-      totalCount.value = 0
-    }
-
-    // 현재 조황정보의 인덱스 찾기
-    const currentFrId = parseInt(route.params.frId)
-    currentIndex.value = allReports.value.findIndex(r => r.frId === currentFrId)
-    
-    if (currentIndex.value === -1) {
-      currentIndex.value = 0
-    }
-  } catch (error) {
-    console.error('조황정보 목록 로드 실패:', error)
-    // 네비게이션 실패 시에도 상세 정보는 로드할 수 있도록 에러를 숨김
-  }
-}
-
 const loadReport = async () => {
   loading.value = true
   try {
