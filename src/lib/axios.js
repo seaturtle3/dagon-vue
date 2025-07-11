@@ -2,7 +2,6 @@ import axios from 'axios'
 import {BASE_URL} from "@/constants/baseUrl.js";
 import {clearAuthData} from '@/utils/authUtils'
 
-console.log('BASE_URL:', BASE_URL)
 const HTTPS_AGENT = {
     rejectUnauthorized: false
 };
@@ -19,7 +18,7 @@ function base64UrlDecode(str) {
 
 // 커스텀 인스턴스 생성 (axios 대신 이것만 사용)
 const api = axios.create({
-    baseURL: '/api', // OK
+    baseURL: '/', // OK
     withCredentials: true,
     httpsAgent: HTTPS_AGENT,
     timeout: 30000, // 30초 타임아웃 추가
