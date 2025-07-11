@@ -33,17 +33,17 @@ export const useAuthStore = defineStore('auth', {
                 // 로그인 타입에 따라 엔드포인트 설정
                 switch (type) {
                     case 'admin':
-                        loginEndpoint = '/api/admin/login';
-                        userInfoEndpoint = '/api/admin/me';
+                        loginEndpoint = '/admin/login';
+                        userInfoEndpoint = '/admin/me';
                         break;
                     case 'partner':
-                        loginEndpoint = '/api/partner/login';
-                        userInfoEndpoint = '/api/partner/me';
+                        loginEndpoint = '/partner/login';
+                        userInfoEndpoint = '/partner/me';
                         break;
                     case 'user':
                     default:
-                        loginEndpoint = '/api/auth/login';
-                        userInfoEndpoint = '/api/users/me';
+                        loginEndpoint = '/auth/login';
+                        userInfoEndpoint = '/users/me';
                         break;
                 }
 

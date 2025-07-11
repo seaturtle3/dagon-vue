@@ -51,8 +51,8 @@ export default defineConfig({
       '/api': {
         target: API_TARGET,
         changeOrigin: true,
-        secure: false,
-        // rewrite 제거 - /api 경로를 그대로 유지
+        secure: false, // 자체 서명 인증서 허용(개발용)
+        ws: false,
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('proxy error', err);
@@ -70,7 +70,7 @@ export default defineConfig({
         target: API_TARGET,
         changeOrigin: true,
         secure: false,
-        // rewrite 제거 - /auth 경로를 그대로 유지
+        ws: false,
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('auth proxy error', err);
@@ -82,7 +82,7 @@ export default defineConfig({
         target: API_TARGET,
         changeOrigin: true,
         secure: false,
-        // rewrite 제거 - /uploads 경로를 그대로 유지
+        ws: false,
       },
       // 웹소켓 프록시 (필요한 경우)
       '/ws': {
@@ -99,11 +99,6 @@ export default defineConfig({
           disableDotRule: true,
           htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
           rewrites: [
-            // API 요청은 프록시로 처리
-            { from: /^\/api\/.*$/, to: ctx => ctx.parsedUrl.pathname },
-            { from: /^\/auth\/.*$/, to: ctx => ctx.parsedUrl.pathname },
-            { from: /^\/uploads\/.*$/, to: ctx => ctx.parsedUrl.pathname },
-            { from: /^\/ws\/.*$/, to: ctx => ctx.parsedUrl.pathname },
             // Vue 라우터 페이지들
             { from: /^\/login$/, to: '/index.html' },
             { from: /^\/register$/, to: '/index.html' },
