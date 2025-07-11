@@ -258,7 +258,8 @@ const handleSubmit = async () => {
       title: formData.title,
       content: formData.content,
       fishingAt: formData.fishingAt,
-      product: { prodId: formData.productId }
+      product: { prodId: formData.productId },
+      user: diary.value?.user // 작성자 정보 추가
     }
 
     submitData.append('dto', new Blob([JSON.stringify(dtoData)], { 
