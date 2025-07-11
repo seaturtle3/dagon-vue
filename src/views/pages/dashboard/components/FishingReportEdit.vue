@@ -335,7 +335,15 @@ const handleSubmit = async () => {
       waterTemperature: formData.waterTemperature,
       fishingMethod: formData.fishingMethod,
       catchInfo: formData.catchInfo,
-      product: formData.productId ? { prodId: formData.productId } : null
+      product: formData.productId ? { prodId: formData.productId } : null,
+      user: report.value && report.value.user ? {
+        uno: report.value.user.uno,
+        uid: report.value.user.uid,
+        uname: report.value.user.uname,
+        nickname: report.value.user.nickname,
+        email: report.value.user.email,
+        phone: report.value.user.phone
+      } : null
     }
 
     submitData.append('dto', new Blob([JSON.stringify(dtoData)], { 
