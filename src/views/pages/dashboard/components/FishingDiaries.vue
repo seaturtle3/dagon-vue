@@ -209,8 +209,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { partnerService } from '@/api/partner'
-import axios from 'axios'
+import api from '@/lib/axios.js'
 
 const router = useRouter()
 
@@ -269,13 +268,8 @@ const visiblePages = computed(() => {
 const loadDiaries = async () => {
   try {
     loading.value = true
-    const token = localStorage.getItem('token')
-    if (!token) return
 
-    const response = await axios.get('/api/admin/fishing-diary/get-all', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
+    const response = await api.get('/api/admin/fishing-diary/get-all', {
       params: {
         page: currentPage.value - 1,
         size: itemsPerPage.value,
@@ -322,7 +316,8 @@ const viewComments = (fdId, title) => {
 const loadComments = async (fdId) => {
   commentsLoading.value = true
   try {
-    const response = await partnerService.getFishingDiaryComments(fdId)
+    const response = await api.get(`/api/fishing-diary/${fdId}/comments`)
+    
     let responseData = response.data
     if (responseData && responseData.comments) {
       selectedDiaryComments.value = responseData.comments || []
@@ -336,7 +331,7 @@ const loadComments = async (fdId) => {
     }
   } catch (error) {
     console.error('조행기 댓글 로드 실패:', error)
-    alert('조행기 댓글을 불러오는데 실패했습니다.')
+    alert('조행기 댓글을 불러오는데 실패했습니다: ' + error.response?.data || error.message)
     selectedDiaryComments.value = []
   } finally {
     commentsLoading.value = false
@@ -352,13 +347,13 @@ const confirmDelete = async () => {
   if (!diaryToDelete.value) return
   
   try {
-    await partnerService.deleteFishingDiary(diaryToDelete.value)
+    await api.delete(`/api/admin/fishing-diary/delete/${diaryToDelete.value}`)
     alert('조행기가 삭제되었습니다.')
     await loadDiaries()
     closeDeleteModal()
   } catch (error) {
     console.error('조행기 삭제 실패:', error)
-    alert('조행기 삭제에 실패했습니다.')
+    alert('조행기 삭제에 실패했습니다: ' + error.response?.data || error.message)
   }
 }
 
@@ -387,12 +382,12 @@ const deleteComment = async (commentId) => {
     return
   }
   try {
-    await partnerService.deleteFishingDiaryComment(commentId)
+    await api.delete(`/api/fishing-diary/comments/${commentId}`)
     alert('댓글이 삭제되었습니다.')
     await loadComments(selectedDiaryId.value)
   } catch (error) {
     console.error('댓글 삭제 실패:', error)
-    alert('댓글 삭제에 실패했습니다.')
+    alert('댓글 삭제에 실패했습니다: ' + error.response?.data || error.message)
   }
 }
 

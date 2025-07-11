@@ -125,7 +125,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from '@/lib/axios';
+import api from '@/lib/axios.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -143,14 +143,7 @@ const deleteId = ref(null);
 
 const loadDiary = async () => {
   try {
-    const token = localStorage.getItem('token')
-    if (!token) return
-
-    const response = await axios.get(`/api/admin/fishing-diary/get/${fdId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
+    const response = await api.get(`/api/admin/fishing-diary/get/${fdId}`)
 
     diary.value = response.data
     console.log('로드된 조행기:', response.data)
@@ -177,12 +170,7 @@ const deleteDiary = async () => {
   }
 
   try {
-    const token = localStorage.getItem('token')
-    await axios.delete(`/api/admin/fishing-diary/delete/${fdId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
+    await api.delete(`/api/admin/fishing-diary/delete/${fdId}`)
 
     alert('조행기가 삭제되었습니다.')
     router.push('/admin/fishing-diaries')
@@ -201,10 +189,10 @@ const deleteComment = (commentId) => {
 const confirmDelete = async () => {
   try {
     if (deleteTarget.value === 'diary') {
-      await axios.delete(`/api/fishing-diary/delete/${deleteId.value}`);
+      await api.delete(`/api/fishing-diary/delete/${deleteId.value}`);
       router.push('/admin/fishing-diaries');
     } else if (deleteTarget.value === 'comment') {
-      await axios.delete(`/api/fishing-diary/comments/${deleteId.value}`);
+      await api.delete(`/api/fishing-diary/comments/${deleteId.value}`);
       loadDiary(); // Refresh diary details to show updated comments
     }
   } catch (error) {

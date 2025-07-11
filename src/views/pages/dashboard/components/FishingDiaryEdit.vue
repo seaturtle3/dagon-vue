@@ -127,7 +127,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from '@/lib/axios'
+import api from '@/lib/axios.js'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 
 const route = useRoute()
@@ -157,7 +157,7 @@ const loadDiary = async () => {
       throw new Error('인증 토큰이 없습니다.')
     }
 
-    const response = await axios.get(`/api/admin/fishing-diary/edit/${route.params.fdId}`, {
+    const response = await api.get(`/api/admin/fishing-diary/edit/${route.params.fdId}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -186,7 +186,7 @@ const loadProducts = async () => {
     const token = localStorage.getItem('token')
     if (!token) return
 
-    const response = await axios.get('/api/product/get-all', {
+    const response = await api.get('/api/product/get-all', {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -223,7 +223,7 @@ const deleteImage = async (imageId) => {
       throw new Error('인증 토큰이 없습니다.')
     }
 
-    await axios.delete(`/api/fishing-diary/image/${imageId}`, {
+    await api.delete(`/api/fishing-diary/image/${imageId}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -270,7 +270,7 @@ const handleSubmit = async () => {
       submitData.append('images', file)
     })
 
-    await axios.put(`/api/admin/fishing-diary/update/${route.params.fdId}`, submitData, {
+    await api.put(`/api/admin/fishing-diary/update/${route.params.fdId}`, submitData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`
