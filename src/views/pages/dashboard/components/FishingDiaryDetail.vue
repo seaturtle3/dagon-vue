@@ -29,6 +29,12 @@
           </div>
         </div>
         <div class="header-actions">
+          <button @click="goBack" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i> 목록
+          </button>
+          <button @click="editDiary" class="btn btn-edit">
+            <i class="fas fa-edit"></i> 수정
+          </button>
           <button @click="deleteDiary" class="btn btn-danger">
             <i class="fas fa-trash"></i> 삭제
           </button>
@@ -140,6 +146,10 @@ onMounted(fetchDiary);
 
 const goBack = () => {
   router.push('/admin/fishing-diaries');
+};
+
+const editDiary = () => {
+  router.push(`/admin/fishing-diaries/${fdId}/edit`);
 };
 
 const deleteDiary = () => {
@@ -275,6 +285,13 @@ const formatDateTime = (isoString) => {
 }
 .btn-danger:hover {
   background-color: #c0392b;
+}
+.btn-edit {
+  background-color: #3498db;
+  color: white;
+}
+.btn-edit:hover {
+  background-color: #2980b9;
 }
 
 h3 {
