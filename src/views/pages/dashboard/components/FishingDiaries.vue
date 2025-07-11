@@ -265,43 +265,22 @@ const visiblePages = computed(() => {
 })
 
 // 메서드
-const loadDiaries = async (page = 1) => {
-  loading.value = true
+const loadDiaries = async () => {
   try {
-    // 페이징 파라미터 추가
-    const params = {
-      page: page - 1, // 백엔드는 0-based index 사용
-      size: itemsPerPage.value
-    }
-    if (searchQuery.value) {
-      params.search = searchQuery.value
-    }
+    loading.value = true
 
-    // partnerService 사용
-    const response = await partnerService.getFishingDiaries(params)
-    let responseData = response.data
+    const response = await api.get('/api/admin/fishing-diary/get-all', {
+      params: {
+        page: currentPage.value - 1,
+        size: itemsPerPage.value,
+        sortBy: 'fdId',
+        direction: 'desc'
+      }
+    })
 
-    // 이하 기존 로직 동일
-    if (responseData && responseData.content) {
-      diaries.value = responseData.content || []
-      totalPages.value = responseData.totalPages || 1
-      totalElements.value = responseData.totalElements || 0
-      hasNext.value = responseData.hasNext || false
-      hasPrevious.value = responseData.hasPrevious || false
-    } else if (Array.isArray(responseData)) {
-      diaries.value = responseData
-      totalPages.value = 1
-      totalElements.value = responseData.length
-      hasNext.value = false
-      hasPrevious.value = false
-    } else {
-      diaries.value = []
-      totalPages.value = 1
-      totalElements.value = 0
-      hasNext.value = false
-      hasPrevious.value = false
-      console.warn('예상하지 못한 응답 구조:', responseData)
-    }
+    diaries.value = response.data.content
+    totalElements.value = response.data.totalElements
+    totalPages.value = response.data.totalPages
     totalDiaries.value = totalElements.value
     
     // 오늘 등록된 조행기 수 계산 (클라이언트에서 계산)
@@ -316,10 +295,11 @@ const loadDiaries = async (page = 1) => {
     thisWeekDiaries.value = diaries.value.filter(diary => 
       diary.createdAt && new Date(diary.createdAt) >= weekAgo
     ).length
-
+    
+    console.log('로드된 조행기 목록:', response.data)
   } catch (error) {
-    console.error('조행기 로드 실패:', error)
-    alert('조행기를 불러오는데 실패했습니다.')
+    console.error('조행기 목록 로드 실패:', error)
+    alert('조행기를 불러오는데 실패했습니다: ' + error.response?.data || error.message)
     diaries.value = []
   } finally {
     loading.value = false
@@ -328,13 +308,13 @@ const loadDiaries = async (page = 1) => {
 
 const handleSearch = () => {
   currentPage.value = 1
-  loadDiaries(1)
+  loadDiaries()
 }
 
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
-    loadDiaries(page)
+    loadDiaries()
   }
 }
 
@@ -429,7 +409,7 @@ const deleteComment = async (commentId) => {
 
 const onPageSizeChange = () => {
   currentPage.value = 1
-  loadDiaries(1)
+  loadDiaries()
 }
 
 // 컴포넌트 마운트 시 데이터 로드
