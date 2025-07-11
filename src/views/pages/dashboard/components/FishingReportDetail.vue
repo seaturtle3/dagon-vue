@@ -273,12 +273,12 @@ const loadPrevNext = async () => {
 
 // 3. goToPrevious/goToNext 수정
 const goToPrevious = () => {
-  if (prevNext.value.prev) {
+  if (prevNext.value.prev && prevNext.value.prev.frId) {
     router.push(`/admin/fishing-reports/${prevNext.value.prev.frId}`)
   }
 }
 const goToNext = () => {
-  if (prevNext.value.next) {
+  if (prevNext.value.next && prevNext.value.next.frId) {
     router.push(`/admin/fishing-reports/${prevNext.value.next.frId}`)
   }
 }
