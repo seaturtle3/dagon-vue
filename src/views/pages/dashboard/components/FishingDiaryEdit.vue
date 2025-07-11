@@ -192,9 +192,16 @@ const loadProducts = async () => {
       }
     })
 
-    products.value = response.data || []
+    console.log('상품 목록 API 응답:', response.data)
+    
+    // Page 형태의 응답이므로 content를 사용
+    products.value = response.data.content || response.data || []
+    
+    console.log('로드된 상품 목록:', products.value)
+    console.log('상품 개수:', products.value.length)
   } catch (error) {
     console.error('상품 목록 로드 실패:', error)
+    products.value = []
   }
 }
 
