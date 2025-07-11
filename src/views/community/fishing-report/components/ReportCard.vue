@@ -22,15 +22,18 @@ const goToDetail = () => {
         :src="
           report.images && report.images.length
             ? (
-                report.images[0].imageData
-                  ? `data:image/jpeg;base64,${report.images[0].imageData}`
-                  : (report.images[0].image_data
-                      ? `data:image/jpeg;base64,${report.images[0].image_data}`
-                      : (report.images[0].imageUrl
-                          ? report.images[0].imageUrl
-                          : (report.images[0].image_url
-                              ? report.images[0].image_url
-                              : '/images/no-image.png'
+                report.images[0].thumbnail_data
+                  ? `data:image/jpeg;base64,${report.images[0].thumbnail_data}`
+                  : (report.images[0].imageData
+                      ? `data:image/jpeg;base64,${report.images[0].imageData}`
+                      : (report.images[0].image_data
+                          ? `data:image/jpeg;base64,${report.images[0].image_data}`
+                          : (report.images[0].imageUrl
+                              ? report.images[0].imageUrl
+                              : (report.images[0].image_url
+                                  ? report.images[0].image_url
+                                  : '/images/no-image.png'
+                                )
                             )
                         )
                     )
@@ -39,6 +42,7 @@ const goToDetail = () => {
         "
         alt="썸네일"
         v-if="
+          report.images?.thumbnail_data ||
           report.images?.imageData ||
           report.images?.image_data ||
           report.images?.imageUrl ||
