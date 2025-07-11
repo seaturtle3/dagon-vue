@@ -334,7 +334,7 @@ const changePage = (page) => {
 }
 
 const viewDiary = (fdId) => {
-  router.push(`/fishing-diary/${fdId}`)
+  router.push(`/admin/fishing-diaries/${fdId}`)
 }
 
 const viewComments = (fdId, title) => {
