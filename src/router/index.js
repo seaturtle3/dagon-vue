@@ -102,7 +102,7 @@ const routes = [
                 component: () => import('@/views/pages/dashboard/components/FishingReportEdit.vue'),
                 meta: {requiresAuth: true}
             },
-            {
+            { 
                 path: 'fishing-diaries/:fdId/edit',
                 component: () => import('@/views/pages/dashboard/components/FishingDiaryEdit.vue'),
                 meta: {requiresAuth: true}
