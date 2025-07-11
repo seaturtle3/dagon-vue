@@ -254,53 +254,52 @@ const commentToDelete = ref(null)
 // const hasPrevious = computed(() => currentIndex.value > 0)
 // const hasNext = computed(() => currentIndex.value < totalCount.value - 1)
 
-// 1. prevNext 상태 추가
-const prevNext = ref({ prev: null, next: null })
-
-// 2. prev-next API 호출 함수
-const loadPrevNext = async () => {
+// 메서드
+const loadAllReports = async () => {
   try {
     const token = localStorage.getItem('token')
-    if (!token) throw new Error('인증 토큰이 없습니다.')
-    const res = await axios.get(`/api/fishing-report/${route.params.frId}/prev-next`, {
-      headers: { Authorization: `Bearer ${token}` }
+    if (!token) {
+      throw new Error('인증 토큰이 없습니다.')
+    }
+
+    // 네비게이션을 위한 간단한 조황정보 목록만 가져오기
+    const response = await axios.get('/api/fishing-report/get-all', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      params: {
+        page: 0,
+        size: 1000, // 충분히 큰 수로 설정하여 모든 조황정보 가져오기
+        sort: 'frId,desc' // 최신순으로 정렬
+      }
     })
-    prevNext.value = res.data
-  } catch (e) {
-    prevNext.value = { prev: null, next: null }
+
+    let responseData = response.data
+    
+    if (responseData && responseData.content) {
+      allReports.value = responseData.content
+      totalCount.value = responseData.totalElements
+    } else if (Array.isArray(responseData)) {
+      allReports.value = responseData
+      totalCount.value = responseData.length
+    } else {
+      allReports.value = []
+      totalCount.value = 0
+    }
+
+    // 현재 조황정보의 인덱스 찾기
+    const currentFrId = parseInt(route.params.frId)
+    currentIndex.value = allReports.value.findIndex(r => r.frId === currentFrId)
+    
+    if (currentIndex.value === -1) {
+      currentIndex.value = 0
+    }
+  } catch (error) {
+    console.error('조황정보 목록 로드 실패:', error)
+    // 네비게이션 실패 시에도 상세 정보는 로드할 수 있도록 에러를 숨김
   }
 }
 
-// 3. goToPrevious/goToNext 수정
-const goToPrevious = () => {
-  if (prevNext.value.prev && prevNext.value.prev.frId) {
-    router.push(`/admin/fishing-reports/${prevNext.value.prev.frId}`)
-  }
-}
-const goToNext = () => {
-  if (prevNext.value.next && prevNext.value.next.frId) {
-    router.push(`/admin/fishing-reports/${prevNext.value.next.frId}`)
-  }
-}
-
-// 4. onMounted와 라우트 변경 시 prevNext도 불러오기
-onMounted(async () => {
-  await loadReport()
-  await loadPrevNext()
-  document.addEventListener('keydown', handleKeydown)
-})
-
-import { watch } from 'vue'
-watch(() => route.params.frId, async () => {
-  await loadReport()
-  await loadPrevNext()
-})
-
-// 5. hasPrevious/hasNext 계산식 prevNext로 대체
-const hasPrevious = computed(() => !!prevNext.value.prev)
-const hasNext = computed(() => !!prevNext.value.next)
-
-// 메서드
 const loadReport = async () => {
   loading.value = true
   try {
@@ -326,6 +325,24 @@ const loadReport = async () => {
     alert('조황정보를 불러오는데 실패했습니다.')
   } finally {
     loading.value = false
+  }
+}
+
+const goToPrevious = async () => {
+  if (hasPrevious.value && allReports.value[currentIndex.value - 1]) {
+    navigationLoading.value = true
+    const prevReport = allReports.value[currentIndex.value - 1]
+    await router.push(`/admin/fishing-reports/${prevReport.frId}`)
+    navigationLoading.value = false
+  }
+}
+
+const goToNext = async () => {
+  if (hasNext.value && allReports.value[currentIndex.value + 1]) {
+    navigationLoading.value = true
+    const nextReport = allReports.value[currentIndex.value + 1]
+    await router.push(`/admin/fishing-reports/${nextReport.frId}`)
+    navigationLoading.value = false
   }
 }
 
