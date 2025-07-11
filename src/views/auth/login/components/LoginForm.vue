@@ -348,6 +348,10 @@ onMounted(() => {
         <h1 class="logo">DAGON</h1>
         <p class="subtitle">낚시의 모든 것</p>
       </div>
+      <h3>id: user001</h3>
+      <h3>pw: 1111</h3>
+      <h3>id: partner001</h3>
+      <h3>id: 1111</h3>
 
       <!-- 로그인 폼 -->
       <div v-if="currentView === 'login'" class="form-container">

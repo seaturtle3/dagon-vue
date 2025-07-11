@@ -48,7 +48,7 @@ export default {
   methods: {
     async handleLogin() {
       try {
-        const response = await api.post('/admin/login', this.loginForm);
+        const response = await api.post('/api/admin/login', this.loginForm);
         if (response.data) {
           // Pinia store를 사용하여 토큰 저장
           const authStore = useAdminAuthStore();
