@@ -167,19 +167,7 @@ const getEventThumbnail = () => {
           </div>
         </div>
 
-        <!-- 본문 이미지 표시 (여러 개) -->
-        <div v-if="event.imageDataList && event.imageDataList.length > 1" class="event-images mt-4 mb-4">
-          <h4 class="image-section-title">이벤트 이미지</h4>
-          <div class="image-gallery">
-            <div v-for="(image, index) in event.imageDataList.slice(1)" :key="index" class="image-item">
-              <img
-                  :src="`data:image/jpeg;base64,${image}`"
-                  :alt="`이벤트 이미지 ${index + 2}`"
-                  class="event-image"
-              />
-            </div>
-          </div>
-        </div>
+        <!-- 본문 이미지 갤러리 제거 -->
         <div v-html="event.content" class="mt-4"/>
       </template>
     </BoardDetailBox>
