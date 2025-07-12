@@ -71,6 +71,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { partnerService } from '@/api/partner';
 import { useRoute, useRouter } from 'vue-router';
+import { isAdminToken } from '@/utils/authUtils';
 
 const route = useRoute();
 const router = useRouter();
@@ -122,6 +123,13 @@ onMounted(() => {
 });
 
 async function submitInquiry() {
+  // 관리자 로그인 상태면 등록 불가
+  const token = localStorage.getItem('token');
+  if (isAdminToken(token)) {
+    alert('관리자 계정으로는 신고/문의 등록이 불가능합니다. 일반 사용자로 로그인해 주세요.');
+    return;
+  }
+
   if (!form.value.productName) {
     alert('상품 정보가 없습니다.');
     return;

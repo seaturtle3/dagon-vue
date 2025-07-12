@@ -25,4 +25,20 @@ export function convertLocalhostToDomain(url) {
     return url.replace('http://localhost:8097', 'https://docs.yi.or.kr:8097');
   }
   return url;
+}
+
+/**
+ * JWT 토큰에서 ADMIN/SUPER_ADMIN 권한 여부 판별
+ * @param {string} token
+ * @returns {boolean}
+ */
+export function isAdminToken(token) {
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const role = payload.role || payload.auth || payload.roles || payload.ROLE;
+    return role === 'ADMIN' || role === 'SUPER_ADMIN';
+  } catch (e) {
+    return false;
+  }
 } 
