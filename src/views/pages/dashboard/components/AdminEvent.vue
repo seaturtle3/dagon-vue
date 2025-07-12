@@ -691,10 +691,12 @@ onMounted(() => {
   background: white;
   border-radius: 12px;
   padding: 2rem;
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
+  min-width: 400px;
+  min-height: 400px;
+  width: 80vw;
+  height: auto;
+  resize: both;
+  overflow: auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 .modal-header {
