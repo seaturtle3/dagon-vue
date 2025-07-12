@@ -694,7 +694,9 @@ onMounted(() => {
   min-width: 400px;
   min-height: 400px;
   width: 80vw;
+  max-width: 100vw;
   height: auto;
+  max-height: 90vh;
   resize: both;
   overflow: auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
