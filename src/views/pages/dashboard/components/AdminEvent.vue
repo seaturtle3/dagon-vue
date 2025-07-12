@@ -688,9 +688,8 @@ onMounted(() => {
   z-index: 1000;
 }
 .modal-content {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
+  display: flex;
+  flex-direction: column;
   min-width: 400px;
   min-height: 400px;
   width: 80vw;
@@ -698,7 +697,7 @@ onMounted(() => {
   height: auto;
   max-height: 90vh;
   resize: both;
-  overflow: auto;
+  overflow: hidden;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 .modal-header {
@@ -729,6 +728,10 @@ onMounted(() => {
 }
 .close-btn:hover { background: #e2e8f0; }
 .modal-form {
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
