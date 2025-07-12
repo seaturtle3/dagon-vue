@@ -568,11 +568,17 @@ hr.board-divider {
 }
 
 /* 본문 내 이미지 스타일 개선 */
+.board-detail .mt-4 {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
 .board-detail .mt-4 img,
 .board-detail .mt-4 figure img {
   display: block;
   margin: 2rem auto;
-  max-width: 90%;
+  max-width: 100%;
+  width: 100%;
   height: auto;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.10);
