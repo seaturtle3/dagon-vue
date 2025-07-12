@@ -687,7 +687,9 @@ onMounted(() => {
   justify-content: center;
   z-index: 1000;
 }
+
 .modal-content {
+  z-index: 1100;
   display: flex;
   flex-direction: column;
   min-width: 400px;
@@ -699,6 +701,9 @@ onMounted(() => {
   resize: both;
   overflow: hidden;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
 }
 .modal-header {
   display: flex;
