@@ -566,4 +566,33 @@ hr.board-divider {
     max-height: 95%;
   }
 }
+
+/* 본문 내 이미지 스타일 개선 */
+.board-detail .mt-4 img,
+.board-detail .mt-4 figure img {
+  display: block;
+  margin: 2rem auto;
+  max-width: 90%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  background: #fff;
+  padding: 8px;
+  transition: box-shadow 0.2s;
+}
+
+.board-detail .mt-4 img:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+}
+
+.board-detail .mt-4 figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.board-detail .mt-4 figcaption {
+  margin-top: 0.5rem;
+  color: #888;
+  font-size: 0.95em;
+}
 </style>
