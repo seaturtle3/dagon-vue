@@ -575,11 +575,11 @@ hr.board-divider {
 
 .board-detail .mt-4 img,
 .board-detail .mt-4 figure img {
-  display: block;
-  margin: 2rem auto;
-  max-width: 100%;
-  width: 100%;
-  height: auto;
+  display: block !important;
+  margin: 2rem auto !important;
+  max-width: 900px !important;
+  width: 100% !important;
+  height: auto !important;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.10);
   background: #fff;
