@@ -46,7 +46,10 @@
         <label>내용</label>
         <textarea v-model="form.content" rows="5" required placeholder="내용을 입력하세요"></textarea>
       </div>
-      <button type="submit" class="submit-btn" :disabled="!isFormValid">문의 등록</button>
+      <button type="submit" class="submit-btn" :disabled="!isFormValid || isAdminLogin">문의 등록</button>
+      <div v-if="isAdminLogin" class="admin-warning">
+        관리자 계정으로는 문의/신고 등록이 불가능합니다. 일반 사용자로 로그인해 주세요.
+      </div>
     </form>
     
     <!-- 문의 등록 성공 모달 -->
@@ -61,6 +64,21 @@
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="goToMyInquiries">나의 문의내역</button>
           <button class="btn btn-primary" @click="goToHome">홈으로</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 관리자 차단 안내 모달 -->
+    <div v-if="showAdminModal" class="modal-overlay">
+      <div class="modal-window">
+        <div class="modal-header">
+          <h3>안내</h3>
+        </div>
+        <div class="modal-body">
+          <p class="warning-text">관리자 계정으로는 문의/신고 등록이 불가능합니다.<br>일반 사용자로 로그인해 주세요.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" @click="closeAdminModal">확인</button>
         </div>
       </div>
     </div>
@@ -103,6 +121,10 @@ const isFormValid = computed(() => {
 
 const showSuccessModal = ref(false);
 
+const token = localStorage.getItem('token');
+const isAdminLogin = computed(() => isAdminToken(token));
+const showAdminModal = ref(false);
+
 onMounted(() => {
   if (route.query.productName) form.value.productName = route.query.productName;
   if (route.query.productId) form.value.productId = Number(route.query.productId);
@@ -123,10 +145,8 @@ onMounted(() => {
 });
 
 async function submitInquiry() {
-  // 관리자 로그인 상태면 등록 불가
-  const token = localStorage.getItem('token');
-  if (isAdminToken(token)) {
-    alert('관리자 계정으로는 신고/문의 등록이 불가능합니다. 일반 사용자로 로그인해 주세요.');
+  if (isAdminLogin.value) {
+    showAdminModal.value = true;
     return;
   }
 
@@ -163,6 +183,10 @@ async function submitInquiry() {
   } catch (e) {
     alert('문의 등록에 실패했습니다.');
   }
+}
+
+function closeAdminModal() {
+  showAdminModal.value = false;
 }
 
 function goToLogin() {
@@ -371,5 +395,15 @@ input, textarea, select {
 }
 .btn-secondary:hover {
   background-color: #495057;
+}
+.admin-warning {
+  color: #e53e3e;
+  margin-top: 1rem;
+  font-weight: 600;
+}
+.warning-text {
+  color: #e53e3e;
+  font-size: 1.1rem;
+  text-align: center;
 }
 </style> 
