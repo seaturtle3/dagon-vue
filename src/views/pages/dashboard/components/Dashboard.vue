@@ -104,7 +104,7 @@
 </template>
 
 <script>
-import axios from '@/lib/axios'
+import api from '@/lib/axios'
 import Chart from 'chart.js/auto'
 
 export default {
@@ -183,13 +183,13 @@ export default {
     async fetchDashboardData() {
       try {
         // 1. 회원/파트너/지원자 수
-        const countsRes = await axios.get('/api/admin/counts')
+        const countsRes = await api.get('/api/admin/counts')
         this.userStats.totalUsers = countsRes.data.totalUsers || 0
         this.userStats.totalPartners = countsRes.data.approvedPartners || 0
         // 지원자 수 필요시: countsRes.data.totalApplications
 
         // 2. 회원 통계
-        const statsRes = await axios.get('/api/admin/stats')
+        const statsRes = await api.get('/api/admin/stats')
         this.userStats.todayUserCount = statsRes.data.todayUserCount || 0
         this.userStats.inactiveUserCount = statsRes.data.inactiveUserCount || 0
         this.userStats.reportedUserCount = statsRes.data.reportedUserCount || 0
@@ -197,19 +197,19 @@ export default {
         this.unansweredInquiryCount = statsRes.data.unansweredInquiryCount || 0
 
         // 3. 예약 통계
-        const reservationRes = await axios.get('/api/admin/reservations/counts')
+        const reservationRes = await api.get('/api/admin/reservations/counts')
         console.log('예약 통계 응답 데이터:', reservationRes.data);
         this.reservationStats.total = reservationRes.data.totalReservations || 0
         this.reservationStats.todayReservationCount = reservationRes.data.todayReservations || 0
         this.reservationStats.futureReservationCount = reservationRes.data.futureReservations || 0
 
         // 4. 승인 대기 파트너 수
-        const pendingRes = await axios.get('/api/admin/pending/count')
+        const pendingRes = await api.get('/api/admin/pending/count')
         this.pendingPartnerCount = pendingRes.data || 0
 
         // 5. 전체 상품 수 조회
         try {
-          const productCountResponse = await axios.get('/api/admin/product/counts')
+          const productCountResponse = await api.get('/api/admin/product/counts')
           this.productCount = productCountResponse.data.totalProducts || 0
         } catch (productError) {
           console.error('전체 상품 수 조회 실패:', productError);
@@ -217,20 +217,20 @@ export default {
         }
 
         // 6. 최근 7일 예약 추이
-        const dailyRes = await axios.get('/api/admin/reservation/daily')
+        const dailyRes = await api.get('/api/admin/reservation/daily')
         console.log('최근 7일 예약 추이 응답 데이터:', dailyRes.data);
         this.dailyReservation = dailyRes.data
         this.reservationChartData.labels = dailyRes.data.map(d => d.date)
         this.reservationChartData.data = dailyRes.data.map(d => d.count)
 
         // 7. TOP3 파트너
-        const top3Res = await axios.get('/api/admin/partner/top3')
+        const top3Res = await api.get('/api/admin/partner/top3')
         console.log('TOP3 파트너 응답 데이터:', top3Res.data);
         this.top3Partners = top3Res.data
 
         // 8. 최근 활동 조회
         try {
-          const activitiesRes = await axios.get('/api/admin/activities');
+          const activitiesRes = await api.get('/api/admin/activities');
           console.log('최근 활동 응답 데이터:', activitiesRes.data);
           this.recentActivities = activitiesRes.data.map(activity => ({
             id: activity.id,

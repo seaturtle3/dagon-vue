@@ -78,6 +78,17 @@ const routes = [
                 meta: {requiresAuth: true}
             },
             {
+                path: 'events/write',
+                component: () => import('@/views/community/event/EventWrite.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
+                path: 'events/edit/:id',
+                component: () => import('@/views/community/event/EventWrite.vue'),
+                props: true,
+                meta: {requiresAuth: true}
+            },
+            {
                 path: 'notices',
                 component: () => import('@/views/pages/dashboard/components/AdminNotice.vue'),
                 meta: {requiresAuth: true}
@@ -100,6 +111,11 @@ const routes = [
             {
                 path: 'fishing-reports/:frId/edit',
                 component: () => import('@/views/pages/dashboard/components/FishingReportEdit.vue'),
+                meta: {requiresAuth: true}
+            },
+            { 
+                path: 'fishing-diaries/:fdId/edit',
+                component: () => import('@/views/pages/dashboard/components/FishingDiaryEdit.vue'),
                 meta: {requiresAuth: true}
             },
             {
@@ -307,17 +323,6 @@ const routes = [
 
     // community
     { path: '/event', component: () => import('@/views/community/event/EventList.vue') },
-    {
-        path: '/event/write',
-        component: () => import('@/views/community/event/EventWrite.vue'),
-        meta: { requiresAuth: true }
-    },
-    {
-        path: '/event/edit/:id',
-        component: () => import('@/views/community/event/EventWrite.vue'),
-        props: true,
-        meta: { requiresAuth: true }
-    },
     { path: '/event/:id', component: () => import('@/views/community/event/EventDetail.vue'), props: true },
 
     { path: '/community', component: () => import('@/views/community/Community.vue')},
@@ -348,7 +353,7 @@ const routes = [
         meta: { noCache: true }
     },
 
-    {path: '/memberInquiryModal', component: () => import('@views/support/inquiry/components/MemberInquiryModal.vue')},
+    {path: '/memberInquiryModal', component: () => import('@/views/support/inquiry/components/MemberInquiryModal.vue')},
 
     {
         path: '/partner/product/list',

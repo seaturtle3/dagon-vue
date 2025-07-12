@@ -52,11 +52,11 @@ const selectSwaggerGroup = (name) => {
   selectedSwaggerGroup.value = name
 }
 
-const baseUrl = import.meta.env.VITE_BASE_API_URL || 'http://localhost:8095'
+const baseUrl = import.meta.env.VITE_BASE_API_URL || 'https://docs.yi.or.kr:8097'
 
 const renderSwagger = (groupName) => {
   SwaggerUI({
-    url: `${baseUrl}/api-docs/${groupName}`,
+    url: `https://docs.yi.or.kr:8097/api-docs/${groupName}`,
     dom_id: '#swagger-ui',
     layout: 'BaseLayout', // 헤더 최소화
     deepLinking: true,
@@ -150,14 +150,29 @@ const goDashboard = () => {
   background-color: #f8f9fa;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
+
 .swagger-content {
-  flex: 1;
+  flex: 1 1 0;
+  width: 100%;
+  height: 100%;
   background: #fff;
   display: flex;
   align-items: stretch;
   justify-content: stretch;
   border-radius: 10px;
   overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+}
+
+#swagger-ui {
+  flex: 1 1 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 </style>

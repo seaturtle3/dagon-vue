@@ -34,16 +34,16 @@ export const useAuthStore = defineStore('auth', {
                 switch (type) {
                     case 'admin':
                         loginEndpoint = '/api/admin/login';
-                        userInfoEndpoint = '/api/admin/me';
+                        userInfoEndpoint = '/admin/me';
                         break;
                     case 'partner':
                         loginEndpoint = '/api/partner/login';
-                        userInfoEndpoint = '/api/partner/me';
+                        userInfoEndpoint = '/partner/me';
                         break;
                     case 'user':
                     default:
                         loginEndpoint = '/api/auth/login';
-                        userInfoEndpoint = '/api/users/me';
+                        userInfoEndpoint = '/users/me';
                         break;
                 }
 

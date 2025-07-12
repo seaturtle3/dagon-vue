@@ -57,7 +57,7 @@
     <div v-if="error" class="error-section">
       <div class="error-content">
         <p>오류가 발생했습니다: {{ error }}</p>
-        <p class="debug-info">백엔드 서버(http://localhost:8095)가 실행 중인지 확인해주세요.</p>
+        <p class="debug-info">백엔드 서버(http://localhost:8097)가 실행 중인지 확인해주세요.</p>
         <button @click="retryData" class="retry-btn">다시 시도</button>
       </div>
     </div>

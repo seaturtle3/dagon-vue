@@ -1,7 +1,7 @@
 <template>
-  <div class="fishing-report-edit">
+  <div class="fishing-diary-edit">
     <div class="header">
-      <h2>조황정보 수정</h2>
+      <h2>조행기 수정</h2>
       <div class="header-actions">
         <button @click="goBack" class="btn-back">
           <i class="fas fa-arrow-left"></i> 목록으로
@@ -13,8 +13,8 @@
       <i class="fas fa-spinner fa-spin"></i> 로딩 중...
     </div>
 
-    <div v-else-if="!report" class="error">
-      조황정보를 찾을 수 없습니다.
+    <div v-else-if="!diary" class="error">
+      조행기를 찾을 수 없습니다.
     </div>
 
     <div v-else class="edit-form">
@@ -29,7 +29,7 @@
               v-model="formData.title" 
               type="text" 
               required
-              placeholder="조황정보 제목을 입력하세요"
+              placeholder="조행기 제목을 입력하세요"
             >
           </div>
 
@@ -37,7 +37,7 @@
             <label for="content">내용 *</label>
             <RichTextEditor 
               v-model="formData.content"
-              editor-id="fishing-report-edit-editor"
+              editor-id="fishing-diary-edit-editor"
             />
           </div>
 
@@ -53,90 +53,24 @@
             </div>
 
             <div class="form-group">
-              <label for="location">위치</label>
-              <input 
-                id="location"
-                v-model="formData.location" 
-                type="text" 
-                placeholder="낚시 위치"
-              >
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="weather">날씨</label>
-              <select id="weather" v-model="formData.weather">
-                <option value="">날씨 선택</option>
-                <option value="맑음">맑음</option>
-                <option value="흐림">흐림</option>
-                <option value="비">비</option>
-                <option value="눈">눈</option>
-                <option value="안개">안개</option>
+              <label for="productId">연관 상품 *</label>
+              <select id="productId" v-model="formData.productId" required>
+                <option value="">상품 선택</option>
+                <option v-for="product in products" :key="product.prodId" :value="product.prodId">
+                  {{ product.prodName }}
+                </option>
               </select>
             </div>
-
-            <div class="form-group">
-              <label for="temperature">기온 (°C)</label>
-              <input 
-                id="temperature"
-                v-model="formData.temperature" 
-                type="number" 
-                placeholder="기온"
-              >
-            </div>
-
-            <div class="form-group">
-              <label for="waterTemperature">수온 (°C)</label>
-              <input 
-                id="waterTemperature"
-                v-model="formData.waterTemperature" 
-                type="number" 
-                placeholder="수온"
-              >
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="fishingMethod">낚시 방법</label>
-              <input 
-                id="fishingMethod"
-                v-model="formData.fishingMethod" 
-                type="text" 
-                placeholder="낚시 방법"
-              >
-            </div>
-
-            <div class="form-group">
-              <label for="catchInfo">어획 정보</label>
-              <input 
-                id="catchInfo"
-                v-model="formData.catchInfo" 
-                type="text" 
-                placeholder="어획 정보"
-              >
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="productId">연관 상품</label>
-            <select id="productId" v-model="formData.productId">
-              <option value="">상품 선택</option>
-              <option v-for="product in products" :key="product.prodId" :value="product.prodId">
-                {{ product.prodName }}
-              </option>
-            </select>
           </div>
         </div>
 
         <div class="form-section">
           <h3>이미지 관리</h3>
           
-          <div class="current-images" v-if="report.images && report.images.length > 0">
+          <div class="current-images" v-if="diary.images && diary.images.length > 0">
             <h4>현재 이미지</h4>
             <div class="image-grid">
-              <div v-for="image in report.images" :key="image.id" class="image-item">
+              <div v-for="image in diary.images" :key="image.id" class="image-item">
                 <img :src="image.imageData ? `data:image/jpeg;base64,${image.imageData}` : image.imageUrl" :alt="image.imageName">
                 <div class="image-actions">
                   <button type="button" @click="deleteImage(image.id)" class="btn-delete-image">
@@ -193,7 +127,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from '@/lib/axios'
+import api from '@/lib/axios.js'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 
 const route = useRoute()
@@ -202,7 +136,7 @@ const router = useRouter()
 // 상태 관리
 const loading = ref(false)
 const submitting = ref(false)
-const report = ref(null)
+const diary = ref(null)
 const products = ref([])
 const newImages = ref([])
 
@@ -211,17 +145,11 @@ const formData = reactive({
   title: '',
   content: '',
   fishingAt: '',
-  location: '',
-  weather: '',
-  temperature: '',
-  waterTemperature: '',
-  fishingMethod: '',
-  catchInfo: '',
   productId: null
 })
 
 // 메서드
-const loadReport = async () => {
+const loadDiary = async () => {
   loading.value = true
   try {
     const token = localStorage.getItem('token')
@@ -229,31 +157,25 @@ const loadReport = async () => {
       throw new Error('인증 토큰이 없습니다.')
     }
 
-    const response = await axios.get(`/api/fishing-report/get/${route.params.frId}`, {
+    const response = await api.get(`/api/admin/fishing-diary/edit/${route.params.fdId}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
 
-    report.value = response.data
+    diary.value = response.data
     
     // 폼 데이터 설정
     Object.assign(formData, {
-      title: report.value.title || '',
-      content: report.value.content || '',
-      fishingAt: report.value.fishingAt || '',
-      location: report.value.location || '',
-      weather: report.value.weather || '',
-      temperature: report.value.temperature || '',
-      waterTemperature: report.value.waterTemperature || '',
-      fishingMethod: report.value.fishingMethod || '',
-      catchInfo: report.value.catchInfo || '',
-      productId: report.value.product?.prodId || null
+      title: diary.value.title || '',
+      content: diary.value.content || '',
+      fishingAt: diary.value.fishingAt ? diary.value.fishingAt.slice(0, 10) : '',
+      productId: diary.value.product?.prodId || null
     })
 
   } catch (error) {
-    console.error('조황정보 로드 실패:', error)
-    alert('조황정보를 불러오는데 실패했습니다.')
+    console.error('조행기 로드 실패:', error)
+    alert('조행기를 불러오는데 실패했습니다.')
   } finally {
     loading.value = false
   }
@@ -264,15 +186,22 @@ const loadProducts = async () => {
     const token = localStorage.getItem('token')
     if (!token) return
 
-    const response = await axios.get('/api/product/get-all', {
+    const response = await api.get('/api/product/get-all', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
 
-    products.value = response.data || []
+    console.log('상품 목록 API 응답:', response.data)
+    
+    // Page 형태의 응답이므로 content를 사용
+    products.value = response.data.content || response.data || []
+    
+    console.log('로드된 상품 목록:', products.value)
+    console.log('상품 개수:', products.value.length)
   } catch (error) {
     console.error('상품 목록 로드 실패:', error)
+    products.value = []
   }
 }
 
@@ -294,14 +223,14 @@ const deleteImage = async (imageId) => {
       throw new Error('인증 토큰이 없습니다.')
     }
 
-    await axios.delete(`/api/fishing-report/image/${imageId}`, {
+    await api.delete(`/api/fishing-diary/image/${imageId}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
 
     // 이미지 목록에서 제거
-    report.value.images = report.value.images.filter(img => img.id !== imageId)
+    diary.value.images = diary.value.images.filter(img => img.id !== imageId)
     alert('이미지가 삭제되었습니다.')
   } catch (error) {
     console.error('이미지 삭제 실패:', error)
@@ -310,7 +239,7 @@ const deleteImage = async (imageId) => {
 }
 
 const handleSubmit = async () => {
-  if (!formData.title || !formData.content || !formData.fishingAt) {
+  if (!formData.title || !formData.content || !formData.fishingAt || !formData.productId) {
     alert('필수 항목을 모두 입력해주세요.')
     return
   }
@@ -329,21 +258,8 @@ const handleSubmit = async () => {
       title: formData.title,
       content: formData.content,
       fishingAt: formData.fishingAt,
-      location: formData.location,
-      weather: formData.weather,
-      temperature: formData.temperature,
-      waterTemperature: formData.waterTemperature,
-      fishingMethod: formData.fishingMethod,
-      catchInfo: formData.catchInfo,
-      product: formData.productId ? { prodId: formData.productId } : null,
-      user: report.value && report.value.user ? {
-        uno: report.value.user.uno,
-        uid: report.value.user.uid,
-        uname: report.value.user.uname,
-        nickname: report.value.user.nickname,
-        email: report.value.user.email,
-        phone: report.value.user.phone
-      } : null
+      product: { prodId: formData.productId },
+      user: diary.value?.user // 작성자 정보 추가
     }
 
     submitData.append('dto', new Blob([JSON.stringify(dtoData)], { 
@@ -355,36 +271,36 @@ const handleSubmit = async () => {
       submitData.append('images', file)
     })
 
-    await axios.put(`/api/fishing-report/update/${route.params.frId}`, submitData, {
+    await api.put(`/api/admin/fishing-diary/update/${route.params.fdId}`, submitData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`
       }
     })
 
-    alert('조황정보가 수정되었습니다.')
-    router.push('/admin/fishing-reports')
+    alert('조행기가 수정되었습니다.')
+    router.push('/admin/fishing-diaries')
   } catch (error) {
-    console.error('조황정보 수정 실패:', error)
-    alert('조황정보 수정에 실패했습니다.')
+    console.error('조행기 수정 실패:', error)
+    alert('조행기 수정에 실패했습니다.')
   } finally {
     submitting.value = false
   }
 }
 
 const goBack = () => {
-  router.push('/admin/fishing-reports')
+  router.push('/admin/fishing-diaries')
 }
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
-  loadReport()
+  loadDiary()
   loadProducts()
 })
 </script>
 
 <style scoped>
-.fishing-report-edit {
+.fishing-diary-edit {
   padding: 1rem;
 }
 
@@ -400,16 +316,22 @@ onMounted(() => {
   color: #2c3e50;
 }
 
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .btn-back {
   padding: 0.5rem 1rem;
-  background: #95a5a6;
-  color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-weight: 600;
+  background: #95a5a6;
+  color: white;
 }
 
 .btn-back:hover {
@@ -427,28 +349,39 @@ onMounted(() => {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding: 2rem;
+  overflow: hidden;
 }
 
 .form-section {
-  margin-bottom: 2rem;
+  padding: 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+.form-section:last-child {
+  border-bottom: none;
 }
 
 .form-section h3 {
+  margin-top: 0;
   color: #2c3e50;
   border-bottom: 2px solid #3498db;
   padding-bottom: 0.5rem;
   margin-bottom: 1.5rem;
 }
 
-.form-group {
+.form-section h4 {
+  color: #34495e;
   margin-bottom: 1rem;
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
@@ -459,7 +392,6 @@ onMounted(() => {
 }
 
 .form-group input,
-.form-group textarea,
 .form-group select {
   width: 100%;
   padding: 0.75rem;
@@ -469,20 +401,8 @@ onMounted(() => {
 }
 
 .form-group input:focus,
-.form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-
-/* RichTextEditor 스타일 조정 */
-.form-group :deep(.note-editor) {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.form-group :deep(.note-editor:focus-within) {
   border-color: #3498db;
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
@@ -518,8 +438,8 @@ onMounted(() => {
   color: white;
   border: none;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -527,7 +447,7 @@ onMounted(() => {
 }
 
 .btn-delete-image:hover {
-  background: rgba(231, 76, 60, 1);
+  background: #e74c3c;
 }
 
 .image-upload {
@@ -544,6 +464,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-weight: 600;
 }
 
 .btn-upload:hover {
@@ -551,11 +472,10 @@ onMounted(() => {
 }
 
 .form-actions {
+  padding: 2rem;
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
-  margin-top: 2rem;
-  padding-top: 2rem;
   border-top: 1px solid #eee;
 }
 
@@ -590,7 +510,21 @@ onMounted(() => {
 }
 
 .btn-submit:disabled {
-  opacity: 0.6;
+  background: #bdc3c7;
   cursor: not-allowed;
 }
-</style>
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .image-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}
+</style> 

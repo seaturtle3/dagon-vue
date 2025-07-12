@@ -24,16 +24,13 @@ const goToDetail = () => {
         :src="
           diary.images && diary.images.length
             ? (
-              diary.images[0].imageData
-                  ? `data:image/jpeg;base64,${diary.images[0].imageData}`
+              diary.images[0].thumbnail_data
+                  ? `data:image/jpeg;base64,${diary.images[0].thumbnail_data}`
                   : (diary.images[0].image_data
-                      ? `data:image/jpeg;base64,${diary.images[0].image_data}`
-                      : (diary.images[0].imageUrl
-                          ? `${IMAGE_BASE_URL}${diary.images[0].imageUrl}`
-                          : (diary.images[0].image_url
-                              ? `${IMAGE_BASE_URL}${diary.images[0].image_url}`
-                              : '/images/no-image.png'
-                            )
+                      ? `data:image/jpeg;base64,${diary.images[0].image_data}` 
+                      : (diary.images[0].img_url
+                          ? `${IMAGE_BASE_URL}${diary.images[0].img_url}`
+                          : '/images/no-image.png'
                         )
                     )
               )
@@ -41,10 +38,9 @@ const goToDetail = () => {
         "
         alt="썸네일"
         v-if="
-          diary.images?.imageData ||
+          diary.images?.thumbnail_data ||
           diary.images?.image_data ||
-          diary.images?.imageUrl ||
-          diary.images?.image_url ||
+          diary.images?.img_url ||
           diary.images
         "
       />

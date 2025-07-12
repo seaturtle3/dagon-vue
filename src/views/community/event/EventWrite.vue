@@ -10,7 +10,32 @@ import {BASE_URL} from "@/constants/baseUrl.js";
 const router = useRouter()
 const route = useRoute()
 const authStore = useAdminAuthStore()
-authStore.loadTokenFromStorage()
+
+// 관리자 권한 체크
+onMounted(() => {
+  authStore.loadTokenFromStorage()
+  if (!authStore.token || !authStore.isTokenValid()) {
+    alert('관리자 권한이 필요합니다.')
+    router.push('/admin/login')
+    return
+  }
+  
+  // 관리자 역할 확인
+  try {
+    const payload = JSON.parse(atob(authStore.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+    const role = payload.role || payload.auth || payload.roles || payload.ROLE
+    if (role !== 'SUPER_ADMIN' && role !== 'ADMIN') {
+      alert('관리자 권한이 필요합니다.')
+      router.push('/admin/login')
+      return
+    }
+  } catch (e) {
+    alert('관리자 권한이 필요합니다.')
+    router.push('/admin/login')
+    return
+  }
+})
+
 const token = authStore.token
 
 const eventId = route.params.id
@@ -134,7 +159,7 @@ onMounted(async () => {
       // 기존 이미지가 있으면 로드
       if (res.data.imageDataList && res.data.imageDataList.length > 0) {
         existingImages.value = res.data.imageDataList.map((imageData, idx) => ({
-          id: res.data.imageIdList[idx] || 'existing-' + idx, // EventImage 테이블의 PK 사용
+          id: res.data.imageIdList[idx] || 'existing-' + idx, // EventImage.java 테이블의 PK 사용
           url: `data:image/jpeg;base64,${imageData}`,
           name: `image_${idx}`,
           isExisting: true,

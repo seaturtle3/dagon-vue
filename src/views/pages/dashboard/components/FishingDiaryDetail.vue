@@ -29,6 +29,12 @@
           </div>
         </div>
         <div class="header-actions">
+          <button @click="goBack" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i> 목록
+          </button>
+          <button @click="editDiary" class="btn btn-edit">
+            <i class="fas fa-edit"></i> 수정
+          </button>
           <button @click="deleteDiary" class="btn btn-danger">
             <i class="fas fa-trash"></i> 삭제
           </button>
@@ -46,8 +52,20 @@
         <h3><i class="fas fa-images"></i> 이미지 ({{ diary.images.length }}장)</h3>
         <div class="image-gallery">
           <div v-for="image in diary.images" :key="image.id" class="image-item" @click="openImageModal(image)">
-            <img :src="image.imageUrl" :alt="image.imageName">
-            <div class="image-overlay"><i class="fas fa-search-plus"></i></div>
+            <img 
+              :src="
+                image.thumbnail 
+                  ? image.thumbnail 
+                  : image.imageData 
+                    ? `data:image/jpeg;base64,${image.imageData}`
+                    : image.imageUrl
+              " 
+              :alt="image.imageName"
+            >
+            <div class="image-overlay">
+              <i class="fas fa-search-plus"></i>
+              <span v-if="image.thumbnail" class="thumbnail-badge">대표</span>
+            </div>
           </div>
         </div>
       </div>
@@ -107,7 +125,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from '@/lib/axios';
+import api from '@/lib/axios.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -123,30 +141,44 @@ const showDeleteModal = ref(false);
 const deleteTarget = ref(''); // 'diary' or 'comment'
 const deleteId = ref(null);
 
-const fetchDiary = async () => {
-  loading.value = true;
+const loadDiary = async () => {
   try {
-    const response = await axios.get(`/api/fishing-diary/get/${fdId}`);
-    diary.value = response.data;
-  } catch (error) {
-    console.error('Error fetching diary detail:', error);
-    diary.value = null;
-  } finally {
-    loading.value = false;
-  }
-};
+    const response = await api.get(`/api/admin/fishing-diary/get/${fdId}`)
 
-onMounted(fetchDiary);
+    diary.value = response.data
+    console.log('로드된 조행기:', response.data)
+  } catch (error) {
+    console.error('조행기 로드 실패:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadDiary);
 
 const goBack = () => {
   router.push('/admin/fishing-diaries');
 };
 
-const deleteDiary = () => {
-  deleteTarget.value = 'diary';
-  deleteId.value = fdId;
-  showDeleteModal.value = true;
+const editDiary = () => {
+  router.push(`/admin/fishing-diaries/${fdId}/edit`);
 };
+
+const deleteDiary = async () => {
+  if (!confirm('정말로 이 조행기를 삭제하시겠습니까?')) {
+    return
+  }
+
+  try {
+    await api.delete(`/api/admin/fishing-diary/delete/${fdId}`)
+
+    alert('조행기가 삭제되었습니다.')
+    router.push('/admin/fishing-diaries')
+  } catch (error) {
+    console.error('조행기 삭제 실패:', error)
+    alert('조행기 삭제에 실패했습니다: ' + error.response?.data || error.message)
+  }
+}
 
 const deleteComment = (commentId) => {
   deleteTarget.value = 'comment';
@@ -157,11 +189,11 @@ const deleteComment = (commentId) => {
 const confirmDelete = async () => {
   try {
     if (deleteTarget.value === 'diary') {
-      await axios.delete(`/api/fishing-diary/delete/${deleteId.value}`);
+      await api.delete(`/api/fishing-diary/delete/${deleteId.value}`);
       router.push('/admin/fishing-diaries');
     } else if (deleteTarget.value === 'comment') {
-      await axios.delete(`/api/fishing-diary/comments/${deleteId.value}`);
-      fetchDiary(); // Refresh diary details to show updated comments
+      await api.delete(`/api/fishing-diary/comments/${deleteId.value}`);
+      loadDiary(); // Refresh diary details to show updated comments
     }
   } catch (error) {
     console.error(`Error deleting ${deleteTarget.value}:`, error);
@@ -275,6 +307,13 @@ const formatDateTime = (isoString) => {
 }
 .btn-danger:hover {
   background-color: #c0392b;
+}
+.btn-edit {
+  background-color: #3498db;
+  color: white;
+}
+.btn-edit:hover {
+  background-color: #2980b9;
 }
 
 h3 {

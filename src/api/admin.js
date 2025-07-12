@@ -2,14 +2,6 @@ import api from '@/lib/axios';
 import {BASE_URL} from "@/constants/baseUrl.js";
 import { clearAuthData } from '@/utils/authUtils'
 
-const adminApi = api.create({
-  baseURL: `${BASE_URL}/api/admin`,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-
 export const adminAuth = {
   // 관리자 로그인
   login: (loginData) => {
@@ -237,5 +229,3 @@ export const partnerApi = {
     return api.delete(`/api/partner/my_page/${id}`);
   }
 };
-
-export default adminApi; 

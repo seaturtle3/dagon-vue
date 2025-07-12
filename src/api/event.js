@@ -1,5 +1,7 @@
 import api from '@/lib/axios'
 
+// ===== 일반 사용자용 이벤트 API (조회 전용) =====
+
 // 사용자용 이벤트 목록 조회
 export const fetchEvents = (params) => {
     return api.get('/api/event', { params })
@@ -10,6 +12,13 @@ export const fetchEventById = (id) => {
     return api.get(`/api/event/${id}`)
 }
 
+// 사용자용 이벤트 전체 목록 조회 (페이징 없음)
+export const getAllEvents = () => {
+    return api.get('/api/event/list')
+}
+
+// ===== 관리자용 이벤트 API (관리 기능) =====
+
 // 관리자용 이벤트 목록 조회
 export const getAdminEvents = (params) => {
     return api.get('/api/admin/event', { params })
@@ -17,23 +26,23 @@ export const getAdminEvents = (params) => {
 
 // 관리자용 이벤트 생성 (이미지 포함)
 export const createEvent = (eventData, files = []) => {
+    // thumbnailUrl이 base64 데이터인 경우 제거 (백엔드에서 처리할 수 없음)
+    if (eventData.thumbnailUrl && eventData.thumbnailUrl.startsWith('data:')) {
+        delete eventData.thumbnailUrl
+    }
+    
     if (files && files.length > 0) {
         // 썸네일 플래그가 있는 파일들 처리
         const thumbnailFiles = files.filter(item => item.isThumbnail).map(item => item.file)
         const normalFiles = files.filter(item => !item.isThumbnail).map(item => item.file)
         
-        // 썸네일 이미지들만 전송
-        if (thumbnailFiles.length > 0) {
-            return api.multipartPost({
-                url: '/api/admin/event',
-                dto: eventData,
-                files: thumbnailFiles,
-                dtoKey: 'dto',
-                fileKey: 'images'
-            })
-        } else {
-            return api.post('/api/admin/event', eventData)
-        }
+        return api.multipartPost({
+            url: '/api/admin/event',
+            dto: eventData,
+            files: thumbnailFiles,
+            dtoKey: 'dto',
+            fileKey: 'images'
+        })
     } else {
         return api.post('/api/admin/event', eventData)
     }
@@ -66,23 +75,23 @@ export const updateEvent = (id, eventData, files = []) => {
     }
     
     if (files && files.length > 0) {
+        console.log("새 파일이 있어서 multipart로 전송")
+
         // 썸네일 플래그가 있는 파일들 처리
         const thumbnailFiles = files.filter(item => item.isThumbnail).map(item => item.file)
         const normalFiles = files.filter(item => !item.isThumbnail).map(item => item.file)
         
         // 썸네일 이미지들만 전송
-        if (thumbnailFiles.length > 0) {
-            return api.multipartPut({
-                url: `/api/admin/event/${id}`,
-                dto: eventData,
-                files: thumbnailFiles,
-                dtoKey: 'dto',
-                fileKey: 'images'
-            })
-        } else {
-            return api.put(`/api/admin/event/${id}`, eventData)
-        }
+        return api.multipartPut({
+            url: `/api/admin/event/${id}`,
+            dto: eventData,
+            files: thumbnailFiles,
+            dtoKey: 'dto',
+            fileKey: 'images'
+        })
     } else {
+        console.log("새 파일이 없어서 JSON으로 전송")
+
         return api.put(`/api/admin/event/${id}`, eventData)
     }
 }

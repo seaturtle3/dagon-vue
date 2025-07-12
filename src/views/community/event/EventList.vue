@@ -113,7 +113,6 @@ const handleStatusChange = (newStatus) => {
       </div>
     </div>
 
-    <BoardWriteButton to="/event/write" label="이벤트 작성"/>
     <!-- 📌 페이지네이션 -->
     <BoardPagination :page="page" :totalPages="totalPages" @change="page = $event"/>
   </div>

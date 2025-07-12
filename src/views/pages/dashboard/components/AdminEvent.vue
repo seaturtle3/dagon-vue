@@ -149,6 +149,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { fetchEvents, fetchEventById, createEvent, updateEvent, deleteEvent as apiDeleteEvent } from '@/api/event.js'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import { BASE_URL } from '@/constants/baseUrl.js'
+import { convertLocalhostToDomain } from '@/utils/authUtils'
 
 const events = ref([])
 const loading = ref(false)
@@ -205,18 +206,25 @@ function statusText(status) {
 }
 
 const getEventThumbnail = (event) => {
-  // 1. imageDataList
+  // 1. data URL (미리보기용)
+  if (event?.thumbnailUrl && event.thumbnailUrl.startsWith('data:')) {
+    return event.thumbnailUrl
+  }
+  // 2. imageDataList
   if (event?.imageDataList && event.imageDataList.length > 0) {
     return `data:image/jpeg;base64,${event.imageDataList[0]}`
   }
-  // 2. thumbnailDataList
+  // 3. thumbnailDataList
   if (event?.thumbnailDataList && event.thumbnailDataList.length > 0) {
     return `data:image/jpeg;base64,${event.thumbnailDataList[0]?.thumbnail_data}`
   }
-  // 3. thumbnailUrl
+  // 4. thumbnailUrl (서버 URL)
   if (event?.thumbnailUrl) {
-    if (event.thumbnailUrl.startsWith('http')) return event.thumbnailUrl
-    return `${BASE_URL}${event.thumbnailUrl}`
+    if (event.thumbnailUrl.startsWith('http')) {
+      // localhost를 실제 도메인으로 변경 (HTTPS)
+      return convertLocalhostToDomain(event.thumbnailUrl)
+    }
+    return `${event.thumbnailUrl}`
   }
   // fallback(없으면 빈 문자열)
   return ''
@@ -258,15 +266,18 @@ function openCreateModal() {
     content: '',
     startAt: '',
     endAt: '',
-    thumbnailUrl: '',
+    thumbnailUrl: '', // 썸네일 미리보기 초기화
     isTop: false,
     eventStatus: ''
   })
+  uploadedFiles.value = [] // 업로드 파일 상태 초기화
   showModal.value = true
 }
 function openEditModal(event) {
   modalMode.value = 'edit'
   Object.assign(eventForm, { ...event })
+  // 수정 모달 열 때 uploadedFiles 초기화
+  uploadedFiles.value = []
   showModal.value = true
 }
 async function openDetailModal(eventId) {
@@ -297,9 +308,15 @@ const submitEvent = async () => {
       thumbnailUrl: eventForm.thumbnailUrl,
       isTop: eventForm.isTop
     }
-    
+
     if (modalMode.value === 'edit') {
-      await updateEvent(eventForm.eventId, data, uploadedFiles.value)
+      // 수정 시: 새 파일이 있으면 multipart, 없으면 JSON으로 전송
+      if (uploadedFiles.value.length > 0) {
+        await updateEvent(eventForm.eventId, data, uploadedFiles.value)
+      } else {
+        // 새 파일이 없으면 일반 JSON 요청으로 전송
+        await updateEvent(eventForm.eventId, data, [])
+      }
       alert('이벤트가 수정되었습니다.')
     } else {
       await createEvent(data, uploadedFiles.value)
@@ -347,20 +364,23 @@ function changePage(page) {
 async function handleThumbnailUpload(e) {
   const file = e.target.files[0]
   if (!file) return
-  
+
   if (file.size > 5 * 1024 * 1024) {
     alert('파일 크기는 5MB 이하여야 합니다.')
     return
   }
-  
+
   if (!file.type.startsWith('image/')) {
     alert('이미지 파일만 업로드 가능합니다.')
     return
   }
-  
-  // 파일을 uploadedFiles에 추가
-  uploadedFiles.value = [file]
-  
+
+  // 파일을 uploadedFiles에 추가 (isThumbnail 플래그와 함께)
+  uploadedFiles.value = [{
+    file: file,
+    isThumbnail: true
+  }]
+
   // 미리보기용 URL 생성
   const reader = new FileReader()
   reader.onload = (e) => {
@@ -667,15 +687,23 @@ onMounted(() => {
   justify-content: center;
   z-index: 1000;
 }
+
 .modal-content {
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  min-width: 400px;
+  min-height: 400px;
+  width: 80vw;
+  max-width: 100vw;
+  height: auto;
+  max-height: 90vh;
+  resize: both;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   background: white;
   border-radius: 12px;
   padding: 2rem;
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 .modal-header {
   display: flex;
@@ -705,6 +733,10 @@ onMounted(() => {
 }
 .close-btn:hover { background: #e2e8f0; }
 .modal-form {
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;

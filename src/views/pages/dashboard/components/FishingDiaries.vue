@@ -209,7 +209,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { partnerService } from '@/api/partner'
+import api from '@/lib/axios.js'
 
 const router = useRouter()
 
@@ -265,38 +265,22 @@ const visiblePages = computed(() => {
 })
 
 // 메서드
-const loadDiaries = async (page = 1) => {
-  loading.value = true
+const loadDiaries = async () => {
   try {
-    const params = {
-      page: page - 1, // 백엔드는 0-based index 사용
-      size: itemsPerPage.value,
-      sortBy: 'fdId',
-      direction: 'desc'
-    }
-    const response = await partnerService.getFishingDiaries(params)
-    let responseData = response.data
+    loading.value = true
 
-    if (responseData && responseData.content) {
-      diaries.value = responseData.content || []
-      totalPages.value = responseData.totalPages || 1
-      totalElements.value = responseData.totalElements || 0
-      hasNext.value = responseData.hasNext || false
-      hasPrevious.value = responseData.hasPrevious || false
-    } else if (Array.isArray(responseData)) {
-      diaries.value = responseData
-      totalPages.value = 1
-      totalElements.value = responseData.length
-      hasNext.value = false
-      hasPrevious.value = false
-    } else {
-      diaries.value = []
-      totalPages.value = 1
-      totalElements.value = 0
-      hasNext.value = false
-      hasPrevious.value = false
-      console.warn('예상하지 못한 응답 구조:', responseData)
-    }
+    const response = await api.get('/api/admin/fishing-diary/get-all', {
+      params: {
+        page: currentPage.value - 1,
+        size: itemsPerPage.value,
+        sortBy: 'fdId',
+        direction: 'desc'
+      }
+    })
+
+    diaries.value = response.data.content
+    totalElements.value = response.data.totalElements
+    totalPages.value = response.data.totalPages
     totalDiaries.value = totalElements.value
     
     // 오늘 등록된 조행기 수 계산 (클라이언트에서 계산)
@@ -311,10 +295,11 @@ const loadDiaries = async (page = 1) => {
     thisWeekDiaries.value = diaries.value.filter(diary => 
       diary.createdAt && new Date(diary.createdAt) >= weekAgo
     ).length
-
+    
+    console.log('로드된 조행기 목록:', response.data)
   } catch (error) {
-    console.error('조행기 로드 실패:', error)
-    alert('조행기를 불러오는데 실패했습니다.')
+    console.error('조행기 목록 로드 실패:', error)
+    alert('조행기를 불러오는데 실패했습니다: ' + error.response?.data || error.message)
     diaries.value = []
   } finally {
     loading.value = false
@@ -323,18 +308,18 @@ const loadDiaries = async (page = 1) => {
 
 const handleSearch = () => {
   currentPage.value = 1
-  loadDiaries(1)
+  loadDiaries()
 }
 
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
-    loadDiaries(page)
+    loadDiaries()
   }
 }
 
 const viewDiary = (fdId) => {
-  router.push(`/fishing-diary/${fdId}`)
+  router.push(`/admin/fishing-diaries/${fdId}`)
 }
 
 const viewComments = (fdId, title) => {
@@ -347,7 +332,8 @@ const viewComments = (fdId, title) => {
 const loadComments = async (fdId) => {
   commentsLoading.value = true
   try {
-    const response = await partnerService.getFishingDiaryComments(fdId)
+    const response = await api.get(`/api/fishing-diary/${fdId}/comments`)
+    
     let responseData = response.data
     if (responseData && responseData.comments) {
       selectedDiaryComments.value = responseData.comments || []
@@ -361,7 +347,7 @@ const loadComments = async (fdId) => {
     }
   } catch (error) {
     console.error('조행기 댓글 로드 실패:', error)
-    alert('조행기 댓글을 불러오는데 실패했습니다.')
+    alert('조행기 댓글을 불러오는데 실패했습니다: ' + error.response?.data || error.message)
     selectedDiaryComments.value = []
   } finally {
     commentsLoading.value = false
@@ -377,13 +363,13 @@ const confirmDelete = async () => {
   if (!diaryToDelete.value) return
   
   try {
-    await partnerService.deleteFishingDiary(diaryToDelete.value)
+    await api.delete(`/api/admin/fishing-diary/delete/${diaryToDelete.value}`)
     alert('조행기가 삭제되었습니다.')
     await loadDiaries()
     closeDeleteModal()
   } catch (error) {
     console.error('조행기 삭제 실패:', error)
-    alert('조행기 삭제에 실패했습니다.')
+    alert('조행기 삭제에 실패했습니다: ' + error.response?.data || error.message)
   }
 }
 
@@ -412,18 +398,18 @@ const deleteComment = async (commentId) => {
     return
   }
   try {
-    await partnerService.deleteFishingDiaryComment(commentId)
+    await api.delete(`/api/fishing-diary/comments/${commentId}`)
     alert('댓글이 삭제되었습니다.')
     await loadComments(selectedDiaryId.value)
   } catch (error) {
     console.error('댓글 삭제 실패:', error)
-    alert('댓글 삭제에 실패했습니다.')
+    alert('댓글 삭제에 실패했습니다: ' + error.response?.data || error.message)
   }
 }
 
 const onPageSizeChange = () => {
   currentPage.value = 1
-  loadDiaries(1)
+  loadDiaries()
 }
 
 // 컴포넌트 마운트 시 데이터 로드
