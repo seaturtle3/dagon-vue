@@ -1,5 +1,7 @@
 import api from '@/lib/axios'
 
+// ===== 일반 사용자용 이벤트 API (조회 전용) =====
+
 // 사용자용 이벤트 목록 조회
 export const fetchEvents = (params) => {
     return api.get('/api/event', { params })
@@ -9,6 +11,13 @@ export const fetchEvents = (params) => {
 export const fetchEventById = (id) => {
     return api.get(`/api/event/${id}`)
 }
+
+// 사용자용 이벤트 전체 목록 조회 (페이징 없음)
+export const getAllEvents = () => {
+    return api.get('/api/event/list')
+}
+
+// ===== 관리자용 이벤트 API (관리 기능) =====
 
 // 관리자용 이벤트 목록 조회
 export const getAdminEvents = (params) => {
@@ -27,13 +36,13 @@ export const createEvent = (eventData, files = []) => {
         const thumbnailFiles = files.filter(item => item.isThumbnail).map(item => item.file)
         const normalFiles = files.filter(item => !item.isThumbnail).map(item => item.file)
         
-            return api.multipartPost({
-                url: '/api/admin/event',
-                dto: eventData,
-                files: thumbnailFiles,
-                dtoKey: 'dto',
-                fileKey: 'images'
-            })
+        return api.multipartPost({
+            url: '/api/admin/event',
+            dto: eventData,
+            files: thumbnailFiles,
+            dtoKey: 'dto',
+            fileKey: 'images'
+        })
     } else {
         return api.post('/api/admin/event', eventData)
     }
@@ -64,11 +73,6 @@ export const updateEvent = (id, eventData, files = []) => {
             console.log('새로 추가된 이미지들:', imageChanges.newImages)
         }
     }
-    
-    // thumbnailUrl이 base64 데이터인 경우 유지 (수정 시에도 base64 처리)
-    // if (eventData.thumbnailUrl && eventData.thumbnailUrl.startsWith('data:')) {
-    //     delete eventData.thumbnailUrl
-    // }
     
     if (files && files.length > 0) {
         console.log("새 파일이 있어서 multipart로 전송")

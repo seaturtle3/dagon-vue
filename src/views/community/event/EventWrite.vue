@@ -10,7 +10,32 @@ import {BASE_URL} from "@/constants/baseUrl.js";
 const router = useRouter()
 const route = useRoute()
 const authStore = useAdminAuthStore()
-authStore.loadTokenFromStorage()
+
+// 관리자 권한 체크
+onMounted(() => {
+  authStore.loadTokenFromStorage()
+  if (!authStore.token || !authStore.isTokenValid()) {
+    alert('관리자 권한이 필요합니다.')
+    router.push('/admin/login')
+    return
+  }
+  
+  // 관리자 역할 확인
+  try {
+    const payload = JSON.parse(atob(authStore.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+    const role = payload.role || payload.auth || payload.roles || payload.ROLE
+    if (role !== 'SUPER_ADMIN' && role !== 'ADMIN') {
+      alert('관리자 권한이 필요합니다.')
+      router.push('/admin/login')
+      return
+    }
+  } catch (e) {
+    alert('관리자 권한이 필요합니다.')
+    router.push('/admin/login')
+    return
+  }
+})
+
 const token = authStore.token
 
 const eventId = route.params.id

@@ -1,19 +1,15 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { fetchEventById, deleteEvent, fetchEvents } from '@/api/event.js'
-import { useAdminAuthStore } from "@/store/auth/auth.js";
+import { fetchEventById, getAllEvents } from '@/api/event.js'
 
 import BoardDetailBox from "@/components/common/BoardDetailBox.vue";
-import BoardDetailAction from "@/components/common/BoardDetailAction.vue";
 import {BASE_URL} from "@/constants/baseUrl.js";
 
 const route = useRoute()
 const router = useRouter()
-const authStore = useAdminAuthStore()
 
 const event = ref(null)
-const isAdmin = ref(false)
 const loading = ref(true)
 
 const prevEvent = ref(null)
@@ -34,26 +30,19 @@ const loadEventData = async () => {
 
 const loadNavigationEvents = async () => {
   try {
-    const params = { page: 0, size: 100 }
-    const res = await fetchEvents(params)
-    const allEvents = res.data.content
+    const res = await getAllEvents()
+    const allEvents = res.data
     const currentIndex = allEvents.findIndex(e => String(e.eventId) === String(route.params.id))
     if (currentIndex > 0) prevEvent.value = allEvents[currentIndex - 1]
     else prevEvent.value = null
     if (currentIndex < allEvents.length - 1 && currentIndex !== -1) nextEvent.value = allEvents[currentIndex + 1]
     else nextEvent.value = null
-    // 디버깅용
-    // console.log('allEvents:', allEvents)
-    // console.log('route.params.id:', route.params.id)
-    // console.log('currentIndex:', currentIndex)
   } catch (error) {
     console.error('이전/다음 이벤트 정보 로드 실패:', error)
   }
 }
 
 onMounted(async () => {
-  authStore.loadTokenFromStorage()
-  isAdmin.value = !!authStore.token
   await loadEventData()
   await loadNavigationEvents()
 })
@@ -68,35 +57,6 @@ watch(() => route.params.id, async (newId, oldId) => {
     await loadNavigationEvents()
   }
 })
-
-const handleEdit = () => {
-  router.push(`/event/edit/${route.params.id}`)
-}
-
-const handleDelete = async () => {
-  if (!confirm('정말 삭제하시겠습니까?')) return
-
-  // 토큰 유효성 확인
-  if (!authStore.isTokenValid()) {
-    alert('인증이 만료되었습니다. 다시 로그인해주세요.')
-    router.push('/admin/login')
-    return
-  }
-
-  try {
-    await deleteEvent(route.params.id)
-    alert('이벤트가 삭제되었습니다.')
-    router.push('/event')
-  } catch (error) {
-    console.error('이벤트 삭제 실패:', error)
-    if (error.response && error.response.status === 401) {
-      alert('인증이 만료되었습니다. 다시 로그인해주세요.')
-      router.push('/admin/login')
-    } else {
-      alert('이벤트 삭제에 실패했습니다.')
-    }
-  }
-}
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '미정'
@@ -150,7 +110,6 @@ const getEventThumbnail = () => {
     return event.value.images
   }
 
-
   // 아무것도 없으면 빈 배열
   return []
 }
@@ -171,7 +130,6 @@ const getEventThumbnail = () => {
           <span>
             {{ event.title }}<span class="badge bg-success ms-2">{{ event.eventStatus }}</span>
           </span>
-          <BoardDetailAction showTopMenu @edit="handleEdit" @delete="handleDelete"/>
         </div>
       </template>
 
@@ -200,9 +158,6 @@ const getEventThumbnail = () => {
         <div v-html="event.content" class="mt-4"/>
       </template>
     </BoardDetailBox>
-
-    <!-- 하단 액션 버튼 -->
-    <BoardDetailAction @edit="handleEdit" @delete="handleDelete"/>
 
     <!-- 이전글/다음글 네비게이션 -->
     <div class="navigation-container">
