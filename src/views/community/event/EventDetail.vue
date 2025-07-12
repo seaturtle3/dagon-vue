@@ -94,24 +94,37 @@ const getImageUrl = (image) => {
 }
 // 이벤트 썸네일 이미지 가져오기
 const getEventThumbnail = () => {
-  // eventId가 있으면 썸네일 API 호출
-  if (event.value?.eventId) {
-    return `${BASE_URL}/api/images/event/${event.value.eventId}/thumb`
-  }
-
-  // 기존 방식으로 fallback
-  if (event.value?.imageDataList && event.value.imageDataList.length > 0) {
-    return event.value.imageDataList
-  }
+  // 1. thumbnailDataList가 있으면 첫 번째 썸네일 사용 (최우선)
   if (event.value?.thumbnailDataList && event.value.thumbnailDataList.length > 0) {
-    return event.value.thumbnailDataList
+    const thumbnail = event.value.thumbnailDataList[0]
+    if (thumbnail.thumbnail_data) {
+      return `data:image/jpeg;base64,${thumbnail.thumbnail_data}`
+    }
   }
+  
+  // 2. imageDataList가 있으면 첫 번째 이미지를 썸네일로 사용
+  if (event.value?.imageDataList && event.value.imageDataList.length > 0) {
+    return `data:image/jpeg;base64,${event.value.imageDataList[0]}`
+  }
+  
+  // 3. thumbnailUrl이 있으면 사용
+  if (event.value?.thumbnailUrl) {
+    if (event.value.thumbnailUrl.startsWith('http')) {
+      return event.value.thumbnailUrl
+    }
+    return `${BASE_URL}${event.value.thumbnailUrl}`
+  }
+  
+  // 4. images 배열이 있으면 첫 번째 이미지 사용
   if (event.value?.images && event.value.images.length > 0) {
-    return event.value.images
+    const firstImage = event.value.images[0]
+    if (firstImage.imageData) {
+      return `data:image/jpeg;base64,${firstImage.imageData}`
+    }
   }
 
-  // 아무것도 없으면 빈 배열
-  return []
+  // 아무것도 없으면 null 반환
+  return null
 }
 </script>
 
@@ -143,13 +156,25 @@ const getEventThumbnail = () => {
       <template #default>
         <hr class="board-divider"/>
 
-        <!-- 이미지 표시 -->
-        <div v-if="event.imageDataList && event.imageDataList.length > 0" class="event-images mt-4 mb-4">
+        <!-- 썸네일 이미지 표시 (하나만) -->
+        <div v-if="getEventThumbnail()" class="event-thumbnail mt-4 mb-4">
+          <div class="thumbnail-container">
+            <img
+                :src="getEventThumbnail()"
+                :alt="`${event.title} 썸네일`"
+                class="event-thumbnail-image"
+            />
+          </div>
+        </div>
+
+        <!-- 본문 이미지 표시 (여러 개) -->
+        <div v-if="event.imageDataList && event.imageDataList.length > 1" class="event-images mt-4 mb-4">
+          <h4 class="image-section-title">이벤트 이미지</h4>
           <div class="image-gallery">
-            <div v-for="(image, index) in event.imageDataList" :key="index" class="image-item">
+            <div v-for="(image, index) in event.imageDataList.slice(1)" :key="index" class="image-item">
               <img
                   :src="`data:image/jpeg;base64,${image}`"
-                  :alt="`이벤트 이미지 ${index + 1}`"
+                  :alt="`이벤트 이미지 ${index + 2}`"
                   class="event-image"
               />
             </div>
@@ -435,6 +460,41 @@ hr.board-divider {
   transition: opacity 0.3s ease;
 }
 
+/* 썸네일 스타일 */
+.event-thumbnail {
+  width: 100%;
+  max-width: 600px; /* 썸네일 이미지가 너무 크지 않도록 제한 */
+  margin: 0 auto 2rem auto;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.thumbnail-container {
+  width: 100%;
+  height: 300px; /* 썸네일 이미지 높이 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0; /* 썸네일 영역 배경 */
+}
+
+.event-thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.image-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
 /* 이미지 모달 스타일 */
 .image-modal {
   position: fixed;
@@ -498,6 +558,19 @@ hr.board-divider {
 
   .event-image {
     height: 150px;
+  }
+
+  .event-thumbnail {
+    max-width: 90%;
+    height: 250px;
+  }
+
+  .thumbnail-container {
+    height: 250px;
+  }
+
+  .event-thumbnail-image {
+    height: 100%;
   }
 
   .modal-content {
