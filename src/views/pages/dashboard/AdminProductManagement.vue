@@ -114,13 +114,18 @@
           <tr v-for="product in products" :key="product.prodId">
             <td>{{ product.prodId }}</td>
             <td>
-              <img 
-                v-if="product.prodThumbnail" 
-                :src="product.prodThumbnail" 
-                :alt="product.prodName"
-                class="product-thumbnail"
-              >
-              <div v-else class="no-image">이미지 없음</div>
+              <div class="product-image-container">
+                <img 
+                  v-if="getProductImageUrl(product)" 
+                  :src="getProductImageUrl(product)" 
+                  :alt="product.prodName"
+                  class="product-thumbnail"
+                >
+                <div v-else class="no-image">
+                  <i class="fas fa-ship"></i>
+                  <span>이미지 없음</span>
+                </div>
+              </div>
             </td>
             <td>
               <div class="product-name">{{ product.prodName }}</div>
@@ -296,6 +301,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useAdminProductStore } from '@/store/admin/useAdminProductStore.js'
+import { BASE_URL } from '@/constants/baseUrl.js'
 
 // 스토어 사용
 const adminProductStore = useAdminProductStore()
@@ -479,6 +485,18 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('ko-KR')
 }
 
+const getProductImageUrl = (product) => {
+  // prodImageNames가 있고 첫 번째 이미지가 있으면 사용
+  if (product.prodImageNames && product.prodImageNames.length > 0) {
+    return `${BASE_URL}${product.prodImageNames[0]}`
+  }
+  // prodThumbnail이 있으면 사용
+  if (product.prodThumbnail) {
+    return `${BASE_URL}${product.prodThumbnail}`
+  }
+  return null
+}
+
 // 라이프사이클
 onMounted(() => {
   loadProducts()
@@ -646,24 +664,48 @@ th {
   color: #2c3e50;
 }
 
-.product-thumbnail {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-.no-image {
-  width: 60px;
-  height: 60px;
-  background: #f8f9fa;
-  border: 1px dashed #ddd;
-  border-radius: 6px;
+.product-image-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
-  color: #7f8c8d;
+}
+
+.product-thumbnail {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.product-thumbnail:hover {
+  transform: scale(1.05);
+}
+
+.no-image {
+  width: 80px;
+  height: 60px;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border: 1px dashed #1976d2;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #1976d2;
+}
+
+.no-image i {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+  opacity: 0.7;
+}
+
+.no-image span {
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.8;
 }
 
 .product-name {
