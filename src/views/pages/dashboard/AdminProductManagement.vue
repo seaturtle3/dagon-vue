@@ -120,6 +120,8 @@
                   :src="getProductImageUrl(product)" 
                   :alt="product.prodName"
                   class="product-thumbnail"
+                  style="cursor:pointer"
+                  @click="goToDetail(product.prodId)"
                 >
                 <div v-else class="no-image">
                   <i class="fas fa-ship"></i>
@@ -128,7 +130,7 @@
               </div>
             </td>
             <td>
-              <div class="product-name">{{ product.prodName }}</div>
+              <div class="product-name" style="cursor:pointer" @click="goToDetail(product.prodId)">{{ product.prodName }}</div>
               <div class="product-address">{{ product.prodAddress }}</div>
             </td>
             <td>
@@ -316,6 +318,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useAdminProductStore } from '@/store/admin/useAdminProductStore.js'
 import { BASE_URL } from '@/constants/baseUrl.js'
 import api from '@/lib/axios'
+import { useRouter } from 'vue-router'
 
 const partners = ref([])
 
@@ -615,6 +618,11 @@ const getProductImageUrl = (product) => {
   }
   
   return null
+}
+
+const router = useRouter()
+function goToDetail(prodId) {
+  router.push(`/admin/products/${prodId}`)
 }
 
 // 라이프사이클
