@@ -214,19 +214,9 @@
               <label>지역 *</label>
               <select v-model="form.prodRegion" required>
                 <option value="">지역 선택</option>
-                <option value="BUSAN">부산</option>
-                <option value="ULSAN">울산</option>
-                <option value="GYEONGNAM">경남</option>
-                <option value="JEONNAM">전남</option>
-                <option value="JEJU">제주</option>
-                <option value="GANGWON">강원</option>
-                <option value="CHUNGBUK">충북</option>
-                <option value="CHUNGNAM">충남</option>
-                <option value="JEONBUK">전북</option>
-                <option value="GYEONGBUK">경북</option>
-                <option value="GYEONGGI">경기</option>
-                <option value="SEOUL">서울</option>
-                <option value="INCHEON">인천</option>
+                <option v-for="region in regions" :key="region.name" :value="region.name">
+                  {{ region.korean }}
+                </option>
               </select>
             </div>
           </div>
@@ -235,22 +225,31 @@
               <label>타입 *</label>
               <select v-model="form.mainType" required>
                 <option value="">타입 선택</option>
-                <option value="SEA">바다낚시</option>
-                <option value="FRESHWATER">민물낚시</option>
+                <option v-for="type in mainTypes" :key="type.name" :value="type.name">
+                  {{ type.korean }}
+                </option>
               </select>
             </div>
             <div class="form-group">
               <label>세부 타입 *</label>
               <select v-model="form.subType" required>
                 <option value="">세부 타입 선택</option>
-                <option v-if="form.mainType === 'SEA'" value="BOAT">배낚시</option>
-                <option v-if="form.mainType === 'SEA'" value="SHORE">해안낚시</option>
-                <option v-if="form.mainType === 'FRESHWATER'" value="RIVER">강낚시</option>
-                <option v-if="form.mainType === 'FRESHWATER'" value="LAKE">호수낚시</option>
+                <option v-for="sub in subTypes.filter(st => st.mainType === form.mainType)" :key="sub.name" :value="sub.name">
+                  {{ sub.korean }}
+                </option>
               </select>
             </div>
           </div>
           <div class="form-row">
+            <div class="form-group">
+              <label>지역 *</label>
+              <select v-model="form.prodRegion" required>
+                <option value="">지역 선택</option>
+                <option v-for="region in regions" :key="region.name" :value="region.name">
+                  {{ region.korean }}
+                </option>
+              </select>
+            </div>
             <div class="form-group">
               <label>최소 인원</label>
               <input v-model.number="form.minPerson" type="number" min="1">
@@ -319,6 +318,17 @@ import { BASE_URL } from '@/constants/baseUrl.js'
 import api from '@/lib/axios'
 
 const partners = ref([])
+
+// ENUM 옵션 상태
+const mainTypes = ref([])
+const subTypes = ref([])
+const regions = ref([])
+
+const fetchEnumOptions = async () => {
+  mainTypes.value = (await api.get('/api/enums/main-types')).data
+  subTypes.value = (await api.get('/api/enums/sub-types')).data
+  regions.value = (await api.get('/api/enums/prod-regions')).data
+}
 
 const fetchPartners = async () => {
   try {
@@ -612,6 +622,7 @@ onMounted(() => {
   loadProducts()
   loadStats()
   fetchPartners()
+  fetchEnumOptions()
 })
 </script>
 
