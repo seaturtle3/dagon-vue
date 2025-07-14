@@ -104,6 +104,11 @@ const routes = [
                 meta: {requiresAuth: true}
             },
             {
+                path: 'products',
+                component: () => import('@/views/pages/dashboard/AdminProductManagement.vue'),
+                meta: {requiresAuth: true}
+            },
+            {
                 path: 'fishing-diaries/:fdId',
                 component: () => import('@/views/pages/dashboard/components/FishingDiaryDetail.vue'),
                 meta: {requiresAuth: true}

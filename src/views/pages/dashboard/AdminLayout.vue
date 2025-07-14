@@ -49,6 +49,10 @@
           <font-awesome-icon :icon="['fas', 'building']" class="sidebar-icon" />
           <span>조행기 관리</span>
         </router-link>
+        <router-link to="/admin/products" class="nav-item" active-class="nav-item-active">
+          <font-awesome-icon :icon="['fas', 'ship']" class="sidebar-icon" />
+          <span>제품 관리</span>
+        </router-link>
         <router-link to="/admin/faq" class="nav-item" active-class="nav-item-active">
           <font-awesome-icon :icon="['fas', 'question-circle']" class="sidebar-icon" />
           <span>FAQ</span>
