@@ -16,6 +16,7 @@ export const useSeaProdStore = defineStore('seaProd', {
                                 sortBy = 'createdAt',
                                 direction = 'desc'
                             } = {}) {
+            if (this.loading) return // 중복 호출 방지
             this.loading = true
             try {
                 const res = await api.get('/api/product/get-all/sea', {
@@ -41,6 +42,7 @@ export const useSeaProdStore = defineStore('seaProd', {
                                         page = 0,
                                         size = 15
                                     } = {}) {
+            if (this.loading) return // 중복 호출 방지
             this.loading = true
             try {
                 const params = new URLSearchParams()
@@ -66,6 +68,12 @@ export const useSeaProdStore = defineStore('seaProd', {
                 }
             } catch (error) {
                 console.error('Filtered sea products fetch error:', error)
+                // 에러 발생 시 기본 API로 fallback
+                try {
+                    await this.fetchProducts({ page, size, sortBy, direction })
+                } catch (fallbackError) {
+                    console.error('Fallback API also failed:', fallbackError)
+                }
             } finally {
                 this.loading = false
             }
