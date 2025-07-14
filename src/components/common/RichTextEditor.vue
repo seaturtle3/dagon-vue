@@ -3,6 +3,7 @@ import {onMounted, watch} from 'vue'
 import $ from 'jquery'
 import 'summernote/dist/summernote-lite.min.css'
 import 'summernote/dist/summernote-lite.min.js'
+import api from '@/lib/axios.js'
 
 const props = defineProps({
   modelValue: String,
@@ -38,31 +39,13 @@ onMounted(() => {
           const formData = new FormData();
           formData.append('file', file);
           try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('https://docs.yi.or.kr:8097/api/images/event/uploadImage', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`
-                // Content-Type은 생략해야 FormData가 제대로 전송됨
-              },
-              body: formData
-            });
-
-            if (!res.ok) {
-              throw new Error(`HTTP error! status: ${res.status}`);
+            const response = await api.post('/api/images/event/uploadImage', formData);
+            
+            if (response.data.dbUrl) {
+              $(`#${props.editorId}`).summernote('insertImage', response.data.dbUrl);
+            } else {
+              throw new Error('이미지 URL을 받지 못했습니다.');
             }
-
-            // 🔽 JSON으로 파싱
-            const result = await res.json();
-            console.log("result ----> ", result);
-
-            // 🔽 dbUrl 키값 추출
-            const dbUrl = result.dbUrl;
-            console.log("dbUrl ----> ", dbUrl);
-
-            // 🔽 에디터에 이미지 삽입
-            $(`#${props.editorId}`).summernote('insertImage', `https://docs.yi.or.kr:8097${dbUrl}`);
-
           } catch (e) {
             console.error('이미지 업로드 실패', e);
             alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
