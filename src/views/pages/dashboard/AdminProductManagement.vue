@@ -230,7 +230,6 @@
               </select>
             </div>
           </div>
-          
           <div class="form-row">
             <div class="form-group">
               <label>타입 *</label>
@@ -251,7 +250,6 @@
               </select>
             </div>
           </div>
-          
           <div class="form-row">
             <div class="form-group">
               <label>최소 인원</label>
@@ -262,29 +260,45 @@
               <input v-model.number="form.maxPerson" type="number" min="1">
             </div>
           </div>
-          
           <div class="form-group">
             <label>주소</label>
             <input v-model="form.prodAddress" type="text">
           </div>
-          
+          <div class="form-group">
+            <label>파트너 *</label>
+            <select v-model="form.partnerUno" required>
+              <option value="">파트너 선택</option>
+              <option v-for="partner in partners" :key="partner.uno" :value="partner.uno">
+                {{ partner.pname }} ({{ partner.ceoName }})
+              </option>
+            </select>
+          </div>
           <div class="form-group">
             <label>설명 *</label>
             <textarea v-model="form.prodDescription" required rows="4"></textarea>
           </div>
-          
+          <!-- 이미지 업로드/삭제 UI -->
           <div class="form-group">
-            <label>이벤트</label>
-            <textarea v-model="form.prodEvent" rows="3"></textarea>
+            <label>제품 이미지</label>
+            <div class="image-preview-list">
+              <div v-for="(img, idx) in existingImages" :key="img.id" class="image-preview-item">
+                <img :src="img.url" :alt="img.name" class="preview-img" />
+                <button type="button" class="btn-delete-image" @click="removeExistingImage(img, idx)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div v-for="(img, idx) in newImagePreviews" :key="'new-'+idx" class="image-preview-item">
+                <img :src="img.url" :alt="img.name" class="preview-img" />
+                <button type="button" class="btn-delete-image" @click="removeNewImage(idx)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <input ref="imageInput" type="file" multiple accept="image/*" @change="onFileChange" style="display:none" />
+            <button type="button" class="btn-upload" @click="$refs.imageInput.click()">
+              <i class="fas fa-plus"></i> 이미지 추가
+            </button>
           </div>
-          
-          <div class="form-group">
-            <label>공지사항</label>
-            <textarea v-model="form.prodNotice" rows="3"></textarea>
-          </div>
-          
-
-          
           <div class="form-actions">
             <button type="button" @click="closeModal" class="btn-secondary">취소</button>
             <button type="submit" class="btn-primary">
@@ -302,6 +316,64 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useAdminProductStore } from '@/store/admin/useAdminProductStore.js'
 import { BASE_URL } from '@/constants/baseUrl.js'
+import api from '@/lib/axios'
+
+const partners = ref([])
+
+const fetchPartners = async () => {
+  try {
+    const res = await api.get('/api/partner/all', { params: { size: 1000 } })
+    partners.value = res.data.content || res.data || []
+  } catch (e) {
+    partners.value = []
+  }
+}
+
+// 이미지 업로드/삭제 관련 상태
+const existingImages = ref([]) // 기존 이미지(수정 시)
+const newImages = ref([]) // 새로 추가된 파일 객체
+const newImagePreviews = ref([]) // 새로 추가된 미리보기
+const deletedImageNames = ref([])
+
+function onFileChange(event) {
+  const files = Array.from(event.target.files)
+  files.forEach(file => {
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        newImagePreviews.value.push({ url: e.target.result, name: file.name })
+      }
+      reader.readAsDataURL(file)
+      newImages.value.push(file)
+    }
+  })
+}
+function removeNewImage(idx) {
+  newImages.value.splice(idx, 1)
+  newImagePreviews.value.splice(idx, 1)
+}
+function removeExistingImage(img, idx) {
+  deletedImageNames.value.push(img.name)
+  existingImages.value.splice(idx, 1)
+}
+
+// 폼 진입 시 기존 이미지 세팅
+function setEditImages(product) {
+  existingImages.value = []
+  if (product.prodImageDataList && product.prodImageDataList.length > 0) {
+    existingImages.value = product.prodImageDataList.map((img, idx) => ({
+      id: 'existing-' + idx,
+      url: img.startsWith('data:image') ? img : `data:image/jpeg;base64,${img}`,
+      name: product.prodImageNames?.[idx] || `image_data_${idx}`
+    }))
+  } else if (product.prodImageNames) {
+    existingImages.value = product.prodImageNames.map((img, idx) => ({
+      id: 'existing-' + idx,
+      url: BASE_URL + img,
+      name: img
+    }))
+  }
+}
 
 // 스토어 사용
 const adminProductStore = useAdminProductStore()
@@ -331,8 +403,7 @@ const form = reactive({
   maxPerson: null,
   prodAddress: '',
   prodDescription: '',
-  prodEvent: '',
-  prodNotice: ''
+  partnerUno: ''
 })
 
 // 메서드들
@@ -392,9 +463,12 @@ const editProduct = (product) => {
     maxPerson: product.maxPerson,
     prodAddress: product.prodAddress,
     prodDescription: product.prodDescription,
-    prodEvent: product.prodEvent,
-    prodNotice: product.prodNotice
+    partnerUno: product.partner?.uno || ''
   })
+  setEditImages(product)
+  newImages.value = []
+  newImagePreviews.value = []
+  deletedImageNames.value = []
   showEditModal.value = true
 }
 
@@ -424,11 +498,23 @@ const restoreProduct = async (productId) => {
 
 const submitForm = async () => {
   try {
+    const formData = new FormData()
+    Object.keys(form).forEach(key => {
+      formData.append(key, form[key])
+    })
+    // 새 이미지
+    newImages.value.forEach(file => {
+      formData.append('productImages', file)
+    })
+    // 삭제 이미지
+    deletedImageNames.value.forEach(name => {
+      formData.append('deleteImageNames', name)
+    })
     if (showEditModal.value) {
-      await adminProductStore.updateProduct(editingProduct.value.prodId, form)
+      await adminProductStore.updateProduct(editingProduct.value.prodId, formData)
       alert('제품이 수정되었습니다.')
     } else {
-      await adminProductStore.createProduct(form)
+      await adminProductStore.createProduct(formData)
       alert('제품이 등록되었습니다.')
     }
     closeModal()
@@ -452,9 +538,12 @@ const closeModal = () => {
     maxPerson: null,
     prodAddress: '',
     prodDescription: '',
-    prodEvent: '',
-    prodNotice: ''
+    partnerUno: ''
   })
+  existingImages.value = []
+  newImages.value = []
+  newImagePreviews.value = []
+  deletedImageNames.value = []
 }
 
 const getMainTypeLabel = (mainType) => {
@@ -522,6 +611,7 @@ const getProductImageUrl = (product) => {
 onMounted(() => {
   loadProducts()
   loadStats()
+  fetchPartners()
 })
 </script>
 
@@ -915,7 +1005,68 @@ th {
   resize: vertical;
 }
 
+.image-preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
 
+.image-preview-item {
+  position: relative;
+  width: 80px;
+  height: 60px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+}
+
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-delete-image {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(255, 255, 255, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #e74c3c;
+  z-index: 10;
+}
+
+.btn-upload {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s;
+}
+
+.btn-upload:hover {
+  background: #2980b9;
+}
 
 .form-actions {
   display: flex;
