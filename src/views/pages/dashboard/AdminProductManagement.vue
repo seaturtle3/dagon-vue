@@ -523,6 +523,7 @@ const submitForm = async () => {
     deletedImageNames.value.forEach(name => {
       formData.append('deleteImageNames', name)
     })
+    
     if (showEditModal.value) {
       await adminProductStore.updateProduct(editingProduct.value.prodId, formData)
       alert('제품이 수정되었습니다.')
@@ -530,10 +531,19 @@ const submitForm = async () => {
       await adminProductStore.createProduct(formData)
       alert('제품이 등록되었습니다.')
     }
+    
+    // 모달 닫기
     closeModal()
-    loadProducts()
-    loadStats()
+    
+    // 목록 및 통계 갱신
+    await loadProducts()
+    await loadStats()
+    
+    // 성공 메시지 표시 (선택사항)
+    console.log('제품 목록이 갱신되었습니다.')
+    
   } catch (error) {
+    console.error('제품 저장 실패:', error)
     alert('제품 저장에 실패했습니다.')
   }
 }
