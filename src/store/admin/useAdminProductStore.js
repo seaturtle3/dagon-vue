@@ -68,7 +68,7 @@ export const useAdminProductStore = defineStore('adminProduct', {
             dto: productData.dto || productData,
             files: productData.files || [],
             dtoKey: 'dto',
-            fileKey: 'Images'
+            fileKey: 'images'
           })).data
         }
       } catch (error) {
@@ -89,7 +89,7 @@ export const useAdminProductStore = defineStore('adminProduct', {
             dto: productData.dto || productData,
             files: productData.files || [],
             dtoKey: 'dto',
-            fileKey: 'Images'
+            fileKey: 'images'
           })).data
         }
       } catch (error) {
