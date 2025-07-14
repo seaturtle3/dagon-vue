@@ -486,14 +486,35 @@ const formatDate = (dateString) => {
 }
 
 const getProductImageUrl = (product) => {
-  // prodImageNames가 있고 첫 번째 이미지가 있으면 사용
+  // 1. prodImageDataList가 있으면 Base64 데이터 사용
+  if (product.prodImageDataList && product.prodImageDataList.length > 0) {
+    const firstImageData = product.prodImageDataList[0]
+    if (firstImageData && firstImageData.startsWith('data:image')) {
+      return firstImageData
+    } else if (firstImageData) {
+      return `data:image/jpeg;base64,${firstImageData}`
+    }
+  }
+  
+  // 2. prodImageNames가 있고 첫 번째 이미지가 있으면 사용
   if (product.prodImageNames && product.prodImageNames.length > 0) {
-    return `${BASE_URL}${product.prodImageNames[0]}`
+    const firstImageName = product.prodImageNames[0]
+    if (firstImageName.startsWith('/')) {
+      return `${BASE_URL}${firstImageName}`
+    } else {
+      return `${BASE_URL}/uploads/products/${firstImageName}`
+    }
   }
-  // prodThumbnail이 있으면 사용
+  
+  // 3. prodThumbnail이 있으면 사용
   if (product.prodThumbnail) {
-    return `${BASE_URL}${product.prodThumbnail}`
+    if (product.prodThumbnail.startsWith('/')) {
+      return `${BASE_URL}${product.prodThumbnail}`
+    } else {
+      return `${BASE_URL}/uploads/products/${product.prodThumbnail}`
+    }
   }
+  
   return null
 }
 
