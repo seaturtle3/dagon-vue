@@ -132,7 +132,7 @@
               </span>
             </td>
             <td>{{ getRegionLabel(product.prodRegion) }}</td>
-            <td>{{ product.partner?.partnerName || 'N/A' }}</td>
+            <td>{{ product.partner?.pname || 'N/A' }}</td>
             <td>
               <span :class="['status-badge', product.deleted ? 'deleted' : 'active']">
                 {{ product.deleted ? '삭제됨' : '활성' }}
