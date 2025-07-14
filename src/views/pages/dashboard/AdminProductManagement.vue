@@ -500,7 +500,7 @@ const submitForm = async () => {
   try {
     const formData = new FormData()
     // dto로 form 데이터 append
-    formData.append('dto', JSON.stringify(form))
+    formData.append('dto', new Blob([JSON.stringify(form)], { type: 'application/json' }));
     
     // 새 이미지
     newImages.value.forEach(file => {
