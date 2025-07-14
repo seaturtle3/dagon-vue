@@ -39,15 +39,21 @@ onMounted(() => {
           const formData = new FormData();
           formData.append('file', file);
           try {
+            console.log('이미지 업로드 시작...');
             const response = await api.post('/api/images/event/uploadImage', formData);
+            console.log('업로드 응답:', response);
             
-            if (response.data.dbUrl) {
+            if (response.data && response.data.dbUrl) {
+              console.log('이미지 URL:', response.data.dbUrl);
               $(`#${props.editorId}`).summernote('insertImage', response.data.dbUrl);
             } else {
               throw new Error('이미지 URL을 받지 못했습니다.');
             }
           } catch (e) {
-            console.error('이미지 업로드 실패', e);
+            console.error('이미지 업로드 실패 상세:', e);
+            console.error('에러 타입:', e.constructor.name);
+            console.error('에러 메시지:', e.message);
+            console.error('에러 스택:', e.stack);
             alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
           }
         }

@@ -2,10 +2,6 @@ import axios from 'axios'
 import {BASE_URL} from "@/constants/baseUrl.js";
 import {clearAuthData} from '@/utils/authUtils'
 
-const HTTPS_AGENT = {
-    rejectUnauthorized: false
-};
-
 function base64UrlDecode(str) {
     // Base64Url → Base64 변환
     str = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -20,9 +16,7 @@ function base64UrlDecode(str) {
 const api = axios.create({
     baseURL: '/', // OK
     withCredentials: true,
-    httpsAgent: HTTPS_AGENT,
     timeout: 30000, // 30초 타임아웃 추가
-    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -33,7 +27,6 @@ const api = axios.create({
 const publicApi = axios.create({
     baseURL: "/api",
     withCredentials: true,
-    httpsAgent: HTTPS_AGENT,
     timeout: 30000, // 30초 타임아웃 추가
     headers: {
         'Content-Type': 'application/json',
