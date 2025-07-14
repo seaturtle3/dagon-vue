@@ -93,22 +93,8 @@
 <br/>
 
 ## 📌 기능별 API 설계
-Swagger 기반
 
-- **회원 기능**: 로그인 / 회원가입 / 마이페이지 API
-[![Image](https://github.com/user-attachments/assets/fb531a84-b71c-45a5-b676-d482599e2566)](https://youtu.be/E_l5MAH54hQ)
 
-- **상품 기능**: 상품 / 어종 / 조황,조행기 등 CRUD API
-[![Image](https://github.com/user-attachments/assets/b4f84c19-2037-4b7b-a113-f75dc5c53260)](https://www.youtube.com/watch?v=Kq_s0FQC7QE)
-
-- **예약&결제 기능**: 예약 등록 / 결제 / 예약 조회 API
-[![Image](https://github.com/user-attachments/assets/cbb482d4-b2cc-4282-b7f5-2535f422651d)](https://www.youtube.com/watch?v=4Mu1vayfTus)
-  
-- **물때 · 날씨 정보**: 실시간 기상 데이터 및 조석(물때) API 연동
-[![Image](https://github.com/user-attachments/assets/ea2df27f-ec2a-4ee3-a04e-6d0ae11a31ac)](https://www.youtube.com/watch?v=r_0LYr5xDTU)
-
-- **게시판 기능**: 공지사항, 이벤트, FAQ 등 CRUD API
-[![Image](https://github.com/user-attachments/assets/c60f4bc6-dda1-44fd-87f4-aea5e56db11e)](https://www.youtube.com/watch?v=Rixy-W7Q-Mc)
 
 
 > **API 문서 확인 경로**
@@ -122,8 +108,4 @@ Swagger 기반
 
 ## 🌊 개발과정
 
-- **1주차**: 프로젝트 주제 선정, 요구사항 정의  
-- **2주차**: ERD 설계, 환경 세팅, 문서 설계  
-- **3~4주차**: 핵심 기능 및 관리자 기능 개발  
-- **5주차**: 기능 통합, 테스트 및 발표 준비
 
