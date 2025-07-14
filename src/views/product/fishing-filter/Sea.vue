@@ -6,9 +6,10 @@ import SeaFilter from "@/views/product/fishing-filter/components/SeaFilter.vue";
 
 const store = useSeaProdStore()
 
-onMounted(async () => {
-  await store.fetchProducts()
-})
+// onMounted에서 중복 호출 제거 - SeaFilter.vue에서 이미 호출함
+// onMounted(async () => {
+//   await store.fetchProducts()
+// })
 
 const products = computed(() => store.products)
 
