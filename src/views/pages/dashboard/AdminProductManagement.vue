@@ -621,8 +621,12 @@ const getProductImageUrl = (product) => {
 }
 
 const router = useRouter()
-function goToDetail(prodId) {
-  router.push(`/admin/products/${prodId}`)
+const goToDetail = (prodId) => {
+  // 상세보기 페이지로 이동하는 대신 수정 모달 열기
+  const product = products.value.find(p => p.prodId === prodId)
+  if (product) {
+    editProduct(product)
+  }
 }
 
 // 라이프사이클
