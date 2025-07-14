@@ -267,7 +267,7 @@
           </div>
           <div class="form-group">
             <label>파트너 *</label>
-            <select v-model="form.partnerUno" required>
+            <select v-model="form.uno" required>
               <option value="">파트너 선택</option>
               <option v-for="partner in partners" :key="partner.uno" :value="partner.uno">
                 {{ partner.pname }} ({{ partner.ceoName }})
@@ -416,7 +416,7 @@ const form = reactive({
   maxPerson: null,
   prodAddress: '',
   prodDescription: '',
-  partnerUno: ''
+  uno: ''
 })
 
 // 메서드들
@@ -476,7 +476,7 @@ const editProduct = (product) => {
     maxPerson: product.maxPerson,
     prodAddress: product.prodAddress,
     prodDescription: product.prodDescription,
-    partnerUno: product.partner?.uno || ''
+    uno: product.partner?.uno || ''
   })
   setEditImages(product)
   newImages.value = []
@@ -551,7 +551,7 @@ const closeModal = () => {
     maxPerson: null,
     prodAddress: '',
     prodDescription: '',
-    partnerUno: ''
+    uno: ''
   })
   existingImages.value = []
   newImages.value = []
