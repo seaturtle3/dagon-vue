@@ -499,14 +499,14 @@ const restoreProduct = async (productId) => {
 const submitForm = async () => {
   try {
     const formData = new FormData()
-    Object.keys(form).forEach(key => {
-      formData.append(key, form[key])
-    })
+    // dto로 form 데이터 append
+    formData.append('dto', JSON.stringify(form))
+    
     // 새 이미지
     newImages.value.forEach(file => {
-      formData.append('productImages', file)
+      formData.append('images', file)
     })
-    // 삭제 이미지
+    // 삭제 이미지 
     deletedImageNames.value.forEach(name => {
       formData.append('deleteImageNames', name)
     })
