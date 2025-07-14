@@ -26,6 +26,5 @@ COPY .env.development .env.development
 # 포트 노출
 EXPOSE 5173
 
-# 개발 서버 시작 (프로덕션 환경 변수 사용)
-#CMD ["sh", "-c", "export $(grep -v '^#' .env.production | xargs) && VITE_BASE_URL=https://docs.yi.or.kr:8096 npm run dev"]
-CMD ["npm", "run", "dev"]"-c", "export $(grep -v '^#' .env.production | xargs) && VITE_BASE_URL=https://docs.yi.or.kr:8097 npm run dev"]
+# 개발 서버 시작
+CMD ["npm", "run", "dev"]
