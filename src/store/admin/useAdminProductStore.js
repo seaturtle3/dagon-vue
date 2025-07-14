@@ -58,8 +58,19 @@ export const useAdminProductStore = defineStore('adminProduct', {
 
     async createProduct(productData) {
       try {
-        const response = await api.post('/api/admin/products/create', productData)
-        return response.data
+        // productData가 FormData가 아니면 분리해서 multipartPost 사용
+        if (productData instanceof FormData) {
+          return (await api.post('/api/admin/products/create', productData)).data
+        } else {
+          // productData: { dto, files }
+          return (await api.multipartPost({
+            url: '/api/admin/products/create',
+            dto: productData.dto || productData,
+            files: productData.files || [],
+            dtoKey: 'dto',
+            fileKey: 'Images'
+          })).data
+        }
       } catch (error) {
         console.error('제품 등록 실패:', error)
         throw error
@@ -68,8 +79,19 @@ export const useAdminProductStore = defineStore('adminProduct', {
 
     async updateProduct(productId, productData) {
       try {
-        const response = await api.put(`/api/admin/products/${productId}`, productData)
-        return response.data
+        // productData가 FormData가 아니면 분리해서 multipartPut 사용
+        if (productData instanceof FormData) {
+          return (await api.put(`/api/admin/products/${productId}`, productData)).data
+        } else {
+          // productData: { dto, files }
+          return (await api.multipartPut({
+            url: `/api/admin/products/${productId}`,
+            dto: productData.dto || productData,
+            files: productData.files || [],
+            dtoKey: 'dto',
+            fileKey: 'Images'
+          })).data
+        }
       } catch (error) {
         console.error('제품 수정 실패:', error)
         throw error
