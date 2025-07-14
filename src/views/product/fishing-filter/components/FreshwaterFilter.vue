@@ -76,11 +76,13 @@ function resetSpeciesSelection() {
 }
 
 // 필터된 상품 조회 함수
-const fetchProducts = async (filterValues) => {
+const fetchProducts = async (filterValues, page = 0, size = 15) => {
   const normalizedVal = {
     region: filterValues.region || '',
     subType: filterValues.subType || '',
     species: filterValues.species || [],
+    page,
+    size
   }
   await freshwaterStore.fetchFilteredProducts(normalizedVal)
 }
@@ -90,13 +92,13 @@ onMounted(async () => {
   const { data } = await api.get('/api/product/freshwater/filter')
   filters.value = data
 
-  fetchProducts({})  // 전체 조회
+  fetchProducts({}, 0, 15)  // 전체 조회, 첫 페이지, 15개씩
 })
 
 // 선택 값 변경 감지
 watch(selected, (val) => {
   emit('update:filter', val)
-  fetchProducts(val)
+  fetchProducts(val, 0, 15)
 }, { deep: true })
 </script>
 

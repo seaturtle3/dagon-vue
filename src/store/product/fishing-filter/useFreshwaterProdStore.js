@@ -37,7 +37,9 @@ export const useFreshwaterProdStore = defineStore('freshwaterProd', {
                                         subType = '',
                                         species = [],
                                         sortBy = 'createdAt',
-                                        direction = 'desc'
+                                        direction = 'desc',
+                                        page = 0,
+                                        size = 15
                                     } = {}) {
             this.loading = true
             try {
@@ -49,9 +51,19 @@ export const useFreshwaterProdStore = defineStore('freshwaterProd', {
                 }
                 params.append('sortBy', sortBy)
                 params.append('direction', direction)
+                params.append('page', page)
+                params.append('size', size)
 
                 const res = await api.get('/api/product/get-all/freshwater/filter?' + params.toString())
-                this.products = res.data
+                // Page 객체 형태로 내려올 경우 처리
+                if (res.data && res.data.content) {
+                  this.products = res.data.content
+                  this.page = res.data.number
+                  this.size = res.data.size
+                  this.totalPages = res.data.totalPages
+                } else {
+                  this.products = res.data
+                }
             } catch (error) {
                 console.error('Filtered freshwater products fetch error:', error)
             } finally {
