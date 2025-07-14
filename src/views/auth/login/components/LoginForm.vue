@@ -351,7 +351,7 @@ onMounted(() => {
       <h3>id: user001</h3>
       <h3>pw: 1111</h3>
       <h3>id: partner417</h3>
-      <h3>id: 1111</h3>
+      <h3>id: 1111</h3> 
 
       <!-- 로그인 폼 -->
       <div v-if="currentView === 'login'" class="form-container">
