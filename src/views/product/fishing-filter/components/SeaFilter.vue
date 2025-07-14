@@ -102,7 +102,14 @@ onMounted(async () => {
   const { data } = await api.get('/api/product/sea/filter')
   filters.value = data
 
-  fetchProducts({}, 0, 15)  // 전체 조회, 첫 페이지, 15개씩
+  // 초기 로드 시 필터링된 API 사용 (전체 조회)
+  await seaStore.fetchFilteredProducts({
+    region: '',
+    subType: '',
+    species: [],
+    page: 0,
+    size: 15
+  })
 })
 
 // 선택 값 변경 감지

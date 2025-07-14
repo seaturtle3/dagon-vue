@@ -6,12 +6,7 @@ import SeaFilter from "@/views/product/fishing-filter/components/SeaFilter.vue";
 
 const store = useSeaProdStore()
 
-// products가 비어있을 때만 기본 데이터 로드
-onMounted(async () => {
-  if (store.products.length === 0) {
-    await store.fetchProducts()
-  }
-})
+// 필터 컴포넌트에서 초기 데이터를 로드하므로 여기서는 제거
 
 const products = computed(() => store.products)
 

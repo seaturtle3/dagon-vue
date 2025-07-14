@@ -10,6 +10,7 @@ export const useSeaProdStore = defineStore('seaProd', {
         loading: false,
     }),
     actions: {
+        // 기본 상품 조회 메서드 (fallback용으로만 사용)
         async fetchProducts({
                                 page = 0,
                                 size = 1000,
