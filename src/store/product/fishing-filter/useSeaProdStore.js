@@ -69,10 +69,13 @@ export const useSeaProdStore = defineStore('seaProd', {
             } catch (error) {
                 console.error('Filtered sea products fetch error:', error)
                 // 에러 발생 시 기본 API로 fallback
+                console.log('Falling back to basic products API...')
                 try {
                     await this.fetchProducts({ page, size, sortBy, direction })
                 } catch (fallbackError) {
                     console.error('Fallback API also failed:', fallbackError)
+                    // 최소한 빈 배열이라도 설정
+                    this.products = []
                 }
             } finally {
                 this.loading = false
