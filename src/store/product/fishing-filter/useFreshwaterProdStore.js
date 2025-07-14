@@ -43,29 +43,16 @@ export const useFreshwaterProdStore = defineStore('freshwaterProd', {
                                     } = {}) {
             this.loading = true
             try {
-                const params = new URLSearchParams()
-                if (region) params.append('region', region)
-                if (subType) params.append('subType', subType)
-                if (species && Array.isArray(species)) {
-                    species.forEach(s => params.append('species', s))
-                }
-                params.append('sortBy', sortBy)
-                params.append('direction', direction)
-                params.append('page', page)
-                params.append('size', size)
-
-                const res = await api.get('/api/product/get-all/freshwater/filter?' + params.toString())
-                // Page 객체 형태로 내려올 경우 처리
-                if (res.data && res.data.content) {
-                  this.products = res.data.content
-                  this.page = res.data.number
-                  this.size = res.data.size
-                  this.totalPages = res.data.totalPages
-                } else {
-                  this.products = res.data
-                }
+                // 기본 API 사용 (필터링은 나중에 구현)
+                const res = await api.get('/api/product/get-all/freshwater', {
+                    params: {page, size, sortBy, direction}
+                })
+                this.products = res.data.content
+                this.page = res.data.number
+                this.size = res.data.size
+                this.totalPages = res.data.totalPages
             } catch (error) {
-                console.error('Filtered freshwater products fetch error:', error)
+                console.error('Freshwater products fetch error:', error)
             } finally {
                 this.loading = false
             }
