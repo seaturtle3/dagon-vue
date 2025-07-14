@@ -1,29 +1,129 @@
-# dagon-vue
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=180&color=gradient&text=Dagon(Frontend)" width="100%"/>
+</p>
 
-This template should help get you started developing with Vue 3 in Vite.
+## 🚤 프로젝트 소개
 
-## Recommended IDE Setup
+🎣**실시간 낚싯배 예약 플랫폼**
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- 사용자, 파트너(판매자), 관리자 간 예약·결제·정보 공유를 통합 제공  
+- 물때·날씨 실시간 API 연동 (바다누리, 기상청, 한국천문연구원)  
+- 실시간 게시판 및 관리자 시스템 포함
 
-## Customize configuration
+📅 **개발 기간** 2025.05.22 ~ 2025.07.03
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+<br/>
 
-## Project Setup
+<br/>
 
-```sh
-npm install
-```
 
-### Compile and Hot-Reload for Development
+## 🐟 팀원구성
 
-```sh
-npm run dev
-```
+<table align="center">
+  <tr>
+    <td align="center" style="padding: 20px;">
+      <img src="https://i.imgur.com/U3vTGjX.png" width="100"/><br/>
+      <b>장은정</b>
+    </td>
+    <td align="center" style="padding: 20px;">
+      <img src="https://images.unsplash.com/photo-1593085512500-5d55148d6f0d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8JUVDJUJBJTkwJUVCJUE2JUFEJUVEJTg0JUIwfGVufDB8fDB8fHww" width="100"/><br/>
+      <b>손강하</b>
+    </td>
+    <td align="center" style="padding: 20px;">
+      <img src="https://i.imgur.com/oYiTqum.png" width="100"/><br/>
+      <b>강진석</b>
+    </td>
+    <td align="center" style="padding: 20px;">
+      <img src="https://i.imgur.com/VSEpKcY.png" width="100"/><br/>
+      <b>박준하</b>
+    </td>
+  </tr>
+</table>
 
-### Compile and Minify for Production
+<br/>
 
-```sh
-npm run build
-```
+<br/>
+
+## 🛠 개발 환경 및 기술 스택
+
+
+
+
+<br/>
+
+<br/>
+
+## 🌟 주요 기능
+
+
+
+
+<br/>
+
+<br/>
+
+## 📁 프로젝트 구조
+
+
+
+<br/>
+
+<br/>
+
+## ⚓ 역할분담
+
+### 🧑 장은정  
+
+
+
+### 🧑 손강하  
+
+
+
+### 🧑 강진석  
+
+
+
+### 🧑 박준하  
+
+
+
+<br/>
+
+<br/>
+
+## 📌 기능별 API 설계
+Swagger 기반
+
+- **회원 기능**: 로그인 / 회원가입 / 마이페이지 API
+[![Image](https://github.com/user-attachments/assets/fb531a84-b71c-45a5-b676-d482599e2566)](https://youtu.be/E_l5MAH54hQ)
+
+- **상품 기능**: 상품 / 어종 / 조황,조행기 등 CRUD API
+[![Image](https://github.com/user-attachments/assets/b4f84c19-2037-4b7b-a113-f75dc5c53260)](https://www.youtube.com/watch?v=Kq_s0FQC7QE)
+
+- **예약&결제 기능**: 예약 등록 / 결제 / 예약 조회 API
+[![Image](https://github.com/user-attachments/assets/cbb482d4-b2cc-4282-b7f5-2535f422651d)](https://www.youtube.com/watch?v=4Mu1vayfTus)
+  
+- **물때 · 날씨 정보**: 실시간 기상 데이터 및 조석(물때) API 연동
+[![Image](https://github.com/user-attachments/assets/ea2df27f-ec2a-4ee3-a04e-6d0ae11a31ac)](https://www.youtube.com/watch?v=r_0LYr5xDTU)
+
+- **게시판 기능**: 공지사항, 이벤트, FAQ 등 CRUD API
+[![Image](https://github.com/user-attachments/assets/c60f4bc6-dda1-44fd-87f4-aea5e56db11e)](https://www.youtube.com/watch?v=Rixy-W7Q-Mc)
+
+
+> **API 문서 확인 경로**
+> - Swagger UI: [`/swagger-ui/index.html`](http://docs.yi.or.kr:8095/swagger-ui/index.html)
+> - 관리자 대시보드: [`/admin-dashboard.html`](http://docs.yi.or.kr:8095/admin)
+
+<br/>
+
+<br/>
+
+
+## 🌊 개발과정
+
+- **1주차**: 프로젝트 주제 선정, 요구사항 정의  
+- **2주차**: ERD 설계, 환경 세팅, 문서 설계  
+- **3~4주차**: 핵심 기능 및 관리자 기능 개발  
+- **5주차**: 기능 통합, 테스트 및 발표 준비
+
