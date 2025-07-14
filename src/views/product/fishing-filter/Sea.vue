@@ -1,15 +1,17 @@
 <script setup>
-import {computed, onMounted, ref} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import { useSeaProdStore } from '@/store/product/fishing-filter/useSeaProdStore.js'
 import SeaProd from "@/views/product/fishing-filter/components/SeaProd.vue";
 import SeaFilter from "@/views/product/fishing-filter/components/SeaFilter.vue";
 
 const store = useSeaProdStore()
 
-// onMounted에서 중복 호출 제거 - SeaFilter.vue에서 이미 호출함
-// onMounted(async () => {
-//   await store.fetchProducts()
-// })
+// products가 비어있을 때만 기본 데이터 로드
+onMounted(async () => {
+  if (store.products.length === 0) {
+    await store.fetchProducts()
+  }
+})
 
 const products = computed(() => store.products)
 
