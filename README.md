@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&height=180&color=gradient&text=Dagon(Frontend)" width="100%"/>
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=180&color=gradient&text=DAGON(Frontend)" width="100%"/>
 </p>
 
 ## 🚤 프로젝트 소개
