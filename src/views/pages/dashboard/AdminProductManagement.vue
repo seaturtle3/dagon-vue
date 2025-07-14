@@ -3,7 +3,7 @@
     <div class="header">
       <h1 class="page-title">제품 관리</h1>
       <div class="header-actions">
-        <button class="btn-primary" @click="showCreateModal = true">
+        <button class="btn-primary" @click="openCreateModal">
           <font-awesome-icon :icon="['fas', 'plus']" />
           새 제품 등록
         </button>
@@ -132,7 +132,12 @@
               </span>
             </td>
             <td>{{ getRegionLabel(product.prodRegion) }}</td>
-            <td>{{ product.partner?.partnerName || 'N/A' }}</td>
+            <td>
+              <div class="partner-info">
+                <div class="partner-name">{{ product.partner?.pname || 'N/A' }}</div>
+                <div class="partner-ceo">{{ product.partner?.ceoName || '' }}</div>
+              </div>
+            </td>
             <td>
               <span :class="['status-badge', product.deleted ? 'deleted' : 'active']">
                 {{ product.deleted ? '삭제됨' : '활성' }}
@@ -278,6 +283,21 @@
             <textarea v-model="form.prodNotice" rows="3"></textarea>
           </div>
           
+          <div class="form-group">
+            <label>파트너 {{ showEditModal ? '' : '*' }}</label>
+            <select v-model="form.partnerUno" :required="!showEditModal">
+              <option value="">파트너 선택</option>
+              <option 
+                v-for="partner in partners" 
+                :key="partner.uno" 
+                :value="partner.uno"
+              >
+                {{ partner.pname }} ({{ partner.ceoName }})
+              </option>
+            </select>
+            <small v-if="showEditModal" class="form-help">수정 시 파트너를 변경하지 않으려면 그대로 두세요.</small>
+          </div>
+          
           <div class="form-actions">
             <button type="button" @click="closeModal" class="btn-secondary">취소</button>
             <button type="submit" class="btn-primary">
@@ -312,6 +332,9 @@ const totalElements = computed(() => adminProductStore.totalElements)
 const pageSize = computed(() => adminProductStore.pageSize)
 const filters = computed(() => adminProductStore.filters)
 
+// 파트너 목록 상태
+const partners = ref([])
+
 const form = reactive({
   prodName: '',
   prodRegion: '',
@@ -322,7 +345,8 @@ const form = reactive({
   prodAddress: '',
   prodDescription: '',
   prodEvent: '',
-  prodNotice: ''
+  prodNotice: '',
+  partnerUno: null
 })
 
 // 메서드들
@@ -339,6 +363,14 @@ const loadStats = async () => {
     await adminProductStore.fetchStats()
   } catch (error) {
     console.error('통계 로드 실패:', error)
+  }
+}
+
+const loadPartners = async () => {
+  try {
+    partners.value = await adminProductStore.getPartners()
+  } catch (error) {
+    console.error('파트너 목록 로드 실패:', error)
   }
 }
 
@@ -365,6 +397,14 @@ const updateFilters = () => {
   loadProducts()
 }
 
+const openCreateModal = () => {
+  showCreateModal.value = true
+  // 파트너 목록이 로드되지 않았다면 로드
+  if (partners.value.length === 0) {
+    loadPartners()
+  }
+}
+
 let searchTimeout = null
 
 const editProduct = (product) => {
@@ -379,7 +419,8 @@ const editProduct = (product) => {
     prodAddress: product.prodAddress,
     prodDescription: product.prodDescription,
     prodEvent: product.prodEvent,
-    prodNotice: product.prodNotice
+    prodNotice: product.prodNotice,
+    partnerUno: product.partnerUno
   })
   showEditModal.value = true
 }
@@ -410,6 +451,12 @@ const restoreProduct = async (productId) => {
 
 const submitForm = async () => {
   try {
+    // 등록 시 파트너 필수 체크
+    if (!showEditModal.value && !form.partnerUno) {
+      alert('파트너를 선택해주세요.')
+      return
+    }
+    
     if (showEditModal.value) {
       await adminProductStore.updateProduct(editingProduct.value.prodId, form)
       alert('제품이 수정되었습니다.')
@@ -439,7 +486,8 @@ const closeModal = () => {
     prodAddress: '',
     prodDescription: '',
     prodEvent: '',
-    prodNotice: ''
+    prodNotice: '',
+    partnerUno: null
   })
 }
 
@@ -475,6 +523,7 @@ const formatDate = (dateString) => {
 onMounted(() => {
   loadProducts()
   loadStats()
+  loadPartners()
 })
 </script>
 
@@ -668,6 +717,22 @@ th {
   color: #7f8c8d;
 }
 
+.partner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.partner-name {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.partner-ceo {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+}
+
 .type-badge {
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
@@ -840,6 +905,13 @@ th {
 
 .form-group textarea {
   resize: vertical;
+}
+
+.form-help {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  margin-top: 0.25rem;
+  display: block;
 }
 
 .form-actions {

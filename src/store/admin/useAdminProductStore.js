@@ -106,6 +106,18 @@ export const useAdminProductStore = defineStore('adminProduct', {
       }
     },
 
+    async getPartners() {
+      try {
+        const response = await api.get('/api/admin/products/partners', {
+          params: { page: 0, size: 100 }
+        })
+        return response.data.content
+      } catch (error) {
+        console.error('파트너 목록 조회 실패:', error)
+        throw error
+      }
+    },
+
     setPage(page) {
       this.currentPage = page
     },
