@@ -598,8 +598,52 @@ const formatDate = (dateString) => {
 }
 
 const getProductImageUrl = (product) => {
-  // 1. prodImageDataList가 있으면 Base64 데이터 사용
+  console.log(`🔍 [AdminProductManagement] 상품 ID ${product.prodId} 이미지 디버깅:`, {
+    prodName: product.prodName,
+    imagesCount: product.images?.length || 0,
+    prodImageDataListCount: product.prodImageDataList?.length || 0,
+    prodImageNamesCount: product.prodImageNames?.length || 0
+  })
+
+  // images 배열에서 썸네일 우선 (목록보기에서는 thumbnailData 우선)
+  if (product.images && product.images.length > 0) {
+    // 썸네일 이미지 찾기
+    const thumbnailImage = product.images.find(img => img.thumbnail)
+    if (thumbnailImage) {
+      // 목록보기에서는 thumbnailData 우선 (빠른 로딩)
+      if (thumbnailImage.thumbnailData) {
+        console.log(`✅ [AdminProductManagement] 상품 ID ${product.prodId}: images[thumbnail].thumbnailData 사용`)
+        return `data:image/jpeg;base64,${thumbnailImage.thumbnailData}`
+      }
+      if (thumbnailImage.imageData) {
+        console.log(`✅ [AdminProductManagement] 상품 ID ${product.prodId}: images[thumbnail].imageData 사용`)
+        return `data:image/jpeg;base64,${thumbnailImage.imageData}`
+      }
+      if (thumbnailImage.imageUrl) {
+        console.log(`✅ [AdminProductManagement] 상품 ID ${product.prodId}: images[thumbnail].imageUrl 사용`)
+        return thumbnailImage.imageUrl.startsWith('/') ? `${BASE_URL}${thumbnailImage.imageUrl}` : thumbnailImage.imageUrl
+      }
+    }
+    
+    // 썸네일이 없으면 첫 번째 이미지 사용
+    const firstImage = product.images[0]
+    if (firstImage.thumbnailData) {
+      console.log(`✅ [AdminProductManagement] 상품 ID ${product.prodId}: images[0].thumbnailData 사용`)
+      return `data:image/jpeg;base64,${firstImage.thumbnailData}`
+    }
+    if (firstImage.imageData) {
+      console.log(`✅ [AdminProductManagement] 상품 ID ${product.prodId}: images[0].imageData 사용`)
+      return `data:image/jpeg;base64,${firstImage.imageData}`
+    }
+    if (firstImage.imageUrl) {
+      console.log(`✅ [AdminProductManagement] 상품 ID ${product.prodId}: images[0].imageUrl 사용`)
+      return firstImage.imageUrl.startsWith('/') ? `${BASE_URL}${firstImage.imageUrl}` : firstImage.imageUrl
+    }
+  }
+  
+  // 기존 방식 (fallback)
   if (product.prodImageDataList && product.prodImageDataList.length > 0) {
+    console.log(`✅ [AdminProductManagement] 상품 ID ${product.prodId}: prodImageDataList 사용 (fallback)`)
     const firstImageData = product.prodImageDataList[0]
     if (firstImageData && firstImageData.startsWith('data:image')) {
       return firstImageData
@@ -608,8 +652,8 @@ const getProductImageUrl = (product) => {
     }
   }
   
-  // 2. prodImageNames가 있고 첫 번째 이미지가 있으면 사용
   if (product.prodImageNames && product.prodImageNames.length > 0) {
+    console.log(`✅ [AdminProductManagement] 상품 ID ${product.prodId}: prodImageNames 사용 (fallback)`)
     const firstImageName = product.prodImageNames[0]
     if (firstImageName.startsWith('/')) {
       return `${BASE_URL}${firstImageName}`
@@ -618,8 +662,8 @@ const getProductImageUrl = (product) => {
     }
   }
   
-  // 3. prodThumbnail이 있으면 사용
   if (product.prodThumbnail) {
+    console.log(`✅ [AdminProductManagement] 상품 ID ${product.prodId}: prodThumbnail 사용 (fallback)`)
     if (product.prodThumbnail.startsWith('/')) {
       return `${BASE_URL}${product.prodThumbnail}`
     } else {
@@ -627,6 +671,8 @@ const getProductImageUrl = (product) => {
     }
   }
   
+  // 기본 이미지
+  console.log(`⚠️ [AdminProductManagement] 상품 ID ${product.prodId}: 기본 이미지 사용 (null)`)
   return null
 }
 
