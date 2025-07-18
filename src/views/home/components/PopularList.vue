@@ -23,20 +23,25 @@ const goToDetail = (report) => {
 }
 
 const getImageUrl = (report) => {
-  // 1. thumbnailUrl이 Base64 데이터인 경우 (백엔드에서 직접 설정)
-  if (report.thumbnailUrl && report.thumbnailUrl.startsWith('data:image')) {
-    return report.thumbnailUrl
+  // 1. 썸네일 데이터 우선 (thumbnailData > imageData)
+  if (report.thumbnailData) {
+    return `data:image/jpeg;base64,${report.thumbnailData}`
   }
   
-  // 2. thumbnailUrl이 URL인 경우
+  // 2. 이미지 데이터
+  if (report.imageData) {
+    return `data:image/jpeg;base64,${report.imageData}`
+  }
+  
+  // 3. 썸네일 URL
   if (report.thumbnailUrl) {
     return report.thumbnailUrl.startsWith('http') ? report.thumbnailUrl : `${IMAGE_BASE_URL}${report.thumbnailUrl}`
   }
   
-  // 3. 이미지 배열에서 썸네일 우선
+  // 4. 이미지 배열에서 썸네일 우선
   if (report.images && report.images.length > 0) {
     // 썸네일 이미지 찾기
-    const thumbnailImage = report.images.find(img => img.isThumbnail)
+    const thumbnailImage = report.images.find(img => img.thumbnail)
     if (thumbnailImage) {
       if (thumbnailImage.thumbnailData) {
         return `data:image/jpeg;base64,${thumbnailImage.thumbnailData}`
@@ -62,7 +67,7 @@ const getImageUrl = (report) => {
     }
   }
   
-  // 4. 기본 이미지
+  // 5. 기본 이미지
   return '/images/no-image.png'
 }
 </script>

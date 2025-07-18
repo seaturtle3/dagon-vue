@@ -93,19 +93,20 @@ const getImageUrl = (image) => {
   return '/images/default-product.jpg'
 }
 
-// 이벤트 콘텐츠에서 HTTP URL을 HTTPS로 변환하는 함수
+// 이벤트 콘텐츠에서 절대 URL을 상대 URL로 변환하는 함수
 const processEventContent = (content) => {
   if (!content) return content
   
-  // HTTP URL을 HTTPS로 변환
+  // https://docs.yi.or.kr:8097/api/images/event/숫자 형태를 상대 경로로 변환
   return content.replace(
-    /(https?:\/\/docs\.yi\.or\.kr):8097/g, 
-    'https://docs.yi.or.kr:8097'
+    /https:\/\/docs\.yi\.or\.kr:\d+\/api\/images\/event\/(\d+)/g,
+    '/api/images/event/$1'
   ).replace(
-    /(https?:\/\/docs\.yi\.or\.kr):25173/g, 
-    'https://docs.yi.or.kr:25173'
+    /http:\/\/docs\.yi\.or\.kr:\d+\/api\/images\/event\/(\d+)/g,
+    '/api/images/event/$1'
   )
 }
+
 // 이벤트 썸네일 이미지 가져오기
 const getEventThumbnail = () => {
   // 1. thumbnailDataList가 있으면 첫 번째 썸네일 사용 (최우선)
