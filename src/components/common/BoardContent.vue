@@ -1,4 +1,6 @@
 <script setup>
+import { convertContentImageUrls } from '@/utils/authUtils.js'
+
 defineProps({
   content: {
     type: String,
@@ -9,7 +11,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="board-content" v-html="content || '내용 없음'"></div>
+  <div class="board-content" v-html="convertContentImageUrls(content) || '내용 없음'"></div>
 </template>
 
 <style scoped>

@@ -60,6 +60,24 @@ export function convertToRelativeUrl(url) {
 }
 
 /**
+ * HTML 콘텐츠 내부의 이미지 URL을 상대 경로로 변환
+ * @param {string} content - HTML 콘텐츠
+ * @returns {string} 변환된 HTML 콘텐츠
+ */
+export function convertContentImageUrls(content) {
+  if (!content) return content;
+  
+  // img 태그의 src 속성을 상대 경로로 변환
+  return content.replace(
+    /<img([^>]*)\ssrc=["']([^"']+)["']([^>]*)>/gi,
+    (match, beforeSrc, srcUrl, afterSrc) => {
+      const convertedUrl = convertToRelativeUrl(srcUrl);
+      return `<img${beforeSrc} src="${convertedUrl}"${afterSrc}>`;
+    }
+  );
+}
+
+/**
  * JWT 토큰에서 ADMIN/SUPER_ADMIN 권한 여부 판별
  * @param {string} token
  * @returns {boolean}

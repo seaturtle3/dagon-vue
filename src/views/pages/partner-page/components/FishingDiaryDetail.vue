@@ -49,7 +49,7 @@
       <!-- 내용 섹션 -->
       <div class="content-section">
         <h3>상세 내용</h3>
-        <div class="content-body" v-html="diary.content"></div>
+        <div class="content-body" v-html="convertContentImageUrls(diary.content)"></div>
       </div>
 
       <!-- 이미지 섹션 -->
@@ -154,7 +154,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { partnerService } from '@/api/partner.js';
 import { BASE_URL } from '@/constants/baseUrl.js';
-import { convertToRelativeUrl } from '@/utils/authUtils.js';
+import { convertToRelativeUrl, convertContentImageUrls } from '@/utils/authUtils.js';
 
 const route = useRoute();
 const router = useRouter();

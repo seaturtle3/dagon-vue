@@ -44,7 +44,7 @@
       <!-- 내용 섹션 -->
       <div class="card content-section">
         <h3><i class="fas fa-file-alt"></i> 상세 내용</h3>
-        <div class="content-body" v-html="diary.content"></div>
+        <div class="content-body" v-html="convertContentImageUrls(diary.content)"></div>
       </div>
 
       <!-- 이미지 섹션 -->
@@ -126,6 +126,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/lib/axios.js';
+import { convertContentImageUrls } from '@/utils/authUtils.js';
 
 const route = useRoute();
 const router = useRouter();

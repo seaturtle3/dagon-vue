@@ -5,6 +5,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useFishingDiaryStore } from '@/store/fishing-center/useFishingDiaryStore.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { convertContentImageUrls } from '@/utils/authUtils.js'
 
 const props = defineProps({
   editMode: Boolean,
@@ -384,7 +385,7 @@ const formatDate = (dateString) => {
 
     <!-- 조행기 내용 -->
     <div class="content-section">
-      <div class="content-text" v-html="diary.content"></div>
+      <div class="content-text" v-html="convertContentImageUrls(diary.content)"></div>
     </div>
 
     <!-- 추가 이미지 -->

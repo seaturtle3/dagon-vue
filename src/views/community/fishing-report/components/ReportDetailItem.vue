@@ -4,7 +4,7 @@ import {ref, computed, onMounted, onUnmounted} from 'vue';
 import {useRouter} from 'vue-router';
 import {useFishingReportStore} from '@/store/fishing-center/useFishingReportStore.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { convertToRelativeUrl } from '@/utils/authUtils.js'
+import { convertToRelativeUrl, convertContentImageUrls } from '@/utils/authUtils.js'
 
 const props = defineProps({
   report: {
@@ -523,7 +523,7 @@ function getThumbnailSrc() {
     </div>
 
     <div class="content-section">
-      <div class="content-text" v-html="report.content"></div>
+      <div class="content-text" v-html="convertContentImageUrls(report.content)"></div>
     </div>
 
 

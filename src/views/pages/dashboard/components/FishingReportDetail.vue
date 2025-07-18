@@ -110,7 +110,7 @@
       <!-- 내용 섹션 -->
       <div class="content-section">
         <h3>상세 내용</h3>
-        <div class="content-body" v-html="report.content"></div>
+        <div class="content-body" v-html="convertContentImageUrls(report.content)"></div>
       </div>
       <!-- 이미지 섹션 -->
       <div v-if="report.images && report.images.length > 0" class="images-section">
@@ -236,6 +236,7 @@
 import { ref, onMounted, computed, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '@/lib/axios'
+import { convertContentImageUrls } from '@/utils/authUtils.js'
 
 const route = useRoute()
 const router = useRouter()

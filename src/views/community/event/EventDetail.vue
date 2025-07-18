@@ -5,7 +5,7 @@ import { fetchEventById, getAllEvents } from '@/api/event.js'
 
 import BoardDetailBox from "@/components/common/BoardDetailBox.vue";
 import {BASE_URL} from "@/constants/baseUrl.js";
-import { convertToRelativeUrl } from '@/utils/authUtils.js'
+import { convertToRelativeUrl, convertContentImageUrls } from '@/utils/authUtils.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -163,7 +163,7 @@ const getEventThumbnail = () => {
         </div>
 
         <!-- 본문 이미지 갤러리 제거 -->
-        <div v-html="event.content" class="mt-4"/>
+        <div v-html="convertContentImageUrls(event.content)" class="mt-4"/>
       </template>
     </BoardDetailBox>
 
