@@ -18,33 +18,77 @@ function openDetail(productId) {
 }
 
 const getProductImageUrl = (product) => {
-  // 1. 썸네일 데이터 우선 (thumbnailData > imageData)
+  console.log(`🔍 [RecommendationList] 상품 ID ${product.prodId} 이미지 디버깅:`, {
+    prodName: product.prodName,
+    imagesCount: product.images?.length || 0,
+    prodImageDataListCount: product.prodImageDataList?.length || 0,
+    prodImageNamesCount: product.prodImageNames?.length || 0
+  })
+
+  // 1. images 배열에서 썸네일 우선 (목록보기에서는 thumbnailData 우선)
+  if (product.images && product.images.length > 0) {
+    // 썸네일 이미지 찾기
+    const thumbnailImage = product.images.find(img => img.thumbnail)
+    if (thumbnailImage) {
+      // 목록보기에서는 thumbnailData 우선 (빠른 로딩)
+      if (thumbnailImage.thumbnailData) {
+        console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: images[thumbnail].thumbnailData 사용`)
+        return `data:image/jpeg;base64,${thumbnailImage.thumbnailData}`
+      }
+      if (thumbnailImage.imageData) {
+        console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: images[thumbnail].imageData 사용`)
+        return `data:image/jpeg;base64,${thumbnailImage.imageData}`
+      }
+      if (thumbnailImage.imageUrl) {
+        console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: images[thumbnail].imageUrl 사용`)
+        return convertToRelativeUrl(thumbnailImage.imageUrl)
+      }
+    }
+    
+    // 썸네일이 없으면 첫 번째 이미지 사용
+    const firstImage = product.images[0]
+    if (firstImage.thumbnailData) {
+      console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: images[0].thumbnailData 사용`)
+      return `data:image/jpeg;base64,${firstImage.thumbnailData}`
+    }
+    if (firstImage.imageData) {
+      console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: images[0].imageData 사용`)
+      return `data:image/jpeg;base64,${firstImage.imageData}`
+    }
+    if (firstImage.imageUrl) {
+      console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: images[0].imageUrl 사용`)
+      return convertToRelativeUrl(firstImage.imageUrl)
+    }
+  }
+  
+  // 2. 기존 방식 (fallback)
   if (product.thumbnailData) {
+    console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: thumbnailData 사용 (fallback)`)
     return `data:image/jpeg;base64,${product.thumbnailData}`
   }
   
-  // 2. 이미지 데이터
   if (product.imageData) {
+    console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: imageData 사용 (fallback)`)
     return `data:image/jpeg;base64,${product.imageData}`
   }
   
-  // 3. 썸네일 URL
   if (product.thumbnailUrl) {
+    console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: thumbnailUrl 사용 (fallback)`)
     return convertToRelativeUrl(product.thumbnailUrl)
   }
   
-  // 4. 이미지 URL
   if (product.imageUrl) {
+    console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: imageUrl 사용 (fallback)`)
     return convertToRelativeUrl(product.imageUrl)
   }
   
-  // 5. 기존 썸네일 URL
   if (product.prodThumbnail) {
+    console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: prodThumbnail 사용 (fallback)`)
     return convertToRelativeUrl(product.prodThumbnail)
   }
   
-  // 6. 이미지 데이터 리스트 (Base64)
   if (product.prodImageDataList && product.prodImageDataList.length > 0) {
+    console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: prodImageDataList 사용 (fallback)`)
     const firstImage = product.prodImageDataList[0]
     if (firstImage.startsWith('data:image')) {
       return firstImage
@@ -52,13 +96,14 @@ const getProductImageUrl = (product) => {
     return `data:image/jpeg;base64,${firstImage}`
   }
   
-  // 7. 이미지 이름 리스트 (URL)
   if (product.prodImageNames && product.prodImageNames.length > 0) {
+    console.log(`✅ [RecommendationList] 상품 ID ${product.prodId}: prodImageNames 사용 (fallback)`)
     const firstImage = product.prodImageNames[0]
     return convertToRelativeUrl(firstImage)
   }
   
-  // 8. 기본 이미지
+  // 기본 이미지
+  console.log(`⚠️ [RecommendationList] 상품 ID ${product.prodId}: 기본 이미지 사용 (no-image.png)`)
   return '/images/no-image.png'
 }
 </script>
