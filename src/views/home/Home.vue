@@ -9,18 +9,16 @@ import EventBox from '@/views/home/components/EventBox.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useFishingCenterStore } from '@/store/fishing-center/useFishingCenterStore.js'
 import { useHomeProductStore } from '@/store/product/all-products/useHomeProductStore.js'
-import { useFishingReportStore} from "@/store/fishing-center/useFishingReportStore.js";
 
 // emits 옵션 추가
 defineEmits(['loginSuccess', 'logout'])
 
 const centerStore = useFishingCenterStore()
 const homeProductStore = useHomeProductStore()
-const reportStore = useFishingReportStore()
 
 onMounted(async () => {
   try {
-    // 조황센터 데이터 로드
+    // 조황센터 데이터 로드 (조황정보와 조행기 모두 포함)
     await centerStore.fetchFishingCenterData()
   } catch (error) {
     console.error('Home.vue - 조황센터 데이터 로드 실패:', error)
@@ -31,13 +29,6 @@ onMounted(async () => {
     await homeProductStore.fetchRecommendedProducts()
   } catch (error) {
     console.error('Home.vue - 추천 상품 데이터 로드 실패:', error)
-  }
-  
-  try {
-    // 조황정보 데이터 로드
-    await reportStore.fetchReports(0, 10)
-  } catch (error) {
-    console.error('Home.vue - 조황정보 데이터 로드 실패:', error)
   }
 })
 
@@ -60,7 +51,7 @@ const recommendedProducts = computed(() => {
   <div class="container home-container mx-auto">
     <SideButtons />
     <section class="section-block">
-      <PopularList :reports="reportStore.reports" />
+      <PopularList :reports="centerStore.reportList" />
     </section>
     <section class="section-block">
       <RecommendationList :products="recommendedProducts" />
