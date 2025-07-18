@@ -48,7 +48,8 @@ export default defineConfig({
     hmr: {
       host: 'docs.yi.or.kr',
       port: 25173,
-      protocol: 'wss'
+      protocol: 'wss',
+      clientPort: 25173
     },
     proxy: {
       // API 요청만 백엔드로 프록시
