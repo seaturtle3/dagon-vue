@@ -17,12 +17,42 @@ function openDetail(productId) {
 }
 
 const getProductImageUrl = (product) => {
-  // 1. 썸네일 URL 우선
-  if (product.prodThumbnail) {
-    return product.prodThumbnail.startsWith('http') ? product.prodThumbnail : `${IMAGE_BASE_URL}${product.prodThumbnail}`
+  // 이미지 URL 정규화 함수
+  const normalizeImageUrl = (url) => {
+    if (!url) return null
+    // 중복된 /uploads/uploads/ 경로 제거
+    if (url.includes('/uploads/uploads/')) {
+      url = url.replace('/uploads/uploads/', '/uploads/')
+    }
+    return url.startsWith('http') ? url : `${IMAGE_BASE_URL}${url}`
+  }
+
+  // 1. 썸네일 데이터 우선 (thumbnailData > imageData)
+  if (product.thumbnailData) {
+    return `data:image/jpeg;base64,${product.thumbnailData}`
   }
   
-  // 2. 이미지 데이터 리스트 (Base64)
+  // 2. 이미지 데이터
+  if (product.imageData) {
+    return `data:image/jpeg;base64,${product.imageData}`
+  }
+  
+  // 3. 썸네일 URL
+  if (product.thumbnailUrl) {
+    return normalizeImageUrl(product.thumbnailUrl)
+  }
+  
+  // 4. 이미지 URL
+  if (product.imageUrl) {
+    return normalizeImageUrl(product.imageUrl)
+  }
+  
+  // 5. 기존 썸네일 URL
+  if (product.prodThumbnail) {
+    return normalizeImageUrl(product.prodThumbnail)
+  }
+  
+  // 6. 이미지 데이터 리스트 (Base64)
   if (product.prodImageDataList && product.prodImageDataList.length > 0) {
     const firstImage = product.prodImageDataList[0]
     if (firstImage.startsWith('data:image')) {
@@ -31,19 +61,13 @@ const getProductImageUrl = (product) => {
     return `data:image/jpeg;base64,${firstImage}`
   }
   
-  // 3. 이미지 이름 리스트 (URL)
+  // 7. 이미지 이름 리스트 (URL)
   if (product.prodImageNames && product.prodImageNames.length > 0) {
     const firstImage = product.prodImageNames[0]
-    if (firstImage.startsWith('http')) {
-      return firstImage
-    }
-    if (firstImage.startsWith('/')) {
-      return `${IMAGE_BASE_URL}${firstImage}`
-    }
-    return `${IMAGE_BASE_URL}/uploads/products/${firstImage}`
+    return normalizeImageUrl(firstImage)
   }
   
-  // 4. 기본 이미지
+  // 8. 기본 이미지
   return '/images/no-image.png'
 }
 </script>
