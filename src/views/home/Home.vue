@@ -15,8 +15,6 @@ import { useFishingReportStore} from "@/store/fishing-center/useFishingReportSto
 defineEmits(['loginSuccess', 'logout'])
 
 const centerStore = useFishingCenterStore()
-const currentPage = ref(0)
-const pageSize = 8
 const homeProductStore = useHomeProductStore()
 const reportStore = useFishingReportStore()
 
@@ -34,14 +32,20 @@ onMounted(async () => {
   } catch (error) {
     console.error('Home.vue - 추천 상품 데이터 로드 실패:', error)
   }
+  
+  try {
+    // 조황정보 데이터 로드
+    await reportStore.fetchReports(0, 10)
+  } catch (error) {
+    console.error('Home.vue - 조황정보 데이터 로드 실패:', error)
+  }
 })
 
 const paginatedProducts = computed(() => {
   const sorted = [...centerStore.reportList].sort((a, b) => {
     return new Date(b.createdAt) - new Date(a.createdAt)
   })
-  const start = currentPage.value * pageSize
-  return sorted.slice(start, start + pageSize)
+  return sorted.slice(0, 8) // 8개만 반환
 })
 
 const recommendedProducts = computed(() => {
