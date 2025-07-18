@@ -7,13 +7,13 @@ import PopularList from '@/views/home/components/PopularList.vue'
 import EventBox from '@/views/home/components/EventBox.vue'
 
 import { ref, onMounted, computed } from 'vue'
-import { useFishingCenterStore } from '@/store/fishing-center/useFishingCenterStore.js'
+import { useHomeFishingCenterStore } from '@/store/fishing-center/useHomeFishingCenterStore.js'
 import { useHomeProductStore } from '@/store/product/all-products/useHomeProductStore.js'
 
 // emits 옵션 추가
 defineEmits(['loginSuccess', 'logout'])
 
-const centerStore = useFishingCenterStore()
+const centerStore = useHomeFishingCenterStore()
 const homeProductStore = useHomeProductStore()
 
 onMounted(async () => {

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '@/lib/axios.js'
 
-export const useFishingCenterStore = defineStore('fishingCenter', {
+export const useHomeFishingCenterStore = defineStore('homeFishingCenter', {
     state: () => ({
         reportList: [],
         diaryList: [],
@@ -15,7 +15,7 @@ export const useFishingCenterStore = defineStore('fishingCenter', {
         async checkServerStatus() {
             try {
                 // 실제 존재하는 API 엔드포인트로 서버 상태 확인
-                const response = await api.get('/api/fishing-report/get-all', { timeout: 5000 })
+                const response = await api.get('/api/fishing-report/home', { timeout: 5000 })
                 this.serverStatus = 'connected'
                 return true
             } catch (error) {
@@ -37,11 +37,11 @@ export const useFishingCenterStore = defineStore('fishingCenter', {
             this.error = null
             
             try {
-                console.log('조황센터 데이터 요청 시작...')
+                console.log('홈페이지용 조황센터 데이터 요청 시작...')
                 
                 // 조황정보와 조행기를 개별적으로 가져오기 (홈페이지용으로 10개만)
                 const [reportResponse, diaryResponse] = await Promise.all([
-                    api.get('/api/fishing-report/get-all', {
+                    api.get('/api/fishing-report/home', {
                         params: {
                             page: 0,
                             size: 10,
@@ -49,7 +49,7 @@ export const useFishingCenterStore = defineStore('fishingCenter', {
                             direction: 'desc'
                         }
                     }),
-                    api.get('/api/fishing-diary/get-all', {
+                    api.get('/api/fishing-diary/home', {
                         params: {
                             page: 0,
                             size: 10,
@@ -67,7 +67,7 @@ export const useFishingCenterStore = defineStore('fishingCenter', {
                 this.loading = false
                 this.serverStatus = 'connected'
             } catch (err) {
-                console.error('조황센터 데이터 로드 실패', err)
+                console.error('홈페이지용 조황센터 데이터 로드 실패', err)
                 this.error = err.message || '데이터 로드에 실패했습니다.'
                 this.loading = false
                 
@@ -84,5 +84,4 @@ export const useFishingCenterStore = defineStore('fishingCenter', {
             }
         }
     }
-})
-
+}) 
