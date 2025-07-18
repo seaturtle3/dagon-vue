@@ -34,7 +34,7 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5173,
+    port: 25173,
     host: '0.0.0.0',
     open: false,
     https: {
@@ -45,7 +45,11 @@ export default defineConfig({
     fs: {
       strict: false
     },
-    hmr: false, // 프로덕션 환경에서는 HMR 불필요
+    hmr: {
+      host: 'docs.yi.or.kr',
+      port: 25173,
+      protocol: 'wss'
+    },
     proxy: {
       // API 요청만 백엔드로 프록시
       '/api': {
