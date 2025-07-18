@@ -1,6 +1,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 
 const router = useRouter()
 
@@ -28,10 +29,10 @@ const goToDetail = () => {
                   ? `data:image/jpeg;base64,${diary.images[0].thumbnailData}`
                   : (diary.images[0].imageData
                       ? `data:image/jpeg;base64,${diary.images[0].imageData}` 
-                      : (diary.images[0].imageUrl
-                          ? `${IMAGE_BASE_URL}${diary.images[0].imageUrl}`
-                          : '/images/no-image.png'
-                        )
+                                        : (diary.images[0].imageUrl
+                      ? convertToRelativeUrl(diary.images[0].imageUrl)
+                      : '/images/no-image.png'
+                    )
                     )
               )
             : '/images/no-image.png'

@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 
 const router = useRouter()
 const props = defineProps({
@@ -29,9 +30,9 @@ const goToDetail = () => {
                       : (report.images[0].image_data
                           ? `data:image/jpeg;base64,${report.images[0].image_data}`
                           : (report.images[0].imageUrl
-                              ? report.images[0].imageUrl
+                              ? convertToRelativeUrl(report.images[0].imageUrl)
                               : (report.images[0].image_url
-                                  ? report.images[0].image_url
+                                  ? convertToRelativeUrl(report.images[0].image_url)
                                   : '/images/no-image.png'
                                 )
                             )

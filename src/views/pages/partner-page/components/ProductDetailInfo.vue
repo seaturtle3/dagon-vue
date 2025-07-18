@@ -5,6 +5,7 @@ import {BASE_URL} from "@/constants/baseUrl.js";
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { useRouter } from 'vue-router'
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 
 import ProductEditButton from "@/views/pages/partner-page/components/ProductEditButton.vue";
 
@@ -42,9 +43,7 @@ const imageList = computed(() => {
       img.startsWith('data:image') ? img : `data:image/jpeg;base64,${img}`
     )
   } else if (props.product.prodImageNames && props.product.prodImageNames.length > 0) {
-    return props.product.prodImageNames.map(img =>
-      img.startsWith('/') ? `${BASE_URL}${img}` : `${BASE_URL}${img}`
-    )
+    return props.product.prodImageNames.map(img => convertToRelativeUrl(img))
   }
   return []
 })

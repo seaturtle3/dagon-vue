@@ -2,6 +2,7 @@
 import {BASE_URL} from "@/constants/baseUrl.js";
 import {useRouter} from "vue-router";
 import { ref, onMounted, onUnmounted } from 'vue';
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 
 const props = defineProps({
   product: Object,
@@ -14,7 +15,7 @@ const slideInterval = ref(null)
 // 이미지 배열 가져오기
 function getImageUrls() {
   if (props.product.prodImageNames && props.product.prodImageNames.length > 0) {
-    return props.product.prodImageNames.map(imageName => `${BASE_URL}${imageName}`);
+    return props.product.prodImageNames.map(imageName => convertToRelativeUrl(imageName));
   }
   return [];
 }

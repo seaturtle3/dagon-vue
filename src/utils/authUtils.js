@@ -28,6 +28,38 @@ export function convertLocalhostToDomain(url) {
 }
 
 /**
+ * 절대 URL을 상대 URL로 변환 (Mixed Content 방지)
+ * @param {string} url - 변환할 URL
+ * @returns {string} 변환된 URL
+ */
+export function convertToRelativeUrl(url) {
+  if (!url) return url;
+  
+  // 이미 상대 경로인 경우 그대로 반환
+  if (url.startsWith('/')) {
+    return url;
+  }
+  
+  // data URL인 경우 그대로 반환
+  if (url.startsWith('data:')) {
+    return url;
+  }
+  
+  // HTTP/HTTPS URL을 상대 경로로 변환
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.pathname;
+    } catch (e) {
+      console.warn('URL 변환 실패:', url, e);
+      return url;
+    }
+  }
+  
+  return url;
+}
+
+/**
  * JWT 토큰에서 ADMIN/SUPER_ADMIN 권한 여부 판별
  * @param {string} token
  * @returns {boolean}

@@ -2,6 +2,7 @@
 import { defineProps } from 'vue'
 import { useRouter } from 'vue-router'
 import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 
 const props = defineProps({
   products: {
@@ -29,17 +30,17 @@ const getProductImageUrl = (product) => {
   
   // 3. 썸네일 URL
   if (product.thumbnailUrl) {
-    return product.thumbnailUrl.startsWith('http') ? product.thumbnailUrl : `${IMAGE_BASE_URL}${product.thumbnailUrl}`
+    return convertToRelativeUrl(product.thumbnailUrl)
   }
   
   // 4. 이미지 URL
   if (product.imageUrl) {
-    return product.imageUrl.startsWith('http') ? product.imageUrl : `${IMAGE_BASE_URL}${product.imageUrl}`
+    return convertToRelativeUrl(product.imageUrl)
   }
   
   // 5. 기존 썸네일 URL
   if (product.prodThumbnail) {
-    return product.prodThumbnail.startsWith('http') ? product.prodThumbnail : `${IMAGE_BASE_URL}${product.prodThumbnail}`
+    return convertToRelativeUrl(product.prodThumbnail)
   }
   
   // 6. 이미지 데이터 리스트 (Base64)
@@ -54,13 +55,7 @@ const getProductImageUrl = (product) => {
   // 7. 이미지 이름 리스트 (URL)
   if (product.prodImageNames && product.prodImageNames.length > 0) {
     const firstImage = product.prodImageNames[0]
-    if (firstImage.startsWith('http')) {
-      return firstImage
-    }
-    if (firstImage.startsWith('/')) {
-      return `${IMAGE_BASE_URL}${firstImage}`
-    }
-    return `${IMAGE_BASE_URL}/uploads/products/${firstImage}`
+    return convertToRelativeUrl(firstImage)
   }
   
   // 8. 기본 이미지

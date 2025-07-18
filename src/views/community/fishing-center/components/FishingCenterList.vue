@@ -3,6 +3,7 @@ import {ref, computed, onMounted, onUnmounted} from 'vue'
 import {IMAGE_BASE_URL} from '@/constants/imageBaseUrl.js'
 import {useRouter} from "vue-router";
 import Pagination from "@/components/common-function/Pagination.vue";
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 
 const props = defineProps({
   centers: {
@@ -109,9 +110,9 @@ const goToDetail = (item) => {
                         : (item.images[0].image_data
                             ? `data:image/jpeg;base64,${item.images[0].image_data}`
                             : (item.images[0].imageUrl
-                                ? item.images[0].imageUrl
+                                ? convertToRelativeUrl(item.images[0].imageUrl)
                                 : (item.images[0].image_url
-                                    ? item.images[0].image_url
+                                    ? convertToRelativeUrl(item.images[0].image_url)
                                     : '/images/no-image.png'
                                   )
                               )

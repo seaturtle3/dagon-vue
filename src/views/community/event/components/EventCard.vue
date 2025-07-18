@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { BASE_URL } from '@/constants/baseUrl'
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 const props = defineProps({
   event: {
     type: Object,
@@ -30,10 +31,7 @@ const getEventThumbnail = () => {
   
   // 기존 thumbnailUrl 사용 (세 번째 우선순위)
   if (props.event?.thumbnailUrl) {
-    if (props.event.thumbnailUrl.startsWith('http')) {
-      return props.event.thumbnailUrl
-    }
-    return `${BASE_URL}${props.event.thumbnailUrl}`
+    return convertToRelativeUrl(props.event.thumbnailUrl)
   }
   
   // return fallbackImage

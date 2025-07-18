@@ -5,6 +5,7 @@ import { fetchEventById, getAllEvents } from '@/api/event.js'
 
 import BoardDetailBox from "@/components/common/BoardDetailBox.vue";
 import {BASE_URL} from "@/constants/baseUrl.js";
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -80,15 +81,9 @@ const getImageUrl = (image) => {
   } else if (image.image_data) {
     return `data:image/jpeg;base64,${image.image_data}`
   } else if (image.imageUrl) {
-    if (image.imageUrl.startsWith('http')) {
-      return image.imageUrl
-    }
-    return `${BASE_URL}${image.imageUrl}`
+    return convertToRelativeUrl(image.imageUrl)
   } else if (image.image_url) {
-    if (image.image_url.startsWith('http')) {
-      return image.image_url
-    }
-    return `${BASE_URL}${image.image_url}`
+    return convertToRelativeUrl(image.image_url)
   }
   return '/images/default-product.jpg'
 }
@@ -112,10 +107,7 @@ const getEventThumbnail = () => {
   
   // 3. thumbnailUrl이 있으면 사용
   if (event.value?.thumbnailUrl) {
-    if (event.value.thumbnailUrl.startsWith('http')) {
-      return event.value.thumbnailUrl
-    }
-    return `${BASE_URL}${event.value.thumbnailUrl}`
+    return convertToRelativeUrl(event.value.thumbnailUrl)
   }
   
   // 4. images 배열이 있으면 첫 번째 이미지 사용

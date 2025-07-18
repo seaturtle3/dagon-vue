@@ -4,6 +4,7 @@ import {ref, computed, onMounted, onUnmounted} from 'vue';
 import {useRouter} from 'vue-router';
 import {useFishingReportStore} from '@/store/fishing-center/useFishingReportStore.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 
 const props = defineProps({
   report: {
@@ -410,19 +411,17 @@ function getThumbnailSrc() {
     }
     if (img.imageUrl) {
       console.log('imageUrl 사용:', img.imageUrl);
-      return img.imageUrl;
+      return convertToRelativeUrl(img.imageUrl);
     }
     if (img.image_url) {
       console.log('image_url 사용:', img.image_url);
-      return img.image_url;
+      return convertToRelativeUrl(img.image_url);
     }
   }
 
   if (props.report.thumbnailUrl) {
     console.log('thumbnailUrl 사용:', props.report.thumbnailUrl);
-    // API 경로가 필요한 경우 처리
-    if (props.report.thumbnailUrl.startsWith('http')) return props.report.thumbnailUrl;
-    return `/api/fishing-report/images/${props.report.thumbnailUrl}`;
+    return convertToRelativeUrl(props.report.thumbnailUrl);
   }
 
   // imageFileName이 있으면 URL 생성

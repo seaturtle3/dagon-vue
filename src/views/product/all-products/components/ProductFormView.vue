@@ -5,6 +5,7 @@ import { useProductFormStore } from '@/store/product/all-products/useProductForm
 
 const productFormStore = useProductFormStore()
 import {BASE_URL} from "@/constants/baseUrl.js";
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 
 const router = useRouter()
 const files = ref([])  // 여러 파일 업로드 지원
@@ -60,11 +61,11 @@ watch(
     () => props.form.prodImageNames,
     (newVal) => {
       if (newVal && newVal.length > 0) {
-        existingImages.value = newVal.map((imgPath, idx) => ({
-          id: 'existing-' + idx,
-          url: BASE_URL + imgPath,
-          isExisting: true,
-        }))
+              existingImages.value = newVal.map((imgPath, idx) => ({
+        id: 'existing-' + idx,
+        url: convertToRelativeUrl(imgPath),
+        isExisting: true,
+      }))
       } else {
         existingImages.value = []
       }

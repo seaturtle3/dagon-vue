@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
+import { convertToRelativeUrl } from '@/utils/authUtils.js'
 
 const props = defineProps({
   reports: {
@@ -35,7 +36,7 @@ const getImageUrl = (report) => {
   
   // 3. 썸네일 URL
   if (report.thumbnailUrl) {
-    return report.thumbnailUrl.startsWith('http') ? report.thumbnailUrl : `${IMAGE_BASE_URL}${report.thumbnailUrl}`
+    return convertToRelativeUrl(report.thumbnailUrl)
   }
   
   // 4. 이미지 배열에서 썸네일 우선
@@ -50,7 +51,7 @@ const getImageUrl = (report) => {
         return `data:image/jpeg;base64,${thumbnailImage.imageData}`
       }
       if (thumbnailImage.imageUrl) {
-        return thumbnailImage.imageUrl.startsWith('http') ? thumbnailImage.imageUrl : `${IMAGE_BASE_URL}${thumbnailImage.imageUrl}`
+        return convertToRelativeUrl(thumbnailImage.imageUrl)
       }
     }
     
@@ -63,7 +64,7 @@ const getImageUrl = (report) => {
       return `data:image/jpeg;base64,${firstImage.imageData}`
     }
     if (firstImage.imageUrl) {
-      return firstImage.imageUrl.startsWith('http') ? firstImage.imageUrl : `${IMAGE_BASE_URL}${firstImage.imageUrl}`
+      return convertToRelativeUrl(firstImage.imageUrl)
     }
   }
   

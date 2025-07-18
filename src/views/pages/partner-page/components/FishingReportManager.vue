@@ -50,6 +50,7 @@
 <script>
 import { partnerService } from '@/api/partner';
 import { BASE_URL } from '@/constants/baseUrl.js';
+import { convertToRelativeUrl } from '@/utils/authUtils.js';
 
 export default {
   name: 'FishingReportManager',
@@ -96,10 +97,7 @@ export default {
     getReportThumbnail(report) {
       // 1. thumbnailUrl이 있으면 절대경로/상대경로 모두 처리
       if (report.thumbnailUrl) {
-        if (report.thumbnailUrl.startsWith('http')) {
-          return report.thumbnailUrl;
-        }
-        return `${BASE_URL}${report.thumbnailUrl}`;
+        return convertToRelativeUrl(report.thumbnailUrl);
       }
 
       // 2. images 배열의 첫 번째 이미지 사용
@@ -108,10 +106,7 @@ export default {
         if (firstImage.imageData) {
           return `data:image/jpeg;base64,${firstImage.imageData}`;
         } else if (firstImage.imageUrl) {
-          if (firstImage.imageUrl.startsWith('http')) {
-            return firstImage.imageUrl;
-          }
-          return `${BASE_URL}${firstImage.imageUrl}`;
+          return convertToRelativeUrl(firstImage.imageUrl);
         }
       }
 

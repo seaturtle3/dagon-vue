@@ -154,6 +154,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { partnerService } from '@/api/partner.js';
 import { BASE_URL } from '@/constants/baseUrl.js';
+import { convertToRelativeUrl } from '@/utils/authUtils.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -178,11 +179,7 @@ function getImageUrl(image) {
     // base64 데이터가 있으면 직접 사용
     return `data:image/jpeg;base64,${image.imageData}`;
   } else if (image.imageUrl) {
-    // imageUrl이 상대 경로인 경우 base URL과 결합
-    if (image.imageUrl.startsWith('/')) {
-      return `${BASE_URL}${image.imageUrl}`;
-    }
-    return image.imageUrl;
+    return convertToRelativeUrl(image.imageUrl);
   }
   return '/images/default-product.jpg';
 }

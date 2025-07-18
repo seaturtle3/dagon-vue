@@ -89,7 +89,8 @@
 
 <script>
 import { memberApi } from '@/api/admin.js';
-import { BASE_URL } from '@/constants/baseUrl.js';
+import { BASE_URL } from '@/constants/baseUrl.js'
+import { convertToRelativeUrl } from '@/utils/authUtils.js';
 
 export default {
   name: 'MemberDetail',
@@ -140,12 +141,11 @@ export default {
   methods: {
     getProfileImgUrl(img) {
       if (!img) return '/img/default-profile.png';
-      if (img.startsWith('http')) return img;
       let fixedImg = img;
       if (img.endsWith('.webpd')) {
         fixedImg = img.replace(/\.webpd$/, '.webp');
       }
-      return `${BASE_URL}/uploads/${fixedImg}`;
+      return convertToRelativeUrl(fixedImg);
     },
     getLevelByPoints(points) {
       points = Number(points) || 0;
