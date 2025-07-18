@@ -1,29 +1,111 @@
-# dagon-vue
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=180&color=gradient&text=DAGON(Frontend)" width="100%"/>
+</p>
 
-This template should help get you started developing with Vue 3 in Vite.
+## 🚤 프로젝트 소개
 
-## Recommended IDE Setup
+🎣**실시간 낚싯배 예약 플랫폼**
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- 사용자, 파트너(판매자), 관리자 간 예약·결제·정보 공유를 통합 제공  
+- 물때·날씨 실시간 API 연동 (바다누리, 기상청, 한국천문연구원)  
+- 실시간 게시판 및 관리자 시스템 포함
 
-## Customize configuration
+📅 **개발 기간** 2025.05.22 ~ 2025.07.03
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+<br/>
 
-## Project Setup
+<br/>
 
-```sh
-npm install
-```
 
-### Compile and Hot-Reload for Development
+## 🐟 팀원구성
 
-```sh
-npm run dev
-```
+<table align="center">
+  <tr>
+    <td align="center" style="padding: 20px;">
+      <img src="https://i.imgur.com/U3vTGjX.png" width="100"/><br/>
+      <b>장은정</b>
+    </td>
+    <td align="center" style="padding: 20px;">
+      <img src="https://images.unsplash.com/photo-1593085512500-5d55148d6f0d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8JUVDJUJBJTkwJUVCJUE2JUFEJUVEJTg0JUIwfGVufDB8fDB8fHww" width="100"/><br/>
+      <b>손강하</b>
+    </td>
+    <td align="center" style="padding: 20px;">
+      <img src="https://i.imgur.com/oYiTqum.png" width="100"/><br/>
+      <b>강진석</b>
+    </td>
+    <td align="center" style="padding: 20px;">
+      <img src="https://i.imgur.com/VSEpKcY.png" width="100"/><br/>
+      <b>박준하</b>
+    </td>
+  </tr>
+</table>
 
-### Compile and Minify for Production
+<br/>
 
-```sh
-npm run build
-```
+<br/>
+
+## 🛠 개발 환경 및 기술 스택
+
+
+
+
+<br/>
+
+<br/>
+
+## 🌟 주요 기능
+
+
+
+
+<br/>
+
+<br/>
+
+## 📁 프로젝트 구조
+
+
+
+<br/>
+
+<br/>
+
+## ⚓ 역할분담
+
+### 🧑 장은정  
+
+
+
+### 🧑 손강하  
+
+
+
+### 🧑 강진석  
+
+
+
+### 🧑 박준하  
+
+
+
+<br/>
+
+<br/>
+
+## 📌 기능별 API 설계
+
+
+
+
+> ** DAGON PPT **
+> 
+https://www.canva.com/design/DAGraXdN5Ss/ZkyVRxmbLHWidan-Of0V3w/edit
+> 
+<br/>
+
+<br/>
+
+
+## 🌊 개발과정
+
+
