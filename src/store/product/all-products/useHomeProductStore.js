@@ -12,7 +12,7 @@ export const useHomeProductStore = defineStore('homeProduct', {
             this.loading = true
             this.error = null
             try {
-                const res = await api.get('/api/product/get-all', {
+                const res = await api.get('/api/product/home', {
                     params: {
                         page: 0,
                         size: 4, // 홈페이지에서는 4개만 필요
