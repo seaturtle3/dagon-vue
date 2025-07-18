@@ -39,9 +39,9 @@ export const useFishingCenterStore = defineStore('fishingCenter', {
             try {
                 console.log('조황센터 데이터 요청 시작...')
                 
-                // 조황정보와 조행기를 개별적으로 가져오기 (홈페이지용으로 10개만, 이미지 데이터 제외)
+                // 조황정보와 조행기를 개별적으로 가져오기 (홈페이지용으로 10개만)
                 const [reportResponse, diaryResponse] = await Promise.all([
-                    api.get('/api/fishing-report/get-all/home', {
+                    api.get('/api/fishing-report/get-all', {
                         params: {
                             page: 0,
                             size: 10,
@@ -49,7 +49,7 @@ export const useFishingCenterStore = defineStore('fishingCenter', {
                             direction: 'desc'
                         }
                     }),
-                    api.get('/api/fishing-diary/get-all/home', {
+                    api.get('/api/fishing-diary/get-all', {
                         params: {
                             page: 0,
                             size: 10,

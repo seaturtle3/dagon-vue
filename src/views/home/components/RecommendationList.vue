@@ -15,6 +15,37 @@ const router = useRouter()
 function openDetail(productId) {
   router.push(`/products/${productId}`)
 }
+
+const getProductImageUrl = (product) => {
+  // 1. 썸네일 URL 우선
+  if (product.prodThumbnail) {
+    return product.prodThumbnail.startsWith('http') ? product.prodThumbnail : `${IMAGE_BASE_URL}${product.prodThumbnail}`
+  }
+  
+  // 2. 이미지 데이터 리스트 (Base64)
+  if (product.prodImageDataList && product.prodImageDataList.length > 0) {
+    const firstImage = product.prodImageDataList[0]
+    if (firstImage.startsWith('data:image')) {
+      return firstImage
+    }
+    return `data:image/jpeg;base64,${firstImage}`
+  }
+  
+  // 3. 이미지 이름 리스트 (URL)
+  if (product.prodImageNames && product.prodImageNames.length > 0) {
+    const firstImage = product.prodImageNames[0]
+    if (firstImage.startsWith('http')) {
+      return firstImage
+    }
+    if (firstImage.startsWith('/')) {
+      return `${IMAGE_BASE_URL}${firstImage}`
+    }
+    return `${IMAGE_BASE_URL}/uploads/products/${firstImage}`
+  }
+  
+  // 4. 기본 이미지
+  return '/images/no-image.png'
+}
 </script>
 
 <template>
@@ -31,22 +62,11 @@ function openDetail(productId) {
       >
         <!-- 썸네일 영역 (60% 고정) -->
         <div class="thumbnail-section">
-            <!-- 1. prodImageDataList가 있으면 첫 장만 보여줌 -->
-            <template v-if="product.prodImageDataList && product.prodImageDataList.length > 0">
-              <img
-                :src="product.prodImageDataList[0].startsWith('data:image') ? product.prodImageDataList[0] : `data:image/jpeg;base64,${product.prodImageDataList[0]}`"
-                class="thumbnail-img"
-                @error="e => { e.target.src = defaultImage }"
-              >
-            </template>
-            <!-- 2. prodImageNames가 있으면 첫 장만 보여줌 -->
-            <template v-else-if="product.prodImageNames && product.prodImageNames.length > 0">
-              <img
-                :src="product.prodImageNames[0].startsWith('/') ? product.prodImageNames[0] : `${BASE_URL}/uploads/products/${product.prodImageNames[0]}`"
-                class="thumbnail-img"
-                @error="e => { e.target.src = defaultImage }"
-              >
-            </template>
+            <img
+              :src="getProductImageUrl(product)"
+              class="thumbnail-img"
+              @error="e => { e.target.src = '/images/no-image.png' }"
+            >
         </div>
         
         <div class="product-info">

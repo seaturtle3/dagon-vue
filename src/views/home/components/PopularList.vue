@@ -21,6 +21,55 @@ const topReports = computed(() =>
 const goToDetail = (report) => {
   router.push(`/fishing-report/${report.frId}`)
 }
+
+const getImageUrl = (report) => {
+  // 1. 썸네일 데이터 우선 (thumbnailData > imageData)
+  if (report.thumbnailData) {
+    return `data:image/jpeg;base64,${report.thumbnailData}`
+  }
+  
+  // 2. 이미지 데이터
+  if (report.imageData) {
+    return `data:image/jpeg;base64,${report.imageData}`
+  }
+  
+  // 3. 썸네일 URL
+  if (report.thumbnailUrl) {
+    return report.thumbnailUrl.startsWith('http') ? report.thumbnailUrl : `${IMAGE_BASE_URL}${report.thumbnailUrl}`
+  }
+  
+  // 4. 이미지 배열에서 썸네일 우선
+  if (report.images && report.images.length > 0) {
+    // 썸네일 이미지 찾기
+    const thumbnailImage = report.images.find(img => img.thumbnail)
+    if (thumbnailImage) {
+      if (thumbnailImage.thumbnailData) {
+        return `data:image/jpeg;base64,${thumbnailImage.thumbnailData}`
+      }
+      if (thumbnailImage.imageData) {
+        return `data:image/jpeg;base64,${thumbnailImage.imageData}`
+      }
+      if (thumbnailImage.imageUrl) {
+        return thumbnailImage.imageUrl.startsWith('http') ? thumbnailImage.imageUrl : `${IMAGE_BASE_URL}${thumbnailImage.imageUrl}`
+      }
+    }
+    
+    // 첫 번째 이미지 사용
+    const firstImage = report.images[0]
+    if (firstImage.thumbnailData) {
+      return `data:image/jpeg;base64,${firstImage.thumbnailData}`
+    }
+    if (firstImage.imageData) {
+      return `data:image/jpeg;base64,${firstImage.imageData}`
+    }
+    if (firstImage.imageUrl) {
+      return firstImage.imageUrl.startsWith('http') ? firstImage.imageUrl : `${IMAGE_BASE_URL}${firstImage.imageUrl}`
+    }
+  }
+  
+  // 5. 기본 이미지
+  return '/images/no-image.png'
+}
 </script>
 
 <template>
@@ -42,26 +91,7 @@ const goToDetail = (report) => {
         <div class="thumbnail-section">
           <img
             class="thumbnail"
-            :src="
-              report.thumbnail_data 
-                ? `data:image/jpeg;base64,${report.thumbnail_data}`
-                : (report.images && report.images.length > 0
-                    ? (report.images[0].imageData
-                        ? `data:image/jpeg;base64,${report.images[0].imageData}`
-                        : (report.images[0].image_data
-                            ? `data:image/jpeg;base64,${report.images[0].image_data}`
-                            : (report.images[0].imageUrl
-                                ? report.images[0].imageUrl
-                                : (report.images[0].image_url
-                                    ? report.images[0].image_url
-                                    : '/images/no-image.png'
-                                  )
-                              )
-                          )
-                      )
-                    : '/images/no-image.png'
-                  )
-            "
+            :src="getImageUrl(report)"
             alt="썸네일"
           />
         </div>
