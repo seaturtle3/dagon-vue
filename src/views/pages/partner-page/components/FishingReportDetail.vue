@@ -180,12 +180,12 @@ const reporting = ref(false);
 // 삭제 관련 상태
 const showDeleteModal = ref(false);
 
-// 이미지 URL 생성 함수
+// 이미지 URL 생성 함수 (상세보기에서는 imageData 우선)
 function getImageUrl(image) {
   if (!image) return '/images/default-product.jpg';
   
+  // 상세보기에서는 imageData 우선 (고화질)
   if (image.imageData) {
-    // base64 데이터가 있으면 직접 사용
     return `data:image/jpeg;base64,${image.imageData}`;
   } else if (image.imageUrl) {
     return convertToRelativeUrl(image.imageUrl);

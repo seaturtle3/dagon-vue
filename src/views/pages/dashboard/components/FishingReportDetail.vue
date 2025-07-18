@@ -118,13 +118,7 @@
         <div class="image-gallery">
           <div v-for="image in report.images" :key="image.id" class="image-item">
             <img 
-              :src="
-                image.imageData 
-                  ? `data:image/jpeg;base64,${image.imageData}` 
-                  : image.thumbnail
-                    ? image.thumbnail
-                    : image.imageUrl
-              " 
+              :src="getImageUrl(image)"
               :alt="image.imageName" 
               @click="openImageModal(image)"
             >
@@ -196,7 +190,7 @@
         <button @click="closeImageModal" class="modal-close">
           <i class="fas fa-times"></i>
         </button>
-        <img :src="selectedImage?.imageData ? `data:image/jpeg;base64,${selectedImage.imageData}` : selectedImage?.imageUrl" :alt="selectedImage?.imageName">
+        <img :src="getImageUrl(selectedImage)" :alt="selectedImage?.imageName">
         <div class="image-modal-info">
           <h4>{{ selectedImage?.imageName }}</h4>
           <p v-if="selectedImage?.thumbnail">대표 이미지</p>
@@ -240,6 +234,23 @@ import { convertContentImageUrls } from '@/utils/authUtils.js'
 
 const route = useRoute()
 const router = useRouter()
+
+// 이미지 URL 생성 함수 (상세보기에서는 imageData 우선)
+const getImageUrl = (image) => {
+  if (!image) return '/images/no-image.png';
+  
+  // 상세보기에서는 imageData 우선 (고화질)
+  if (image.imageData) {
+    return `data:image/jpeg;base64,${image.imageData}`;
+  }
+  if (image.thumbnail) {
+    return image.thumbnail;
+  }
+  if (image.imageUrl) {
+    return image.imageUrl;
+  }
+  return '/images/no-image.png';
+}
 
 // 상태 관리
 const loading = ref(false)

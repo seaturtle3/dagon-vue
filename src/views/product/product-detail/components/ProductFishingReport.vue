@@ -26,6 +26,27 @@ const goToDetail = (report) => {
   router.push(`/fishing-report/${report.frId}`)
 }
 
+// 이미지 URL 생성 함수 (상세보기에서는 imageData 우선)
+const getImageUrl = (report) => {
+  if (report.images && report.images.length > 0) {
+    const img = report.images[0];
+    // 상세보기에서는 imageData 우선 (고화질)
+    if (img.imageData) {
+      return `data:image/jpeg;base64,${img.imageData}`;
+    }
+    if (img.image_data) {
+      return `data:image/jpeg;base64,${img.image_data}`;
+    }
+    if (img.imageUrl) {
+      return img.imageUrl;
+    }
+    if (img.image_url) {
+      return img.image_url;
+    }
+  }
+  return '/images/no-image.png';
+}
+
 console.log("-------------ProductId >",productId)
 console.log("-------------reportList >",reportList)
 </script>
@@ -45,24 +66,7 @@ console.log("-------------reportList >",reportList)
           <div class="thumbnail-wrapper">
             <img
           class="thumbnail-img"
-          :src="
-            report.images && report.images.length
-              ? (
-                  report.images[0].imageData
-                    ? `data:image/jpeg;base64,${report.images[0].imageData}`
-                    : (report.images[0].image_data
-                        ? `data:image/jpeg;base64,${report.images[0].image_data}`
-                        : (report.images[0].imageUrl
-                            ? report.images[0].imageUrl
-                            : (report.images[0].image_url
-                                ? report.images[0].image_url
-                                : '/images/no-image.png'
-                              )
-                          )
-                      )
-                )
-              : '/images/no-image.png'
-          "
+          :src="getImageUrl(report)"
           alt="썸네일"
       />
 

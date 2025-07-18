@@ -318,14 +318,15 @@ const modalImages = ref([]); // 전체 이미지 배열
 const modalImageIndex = ref(0); // 현재 인덱스
 
 function getImageSrc(img) {
+  // 상세보기에서는 imageData 우선 (고화질)
   if (img.imageData) {
     return `data:image/jpeg;base64,${img.imageData}`;
   } else if (img.image_data) {
     return `data:image/jpeg;base64,${img.image_data}`;
   } else if (img.imageUrl) {
-    return img.imageUrl;
+    return convertToRelativeUrl(img.imageUrl);
   } else if (img.image_url) {
-    return img.image_url;
+    return convertToRelativeUrl(img.image_url);
   } else {
     return '/images/no-image.png';
   }
@@ -391,46 +392,35 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
 });
 
-// 썸네일 src 추출 함수
+// 썸네일 src 추출 함수 (상세보기에서는 imageData 우선)
 function getThumbnailSrc() {
   console.log('getThumbnailSrc 호출 - report.images:', props.report.images);
-  console.log('getThumbnailSrc 호출 - report.thumbnailUrl:', props.report.thumbnailUrl);
-  console.log('getThumbnailSrc 호출 - report.imageFileName:', props.report.imageFileName);
 
   if (props.report.images && props.report.images.length) {
     const img = props.report.images[0];
     console.log('이미지 객체:', img);
 
+    // 상세보기에서는 imageData 우선 (고화질)
     if (img.imageData) {
-      console.log('imageData 사용');
+      console.log('✅ [ReportDetailItem] imageData 사용 (상세보기)');
       return `data:image/jpeg;base64,${img.imageData}`;
     }
     if (img.image_data) {
-      console.log('image_data 사용');
+      console.log('✅ [ReportDetailItem] image_data 사용 (상세보기)');
       return `data:image/jpeg;base64,${img.image_data}`;
     }
     if (img.imageUrl) {
-      console.log('imageUrl 사용:', img.imageUrl);
+      console.log('✅ [ReportDetailItem] imageUrl 사용 (상세보기)');
       return convertToRelativeUrl(img.imageUrl);
     }
     if (img.image_url) {
-      console.log('image_url 사용:', img.image_url);
+      console.log('✅ [ReportDetailItem] image_url 사용 (상세보기)');
       return convertToRelativeUrl(img.image_url);
     }
   }
 
-  if (props.report.thumbnailUrl) {
-    console.log('thumbnailUrl 사용:', props.report.thumbnailUrl);
-    return convertToRelativeUrl(props.report.thumbnailUrl);
-  }
-
-  // imageFileName이 있으면 URL 생성
-  if (props.report.imageFileName) {
-    console.log('imageFileName 사용:', props.report.imageFileName);
-    return `/api/fishing-report/images/${props.report.imageFileName}`;
-  }
-
-  console.log('기본 이미지 사용');
+  // 기본 이미지
+  console.log('⚠️ [ReportDetailItem] 기본 이미지 사용 (no-image.png)');
   return '/images/no-image.png';
 }
 </script>
