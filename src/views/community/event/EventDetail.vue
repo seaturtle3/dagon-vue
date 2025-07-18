@@ -92,6 +92,20 @@ const getImageUrl = (image) => {
   }
   return '/images/default-product.jpg'
 }
+
+// 이벤트 콘텐츠에서 HTTP URL을 HTTPS로 변환하는 함수
+const processEventContent = (content) => {
+  if (!content) return content
+  
+  // HTTP URL을 HTTPS로 변환
+  return content.replace(
+    /(https?:\/\/docs\.yi\.or\.kr):8097/g, 
+    'https://docs.yi.or.kr:8097'
+  ).replace(
+    /(https?:\/\/docs\.yi\.or\.kr):25173/g, 
+    'https://docs.yi.or.kr:25173'
+  )
+}
 // 이벤트 썸네일 이미지 가져오기
 const getEventThumbnail = () => {
   // 1. thumbnailDataList가 있으면 첫 번째 썸네일 사용 (최우선)
@@ -168,7 +182,7 @@ const getEventThumbnail = () => {
         </div>
 
         <!-- 본문 이미지 갤러리 제거 -->
-        <div v-html="event.content" class="mt-4"/>
+        <div v-html="processEventContent(event.content)" class="mt-4"/>
       </template>
     </BoardDetailBox>
 
