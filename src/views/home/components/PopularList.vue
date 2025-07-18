@@ -24,51 +24,73 @@ const goToDetail = (report) => {
 }
 
 const getImageUrl = (report) => {
+  console.log(`🔍 [PopularList] 조황정보 ID ${report.frId} 이미지 디버깅:`, {
+    title: report.title,
+    thumbnailData: !!report.thumbnailData,
+    imageData: !!report.imageData,
+    thumbnailUrl: !!report.thumbnailUrl,
+    imagesCount: report.images?.length || 0
+  })
+
   // 1. 썸네일 데이터 우선 (thumbnailData > imageData)
   if (report.thumbnailData) {
+    console.log(`✅ [PopularList] 조황정보 ID ${report.frId}: thumbnailData 사용`)
     return `data:image/jpeg;base64,${report.thumbnailData}`
   }
   
   // 2. 이미지 데이터
   if (report.imageData) {
+    console.log(`✅ [PopularList] 조황정보 ID ${report.frId}: imageData 사용`)
     return `data:image/jpeg;base64,${report.imageData}`
   }
   
   // 3. 썸네일 URL
   if (report.thumbnailUrl) {
+    console.log(`✅ [PopularList] 조황정보 ID ${report.frId}: thumbnailUrl 사용`)
     return convertToRelativeUrl(report.thumbnailUrl)
   }
   
   // 4. 이미지 배열에서 썸네일 우선
   if (report.images && report.images.length > 0) {
+    console.log(`🔍 [PopularList] 조황정보 ID ${report.frId}: images 배열 확인 (${report.images.length}개)`)
+    
     // 썸네일 이미지 찾기
     const thumbnailImage = report.images.find(img => img.thumbnail)
     if (thumbnailImage) {
+      console.log(`🔍 [PopularList] 조황정보 ID ${report.frId}: 썸네일 이미지 발견`)
       if (thumbnailImage.thumbnailData) {
+        console.log(`✅ [PopularList] 조황정보 ID ${report.frId}: images[].thumbnailData 사용`)
         return `data:image/jpeg;base64,${thumbnailImage.thumbnailData}`
       }
       if (thumbnailImage.imageData) {
+        console.log(`✅ [PopularList] 조황정보 ID ${report.frId}: images[].imageData 사용`)
         return `data:image/jpeg;base64,${thumbnailImage.imageData}`
       }
       if (thumbnailImage.imageUrl) {
+        console.log(`✅ [PopularList] 조황정보 ID ${report.frId}: images[].imageUrl 사용`)
         return convertToRelativeUrl(thumbnailImage.imageUrl)
       }
     }
     
     // 첫 번째 이미지 사용
     const firstImage = report.images[0]
+    console.log(`🔍 [PopularList] 조황정보 ID ${report.frId}: 첫 번째 이미지 사용`)
     if (firstImage.thumbnailData) {
+      console.log(`✅ [PopularList] 조황정보 ID ${report.frId}: images[0].thumbnailData 사용`)
       return `data:image/jpeg;base64,${firstImage.thumbnailData}`
     }
     if (firstImage.imageData) {
+      console.log(`✅ [PopularList] 조황정보 ID ${report.frId}: images[0].imageData 사용`)
       return `data:image/jpeg;base64,${firstImage.imageData}`
     }
     if (firstImage.imageUrl) {
+      console.log(`✅ [PopularList] 조황정보 ID ${report.frId}: images[0].imageUrl 사용`)
       return convertToRelativeUrl(firstImage.imageUrl)
     }
   }
   
   // 5. 기본 이미지
+  console.log(`⚠️ [PopularList] 조황정보 ID ${report.frId}: 기본 이미지 사용 (no-image.png)`)
   return '/images/no-image.png'
 }
 </script>
