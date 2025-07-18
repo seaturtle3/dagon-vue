@@ -1,21 +1,20 @@
 <script setup>
-import { useFishingReportStore } from '@/store/fishing-center/useFishingReportStore.js'
-import { onMounted, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { IMAGE_BASE_URL } from '@/constants/imageBaseUrl.js'
 
-const store = useFishingReportStore()
-const router = useRouter()
-
-onMounted(() => {
-  if (!store.reports.length) {
-    store.fetchReports()
+const props = defineProps({
+  reports: {
+    type: Array,
+    required: true
   }
 })
 
-// 인기 조황정보 12개 (필요하다면 정렬 조건 추가)
+const router = useRouter()
+
+// 인기 조황정보 12개 (props로 받은 데이터 사용)
 const topReports = computed(() =>
-    store.reports
+    props.reports
         .slice(0, 12) // 12개만
 )
 
