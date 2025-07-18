@@ -8,7 +8,7 @@ import EventBox from '@/views/home/components/EventBox.vue'
 
 import { ref, onMounted, computed } from 'vue'
 import { useFishingCenterStore } from '@/store/fishing-center/useFishingCenterStore.js'
-import { useProductListStore } from '@/store/product/all-products/useProductListStore.js'
+import { useHomeProductStore } from '@/store/product/all-products/useHomeProductStore.js'
 import { useFishingReportStore} from "@/store/fishing-center/useFishingReportStore.js";
 
 // emits 옵션 추가
@@ -17,7 +17,7 @@ defineEmits(['loginSuccess', 'logout'])
 const centerStore = useFishingCenterStore()
 const currentPage = ref(0)
 const pageSize = 8
-const productListStore = useProductListStore()
+const homeProductStore = useHomeProductStore()
 const reportStore = useFishingReportStore()
 
 onMounted(async () => {
@@ -29,10 +29,10 @@ onMounted(async () => {
   }
   
   try {
-    // 상품 데이터 로드
-    await productListStore.fetchProducts()
+    // 추천 상품 데이터 로드 (4개만)
+    await homeProductStore.fetchRecommendedProducts()
   } catch (error) {
-    console.error('Home.vue - 상품 데이터 로드 실패:', error)
+    console.error('Home.vue - 추천 상품 데이터 로드 실패:', error)
   }
 })
 
@@ -45,9 +45,8 @@ const paginatedProducts = computed(() => {
 })
 
 const recommendedProducts = computed(() => {
-  return productListStore.products
+  return homeProductStore.products
       .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
-      .slice(0, 6)
 })
 
 </script>

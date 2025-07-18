@@ -24,7 +24,7 @@ function openDetail(productId) {
     </div>
     <div class="d-grid">
       <div
-          v-for="product in products.slice(0, 4)"
+          v-for="product in products"
           :key="product.prodId"
           class="product-card"
           @click="openDetail(product.prodId)"
