@@ -34,22 +34,15 @@ export default defineConfig({
     }
   },
   server: {
-    port: 25173,
-    host: '0.0.0.0',
+    port: 5173,
+    host: 'localhost',
     open: false,
-    https: {
-      key: fs.readFileSync('./localhost+2-key.pem'),
-      cert: fs.readFileSync('./localhost+2.pem')
-    },
     cors: true,
     fs: {
       strict: false
     },
     hmr: {
-      host: 'docs.yi.or.kr',
-      port: 25173,
-      protocol: 'wss',
-      clientPort: 25173
+      port: 5173
     },
     proxy: {
       // API 요청만 백엔드로 프록시
