@@ -69,7 +69,19 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: false
-      }
+      },
+      '/socket.io': {
+        target: 'ws://docs.yi.or.kr:8097',
+        ws: true,
+        rewriteWsOrigin: true,
+      },
+      '/ws': {
+        target: 'https://docs.yi.or.kr:8097',
+        changeOrigin: true,
+        secure: false,
+        ws: true // WebSocket 프록시 활성화
+    }
+
     },
     // ✅ 여기서 Vue Router fallback 적용!
     configureServer: ({ middlewares }) => {
