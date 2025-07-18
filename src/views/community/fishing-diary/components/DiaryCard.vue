@@ -14,6 +14,50 @@ const props = defineProps({
 const goToDetail = () => {
   router.push(`/fishing-diary/${props.diary.fdId}`)
 }
+
+const getImageUrl = (diary) => {
+  // 1. thumbnailUrl이 Base64 데이터인 경우 (백엔드에서 직접 설정)
+  if (diary.thumbnailUrl && diary.thumbnailUrl.startsWith('data:image')) {
+    return diary.thumbnailUrl
+  }
+  
+  // 2. thumbnailUrl이 URL인 경우
+  if (diary.thumbnailUrl) {
+    return diary.thumbnailUrl.startsWith('http') ? diary.thumbnailUrl : `${IMAGE_BASE_URL}${diary.thumbnailUrl}`
+  }
+  
+  // 3. 이미지 배열에서 썸네일 우선
+  if (diary.images && diary.images.length > 0) {
+    // 썸네일 이미지 찾기
+    const thumbnailImage = diary.images.find(img => img.isThumbnail)
+    if (thumbnailImage) {
+      if (thumbnailImage.thumbnailData) {
+        return `data:image/jpeg;base64,${thumbnailImage.thumbnailData}`
+      }
+      if (thumbnailImage.imageData) {
+        return `data:image/jpeg;base64,${thumbnailImage.imageData}`
+      }
+      if (thumbnailImage.imageUrl) {
+        return thumbnailImage.imageUrl.startsWith('http') ? thumbnailImage.imageUrl : `${IMAGE_BASE_URL}${thumbnailImage.imageUrl}`
+      }
+    }
+    
+    // 첫 번째 이미지 사용
+    const firstImage = diary.images[0]
+    if (firstImage.thumbnailData) {
+      return `data:image/jpeg;base64,${firstImage.thumbnailData}`
+    }
+    if (firstImage.imageData) {
+      return `data:image/jpeg;base64,${firstImage.imageData}`
+    }
+    if (firstImage.imageUrl) {
+      return firstImage.imageUrl.startsWith('http') ? firstImage.imageUrl : `${IMAGE_BASE_URL}${firstImage.imageUrl}`
+    }
+  }
+  
+  // 4. 기본 이미지
+  return '/images/no-image.png'
+}
 </script>
 
 <template>
@@ -21,28 +65,8 @@ const goToDetail = () => {
     <div class="thumbnail-section">
       <img
         class="thumbnail"
-        :src="
-          diary.images && diary.images.length
-            ? (
-              diary.images[0].thumbnailData
-                  ? `data:image/jpeg;base64,${diary.images[0].thumbnailData}`
-                  : (diary.images[0].imageData
-                      ? `data:image/jpeg;base64,${diary.images[0].imageData}` 
-                      : (diary.images[0].imageUrl
-                          ? `${IMAGE_BASE_URL}${diary.images[0].imageUrl}`
-                          : '/images/no-image.png'
-                        )
-                    )
-              )
-            : '/images/no-image.png'
-        "
+        :src="getImageUrl(diary)"
         alt="썸네일"
-        v-if="
-          diary.images?.[0]?.thumbnailData ||
-          diary.images?.[0]?.imageData ||
-          diary.images?.[0]?.imageUrl ||
-          diary.images
-        "
       />
       <div v-else class="image-placeholder">
         <i class="fas fa-image"></i>
