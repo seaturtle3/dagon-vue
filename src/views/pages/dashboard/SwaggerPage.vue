@@ -56,7 +56,7 @@ const baseUrl = import.meta.env.VITE_BASE_API_URL || 'https://docs.yi.or.kr:8097
 
 const renderSwagger = (groupName) => {
   SwaggerUI({
-    url: `https://docs.yi.or.kr:8097/api-docs/${groupName}`,
+    url: `/api-docs/${groupName}`,
     dom_id: '#swagger-ui',
     layout: 'BaseLayout', // 헤더 최소화
     deepLinking: true,

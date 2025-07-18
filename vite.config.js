@@ -54,6 +54,12 @@ export default defineConfig({
         secure: false, // 자체 서명 인증서 허용(개발용)
         ws: false
       },
+      '/api-docs': {
+        target: 'https://docs.yi.or.kr:8097',
+        changeOrigin: true,
+        secure: false,
+        ws: false
+      },
       '/auth': {
         target: 'https://docs.yi.or.kr:8097',
         changeOrigin: true,
