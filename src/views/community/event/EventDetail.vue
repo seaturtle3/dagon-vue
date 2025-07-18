@@ -93,19 +93,7 @@ const getImageUrl = (image) => {
   return '/images/default-product.jpg'
 }
 
-// 이벤트 콘텐츠에서 절대 URL을 상대 URL로 변환하는 함수
-const processEventContent = (content) => {
-  if (!content) return content
-  
-  // https://docs.yi.or.kr:8097/api/images/event/숫자 형태를 상대 경로로 변환
-  return content.replace(
-    /https:\/\/docs\.yi\.or\.kr:\d+\/api\/images\/event\/(\d+)/g,
-    '/api/images/event/$1'
-  ).replace(
-    /http:\/\/docs\.yi\.or\.kr:\d+\/api\/images\/event\/(\d+)/g,
-    '/api/images/event/$1'
-  )
-}
+
 
 // 이벤트 썸네일 이미지 가져오기
 const getEventThumbnail = () => {
@@ -183,7 +171,7 @@ const getEventThumbnail = () => {
         </div>
 
         <!-- 본문 이미지 갤러리 제거 -->
-        <div v-html="processEventContent(event.content)" class="mt-4"/>
+        <div v-html="event.content" class="mt-4"/>
       </template>
     </BoardDetailBox>
 
