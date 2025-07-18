@@ -95,27 +95,60 @@ export default {
       return url;
     },
     getReportThumbnail(report) {
-      // 1. thumbnailUrl이 있으면 절대경로/상대경로 모두 처리
-      if (report.thumbnailUrl) {
-        return convertToRelativeUrl(report.thumbnailUrl);
-      }
+      console.log(`🔍 [FishingReportManager] 조황정보 ID ${report.frId} 이미지 디버깅:`, {
+        title: report.title,
+        imagesCount: report.images?.length || 0
+      })
 
-      // 2. images 배열의 첫 번째 이미지 사용
+      // images 배열에서 썸네일 우선 (목록보기에서는 thumbnailData 우선)
       if (report.images && report.images.length > 0) {
-        const firstImage = report.images[0];
+        // 썸네일 이미지 찾기
+        const thumbnailImage = report.images.find(img => img.isThumbnail)
+        if (thumbnailImage) {
+          // 목록보기에서는 thumbnailData 우선 (빠른 로딩)
+          if (thumbnailImage.thumbnailData) {
+            console.log(`✅ [FishingReportManager] 조황정보 ID ${report.frId}: images[thumbnail].thumbnailData 사용`)
+            return `data:image/jpeg;base64,${thumbnailImage.thumbnailData}`
+          }
+          if (thumbnailImage.imageData) {
+            console.log(`✅ [FishingReportManager] 조황정보 ID ${report.frId}: images[thumbnail].imageData 사용`)
+            return `data:image/jpeg;base64,${thumbnailImage.imageData}`
+          }
+          if (thumbnailImage.imageUrl) {
+            console.log(`✅ [FishingReportManager] 조황정보 ID ${report.frId}: images[thumbnail].imageUrl 사용`)
+            return convertToRelativeUrl(thumbnailImage.imageUrl)
+          }
+        }
+        
+        // 썸네일이 없으면 첫 번째 이미지 사용
+        const firstImage = report.images[0]
+        if (firstImage.thumbnailData) {
+          console.log(`✅ [FishingReportManager] 조황정보 ID ${report.frId}: images[0].thumbnailData 사용`)
+          return `data:image/jpeg;base64,${firstImage.thumbnailData}`
+        }
         if (firstImage.imageData) {
-          return `data:image/jpeg;base64,${firstImage.imageData}`;
-        } else if (firstImage.imageUrl) {
-          return convertToRelativeUrl(firstImage.imageUrl);
+          console.log(`✅ [FishingReportManager] 조황정보 ID ${report.frId}: images[0].imageData 사용`)
+          return `data:image/jpeg;base64,${firstImage.imageData}`
+        }
+        if (firstImage.imageUrl) {
+          console.log(`✅ [FishingReportManager] 조황정보 ID ${report.frId}: images[0].imageUrl 사용`)
+          return convertToRelativeUrl(firstImage.imageUrl)
         }
       }
 
-      // 3. imageFileName이 있으면 사용
+      // 기존 방식 (fallback)
+      if (report.thumbnailUrl) {
+        console.log(`✅ [FishingReportManager] 조황정보 ID ${report.frId}: thumbnailUrl 사용 (fallback)`)
+        return convertToRelativeUrl(report.thumbnailUrl);
+      }
+
       if (report.imageFileName) {
+        console.log(`✅ [FishingReportManager] 조황정보 ID ${report.frId}: imageFileName 사용 (fallback)`)
         return this.getThumbnailUrl(report.imageFileName);
       }
 
-      // 4. 기본 이미지 반환
+      // 기본 이미지
+      console.log(`⚠️ [FishingReportManager] 조황정보 ID ${report.frId}: 기본 이미지 사용 (default-product.jpg)`)
       return '/images/default-product.jpg';
     },
     handleImageError(event) {

@@ -13,6 +13,54 @@ const props = defineProps({
 const goToDetail = () => {
   router.push(`/fishing-report/${props.report.frId}`)
 }
+
+// 이미지 URL 생성 함수 (목록보기에서는 thumbnailData 우선)
+const getImageUrl = (report) => {
+  console.log(`🔍 [ReportCard] 조황정보 ID ${report.frId} 이미지 디버깅:`, {
+    title: report.title,
+    imagesCount: report.images?.length || 0
+  })
+
+  // images 배열에서 썸네일 우선 (목록보기에서는 thumbnailData 우선)
+  if (report.images && report.images.length > 0) {
+    // 썸네일 이미지 찾기
+    const thumbnailImage = report.images.find(img => img.isThumbnail)
+    if (thumbnailImage) {
+      // 목록보기에서는 thumbnailData 우선 (빠른 로딩)
+      if (thumbnailImage.thumbnailData) {
+        console.log(`✅ [ReportCard] 조황정보 ID ${report.frId}: images[thumbnail].thumbnailData 사용`)
+        return `data:image/jpeg;base64,${thumbnailImage.thumbnailData}`
+      }
+      if (thumbnailImage.imageData) {
+        console.log(`✅ [ReportCard] 조황정보 ID ${report.frId}: images[thumbnail].imageData 사용`)
+        return `data:image/jpeg;base64,${thumbnailImage.imageData}`
+      }
+      if (thumbnailImage.imageUrl) {
+        console.log(`✅ [ReportCard] 조황정보 ID ${report.frId}: images[thumbnail].imageUrl 사용`)
+        return convertToRelativeUrl(thumbnailImage.imageUrl)
+      }
+    }
+    
+    // 썸네일이 없으면 첫 번째 이미지 사용
+    const firstImage = report.images[0]
+    if (firstImage.thumbnailData) {
+      console.log(`✅ [ReportCard] 조황정보 ID ${report.frId}: images[0].thumbnailData 사용`)
+      return `data:image/jpeg;base64,${firstImage.thumbnailData}`
+    }
+    if (firstImage.imageData) {
+      console.log(`✅ [ReportCard] 조황정보 ID ${report.frId}: images[0].imageData 사용`)
+      return `data:image/jpeg;base64,${firstImage.imageData}`
+    }
+    if (firstImage.imageUrl) {
+      console.log(`✅ [ReportCard] 조황정보 ID ${report.frId}: images[0].imageUrl 사용`)
+      return convertToRelativeUrl(firstImage.imageUrl)
+    }
+  }
+  
+  // 기본 이미지
+  console.log(`⚠️ [ReportCard] 조황정보 ID ${report.frId}: 기본 이미지 사용 (no-image.png)`)
+  return '/images/no-image.png'
+}
 </script>
 
 <template>
@@ -20,36 +68,9 @@ const goToDetail = () => {
     <div class="thumbnail-section">
       <img
         class="thumbnail"
-        :src="
-          report.images && report.images.length
-            ? (
-                report.images[0].thumbnail_data
-                  ? `data:image/jpeg;base64,${report.images[0].thumbnail_data}`
-                  : (report.images[0].imageData
-                      ? `data:image/jpeg;base64,${report.images[0].imageData}`
-                      : (report.images[0].image_data
-                          ? `data:image/jpeg;base64,${report.images[0].image_data}`
-                          : (report.images[0].imageUrl
-                              ? convertToRelativeUrl(report.images[0].imageUrl)
-                              : (report.images[0].image_url
-                                  ? convertToRelativeUrl(report.images[0].image_url)
-                                  : '/images/no-image.png'
-                                )
-                            )
-                        )
-                    )
-              )
-            : '/images/no-image.png'
-        "
+        :src="getImageUrl(report)"
         alt="썸네일"
-        v-if="
-          report.images?.thumbnail_data ||
-          report.images?.imageData ||
-          report.images?.image_data ||
-          report.images?.imageUrl ||
-          report.images?.image_url ||
-          report.images
-        "
+        v-if="report.images && report.images.length > 0"
       />
       <div v-else class="image-placeholder">
         <i class="fas fa-image"></i>
