@@ -14,7 +14,7 @@ export default defineConfig({
   plugins: [
     vue(),
     vueDevTools(),
-    // basicSsl() // ✅ HTTPS 인증서 적용 (개발 환경에서 자체 서명 인증서 사용)
+    //basicSsl() // ✅ HTTPS 인증서 적용 (개발 환경에서 자체 서명 인증서 사용)
   ],
   resolve: {
     alias: {
