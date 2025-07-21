@@ -5,6 +5,7 @@ import nodePolyfills from 'rollup-plugin-node-polyfills'
 import history from 'connect-history-api-fallback'
 import { fileURLToPath, URL } from 'node:url'
 import fs from 'fs'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 
 // 환경변수로 백엔드 URL 설정
 // const API_TARGET = process.env.VITE_API_TARGET || 'https://localhost:8097';
@@ -14,7 +15,7 @@ export default defineConfig({
   plugins: [
     vue(),
     vueDevTools(),
-    // basicSsl() // ✅ HTTPS 인증서 적용 (개발 환경에서 자체 서명 인증서 사용)
+    basicSsl() // ✅ HTTPS 인증서 적용 (개발 환경에서 자체 서명 인증서 사용)
   ],
   resolve: {
     alias: {
